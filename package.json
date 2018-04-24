@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "Node.js implementation of the Bitcoin Lightning Network",
   "scripts": {
+    "start": "node src",
     "test": "jest src"
   },
   "keywords": [
