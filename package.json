@@ -23,6 +23,7 @@
     "chacha": "^2.1.0",
     "elliptic": "^6.4.0",
     "hkdf": "0.0.2",
+    "simple-buffer-cursor": "^1.0.1",
     "winston": "^2.4.2"
   }
 }

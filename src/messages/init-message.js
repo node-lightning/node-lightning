@@ -1,3 +1,5 @@
+const BufferCursor = require('simple-buffer-cursor');
+
 class InitMessage {
   constructor() {
     this.type = 16;
@@ -6,18 +8,19 @@ class InitMessage {
   }
 
   static deserialize(payload) {
+    payload = BufferCursor.from(payload);
     let instance = new InitMessage();
-    instance.globalFeatures = payload.readUInt16BE(0);
-    instance.localFeatures = payload.readUInt16BE(2);
+    instance.globalFeatures = payload.readUInt16BE();
+    instance.localFeatures = payload.readUInt16BE();
     return instance;
   }
 
   serialize() {
-    let result = Buffer.alloc(6);
-    result.writeUInt16BE(16, 0);
-    result.writeUInt16BE(this.globalFeatures, 2);
-    result.writeUInt16BE(this.localFeatures, 4);
-    return result;
+    let result = BufferCursor.from(Buffer.alloc(6));
+    result.writeUInt16BE(16);
+    result.writeUInt16BE(this.globalFeatures);
+    result.writeUInt16BE(this.localFeatures);
+    return result.buffer;
   }
 }
 
