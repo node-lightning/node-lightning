@@ -3,6 +3,7 @@ const ec = new EC('secp256k1');
 
 module.exports = {
   generateKey,
+  generatePubKey,
 };
 
 function generateKey(privKeyHex) {
@@ -18,6 +19,16 @@ function generateKey(privKeyHex) {
     compressed() {
       let hex = curve.getPublic(true, 'hex');
       return Buffer.from(hex, 'hex');
+    },
+  };
+}
+
+function generatePubKey(compressedKey) {
+  let curve = ec.keyFromPrivate(compressedKey);
+  return {
+    pub: curve.getPublic(),
+    compressed() {
+      return Buffer.from(compressedKey, 'hex');
     },
   };
 }

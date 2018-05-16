@@ -43,7 +43,6 @@ class PeerClient {
 
   async _onConnected() {
     try {
-      await this.noiseState.initialize();
       let m = await this.noiseState.initiatorAct1();
       this.socket.write(m);
       this.state = PeerClient.states.awaiting_handshake_reply;
@@ -59,6 +58,7 @@ class PeerClient {
 
     // process reply and create final act of handshake
     m = await this.noiseState.initiatorAct2Act3(m);
+
     this.socket.write(m);
 
     // send init message
