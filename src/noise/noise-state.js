@@ -60,7 +60,7 @@ class NoiseState {
     let c = m.slice(34);
 
     // 3. assert version is known version
-    if (v !== 0) throw new Error('Unrecognized version');
+    if (v !== 0) throw new Error('unrecognized version');
 
     // 4. sha256(h || re.serializedCompressed');
     this.h = sha256(Buffer.concat([this.h, re]));
