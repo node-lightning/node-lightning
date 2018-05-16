@@ -5,17 +5,15 @@ const { generateKey } = require('../wallet/key');
 const MessageFactory = require('../messages/message-factory');
 
 class PeerClient {
-  constructor({ localSecret, remoteSecret, host, port = 9735 }) {
+  constructor() {
+    this.state = PeerClient.states.pending;
+  }
+
+  async connect({ localSecret, remoteSecret, host, port = 9735 }) {
     let ephemeralSecret = generateKey();
     this.noiseState = new NoiseState({ ls: localSecret, rs: remoteSecret, es: ephemeralSecret });
     this.host = host;
     this.port = port;
-
-    this._buffer = Buffer.alloc(0);
-    this.completedAct = 0;
-  }
-
-  async connect() {
     await this._open();
   }
 
@@ -29,7 +27,7 @@ class PeerClient {
   }
 
   async sendMessage(m) {
-    winston.debug('sending', JSON.stringify(m));
+    winston.debug('sending msg', JSON.stringify(m));
     m = m.serialize();
     m = await this.noiseState.encryptMessage(m);
     this.socket.write(m);
@@ -47,52 +45,107 @@ class PeerClient {
     try {
       await this.noiseState.initialize();
       let m = await this.noiseState.initiatorAct1();
-      winston.debug('sending', m.toString('hex'));
       this.socket.write(m);
-      this.completedAct = 1;
+      this.state = PeerClient.states.awaiting_handshake_reply;
     } catch (err) {
       winston.error(err);
     }
   }
 
+  async _processHandshakeReply() {
+    // must read 50 bytes
+    let m = this.socket.read(50);
+    if (!m) return;
+
+    // process reply and create final act of handshake
+    m = await this.noiseState.initiatorAct2Act3(m);
+    this.socket.write(m);
+
+    // send init message
+    await this.sendMessage(MessageFactory.construct(16));
+
+    this.state = PeerClient.states.awaiting_init_reply;
+  }
+
+  async _processInitReply() {
+    if (!this.l) {
+      // read the length
+      let lc = this.socket.read(18);
+      if (!lc) return;
+
+      // capture and store length
+      this.l = await this.noiseState.decryptLength(lc);
+    }
+
+    // read the cipher
+    let c = this.socket.read(this.l + 16);
+    if (!c) return;
+
+    // decrypt the cipher
+    let m = await this.noiseState.decryptMessage(c);
+    m = MessageFactory.deserialize(m);
+
+    winston.debug('peer initialized', JSON.stringify(m));
+    this.remoteInit = m;
+    this.state = PeerClient.states.awaiting_message_length;
+    this.l = null;
+  }
+
   async _onData() {
     try {
-      if (this.completedAct === 1) {
-        let m = this.socket.read(50);
-        if (!m) return;
-
-        m = await this.noiseState.initiatorAct2Act3(m);
-        winston.debug('sending', m.toString('hex'));
-        this.socket.write(m);
-        this.completedAct = 3;
-
-        // send init message
-        await this.sendMessage(MessageFactory.construct(16));
-        //
-      } else if (this.completedAct === 3) {
-        // read the length
-        if (!this.l) {
-          let lc = this.socket.read(18);
-          if (!lc) return;
-          this.l = await this.noiseState.decryptLength(lc);
-        }
-
-        // read the cipher
-        let c = this.socket.read(this.l + 16);
-        if (!c) return;
-
-        // decrypt the cipher
-        let m = await this.noiseState.decryptMessage(c);
-        m = MessageFactory.deserialize(m);
-        if (m) winston.debug('received', JSON.stringify(m));
-
-        // reset l for next message
-        this.l = undefined;
+      switch (this.state) {
+        case PeerClient.states.awaiting_handshake_reply:
+          await this._processHandshakeReply();
+          break;
+        case PeerClient.states.awaiting_init_reply:
+          await this._processInitReply();
+          break;
+        case PeerClient.states.awaiting_message_length:
+          await this._processMessageLength();
+          await this._processMessageBody();
+          break;
+        case PeerClient.states.awaiting_message_body:
+          await this._processMessageBody();
+          break;
       }
     } catch (err) {
       winston.error(err);
     }
   }
+
+  async _processMessageLength() {
+    // read the length
+    let lc = this.socket.read(18);
+    if (!lc) return;
+
+    // immediate transition
+    this.state = PeerClient.states.awaiting_message_body;
+
+    // capture and store length
+    this.l = await this.noiseState.decryptLength(lc);
+  }
+
+  async _processMessageBody() {
+    // read the cipher
+    let c = this.socket.read(this.l + 16);
+    if (!c) return;
+
+    // immediate state transition
+    this.state = PeerClient.states.awaiting_message_length;
+
+    // decrypt the cipher
+    let m = await this.noiseState.decryptMessage(c);
+    m = MessageFactory.deserialize(m);
+    if (m) winston.debug('received', JSON.stringify(m));
+  }
 }
+
+PeerClient.states = {
+  pending: 'pending',
+  awaiting_handshake_reply: 'awaiting_handshake_reply',
+  awaiting_init_reply: 'awaiting_init_reply',
+  awaiting_message_length: 'awaiting_message_length',
+  awaiting_message_body: 'awaiting_message_body',
+};
 
 module.exports = PeerClient;

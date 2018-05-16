@@ -34,8 +34,8 @@ class App {
     };
 
     winston.debug('connecting to peer');
-    let peer = new PeerClient({ localSecret: ls, remoteSecret: rs, host: 'localhost' });
-    await peer.connect();
+    let peer = new PeerClient();
+    await peer.connect({ localSecret: ls, remoteSecret: rs, host: 'localhost' });
     winston.debug('connected to peer');
   }
 }
