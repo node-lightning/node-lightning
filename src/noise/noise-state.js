@@ -40,52 +40,65 @@ class NoiseState {
 
     let ss = ecdh(this.rs.pub, this.es.priv);
 
-    let temp_key1 = await hkdf(this.ck, ss);
-    this.ck = temp_key1.slice(0, 32);
-    temp_key1 = temp_key1.slice(32);
+    let temp_k1 = await hkdf(this.ck, ss);
+    this.ck = temp_k1.slice(0, 32);
+    this.temp_k1 = temp_k1.slice(32);
 
-    let c = ccpEncrypt(temp_key1, Buffer.alloc(12), this.h, '');
+    let c = ccpEncrypt(this.temp_k1, Buffer.alloc(12), this.h, '');
     this.h = sha256(Buffer.concat([this.h, c]));
+
     let m = Buffer.concat([Buffer.alloc(1), this.es.compressed(), c]);
     return m;
   }
 
-  async initiatorAct2Act3(m) {
+  async initiatorAct2(m) {
     winston.debug('initiator act2');
     // ACT 2
 
     // 1. read exactly 50 bytes off the stream
-    if (m.length !== 50) throw new Error('message must be 50 bytes');
+    if (m.length !== 50) throw new Error('ACT2_READ_FAILED');
 
     // 2. parse th read message m into v,re, and c
     let v = m.slice(0, 1)[0];
     let re = m.slice(1, 34);
     let c = m.slice(34);
 
+    // 2a. convert re to public key
+    this.re = generatePubKey(re);
+
     // 3. assert version is known version
-    if (v !== 0) throw new Error('unrecognized version');
+    if (v !== 0) throw new Error('ACT2_BAD_VERSION');
 
     // 4. sha256(h || re.serializedCompressed');
-    this.h = sha256(Buffer.concat([this.h, re]));
+    this.h = sha256(Buffer.concat([this.h, this.re.compressed()]));
 
     // 5. ss = ECDH(re, e.priv);
-    let ss = ecdh(re, this.es.priv);
+    let ss = ecdh(this.re.compressed(), this.es.priv);
 
     // 6. ck, temp_k2 = HKDF(cd, ss)
     let temp_k2 = await hkdf(this.ck, ss);
     this.ck = temp_k2.slice(0, 32);
-    temp_k2 = temp_k2.slice(32);
+    this.temp_k2 = temp_k2.slice(32);
+
+    let asserts = require('assert');
+    asserts.equal(
+      ss.toString('hex'),
+      'c06363d6cc549bcb7913dbb9ac1c33fc1158680c89e972000ecd06b36c472e47'
+    );
 
     // 7. p = decryptWithAD()
-    ccpDecrypt(temp_k2, Buffer.alloc(12), this.h, c);
+    ccpDecrypt(this.temp_k2, Buffer.alloc(12), this.h, c);
 
     // 8. h = sha256(h || c)
     this.h = sha256(Buffer.concat([this.h, c]));
+  }
 
+  async initiatorAct3() {
     // ACT 3
     winston.debug('initiator act3');
-    c = ccpEncrypt(
-      temp_k2,
+
+    let c = ccpEncrypt(
+      this.temp_k2,
       Buffer.from([0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0]),
       this.h,
       this.ls.compressed()
@@ -95,26 +108,23 @@ class NoiseState {
     this.h = sha256(Buffer.concat([this.h, c]));
 
     // 3. ss = ECDH(re, s.priv)
-    ss = ecdh(re, this.ls.priv);
+    let ss = ecdh(this.re.compressed(), this.ls.priv);
 
     // 4. ck, temp_k3 = HKDF(ck, ss)
     let temp_k3 = await hkdf(this.ck, ss);
     this.ck = temp_k3.slice(0, 32);
-    temp_k3 = temp_k3.slice(32);
+    this.temp_k3 = temp_k3.slice(32);
 
     // 5. t = encryptWithAD(temp_k3, 0, h, zero)
-    let t = ccpEncrypt(temp_k3, Buffer.alloc(12), this.h, '');
+    let t = ccpEncrypt(this.temp_k3, Buffer.alloc(12), this.h, '');
 
     // 6. sk, rk = hkdf(ck, zero)
     let sk = await hkdf(this.ck, '');
-    let rk = sk.slice(32);
-    sk = sk.slice(0, 32);
+    this.rk = sk.slice(32);
+    this.sk = sk.slice(0, 32);
 
-    this.sk = sk;
-    this.rk = rk;
-
-    // send m = 0 || c || t
-    m = Buffer.concat([Buffer.alloc(1), c, t]);
+    // 7. send m = 0 || c || t
+    let m = Buffer.concat([Buffer.alloc(1), c, t]);
     return m;
   }
 

@@ -5,7 +5,8 @@ function createFakePeerClient() {
   let noiseState = {
     initialize: jest.fn(),
     initiatorAct1: jest.fn().mockReturnValue('act1'),
-    initiatorAct2Act3: jest.fn().mockReturnValue('act3'),
+    initiatorAct2: jest.fn(),
+    initiatorAct3: jest.fn().mockReturnValue('act3'),
     decryptLength: jest.fn(),
     decryptMessage: jest.fn(),
   };

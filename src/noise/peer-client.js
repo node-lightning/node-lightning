@@ -56,9 +56,13 @@ class PeerClient {
     let m = this.socket.read(50);
     if (!m) return;
 
-    // process reply and create final act of handshake
-    m = await this.noiseState.initiatorAct2Act3(m);
+    // process reply
+    await this.noiseState.initiatorAct2(m);
 
+    // create final act of the handshake
+    m = await this.noiseState.initiatorAct3();
+
+    // send final handshake
     this.socket.write(m);
 
     // send init message
