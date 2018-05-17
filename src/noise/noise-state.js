@@ -80,12 +80,6 @@ class NoiseState {
     this.ck = temp_k2.slice(0, 32);
     this.temp_k2 = temp_k2.slice(32);
 
-    let asserts = require('assert');
-    asserts.equal(
-      ss.toString('hex'),
-      'c06363d6cc549bcb7913dbb9ac1c33fc1158680c89e972000ecd06b36c472e47'
-    );
-
     // 7. p = decryptWithAD()
     ccpDecrypt(this.temp_k2, Buffer.alloc(12), this.h, c);
 
