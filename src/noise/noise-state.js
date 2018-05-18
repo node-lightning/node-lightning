@@ -40,7 +40,7 @@ class NoiseState {
 
     let ss = ecdh(this.rs.pub, this.es.priv);
 
-    let temp_k1 = await hkdf(this.ck, ss);
+    let temp_k1 = hkdf(this.ck, ss);
     this.ck = temp_k1.slice(0, 32);
     this.temp_k1 = temp_k1.slice(32);
 
@@ -76,7 +76,7 @@ class NoiseState {
     let ss = ecdh(this.re.compressed(), this.es.priv);
 
     // 6. ck, temp_k2 = HKDF(cd, ss)
-    let temp_k2 = await hkdf(this.ck, ss);
+    let temp_k2 = hkdf(this.ck, ss);
     this.ck = temp_k2.slice(0, 32);
     this.temp_k2 = temp_k2.slice(32);
 
@@ -105,7 +105,7 @@ class NoiseState {
     let ss = ecdh(this.re.compressed(), this.ls.priv);
 
     // 4. ck, temp_k3 = HKDF(ck, ss)
-    let temp_k3 = await hkdf(this.ck, ss);
+    let temp_k3 = hkdf(this.ck, ss);
     this.ck = temp_k3.slice(0, 32);
     this.temp_k3 = temp_k3.slice(32);
 
@@ -113,7 +113,7 @@ class NoiseState {
     let t = ccpEncrypt(this.temp_k3, Buffer.alloc(12), this.h, '');
 
     // 6. sk, rk = hkdf(ck, zero)
-    let sk = await hkdf(this.ck, '');
+    let sk = hkdf(this.ck, '');
     this.rk = sk.slice(32);
     this.sk = sk.slice(0, 32);
 
@@ -146,7 +146,7 @@ class NoiseState {
     let ss = ecdh(re, this.ls.priv);
 
     // 6. ck, temp_k1 = HKDF(cd, ss)
-    let temp_k1 = await hkdf(this.ck, ss);
+    let temp_k1 = hkdf(this.ck, ss);
     this.ck = temp_k1.slice(0, 32);
     this.temp_k1 = temp_k1.slice(32);
 
@@ -167,7 +167,7 @@ class NoiseState {
     let ss = ecdh(this.re, this.es.priv);
 
     // 4. ck, temp_k2 = hkdf(ck, ss)
-    let temp_k2 = await hkdf(this.ck, ss);
+    let temp_k2 = hkdf(this.ck, ss);
     this.ck = temp_k2.slice(0, 32);
     this.temp_k2 = temp_k2.slice(32);
 
@@ -205,7 +205,7 @@ class NoiseState {
     let ss = ecdh(this.rs.compressed(), this.es.priv);
 
     // 7. ck, temp_k3 = hkdf(cs, ss)
-    let temp_k3 = await hkdf(this.ck, ss);
+    let temp_k3 = hkdf(this.ck, ss);
     this.ck = temp_k3.slice(0, 32);
     this.temp_k3 = temp_k3.slice(32);
 
@@ -213,7 +213,7 @@ class NoiseState {
     ccpDecrypt(this.temp_k3, Buffer.alloc(12), this.h, t);
 
     // 9. rk, sk = hkdf(ck, zero)
-    let sk = await hkdf(this.ck, '');
+    let sk = hkdf(this.ck, '');
     this.rk = sk.slice(0, 32);
     this.sk = sk.slice(32);
 
@@ -231,13 +231,13 @@ class NoiseState {
     let lc = ccpEncrypt(this.sk, this.sn, Buffer.alloc(0), l);
 
     // step 3a: increment sn
-    if (this._incrementSendingNonce() >= 1000) await this._rotateSendingKeys();
+    if (this._incrementSendingNonce() >= 1000) this._rotateSendingKeys();
 
     // step 4 encrypt m using chachapoly1305, sn, sk
     let c = ccpEncrypt(this.sk, this.sn, Buffer.alloc(0), m);
 
     // step 4a: increment sn
-    if (this._incrementSendingNonce() >= 1000) await this._rotateSendingKeys();
+    if (this._incrementSendingNonce() >= 1000) this._rotateSendingKeys();
 
     // step 5 return m to be sent
     return Buffer.concat([lc, c]);
@@ -246,7 +246,7 @@ class NoiseState {
   async decryptLength(lc) {
     let l = ccpDecrypt(this.rk, this.rn, Buffer.alloc(0), lc);
 
-    if (this._incrementRecievingNonce() >= 1000) await this._rotateRecievingKeys();
+    if (this._incrementRecievingNonce() >= 1000) this._rotateRecievingKeys();
 
     return l.readUInt16BE();
   }
@@ -254,7 +254,7 @@ class NoiseState {
   async decryptMessage(c) {
     let m = ccpDecrypt(this.rk, this.rn, Buffer.alloc(0), c);
 
-    if (this._incrementRecievingNonce() >= 1000) await this._rotateRecievingKeys();
+    if (this._incrementRecievingNonce() >= 1000) this._rotateRecievingKeys();
 
     return m;
   }
@@ -271,16 +271,17 @@ class NoiseState {
     return newValue;
   }
 
-  async _rotateSendingKeys() {
+  _rotateSendingKeys() {
     winston.debug('rotating sending key');
-    let result = await hkdf(this.ck, this.sk);
+    let result = hkdf(this.ck, this.sk);
     this.sk = result.slice(32);
     this.ck = result.slice(0, 32);
     this.sn = Buffer.alloc(12);
   }
-  async _rotateRecievingKeys() {
+
+  _rotateRecievingKeys() {
     winston.debug('rotating receiving key');
-    let result = await hkdf(this.ck, this.rk);
+    let result = hkdf(this.ck, this.rk);
     this.rk = result.slice(32);
     this.ck = result.slice(0, 32);
     this.rn = Buffer.alloc(12);

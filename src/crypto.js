@@ -1,7 +1,7 @@
 const crypto = require('crypto');
 const elliptic = require('elliptic');
 const secp256k1 = new elliptic.ec('secp256k1');
-const HKDF = require('hkdf');
+const HKDF = require('futoin-hkdf');
 const chacha = require('chacha');
 
 module.exports = {
@@ -54,11 +54,8 @@ function ecdh(rk, k) {
   return sha256(Buffer.from(shared, 'hex'));
 }
 
-async function hkdf(salt, ikm) {
-  return new Promise(resolve => {
-    let runner = new HKDF('sha256', salt, ikm);
-    runner.derive('', 64, resolve);
-  });
+function hkdf(salt, ikm) {
+  return HKDF(ikm, 64, { salt, hash: 'SHA-256' });
 }
 
 function ccpEncrypt(k, n, ad, plaintext) {

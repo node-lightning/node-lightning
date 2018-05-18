@@ -22,7 +22,7 @@
   "dependencies": {
     "chacha": "^2.1.0",
     "elliptic": "^6.4.0",
-    "hkdf": "0.0.2",
+    "futoin-hkdf": "^1.0.1",
     "simple-buffer-cursor": "^1.0.2",
     "winston": "^2.4.2"
   }
