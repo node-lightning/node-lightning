@@ -9,6 +9,8 @@ class InitMessage {
 
   static deserialize(payload) {
     payload = BufferCursor.from(payload);
+    payload.readUInt16BE();
+
     let instance = new InitMessage();
     instance.globalFeatures = payload.readUInt16BE();
     instance.localFeatures = payload.readUInt16BE();
@@ -17,7 +19,7 @@ class InitMessage {
 
   serialize() {
     let result = BufferCursor.from(Buffer.alloc(6));
-    result.writeUInt16BE(16);
+    result.writeUInt16BE(this.type);
     result.writeUInt16BE(this.globalFeatures);
     result.writeUInt16BE(this.localFeatures);
     return result.buffer;

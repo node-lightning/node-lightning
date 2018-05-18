@@ -3,10 +3,13 @@ const winston = require('winston');
 const NoiseState = require('./noise-state');
 const { generateKey } = require('../wallet/key');
 const MessageFactory = require('../messages/message-factory');
+const PingPongState = require('./pingpong-state');
 
 class PeerClient {
   constructor() {
     this.state = PeerClient.states.pending;
+    this.noiseState;
+    this.pingPongState = new PingPongState(this);
   }
 
   async connect({ localSecret, remoteSecret, host, port = 9735 }) {
@@ -31,6 +34,11 @@ class PeerClient {
     m = m.serialize();
     m = await this.noiseState.encryptMessage(m);
     this.socket.write(m);
+  }
+
+  disconnect() {
+    if (this.pingPongState) this.pingPongState.onDisconnecting();
+    this.socket.disconnect();
   }
 
   _onClose() {
@@ -93,6 +101,9 @@ class PeerClient {
     this.remoteInit = m;
     this.state = PeerClient.states.awaiting_message_length;
     this.l = null;
+
+    // start other state now that peer is initialized
+    this.pingPongState.start();
   }
 
   async _onData() {
@@ -140,7 +151,10 @@ class PeerClient {
     // decrypt the cipher
     let m = await this.noiseState.decryptMessage(c);
     m = MessageFactory.deserialize(m);
-    if (m) winston.debug('received', JSON.stringify(m));
+    if (m) {
+      winston.debug('received', JSON.stringify(m));
+      this.pingPongState.onMessage(m);
+    }
   }
 }
 
