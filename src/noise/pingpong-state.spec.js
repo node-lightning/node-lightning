@@ -94,6 +94,11 @@ describe('when pong received', () => {
 });
 
 describe('when ping received', () => {
+  test('it should not send ping when num_pong_bytes gte 65532', () => {
+    sut = createAndStart({ PING_INTERVAL_MS: 10, PONG_TIMEOUT_MS: 3 });
+    sut.onMessage({ type: 18, num_pong_bytes: 65532 });
+    expect(sut._peerClient.disconnect.mock.calls.length).toBe(0);
+  });
   test('it should send correct pong', () => {
     sut = createAndStart({ PING_INTERVAL_MS: 10, PONG_TIMEOUT_MS: 3 });
     sut.onMessage({ type: 18, num_pong_bytes: 1 });

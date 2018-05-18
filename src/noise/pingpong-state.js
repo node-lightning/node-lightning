@@ -1,4 +1,3 @@
-const winston = require('winston');
 const PingMessage = require('../messages/ping-message');
 const PongMessage = require('../messages/pong-message');
 
@@ -41,8 +40,6 @@ class PingPongState {
    * Handles incoming messages
    */
   onMessage(m) {
-    winston.debug('pingpongstate received a message');
-
     // update the time of the last received message
     this._lastMessageReceived = Date.now();
 
@@ -50,7 +47,9 @@ class PingPongState {
     if (m.type === 18) {
       this._pingsReceieved += 1;
       this._checkForPingFlood();
-      this._sendPong(m);
+
+      // only send pong when num_pong_bytes as per spec
+      if (m.num_pong_bytes < 65532) this._sendPong(m);
     }
 
     // recieved pong
@@ -71,8 +70,6 @@ class PingPongState {
   ///////////
 
   _sendPing() {
-    winston.debug('sending ping');
-
     // create the timeout we will wait for the pong
     this._pongTimeoutHandle = setTimeout(this._pongTimedOut.bind(this), this.PONG_TIMEOUT_MS);
 
@@ -85,16 +82,12 @@ class PingPongState {
   }
 
   _sendPong(ping) {
-    winston.debug('sending pong');
-
     // construct and send a message
     let pong = PongMessage.createReply(ping);
     this._peerClient.sendMessage(pong);
   }
 
   _onSendPingInterval() {
-    winston.debug('thinking about sending ping');
-
     // reset the number of pings received
     this._pingsReceieved = 0;
 
@@ -112,12 +105,9 @@ class PingPongState {
 
     // check that pong is a valid one and if not, we disconnect
     if (this._sentPing && this._sentPing.num_pong_bytes !== pong.ignored.length) {
-      winston.debug('pong was invalid, disconnecting');
       this._peerClient.disconnect();
       return;
     }
-
-    winston.debug('pong was valid');
   }
 
   _pongTimedOut() {
