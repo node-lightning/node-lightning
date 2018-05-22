@@ -1,7 +1,7 @@
 {
-  "name": "lightning-payment",
+  "name": "lightning-invoice",
   "version": "0.1.0",
-  "description": "Lightning Network payment encoding library",
+  "description": "Lightning Network invoice protocol library",
   "main": "src/index.js",
   "scripts": {
     "test": "jest --coverage",
