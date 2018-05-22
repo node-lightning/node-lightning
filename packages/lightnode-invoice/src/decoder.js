@@ -9,6 +9,8 @@ function decode(paymentInvoice) {
   let { prefix, words } = bech32.decode(paymentInvoice, 1023);
   let buffer = convertWords(words, 5, 8);
 
+  let { network, amount } = parsePrefix(prefix);
+
   let reader = BitCursor.from(buffer);
 
   let timestamp = reader.readUIntBE(35); // read 35 bits
@@ -68,8 +70,8 @@ function decode(paymentInvoice) {
   let signature = reader.readBits(520);
 
   return {
-    network: '',
-    amount: '',
+    network,
+    amount,
     timestamp,
     data: dataSections,
     signature,
@@ -77,6 +79,56 @@ function decode(paymentInvoice) {
 }
 
 //////////////
+
+function parsePrefix(prefix) {
+  if (!prefix.startsWith('ln')) throw new Error('Invalid prefix');
+  let network = '';
+  let amount = '';
+  let multiplier;
+  let parsingNetwork = true;
+
+  for (let i = 2; i < prefix.length; i++) {
+    let charCode = prefix.charCodeAt(i);
+
+    if (parsingNetwork) {
+      if (charCode >= 97 && charCode <= 122) network += prefix[i];
+      if (charCode >= 48 && charCode <= 57) parsingNetwork = false;
+    }
+
+    if (!parsingNetwork) {
+      if (multiplier !== undefined) throw new Error('Invalid prefix');
+      if (charCode >= 48 && charCode <= 57) amount += prefix[i];
+      if (charCode >= 97 && charCode <= 122) multiplier = prefix[i];
+    }
+  }
+
+  amount = amount === '' ? null : parseInt(amount) * getAmountMultiplier(multiplier);
+
+  if (!isValidNetwork(network)) throw new Error('Invalid network');
+  if (!isValidAmount(amount)) throw new Error('Invalid amount');
+
+  return {
+    network,
+    amount,
+  };
+}
+
+function isValidNetwork(network) {
+  return network === 'bc' || network === 'tb' || network === 'crt';
+}
+
+function isValidAmount(amount) {
+  return amount === null || amount > 0;
+}
+
+function getAmountMultiplier(char) {
+  if (char === undefined) return 1;
+  if (char === 'm') return 0.001;
+  if (char === 'u') return 0.000001;
+  if (char === 'n') return 0.000000001;
+  if (char === 'p') return 0.000000000001;
+  throw new Error('Invalid multiplier');
+}
 
 function convertWords(data, inBits, outBits) {
   var value = 0;
