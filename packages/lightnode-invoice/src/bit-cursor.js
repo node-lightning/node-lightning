@@ -12,11 +12,11 @@ class BitCursor {
     return this.buffer.length * 8 - this.bitPosition;
   }
 
-  get readByteIndex() {
+  get bytePosition() {
     return ~~(this.bitPosition / 8);
   }
 
-  readBits(bits, truncateByteExcess = false) {
+  readBits(bits) {
     let result = Buffer.alloc(Math.ceil(bits / 8));
 
     let writeBitIndex = 0;
@@ -37,30 +37,21 @@ class BitCursor {
           : this._readRightBits(readByte, readBitChunk);
 
       // shift the bits into the correct leftmost position
-      readBits <<= 8 - (writeBitIndexInByte + readBitChunk);
-
-      // add the read bits to the right side of the byte
-      result[writeByteIndex] += readBits;
+      // add then append read bits to the right side of the byte
+      result[writeByteIndex] |= readBits << (8 - (writeBitIndexInByte + readBitChunk));
 
       writeBitIndex += readBitChunk;
       this.bitPosition += readBitChunk;
     }
-
-    if (truncateByteExcess) {
-      if (bits % 8 > 0) {
-        result = result.slice(0, result.length - 1);
-      }
-    }
-
     return result;
   }
 
-  _readLeftBits(byte, len) {
-    return byte >> (8 - len);
-  }
-
-  _readRightBits(byte, len) {
-    return byte & ((1 << len) - 1);
+  readBytes(bits) {
+    let result = this.readBits(bits);
+    if (bits % 8 > 0) {
+      result = result.slice(0, result.length - 1);
+    }
+    return result;
   }
 
   readUIntBE(bits) {
@@ -93,9 +84,9 @@ class BitCursor {
   }
 
   currentByte(full) {
-    if (full) return this.buffer[this.readByteIndex];
+    if (full) return this.buffer[this.bytePosition];
     else {
-      let byte = this.buffer[this.readByteIndex];
+      let byte = this.buffer[this.bytePosition];
       let bitsRemaining = 8 - this.bitPosition % 8;
       return byte & ((1 << bitsRemaining) - 1);
     }
@@ -104,6 +95,14 @@ class BitCursor {
   currentByteToString(full) {
     let actual = this.currentByte(full);
     return actual.toString(2).padStart(full ? 8 : 8 - this.bitPosition % 8, '0');
+  }
+
+  _readLeftBits(byte, len) {
+    return byte >> (8 - len);
+  }
+
+  _readRightBits(byte, len) {
+    return byte & ((1 << len) - 1);
   }
 }
 

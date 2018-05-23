@@ -72,11 +72,23 @@ test('readBits with partial and cross bytes', () => {
   expect(sut.readBits(8)).toEqual(Buffer.from('fb', 'hex'));
 });
 
-test('readBits with partial and cross bytes with truncate', () => {
+test('readBytes with full byte', () => {
+  let input = Buffer.from('CA0980', 'hex');
+  let sut = new BitCursor(input);
+  expect(sut.readBytes(16)).toEqual(Buffer.from([202, 9], 'hex'));
+});
+
+test('readBytes with partial byte', () => {
+  let input = Buffer.from('CA0980', 'hex');
+  let sut = new BitCursor(input);
+  expect(sut.readBytes(19)).toEqual(Buffer.from([202, 9], 'hex'));
+});
+
+test('readBytes with partial and cross bytes with truncate', () => {
   let input = Buffer.from('CA0980', 'hex');
   let sut = new BitCursor(input);
   expect(sut.readBits(5)).toEqual(Buffer.from([200]));
-  expect(sut.readBits(19, true)).toEqual(Buffer.from([65, 48], 'hex'));
+  expect(sut.readBytes(19)).toEqual(Buffer.from([65, 48], 'hex'));
 });
 
 test('bitsRemaining at start should have all bits', () => {
@@ -129,28 +141,3 @@ test('print partial vbyte', () => {
   sut.readBits(10);
   expect(sut.currentByteToString()).toBe('1001');
 });
-
-// test('test 4', () => {
-//   let input = Buffer.from(
-//     '0b25fe64410d00004080c1014181c20240004080c1014181c20240004080c1014181c202404081a1fa83632b0b9b29031b7b739b4b232b91039bab83837b93a34b733903a3434b990383937b532b1ba038ec6891345e204145be8a3a99de38e98a39d6a569434e1845c8af7205afcfcc7f425fcd1463e93c32881ead0d6e356d467ec8c02553f9aab15e5738b11f127f00',
-//     'hex'
-//   );
-//   let sut = new BitCursor(input);
-//   expect(sut.readUIntBE(35)).toBe(1496314658);
-//   expect(sut.readUIntBE(5)).toBe(1);
-//   expect(sut.readUIntBE(10)).toBe(52);
-//   expect(sut.readBits(52 * 5, true)).toEqual(
-//     Buffer.from('0001020304050607080900010203040506070809000102030405060708090102', 'hex')
-//   );
-//   expect(sut.readUIntBE(5)).toBe(13);
-//   expect(sut.readUIntBE(10)).toBe(63);
-//   expect(sut.readBits(63 * 5, true)).toEqual(
-//     Buffer.from('Please consider supporting this project')
-//   );
-//   expect(sut.readBits(520)).toEqual(
-//     Buffer.from(
-//       '38ec6891345e204145be8a3a99de38e98a39d6a569434e1845c8af7205afcfcc7f425fcd1463e93c32881ead0d6e356d467ec8c02553f9aab15e5738b11f127f00',
-//       'hex'
-//     )
-//   );
-// });

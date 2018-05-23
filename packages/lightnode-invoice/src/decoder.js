@@ -23,22 +23,22 @@ function decode(invoice) {
 
     switch (type) {
       case 1: // p - 256-bit sha256 payment_hash
-        data = reader.readBits(len, true);
+        data = reader.readBytes(len);
         break;
       case 9: // f - variable depending on version
         data = {
           version: reader.readUIntBE(5),
-          address: reader.readBits(len - 5, true),
+          address: reader.readBytes(len - 5),
         };
         break;
       case 19: // n - 33-byte public key of the payee node
-        data = reader.readBits(len, true);
+        data = reader.readBytes(len);
         break;
       case 23: // h - 256-bit sha256 description of purpose of payment
-        data = reader.readBits(len, true);
+        data = reader.readBytes(len);
         break;
       case 13: // d - short description of purpose of payment utf-8
-        data = reader.readBits(len, true).toString('utf8');
+        data = reader.readBytes(len).toString('utf8');
         break;
       case 6: // x - expiry time in seconds
       case 24: // c - min_final_cltv_expiry to use for the last HTLC in the route
@@ -124,16 +124,12 @@ function isValidAmount(amount) {
 
 function getAmountMultiplier(char) {
   if (char === undefined) return 1;
-  switch (char) {
-    case 'm':
-      return 10 ** -3;
-    case 'u':
-      return 10 ** -6;
-    case 'n':
-      return 10 ** -9;
-    case 'p':
-      return 10 ** -12;
-    default:
-      throw new Error('Invalid multiplier');
-  }
+  let units = {
+    m: 10 ** -3,
+    u: 10 ** -6,
+    n: 10 ** -9,
+    p: 10 ** -12,
+  };
+  if (units[char]) return units[char];
+  throw new Error('Invalid multiplier');
 }
