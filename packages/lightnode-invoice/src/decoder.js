@@ -1,21 +1,26 @@
+const crypto = require('crypto');
+const elliptic = require('elliptic');
 const bech32 = require('./bech32');
 const BitCursor = require('./bit-cursor');
+
+const ec = new elliptic.ec('secp256k1');
 
 module.exports = {
   decode,
 };
 
 function decode(invoice) {
-  let { prefix, bytes } = bech32.decode(invoice);
+  let { prefix, words, bytes } = bech32.decode(invoice);
 
   let { network, amount } = parsePrefix(prefix);
 
   let reader = BitCursor.from(bytes);
 
   let timestamp = reader.readUIntBE(35); // read 35 bits
-  let dataSections = [];
+  let fields = [];
+  let unknownFields = [];
 
-  // read data until at signature
+  // read fields until at signature
   while (reader.bitsRemaining > 528) {
     let type = reader.readUIntBE(5); // read 5 bits
     let len = reader.readUIntBE(10) * 5; // read 10 bits, multiply by 5 for bits
@@ -60,26 +65,55 @@ function decode(invoice) {
         reader.readBits(rem);
         break;
       default:
-        throw new Error('invalid data type ' + type);
+        // ignore unknown fields
+        unknownFields.push({ type, data: reader.readBits(len) });
+        continue;
     }
 
-    dataSections.push({ type, data });
+    fields.push({ type, data });
   }
 
-  let signature = reader.readBits(512);
-  let signatureFlags = reader.readUIntBE(8);
+  let sigBytes = reader.readBits(512);
+  let r = sigBytes.slice(0, 32);
+  let s = sigBytes.slice(32);
+  let recoveryFlag = reader.readUIntBE(8);
+
+  reader.bitPosition = 0;
+  let hashData = reader.readBits((words.length - 104) * 5);
+  hashData = Buffer.concat([Buffer.from(prefix), hashData]);
+  hashData = sha256(hashData);
+
+  let pubkey = ec.recoverPubKey(hashData, { r, s }, recoveryFlag);
+
+  // MUST validate signature
+  if (!ec.keyFromPublic(pubkey).verify(hashData, { r, s })) throw new Error('Signature invalid');
 
   return {
     network,
     amount,
     timestamp,
-    data: dataSections,
-    signature,
-    signatureFlags,
+    fields,
+    unknownFields,
+    signature: {
+      r,
+      s,
+      recoveryFlag,
+    },
+    pubkey: {
+      x: pubkey.getX().toBuffer('be'),
+      y: pubkey.getY().toBuffer('be'),
+    },
+    hashData,
   };
 }
 
 //////////////
+
+function sha256(data) {
+  let hash = crypto.createHash('sha256');
+  hash.update(data);
+  return hash.digest();
+}
 
 function parsePrefix(prefix) {
   if (!prefix.startsWith('ln')) throw new Error('Invalid prefix');
