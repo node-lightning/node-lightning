@@ -36,10 +36,13 @@ test('donation of any amount using payment_hash 00010203040506070809000102030405
   // signature
   expect(result.signature).toEqual(
     Buffer.from(
-      '38ec6891345e204145be8a3a99de38e98a39d6a569434e1845c8af7205afcfcc7f425fcd1463e93c32881ead0d6e356d467ec8c02553f9aab15e5738b11f127f00',
+      '38ec6891345e204145be8a3a99de38e98a39d6a569434e1845c8af7205afcfcc7f425fcd1463e93c32881ead0d6e356d467ec8c02553f9aab15e5738b11f127f',
       'hex'
     )
   );
+
+  // signature flags
+  expect(result.signatureFlags).toBe(0);
 });
 
 test('send $3 for a cup of coffee to the same peer, within 1 minute', () => {
@@ -76,10 +79,13 @@ test('send $3 for a cup of coffee to the same peer, within 1 minute', () => {
   // signature
   expect(result.signature).toEqual(
     Buffer.from(
-      'e89639ba6814e36689d4b91bf125f10351b55da057b00647a8dabaeb8a90c95f160f9d5a6e0f79d1fc2b964238b944e2fa4aa677c6f020d466472ab842bd750e00',
+      'e89639ba6814e36689d4b91bf125f10351b55da057b00647a8dabaeb8a90c95f160f9d5a6e0f79d1fc2b964238b944e2fa4aa677c6f020d466472ab842bd750e',
       'hex'
     )
   );
+
+  // signature flags
+  expect(result.signatureFlags).toBe(1);
 });
 
 test('send 0.0025 BTC for a cup of nonsense (ナンセンス 1杯) to the same peer, within 1 minute', () => {
@@ -116,10 +122,13 @@ test('send 0.0025 BTC for a cup of nonsense (ナンセンス 1杯) to the same p
   // signature
   expect(result.signature).toEqual(
     Buffer.from(
-      '259f04511e7ef2aa77f6ff04d51b4ae9209504843e5ab9672ce32a153681f687515b73ce57ee309db588a10eb8e41b5a2d2bc17144ddf398033faa49ffe95ae600',
+      '259f04511e7ef2aa77f6ff04d51b4ae9209504843e5ab9672ce32a153681f687515b73ce57ee309db588a10eb8e41b5a2d2bc17144ddf398033faa49ffe95ae6',
       'hex'
     )
   );
+
+  // signature flags
+  expect(result.signatureFlags).toBe(0);
 });
 
 test('send $24 for an entire list of things (hashed)', () => {
@@ -152,10 +161,13 @@ test('send $24 for an entire list of things (hashed)', () => {
   // signature
   expect(result.signature).toEqual(
     Buffer.from(
-      'c63486e81f8c878a105bc9d959af1973854c4dc552c4f0e0e0c7389603d6bdc67707bf6be992a8ce7bf50016bb41d8a9b5358652c4960445a170d049ced4558c00',
+      'c63486e81f8c878a105bc9d959af1973854c4dc552c4f0e0e0c7389603d6bdc67707bf6be992a8ce7bf50016bb41d8a9b5358652c4960445a170d049ced4558c',
       'hex'
     )
   );
+
+  // signature flags
+  expect(result.signatureFlags).toBe(0);
 });
 
 test('send $24, on testnet, with a fallback address mk2QpYatsKicvFVuTAQLBryyccRXMUaGHP', () => {
@@ -184,6 +196,17 @@ test('send $24, on testnet, with a fallback address mk2QpYatsKicvFVuTAQLBryyccRX
   expect(result.data[1].data).toEqual(
     Buffer.from('0001020304050607080900010203040506070809000102030405060708090102', 'hex')
   );
+
+  // signature
+  expect(result.signature).toEqual(
+    Buffer.from(
+      'b6c42b8a61e0dc5823ea63e76ff148ab5f6c86f45f9722af0069c7934daff70d5e315893300774c897995e3a7476c8193693d144a36e2645a0851e6ebafc9d0a',
+      'hex'
+    )
+  );
+
+  // signature flags
+  expect(result.signatureFlags).toBe(1);
 });
 
 test('send $24, on mainnet, with fallback address 1RustyRX2oai4EYYDpQGWvEL62BBGqN9T with extra routing info to go via nodes 029e03a901b85534ff1e92c43c74431f7ce72046060fcf7a95c37e148f78c77255 then 039e03a901b85534ff1e92c43c74431f7ce72046060fcf7a95c37e148f78c77255', () => {
@@ -242,10 +265,13 @@ test('send $24, on mainnet, with fallback address 1RustyRX2oai4EYYDpQGWvEL62BBGq
   // signature
   expect(result.signature).toEqual(
     Buffer.from(
-      '91675cb3fad8e9d915343883a49242e074474e26d42c7ed914655689a8074553733e8e4ea5ce9b85f69e40d755a55014536b12323f8b220600c94ef2b9c5142800',
+      '91675cb3fad8e9d915343883a49242e074474e26d42c7ed914655689a8074553733e8e4ea5ce9b85f69e40d755a55014536b12323f8b220600c94ef2b9c51428',
       'hex'
     )
   );
+
+  // signature flags
+  expect(result.signatureFlags).toBe(0);
 });
 
 test('send $24, on mainnet, with fallback (P2SH) address 3EktnHQD7RiAE6uzMj2ZifT9YgRrkSgzQX', () => {
@@ -285,10 +311,13 @@ test('send $24, on mainnet, with fallback (P2SH) address 3EktnHQD7RiAE6uzMj2ZifT
   // signature
   expect(result.signature).toEqual(
     Buffer.from(
-      'b6c6860fc6ff41bafba1745b538b6a7c6c2c0234f76bf817bf567be88cf2c632492c9dd279470841cd1e21a33ae7ed59b25809bf9b3366fe81881651589f5d1500',
+      'b6c6860fc6ff41bafba1745b538b6a7c6c2c0234f76bf817bf567be88cf2c632492c9dd279470841cd1e21a33ae7ed59b25809bf9b3366fe81881651589f5d15',
       'hex'
     )
   );
+
+  // signature flags
+  expect(result.signatureFlags).toBe(0);
 });
 
 test('send $24, on mainnet, with fallback (P2WPKH) address bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4', () => {
@@ -328,10 +357,13 @@ test('send $24, on mainnet, with fallback (P2WPKH) address bc1qw508d6qejxtdg4y5r
   // signature
   expect(result.signature).toEqual(
     Buffer.from(
-      'c8583b8f65853d7cc90f0eb4ae0e92a606f89caf4f7d65048142d7bbd4e5f3623ef407a75458e4b20f00efbc734f1c2eefc419f3a2be6d51038016ffb35cd61300',
+      'c8583b8f65853d7cc90f0eb4ae0e92a606f89caf4f7d65048142d7bbd4e5f3623ef407a75458e4b20f00efbc734f1c2eefc419f3a2be6d51038016ffb35cd613',
       'hex'
     )
   );
+
+  // signature flags
+  expect(result.signatureFlags).toBe(0);
 });
 
 test('send $24, on mainnet, with fallback (P2WSH) address bc1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3qccfmv3', () => {
@@ -371,8 +403,11 @@ test('send $24, on mainnet, with fallback (P2WSH) address bc1qrp33g0q5c5txsp9ary
   // signature
   expect(result.signature).toEqual(
     Buffer.from(
-      '51e4f6446e410a164a6da9f39507e730c26241b4456ab6ea28d1b12c71ef8ca20c9cfe3dffc07d9f8db671ecaa4d20beedb193bda8ce37c59f85f82773a55d4700',
+      '51e4f6446e410a164a6da9f39507e730c26241b4456ab6ea28d1b12c71ef8ca20c9cfe3dffc07d9f8db671ecaa4d20beedb193bda8ce37c59f85f82773a55d47',
       'hex'
     )
   );
+
+  // signature flags
+  expect(result.signatureFlags).toBe(0);
 });

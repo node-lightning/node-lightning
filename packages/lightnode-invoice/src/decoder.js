@@ -1,23 +1,22 @@
-const bech32 = require('bech32');
+const bech32 = require('./bech32');
 const BitCursor = require('./bit-cursor');
 
 module.exports = {
   decode,
 };
 
-function decode(paymentInvoice) {
-  let { prefix, words } = bech32.decode(paymentInvoice, 1023);
-  let buffer = convertWords(words, 5, 8);
+function decode(invoice) {
+  let { prefix, bytes } = bech32.decode(invoice);
 
   let { network, amount } = parsePrefix(prefix);
 
-  let reader = BitCursor.from(buffer);
+  let reader = BitCursor.from(bytes);
 
   let timestamp = reader.readUIntBE(35); // read 35 bits
   let dataSections = [];
 
   // read data until at signature
-  while (reader.bitsRemaining > 520) {
+  while (reader.bitsRemaining > 528) {
     let type = reader.readUIntBE(5); // read 5 bits
     let len = reader.readUIntBE(10) * 5; // read 10 bits, multiply by 5 for bits
     let data, rem;
@@ -67,7 +66,8 @@ function decode(paymentInvoice) {
     dataSections.push({ type, data });
   }
 
-  let signature = reader.readBits(520);
+  let signature = reader.readBits(512);
+  let signatureFlags = reader.readUIntBE(8);
 
   return {
     network,
@@ -75,6 +75,7 @@ function decode(paymentInvoice) {
     timestamp,
     data: dataSections,
     signature,
+    signatureFlags,
   };
 }
 
@@ -123,28 +124,16 @@ function isValidAmount(amount) {
 
 function getAmountMultiplier(char) {
   if (char === undefined) return 1;
-  if (char === 'm') return 0.001;
-  if (char === 'u') return 0.000001;
-  if (char === 'n') return 0.000000001;
-  if (char === 'p') return 0.000000000001;
-  throw new Error('Invalid multiplier');
-}
-
-function convertWords(data, inBits, outBits) {
-  var value = 0;
-  var bits = 0;
-  var maxV = (1 << outBits) - 1;
-
-  var result = [];
-  for (var i = 0; i < data.length; ++i) {
-    value = (value << inBits) | data[i];
-    bits += inBits;
-
-    while (bits >= outBits) {
-      bits -= outBits;
-      result.push((value >> bits) & maxV);
-    }
+  switch (char) {
+    case 'm':
+      return 10 ** -3;
+    case 'u':
+      return 10 ** -6;
+    case 'n':
+      return 10 ** -9;
+    case 'p':
+      return 10 ** -12;
+    default:
+      throw new Error('Invalid multiplier');
   }
-
-  return result;
 }

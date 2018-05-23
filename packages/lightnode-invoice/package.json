@@ -1,6 +1,6 @@
 {
   "name": "lightning-invoice",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Lightning Network invoice protocol library",
   "main": "src/index.js",
   "scripts": {
