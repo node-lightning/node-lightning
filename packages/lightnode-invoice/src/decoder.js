@@ -1,7 +1,8 @@
 const crypto = require('crypto');
 const elliptic = require('elliptic');
 const bech32 = require('./bech32');
-const BitCursor = require('./bit-cursor');
+const bitcursor = require('./bit-cursor');
+const Invoice = require('./invoice');
 
 const ec = new elliptic.ec('secp256k1');
 
@@ -14,7 +15,7 @@ function decode(invoice) {
 
   let { network, amount } = parsePrefix(prefix);
 
-  let reader = BitCursor.from(bytes);
+  let reader = bitcursor.from(bytes);
 
   let timestamp = reader.readUIntBE(35); // read 35 bits
   let fields = [];
@@ -24,36 +25,44 @@ function decode(invoice) {
   while (reader.bitsRemaining > 528) {
     let type = reader.readUIntBE(5); // read 5 bits
     let len = reader.readUIntBE(10) * 5; // read 10 bits, multiply by 5 for bits
-    let data, rem;
+    let value, rem;
 
     switch (type) {
       case 1: // p - 256-bit sha256 payment_hash
-        data = reader.readBytes(len);
+        value = reader.readBytes(len);
         break;
       case 9: // f - variable depending on version
-        data = {
-          version: reader.readUIntBE(5),
-          address: reader.readBytes(len - 5),
-        };
+        {
+          let version = reader.readUIntBE(5);
+          let address = reader.readBytes(len - 5);
+          value = {
+            version,
+            address,
+          };
+          if (version !== 0 && version !== 17 && version !== 18) {
+            unknownFields.push({ type, value });
+            continue;
+          }
+        }
         break;
       case 19: // n - 33-byte public key of the payee node
-        data = reader.readBytes(len);
+        value = reader.readBytes(len);
         break;
       case 23: // h - 256-bit sha256 description of purpose of payment
-        data = reader.readBytes(len);
+        value = reader.readBytes(len);
         break;
       case 13: // d - short description of purpose of payment utf-8
-        data = reader.readBytes(len).toString('utf8');
+        value = reader.readBytes(len).toString('utf8');
         break;
       case 6: // x - expiry time in seconds
       case 24: // c - min_final_cltv_expiry to use for the last HTLC in the route
-        data = reader.readUIntBE(len);
+        value = reader.readUIntBE(len);
         break;
       case 3: // r - variable, one or more entries containing extra routing info
-        data = [];
+        value = [];
         rem = len;
         while (rem >= 408) {
-          data.push({
+          value.push({
             pubkey: reader.readBits(264),
             short_channel_id: reader.readBits(64),
             fee_base_msat: reader.readUIntBE(32),
@@ -66,11 +75,11 @@ function decode(invoice) {
         break;
       default:
         // ignore unknown fields
-        unknownFields.push({ type, data: reader.readBits(len) });
+        unknownFields.push({ type, value: reader.readBits(len) });
         continue;
     }
 
-    fields.push({ type, data });
+    fields.push({ type, value });
   }
 
   let sigBytes = reader.readBits(512);
@@ -88,7 +97,7 @@ function decode(invoice) {
   // MUST validate signature
   if (!ec.keyFromPublic(pubkey).verify(hashData, { r, s })) throw new Error('Signature invalid');
 
-  return {
+  return new Invoice({
     network,
     amount,
     timestamp,
@@ -104,7 +113,7 @@ function decode(invoice) {
       y: pubkey.getY().toBuffer('be'),
     },
     hashData,
-  };
+  });
 }
 
 //////////////
