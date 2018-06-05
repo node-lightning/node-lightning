@@ -158,7 +158,7 @@ function parsePrefix(prefix) {
 }
 
 function isValidNetwork(network) {
-  return network === 'bc' || network === 'tb' || network === 'crt';
+  return network === 'bc' || network === 'tb' || network === 'crt' || network === 'sb';
 }
 
 function isValidAmount(amount) {
