@@ -1,6 +1,6 @@
 {
   "name": "lightning-invoice",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Lightning Network invoice protocol library",
   "main": "src/index.js",
   "scripts": {
@@ -15,10 +15,12 @@
     "url": "git+https://github.com/altangent/lightning-payment.git"
   },
   "keywords": [
+    "bolt-11",
+    "lightning-invoice",
+    "lightning-payment",
     "bitcoin",
     "lightning-network",
-    "payment-encoding",
-    "lightning-payment"
+    "payment-encoding"
   ],
   "author": "Brian Mancini <bmancini@gmail.com>",
   "license": "MIT",
@@ -35,6 +37,6 @@
     "coveralls": "^3.0.1",
     "eslint": "^4.19.1",
     "jest": "^22.4.4",
-    "prettier": "^1.12.1"
+    "prettier": "^1.13.4"
   }
 }
