@@ -2,13 +2,13 @@ const bech32 = require('bech32');
 
 module.exports = {
   decode,
-  encodeBytes,
+  encode,
   convertWords,
 };
 
 function decode(invoice) {
   let { prefix, words } = bech32.decode(invoice, 1023);
-  let bytes = convertWords(words, 5, 8, true);
+  let bytes = convertWords(words, 5, 8);
   return {
     prefix,
     words,
@@ -17,14 +17,11 @@ function decode(invoice) {
   };
 }
 
-function encodeBytes(prefix, bytes, bitlen) {
-  let words = convertWords(bytes, 8, 5);
-  //console.log(bytes.length * 8, bitlen, words.length * 5);
-  if (words.length * 5 > bitlen) words.pop();
+function encode(prefix, words) {
   return bech32.encode(prefix, words, 1023);
 }
 
-function convertWords(data, inBits, outBits, pad) {
+function convertWords(data, inBits, outBits) {
   var value = 0;
   var bits = 0;
   var maxV = (1 << outBits) - 1;
@@ -40,7 +37,7 @@ function convertWords(data, inBits, outBits, pad) {
     }
   }
 
-  if (pad && bits > 0) {
+  if (bits > 0) {
     result.push((value << (outBits - bits)) & maxV);
   }
 

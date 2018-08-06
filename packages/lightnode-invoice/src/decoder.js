@@ -1,10 +1,7 @@
-const crypto = require('crypto');
-const elliptic = require('elliptic');
+const crypto = require('./crypto');
 const bech32 = require('./bech32');
 const bitcursor = require('./bit-cursor');
 const Invoice = require('./invoice');
-
-const ec = new elliptic.ec('secp256k1');
 
 module.exports = {
   decode,
@@ -90,14 +87,15 @@ function decode(invoice) {
   reader.bitPosition = 0;
   let hashData = reader.readBits((words.length - 104) * 5);
   hashData = Buffer.concat([Buffer.from(prefix), hashData]);
-  hashData = sha256(hashData);
+  hashData = crypto.sha256(hashData);
 
-  let pubkey = ec.recoverPubKey(hashData, { r, s }, recoveryFlag);
+  // recovery pubkey from ecdsa sig
+  let pubkey = crypto.ecdsaRecovery(hashData, sigBytes, recoveryFlag);
 
-  // MUST validate signature
-  if (!ec.keyFromPublic(pubkey).verify(hashData, { r, s })) throw new Error('Signature invalid');
+  // validate signature
+  if (!crypto.ecdsaVerify(pubkey, hashData, sigBytes)) throw new Error('Signature invalid');
 
-  return new Invoice({
+  return Invoice.create({
     network,
     amount,
     timestamp,
@@ -108,21 +106,12 @@ function decode(invoice) {
       s,
       recoveryFlag,
     },
-    pubkey: {
-      x: pubkey.getX().toBuffer('be'),
-      y: pubkey.getY().toBuffer('be'),
-    },
+    pubkey,
     hashData,
   });
 }
 
 //////////////
-
-function sha256(data) {
-  let hash = crypto.createHash('sha256');
-  hash.update(data);
-  return hash.digest();
-}
 
 function parsePrefix(prefix) {
   if (!prefix.startsWith('ln')) throw new Error('Invalid prefix');

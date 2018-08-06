@@ -31,10 +31,10 @@ describe('test vectors', () => {
   );
   const hashDescription = sha256.digest();
 
-  const pubkey = {
-    x: Buffer.from('e7156ae33b0a208d0744199163177e909e80176e55d97a2f221ede0f934dd9ad', 'hex'),
-    y: Buffer.from('6e0f4ec2fddba7ad976bdf18335e464f2608607e3b10a56e854ae081621ebde3', 'hex'),
-  };
+  const pubkey = Buffer.from(
+    '03e7156ae33b0a208d0744199163177e909e80176e55d97a2f221ede0f934dd9ad',
+    'hex'
+  );
 
   test('donation of any amount using payment_hash 0001020304050607080900010203040506070809000102030405060708090102 to me @03e7156ae33b0a208d0744199163177e909e80176e55d97a2f221ede0f934dd9ad', () => {
     let input =

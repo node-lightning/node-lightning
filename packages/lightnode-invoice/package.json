@@ -4,11 +4,11 @@
   "description": "Lightning Network invoice protocol library",
   "main": "src/index.js",
   "scripts": {
-    "test": "jest --coverage",
+    "test": "jest --testEnvironment=node --coverage",
     "format": "prettier --write src/*.js",
     "lint": "eslint src/*.js",
     "validate": "npm run format; npm run lint; npm test",
-    "ci": "npm run lint; jest --coverage && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js"
+    "ci": "npm run lint; jest --testEnvironment=node --coverage && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js"
   },
   "repository": {
     "type": "git",
@@ -31,7 +31,7 @@
   "dependencies": {
     "bech32": "^1.1.3",
     "bs58check": "^2.1.1",
-    "elliptic": "^6.4.0"
+    "secp256k1": "^3.5.0"
   },
   "devDependencies": {
     "coveralls": "^3.0.1",
