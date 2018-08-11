@@ -20,6 +20,11 @@ class WordCursor {
     this._merge(words);
   }
 
+  writeUInt5(val) {
+    if (val > 2 ** 5) throw new Error('Value greater than Uint5');
+    this.words.push(val);
+  }
+
   writeBytes(buf) {
     let words = bech32.convertWords(buf, 8, 5, true);
     this._merge(words);

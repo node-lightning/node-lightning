@@ -1,9 +1,11 @@
+const Decimal = require('decimal.js');
 const bech32 = require('./bech32');
 const WordCursor = require('./word-cursor');
 const crypto = require('./crypto');
 
 module.exports = {
   encode,
+  encodeAmount,
   validate,
 };
 
@@ -17,11 +19,12 @@ function encode(invoice, privKey) {
 
   let writer = new WordCursor();
 
-  let prefix = 'ln' + invoice.network + encodeAmount(invoice.amount);
+  let encodedAmount = encodeAmount(invoice.amount) || '';
+  let prefix = `ln${invoice.network}${encodedAmount}`;
 
   writer.writeUInt32BE(invoice.timestamp, 7);
 
-  encodeData(invoice, writer);
+  _encodeData(invoice, writer);
 
   // generate sig data
   let sigData = bech32.convertWords(writer.words, 5, 8);
@@ -30,24 +33,39 @@ function encode(invoice, privKey) {
   // generate sig hash
   let sigHash = crypto.sha256(sigData);
 
-  //console.log(secp256k1.sign(sigHash, privKey));
-
-  // sign this
-  crypto.ecdsaSign(sigHash, privKey);
+  // sign
+  let { signature, recovery } = crypto.ecdsaSign(sigHash, privKey);
+  writer.writeBytes(signature);
+  writer.writeUInt5(recovery);
 
   return bech32.encode(prefix, writer.words);
 }
 
-function encodeAmount(/*amount */) {
-  return '';
-  // if (amount < 10 ** -9) return (amount * 10 ** 12).toFixed(0) + 'p';
-  // if (amount < 10 ** -6) return (amount * 10 ** 9).toFixed(0) + 'n';
-  // if (amount < 10 ** -3) return (amount * 10 ** 6).toFixed(0) + 'u';
-  // if (amount < 0) return (amount * 10 ** 3).toFixed(0) + 'm';
-  // return amount;
+function _decimalDigits(val) {
+  val = new Decimal(val);
+  for (let i = 0; i <= 12; i++) {
+    if (
+      val
+        .mul(10 ** i)
+        .mod(1)
+        .equals(0)
+    )
+      return i;
+  }
+  return 18;
 }
 
-function encodeData(invoice, writer) {
+function encodeAmount(amount) {
+  if (!amount) return;
+  let decs = _decimalDigits(amount);
+  if (decs > 9) return (amount * 10 ** 12).toFixed(0) + 'p';
+  if (decs > 6) return (amount * 10 ** 9).toFixed(0) + 'n';
+  if (decs > 3) return (amount * 10 ** 6).toFixed(0) + 'u';
+  if (decs > 0) return (amount * 10 ** 3).toFixed(0) + 'm';
+  return amount.toFixed(0);
+}
+
+function _encodeData(invoice, writer) {
   for (let datum of invoice.fields) {
     switch (datum.type) {
       case 1:
