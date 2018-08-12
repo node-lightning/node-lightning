@@ -10,7 +10,7 @@ class WordCursor {
     this.words = this.words.concat(words);
   }
 
-  writeUInt32BE(val, wordLen) {
+  writeUIntBE(val, wordLen) {
     let words = new Array(wordLen);
     let maxV = (1 << 5) - 1;
     for (let i = wordLen - 1; i >= 0; i--) {

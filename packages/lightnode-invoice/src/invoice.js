@@ -98,7 +98,7 @@ class Invoice {
       type = words[0];
       address = bech32.fromWords(words.slice(1));
     }
-
+    if (Array.isArray(address)) address = Buffer.from(address);
     this.fields.push({ type: 9, value: { type, address } });
   }
 

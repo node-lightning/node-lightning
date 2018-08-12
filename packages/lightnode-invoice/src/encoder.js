@@ -22,7 +22,7 @@ function encode(invoice, privKey) {
   let encodedAmount = encodeAmount(invoice.amount) || '';
   let prefix = `ln${invoice.network}${encodedAmount}`;
 
-  writer.writeUInt32BE(invoice.timestamp, 7);
+  writer.writeUIntBE(invoice.timestamp, 7);
 
   _encodeData(invoice, writer);
 
@@ -36,7 +36,7 @@ function encode(invoice, privKey) {
   // sign
   let { signature, recovery } = crypto.ecdsaSign(sigHash, privKey);
   writer.writeBytes(signature);
-  writer.writeUInt32BE(recovery, 1);
+  writer.writeUIntBE(recovery, 1);
 
   return bech32.encode(prefix, writer.words);
 }
@@ -69,16 +69,16 @@ function _encodeData(invoice, writer) {
   for (let datum of invoice.fields) {
     switch (datum.type) {
       case 1:
-        writer.writeUInt32BE(datum.type, 1);
-        writer.writeUInt32BE(52, 2);
+        writer.writeUIntBE(datum.type, 1);
+        writer.writeUIntBE(52, 2);
         writer.writeBytes(datum.value);
         break;
       case 3:
         {
           let bits = datum.value.length * (264 + 64 + 32 + 32 + 16);
-          writer.writeUInt32BE(datum.type, 1);
-          let numWords = bech32.sizeofBits(bits);
-          writer.writeUInt32BE(numWords, 2);
+          writer.writeUIntBE(datum.type, 1);
+          let dataLen = bech32.sizeofBits(bits);
+          writer.writeUIntBE(dataLen, 2);
           let buffer = Buffer.alloc(bits / 8);
           let position = 0;
           for (let route of datum.value) {
@@ -98,57 +98,53 @@ function _encodeData(invoice, writer) {
         break;
       case 6:
         {
-          let len = Math.ceil(datum.value / 32);
-          writer.writeUInt32BE(datum.type, 1);
-          writer.writeUInt32BE(len, 2);
-          writer.writeUInt32BE(datum.value, len);
+          let dataLen = bech32.sizeofNum(datum.value);
+          writer.writeUIntBE(datum.type, 1);
+          writer.writeUIntBE(dataLen, 2);
+          writer.writeUIntBE(datum.value, dataLen);
         }
         break;
       case 9:
         {
-          let numWords = bech32.sizeofBits(datum.value.address.length * 8) + 1;
-          writer.writeUInt32BE(datum.type, 1);
-          writer.writeUInt32BE(numWords, 2);
-          writer.writeUInt32BE(datum.value.type, 1);
+          let dataLen = bech32.sizeofBits(datum.value.address.byteLength * 8) + 1;
+          writer.writeUIntBE(datum.type, 1);
+          writer.writeUIntBE(dataLen, 2);
+          writer.writeUIntBE(datum.value.type, 1);
           writer.writeBytes(datum.value.address);
         }
         break;
       case 13:
         {
           let buf = Buffer.from(datum.value, 'utf8');
-          let len = wordLen(buf);
-          writer.writeUInt32BE(datum.type, 1);
-          writer.writeUInt32BE(len, 2);
+          let dataLen = bech32.sizeofBits(buf.byteLength * 8);
+          writer.writeUIntBE(datum.type, 1);
+          writer.writeUIntBE(dataLen, 2);
           writer.writeBytes(buf);
         }
         break;
       case 19:
         {
-          writer.writeUInt32BE(datum.type, 1);
-          writer.writeUInt32BE(53, 2);
+          writer.writeUIntBE(datum.type, 1);
+          writer.writeUIntBE(53, 2);
           writer.writeBytes(datum.value);
         }
         break;
       case 23:
         {
-          let dataLen = Math.ceil((datum.value.length * 8) / 5);
-          writer.writeUInt32BE(datum.type, 1);
-          writer.writeUInt32BE(dataLen, 2);
+          let dataLen = bech32.sizeofBits(datum.value.byteLength * 8);
+          writer.writeUIntBE(datum.type, 1);
+          writer.writeUIntBE(dataLen, 2);
           writer.writeBytes(datum.value);
         }
         break;
       case 24:
         {
-          let len = bech32.sizeofNum(datum.value);
-          writer.writeUInt32BE(datum.type, 1);
-          writer.writeUInt32BE(len, 2);
-          writer.writeUInt32BE(datum.value);
+          let dataLen = bech32.sizeofNum(datum.value);
+          writer.writeUIntBE(datum.type, 1);
+          writer.writeUIntBE(dataLen, 2);
+          writer.writeUIntBE(datum.value);
         }
         break;
     }
   }
-}
-
-function wordLen(buf) {
-  return Math.ceil((buf.length * 8) / 5);
 }
