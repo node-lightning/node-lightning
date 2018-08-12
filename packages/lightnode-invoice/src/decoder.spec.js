@@ -137,6 +137,10 @@ describe('test vectors', () => {
     expect(result.paymentHash).toEqual(
       Buffer.from('0001020304050607080900010203040506070809000102030405060708090102', 'hex')
     );
+    expect(result.fallbackAddresses[0].version).toBe(17);
+    expect(result.fallbackAddresses[0].address).toEqual(
+      bs58check.decode('mk2QpYatsKicvFVuTAQLBryyccRXMUaGHP').slice(1) // get rid of p2pkh prefix
+    );
     expect(result.signature.r).toEqual(
       Buffer.from('b6c42b8a61e0dc5823ea63e76ff148ab5f6c86f45f9722af0069c7934daff70d', 'hex')
     );

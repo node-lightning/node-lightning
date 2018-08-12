@@ -4,6 +4,8 @@ module.exports = {
   decode,
   encode,
   convertWords,
+  sizeofNum,
+  sizeofBits,
 };
 
 function decode(invoice) {
@@ -42,4 +44,22 @@ function convertWords(data, inBits, outBits) {
   }
 
   return result;
+}
+
+/**
+ * Calculates the number of words needed to store the
+ * supplied number
+ * @param {number} num
+ */
+function sizeofNum(num) {
+  return Math.ceil(Math.log2(num) / 5);
+}
+
+/**
+ * Calculates the number of words needed to store
+ * the supplied number of bits
+ * @param {number} bits
+ */
+function sizeofBits(bits) {
+  return Math.ceil(bits / 5);
 }

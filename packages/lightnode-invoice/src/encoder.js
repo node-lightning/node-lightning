@@ -36,7 +36,7 @@ function encode(invoice, privKey) {
   // sign
   let { signature, recovery } = crypto.ecdsaSign(sigHash, privKey);
   writer.writeBytes(signature);
-  writer.writeUInt5(recovery);
+  writer.writeUInt32BE(recovery, 1);
 
   return bech32.encode(prefix, writer.words);
 }
@@ -73,6 +73,48 @@ function _encodeData(invoice, writer) {
         writer.writeUInt32BE(52, 2);
         writer.writeBytes(datum.value);
         break;
+      case 3:
+        {
+          let bits = datum.value.length * (264 + 64 + 32 + 32 + 16);
+          writer.writeUInt32BE(datum.type, 1);
+          let numWords = bech32.sizeofBits(bits);
+          let numWordsSize = bech32.sizeofNum(numWords);
+          writer.writeUInt32BE(numWords, numWordsSize);
+          let buffer = Buffer.alloc(bits / 8);
+          let position = 0;
+          for (let route of datum.value) {
+            route.pubkey.copy(buffer, position);
+            position += 264 / 8;
+            route.short_channel_id.copy(buffer, position);
+            position += 64 / 8;
+            buffer.writeUInt32BE(route.fee_base_msat, position);
+            position += 32 / 8;
+            buffer.writeUInt32BE(route.fee_proportional_millionths, position);
+            position += 32 / 8;
+            buffer.writeUInt16BE(route.cltv_expiry_delta, position);
+            position += 16 / 8;
+          }
+          writer.writeBytes(buffer);
+        }
+        break;
+      case 6:
+        {
+          let len = Math.ceil(datum.value / 32);
+          writer.writeUInt32BE(datum.type, 1);
+          writer.writeUInt32BE(len, 2);
+          writer.writeUInt32BE(datum.value, len);
+        }
+        break;
+      case 9:
+        {
+          let numWords = bech32.sizeofBits(datum.value.address.length * 8) + 1;
+          let numWordsSize = bech32.sizeofNum(numWords);
+          writer.writeUInt32BE(datum.type, 1);
+          writer.writeUInt32BE(numWords, numWordsSize);
+          writer.writeUInt32BE(datum.value.type, 1);
+          writer.writeBytes(datum.value.address);
+        }
+        break;
       case 13:
         {
           let buf = Buffer.from(datum.value, 'utf8');
@@ -80,6 +122,15 @@ function _encodeData(invoice, writer) {
           writer.writeUInt32BE(datum.type, 1);
           writer.writeUInt32BE(len, 2);
           writer.writeBytes(buf);
+        }
+        break;
+      case 23:
+        {
+          let dataLen = Math.ceil((datum.value.length * 8) / 5);
+          let dataLenWords = Math.ceil(dataLen / 32);
+          writer.writeUInt32BE(datum.type, 1);
+          writer.writeUInt32BE(dataLen, dataLenWords);
+          writer.writeBytes(datum.value);
         }
         break;
     }
