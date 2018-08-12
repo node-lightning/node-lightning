@@ -95,20 +95,35 @@ function decode(invoice) {
   // validate signature
   if (!crypto.ecdsaVerify(pubkey, hashData, sigBytes)) throw new Error('Signature invalid');
 
-  return Invoice.create({
-    network,
-    amount,
-    timestamp,
-    fields,
-    unknownFields,
-    signature: {
-      r,
-      s,
-      recoveryFlag,
-    },
-    pubkey,
-    hashData,
-  });
+  // return Invoice.create({
+  //   network,
+  //   amount,
+  //   timestamp,
+  //   fields,
+  //   unknownFields,
+  //   signature: {
+  //     r,
+  //     s,
+  //     recoveryFlag,
+  //   },
+  //   pubkey,
+  //   hashData,
+  // });
+
+  let result = new Invoice();
+  result.network = network;
+  result.amount = amount;
+  result.timestamp = timestamp;
+  result.fields = fields;
+  result.unknownFields = unknownFields;
+  result.signature = {
+    r,
+    s,
+    recoveryFlag,
+  };
+  result.pubkey = pubkey;
+  result.hashData = hashData;
+  return result;
 }
 
 //////////////

@@ -78,8 +78,7 @@ function _encodeData(invoice, writer) {
           let bits = datum.value.length * (264 + 64 + 32 + 32 + 16);
           writer.writeUInt32BE(datum.type, 1);
           let numWords = bech32.sizeofBits(bits);
-          let numWordsSize = bech32.sizeofNum(numWords);
-          writer.writeUInt32BE(numWords, numWordsSize);
+          writer.writeUInt32BE(numWords, 2);
           let buffer = Buffer.alloc(bits / 8);
           let position = 0;
           for (let route of datum.value) {
@@ -108,9 +107,8 @@ function _encodeData(invoice, writer) {
       case 9:
         {
           let numWords = bech32.sizeofBits(datum.value.address.length * 8) + 1;
-          let numWordsSize = bech32.sizeofNum(numWords);
           writer.writeUInt32BE(datum.type, 1);
-          writer.writeUInt32BE(numWords, numWordsSize);
+          writer.writeUInt32BE(numWords, 2);
           writer.writeUInt32BE(datum.value.type, 1);
           writer.writeBytes(datum.value.address);
         }
@@ -124,13 +122,27 @@ function _encodeData(invoice, writer) {
           writer.writeBytes(buf);
         }
         break;
+      case 19:
+        {
+          writer.writeUInt32BE(datum.type, 1);
+          writer.writeUInt32BE(53, 2);
+          writer.writeBytes(datum.value);
+        }
+        break;
       case 23:
         {
           let dataLen = Math.ceil((datum.value.length * 8) / 5);
-          let dataLenWords = Math.ceil(dataLen / 32);
           writer.writeUInt32BE(datum.type, 1);
-          writer.writeUInt32BE(dataLen, dataLenWords);
+          writer.writeUInt32BE(dataLen, 2);
           writer.writeBytes(datum.value);
+        }
+        break;
+      case 24:
+        {
+          let len = bech32.sizeofNum(datum.value);
+          writer.writeUInt32BE(datum.type, 1);
+          writer.writeUInt32BE(len, 2);
+          writer.writeUInt32BE(datum.value);
         }
         break;
     }
