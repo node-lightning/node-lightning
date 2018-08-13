@@ -1,5 +1,5 @@
 {
-  "name": "lightning-invoice",
+  "name": "lightnode-invoice",
   "version": "0.3.0",
   "description": "Lightning Network invoice protocol library",
   "main": "src/index.js",
