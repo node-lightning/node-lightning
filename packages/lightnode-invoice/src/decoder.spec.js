@@ -270,10 +270,12 @@ describe('test vectors', () => {
   });
 });
 
-test('send 0.02 BTC, on simnet', () => {
-  let input =
-    'lnsb20m1pd3dfr9pp5s90vpp5a7sxzd4zenxxesvfge73nqslj4h7zn29059hgyp7jdvjqdqqcqzysqngw58lu63trytwj7ktx7vasdutvvan7paq5qrgjj6wg065qzr8pv8p6q7kcdeg0kdpek09gc7xf6y972gy7t3pl6gtcqww440znz6gpfec4kj';
-  let result = decoder.decode(input);
-  expect(result.network).toBe('sb');
-  expect(result.amount).toBe(0.02);
+describe('additional test vectors', () => {
+  test('send 0.02 BTC, on simnet', () => {
+    let input =
+      'lnsb20m1pd3dfr9pp5s90vpp5a7sxzd4zenxxesvfge73nqslj4h7zn29059hgyp7jdvjqdqqcqzysqngw58lu63trytwj7ktx7vasdutvvan7paq5qrgjj6wg065qzr8pv8p6q7kcdeg0kdpek09gc7xf6y972gy7t3pl6gtcqww440znz6gpfec4kj';
+    let result = decoder.decode(input);
+    expect(result.network).toBe('sb');
+    expect(result.amount).toBe(0.02);
+  });
 });

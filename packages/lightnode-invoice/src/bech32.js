@@ -10,12 +10,9 @@ module.exports = {
 
 function decode(invoice) {
   let { prefix, words } = bech32.decode(invoice, 1023);
-  let bytes = convertWords(words, 5, 8);
   return {
     prefix,
     words,
-    bytes,
-    bitlen: words.length * 5,
   };
 }
 
@@ -23,7 +20,7 @@ function encode(prefix, words) {
   return bech32.encode(prefix, words, 1023);
 }
 
-function convertWords(data, inBits, outBits) {
+function convertWords(data, inBits, outBits, pad = true) {
   var value = 0;
   var bits = 0;
   var maxV = (1 << outBits) - 1;
@@ -39,7 +36,7 @@ function convertWords(data, inBits, outBits) {
     }
   }
 
-  if (bits > 0) {
+  if (pad && bits > 0) {
     result.push((value << (outBits - bits)) & maxV);
   }
 
