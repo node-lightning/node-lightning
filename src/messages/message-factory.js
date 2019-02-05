@@ -8,7 +8,7 @@ const typeMap = {
   19: require('./pong-message'),
 
   // channel messages
-  //258: require('./channel-update'),
+  258: require('./channel-update'),
 };
 
 function constructType(type) {
