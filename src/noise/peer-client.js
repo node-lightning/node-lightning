@@ -51,6 +51,7 @@ class PeerClient {
 
   async _onConnected() {
     try {
+      winston.debug('connected to', this.host, this.port);
       let m = await this.noiseState.initiatorAct1();
       this.socket.write(m);
       this.state = PeerClient.states.awaiting_handshake_reply;
