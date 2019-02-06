@@ -18,6 +18,11 @@ class App {
   }
 
   async connectToPeer() {
+    // hadrcoding to demo1.lndexplorer.com
+    let pubkey = '036b96e4713c5f84dcb8030592e1bd42a2d9a43d91fa2e535b9bfd05f2c5def9b9';
+    let host = '38.87.54.163';
+    let port = 9745;
+
     // hard coding to some testnet values for now
     let ls = {
       priv: Buffer.from('535e52756e85ee72c83429ce2cc0ff4c801c9d2f8f3c0fd84b2f4dac0b2c0c18', 'hex'),
@@ -27,16 +32,14 @@ class App {
       },
     };
     let rs = {
-      pub: Buffer.from('0303276be77510d384d2452f8f2027f447968b82798c528a57cd13e6e2814dffa4', 'hex'),
+      pub: Buffer.from(pubkey, 'hex'),
       compressed() {
         return this.pub;
       },
     };
 
-    winston.debug('connecting to peer');
     let peer = new PeerClient();
-    await peer.connect({ localSecret: ls, remoteSecret: rs, host: 'localhost' });
-    winston.debug('connected to peer');
+    await peer.connect({ localSecret: ls, remoteSecret: rs, host, port });
   }
 }
 

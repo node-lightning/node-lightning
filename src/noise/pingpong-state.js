@@ -70,6 +70,9 @@ class PingPongState {
   ///////////
 
   _sendPing() {
+    // clear existing pong timeout handle in case we have yet to receive a pong
+    clearTimeout(this._pongTimeoutHandle);
+
     // create the timeout we will wait for the pong
     this._pongTimeoutHandle = setTimeout(this._pongTimedOut.bind(this), this.PONG_TIMEOUT_MS);
 
