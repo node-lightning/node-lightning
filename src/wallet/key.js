@@ -1,34 +1,40 @@
-const EC = require('elliptic').ec;
-const ec = new EC('secp256k1');
+const crypto = require('crypto');
+const secp256k1 = require('secp256k1');
 
 module.exports = {
+  generateRandomKey,
   generateKey,
   generatePubKey,
 };
 
-function generateKey(privKeyHex) {
-  let curve;
-  if (privKeyHex) {
-    curve = ec.keyFromPrivate(privKeyHex);
-  } else {
-    curve = ec.genKeyPair();
-  }
+function generateRandomKey() {
+  let privateKey = crypto.randomBytes(32);
   return {
-    priv: curve.getPrivate(),
-    pub: curve.getPublic(),
+    priv: privateKey,
+    pub: secp256k1.publicKeyCreate(privateKey, true),
     compressed() {
-      let hex = curve.getPublic(true, 'hex');
-      return Buffer.from(hex, 'hex');
+      return this.pub;
+    },
+  };
+}
+
+function generateKey(privKeyHex) {
+  let privateKey = Buffer.from(privKeyHex, 'hex');
+  return {
+    priv: privateKey,
+    pub: secp256k1.publicKeyCreate(privateKey, true),
+    compressed() {
+      return this.pub;
     },
   };
 }
 
 function generatePubKey(compressedKey) {
-  let curve = ec.keyFromPrivate(compressedKey);
+  let publicKey = Buffer.from(compressedKey, 'hex');
   return {
-    pub: curve.getPublic(),
+    pub: publicKey,
     compressed() {
-      return Buffer.from(compressedKey, 'hex');
+      return this.pub;
     },
   };
 }

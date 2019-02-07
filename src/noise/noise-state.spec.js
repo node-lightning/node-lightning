@@ -177,7 +177,9 @@ describe('noise-state', () => {
           '0004466d7fcae563e5cb09a0d1870bb580344804617879a14949cf22285f1bae3f276e2470b93aac583c9ef6eafca3f730ae',
           'hex'
         );
-        await expect(sut.initiatorAct2(input)).to.be.rejectedWith('Unknown point format');
+        await expect(sut.initiatorAct2(input)).to.be.rejectedWith(
+          'the public key could not be parsed or is invalid'
+        );
       });
 
       it('transport-initiator act2 bad MAC test', async () => {
@@ -279,7 +281,9 @@ describe('noise-state', () => {
           '00046360e856310ce5d294e8be33fc807077dc56ac80d95d9cd4ddbd21325eff73f70df6086551151f58b8afe6c195782c6a',
           'hex'
         );
-        return expect(sut.receiveAct1(input)).to.be.rejectedWith('Unknown point format');
+        return expect(sut.receiveAct1(input)).to.be.rejectedWith(
+          'the public key could not be parsed or is invalid'
+        );
       });
 
       it('transport-responder act1 bad MAC test', async () => {
@@ -364,7 +368,7 @@ describe('noise-state', () => {
               'hex'
             )
           )
-        ).to.be.rejectedWith('Unknown point format');
+        ).to.be.rejectedWith('the public key could not be parsed or is invalid');
       });
 
       it('transport-responder act3 bad MAC test', async () => {

@@ -1,6 +1,5 @@
 const crypto = require('crypto');
-const elliptic = require('elliptic');
-const secp256k1 = new elliptic.ec('secp256k1');
+const secp256k1 = require('secp256k1');
 const HKDF = require('futoin-hkdf');
 const chacha = require('chacha');
 
@@ -47,11 +46,7 @@ function sha256(data) {
 }
 
 function ecdh(rk, k) {
-  let priv = secp256k1.keyFromPrivate(k);
-  let pub = secp256k1.keyFromPublic(rk);
-  let shared = pub.getPublic().mul(priv.getPrivate());
-  shared = secp256k1.keyFromPublic(shared).getPublic(true, 'hex');
-  return sha256(Buffer.from(shared, 'hex'));
+  return secp256k1.ecdh(rk, k);
 }
 
 function hkdf(salt, ikm) {

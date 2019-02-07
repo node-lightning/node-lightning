@@ -1,7 +1,7 @@
 const net = require('net');
 const winston = require('winston');
 const NoiseState = require('./noise-state');
-const { generateKey } = require('../wallet/key');
+const { generateRandomKey } = require('../wallet/key');
 const MessageFactory = require('../messages/message-factory');
 const PingPongState = require('./pingpong-state');
 
@@ -13,7 +13,7 @@ class PeerClient {
   }
 
   async connect({ localSecret, remoteSecret, host, port = 9735 }) {
-    let ephemeralSecret = generateKey();
+    let ephemeralSecret = generateRandomKey();
     this.noiseState = new NoiseState({ ls: localSecret, rs: remoteSecret, es: ephemeralSecret });
     this.host = host;
     this.port = port;
