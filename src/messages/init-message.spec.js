@@ -1,15 +1,15 @@
 const { expect } = require('chai');
+const BN = require('bn.js');
 let InitMessage = require('./init-message');
 
 describe('init-message', () => {
-  let remote =
-    '00F000360a800c27f83bebc66efa1f580554c65bed3da1b6352d2f5dbb702e90ac20bb1d34dc0bdd444163ca18468d568dbeeda2c865909bf129498680f792c197e923fd';
+  let remote = '0010000102000182';
 
   it('it should have correct default values', () => {
     let obj = new InitMessage();
     expect(obj.type).to.equal(16);
-    expect(obj.globalFeatures).to.equal(0);
-    expect(obj.localFeatures).to.equal(0);
+    expect(obj.globalFeatures.toNumber()).to.equal(0);
+    expect(obj.localFeatures.toNumber()).to.equal(0);
   });
 
   it('it should deserialize type', () => {
@@ -19,13 +19,16 @@ describe('init-message', () => {
 
   it('it should deserialize globalFeatures', () => {
     let result = InitMessage.deserialize(Buffer.from(remote, 'hex'));
-    expect(result.globalFeatures).to.equal(54);
+    expect(result.globalFeatures.toNumber()).to.equal(0x2);
   });
 
   it('it should deserialize localFeatures', () => {
     let result = InitMessage.deserialize(Buffer.from(remote, 'hex'));
-    expect(result.localFeatures).to.equal(2688);
+    expect(result.localFeatures.toNumber()).to.equal(0x82);
   });
+
+  // todo - add safe readBuffer methods to simple-buffer-cursor to prevent overflows
+  it('should not throw exception on length overflows');
 
   it('it should serialize type', () => {
     let obj = new InitMessage();
@@ -35,15 +38,15 @@ describe('init-message', () => {
 
   it('it should serialize globalFeatures', () => {
     let obj = new InitMessage();
-    obj.globalFeatures = 2;
+    obj.globalFeatures = new BN(2);
     let result = obj.serialize();
-    expect(result.toString('hex')).to.equal('001000020000');
+    expect(result.toString('hex')).to.equal('00100001020000');
   });
 
   it('it should serialize localFeatures', () => {
     let obj = new InitMessage();
-    obj.localFeatures = 4;
+    obj.localFeatures = new BN(8);
     let result = obj.serialize();
-    expect(result.toString('hex')).to.equal('001000000004');
+    expect(result.toString('hex')).to.equal('00100000000108');
   });
 });
