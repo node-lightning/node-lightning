@@ -1,5 +1,4 @@
 const { expect } = require('chai');
-const BN = require('bn.js');
 const sut = require('./commitment-generator');
 
 describe('commitmentSecretGenerator', () => {
@@ -20,13 +19,13 @@ describe('commitmentSecretGenerator', () => {
       {
         name: 'FF alternate bits 1',
         seed: 'FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF',
-        i: new BN('aaaaaaaaaaa', 'hex', 'be').toNumber(),
+        i: 0xaaaaaaaaaaa,
         expected: '56f4008fb007ca9acf0e15b054d5c9fd12ee06cea347914ddbaed70d1c13a528',
       },
       {
         name: 'FF alternate bits 2',
         seed: 'FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF',
-        i: new BN('555555555555', 'hex', 'be').toNumber(),
+        i: 0x555555555555,
         expected: '9015daaeb06dba4ccc05b91b2f73bd54405f2be9f217fbacd3c5ac2e62327d31',
       },
       {
