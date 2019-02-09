@@ -9,6 +9,7 @@ class PeerClient {
   constructor() {
     this.state = PeerClient.states.pending;
     this.noiseState;
+    this.messageCounter = 0;
     this.pingPongState = new PingPongState(this);
   }
 
@@ -109,20 +110,22 @@ class PeerClient {
 
   async _onData() {
     try {
-      switch (this.state) {
-        case PeerClient.states.awaiting_handshake_reply:
-          await this._processHandshakeReply();
-          break;
-        case PeerClient.states.awaiting_init_reply:
-          await this._processInitReply();
-          break;
-        case PeerClient.states.awaiting_message_length:
-          await this._processMessageLength();
-          await this._processMessageBody();
-          break;
-        case PeerClient.states.awaiting_message_body:
-          await this._processMessageBody();
-          break;
+      let cont = true;
+      while (cont) {
+        switch (this.state) {
+          case PeerClient.states.awaiting_handshake_reply:
+            cont = await this._processHandshakeReply();
+            break;
+          case PeerClient.states.awaiting_init_reply:
+            cont = await this._processInitReply();
+            break;
+          case PeerClient.states.awaiting_message_length:
+            cont = await this._processMessageLength();
+            break;
+          case PeerClient.states.awaiting_message_body:
+            cont = await this._processMessageBody();
+            break;
+        }
       }
     } catch (err) {
       winston.error(err);
@@ -139,6 +142,8 @@ class PeerClient {
 
     // capture and store length
     this.l = await this.noiseState.decryptLength(lc);
+
+    return true;
   }
 
   async _processMessageBody() {
@@ -153,9 +158,12 @@ class PeerClient {
     let m = await this.noiseState.decryptMessage(c);
     m = MessageFactory.deserialize(m);
     if (m) {
-      winston.debug('received', JSON.stringify(m));
+      this.messageCounter++;
+      winston.debug('message', this.messageCounter, JSON.stringify(m));
       this.pingPongState.onMessage(m);
     }
+
+    return true;
   }
 }
 
