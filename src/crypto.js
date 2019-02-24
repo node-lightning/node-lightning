@@ -8,6 +8,7 @@ module.exports = {
   aesDecrypt,
   generateKey,
   sha256,
+  hash160,
   ecdh,
   hkdf,
   ccpEncrypt,
@@ -45,8 +46,25 @@ function sha256(data) {
   return hash.digest();
 }
 
+function hash160(data) {
+  let hash = crypto.createHash('ripemd160');
+  hash.update(sha256(data));
+  return hash.digest();
+}
+
 function ecdh(rk, k) {
+  // via secp256k1
   return secp256k1.ecdh(rk, k);
+
+  // via elliptic.js
+  // let priv = secp256k1.keyFromPrivate(k);
+  // let pub = secp256k1.keyFromPublic(rk);
+  // let shared = pub.getPublic().mul(priv.getPrivate());
+  // shared = secp256k1.keyFromPublic(shared).getPublic(true, 'hex');
+  // return sha256(Buffer.from(shared, 'hex'));
+
+  // via tiny-secp256k1
+  // return sha256(secp256k1.pointMultiply(rk, k, true));
 }
 
 function hkdf(salt, ikm) {

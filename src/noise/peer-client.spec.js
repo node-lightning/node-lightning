@@ -47,11 +47,9 @@ describe('peer-client', () => {
       expect(sut.socket.write.args[1][0]).to.equal('act3');
     });
     it('should construct and send an init message', async () => {
-      expect(sut.sendMessage.args[0][0]).to.deep.equal({
-        type: 16,
-        globalFeatures: 0,
-        localFeatures: 0,
-      });
+      expect(sut.sendMessage.args[0][0].type).to.equal(16);
+      expect(sut.sendMessage.args[0][0].globalFeatures.toNumber()).to.equal(0);
+      expect(sut.sendMessage.args[0][0].localFeatures.toNumber()).to.equal(0);
     });
     it('should transition to awaiting_init_reply', () => {
       expect(sut.state).to.equal(PeerClient.states.awaiting_init_reply);
@@ -65,7 +63,9 @@ describe('peer-client', () => {
       sut.noiseState.decryptLength.returns(6);
       sut.noiseState.decryptMessage.returns(Buffer.from('001000000000', 'hex'));
       await sut._onData();
-      expect(sut.remoteInit).to.deep.equal({ type: 16, globalFeatures: 0, localFeatures: 0 });
+      expect(sut.remoteInit.type).to.equal(16);
+      expect(sut.remoteInit.globalFeatures.toNumber()).to.equal(0);
+      expect(sut.remoteInit.localFeatures.toNumber()).to.equal(0);
     });
     it('should set state to awaiting_message_length', () => {
       expect(sut.state).to.equal(PeerClient.states.awaiting_message_length);
