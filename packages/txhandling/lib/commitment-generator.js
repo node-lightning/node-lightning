@@ -1,4 +1,4 @@
-const { sha256 } = require('../crypto');
+const { sha256 } = require('@lightnode/crypto');
 const BN = require('bn.js');
 
 module.exports = {

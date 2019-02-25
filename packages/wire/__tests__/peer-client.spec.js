@@ -1,7 +1,7 @@
 const { expect } = require('chai');
 const sinon = require('sinon');
-const PeerClient = require('./peer-client');
-const PingPongState = require('./pingpong-state');
+const PeerClient = require('../lib/peer-client');
+const PingPongState = require('../lib/pingpong-state');
 
 function createFakePeerClient() {
   let client = new PeerClient();

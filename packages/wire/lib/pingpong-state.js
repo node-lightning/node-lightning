@@ -1,5 +1,5 @@
-const PingMessage = require('../messages/ping-message');
-const PongMessage = require('../messages/pong-message');
+const { PingMessage } = require('@lightnode/messages');
+const { PongMessage } = require('@lightnode/messages');
 
 /**
  * Maintains ping/pong state for a client where by it will perform several functions. Refer to

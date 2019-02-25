@@ -1,7 +1,7 @@
 const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
-const { generateKey } = require('../wallet/key');
-const NoiseState = require('./noise-state');
+const { generateKey } = require('@lightnode/crypto');
+const NoiseState = require('../lib/noise-state');
 
 chai.use(chaiAsPromised);
 const { expect } = chai;

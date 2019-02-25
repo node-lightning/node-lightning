@@ -1,5 +1,5 @@
 const { expect } = require('chai');
-const ErrorMessage = require('./error-message');
+const ErrorMessage = require('../lib/error-message');
 
 describe('error-message', () => {
   it('it should serialize with num_pong_bytes', () => {

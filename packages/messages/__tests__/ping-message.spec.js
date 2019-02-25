@@ -1,5 +1,5 @@
 const { expect } = require('chai');
-const PingMessage = require('./ping-message');
+const PingMessage = require('../lib/ping-message');
 
 describe('ping-message', () => {
   it('it should serialize with num_pong_bytes', () => {

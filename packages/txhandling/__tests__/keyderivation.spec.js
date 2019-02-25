@@ -1,5 +1,5 @@
 const { expect } = require('chai');
-const sut = require('./keyderivation');
+const sut = require('../lib/keyderivation');
 
 describe('keyderivation', () => {
   const baseSecret = Buffer.from(

@@ -1,6 +1,6 @@
 const { expect } = require('chai');
 const BN = require('bn.js');
-let InitMessage = require('./init-message');
+let InitMessage = require('../lib/init-message');
 
 describe('init-message', () => {
   let remote = '0010000102000182';

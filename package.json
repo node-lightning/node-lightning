@@ -1,42 +1,20 @@
 {
-  "name": "lightnode",
+  "name": "@lightnode/monorepo",
   "version": "0.1.0",
   "description": "Node.js implementation of the Bitcoin Lightning Network",
   "scripts": {
-    "start": "node src",
-    "test": "nyc mocha --recursive \"src/**/*.spec.js\""
+    "start": "cd packages/daemon; npm run start",
+    "test": "lerna run test"
   },
   "keywords": [
     "lightning-network",
-    "bitcoin",
-    "micropayments",
-    "payment-channels"
+    "bitcoin"
   ],
   "author": "Brian Mancini <bmancini@gmail.com>",
   "license": "MIT",
   "devDependencies": {
-    "chai": "^4.2.0",
-    "chai-as-promised": "^7.1.1",
-    "eslint": "^4.19.1",
-    "mocha": "^5.2.0",
-    "nyc": "^13.2.0",
-    "prettier": "^1.16.4",
-    "sinon": "^7.2.3"
-  },
-  "dependencies": {
-    "bech32": "^1.1.3",
-    "bn.js": "^4.11.8",
-    "bs58check": "^2.1.2",
-    "chacha": "^2.1.0",
-    "futoin-hkdf": "^1.0.3",
-    "secp256k1": "^3.6.2",
-    "simple-buffer-cursor": "^1.0.3",
-    "winston": "^2.4.4"
-  },
-  "nyc": {
-    "exclude": [
-      "**/*.spec.js",
-      "build"
-    ]
+    "eslint": "^5.14.1",
+    "lerna": "^3.13.0",
+    "prettier": "^1.16.4"
   }
 }

@@ -1,5 +1,5 @@
 const { expect } = require('chai');
-const sut = require('./commitment-generator');
+const sut = require('../lib/commitment-generator');
 
 describe('commitmentSecretGenerator', () => {
   describe('.generateFromSeed', () => {

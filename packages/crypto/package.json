@@ -1,0 +1,37 @@
+{
+  "name": "@lightnode/crypto",
+  "version": "0.1.0",
+  "description": "Crypto suite for Lightnode",
+  "author": "Brian Mancini <bmancini@gmail.com>",
+  "homepage": "https://github.com/altangent/lightnode#readme",
+  "license": "MIT",
+  "main": "lib/index.js",
+  "directories": {
+    "lib": "lib",
+    "test": "__tests__"
+  },
+  "files": [
+    "lib"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/altangent/lightnode.git"
+  },
+  "scripts": {
+    "test": "nyc mocha --recursive \"__tests__/**/*.spec.js\""
+  },
+  "bugs": {
+    "url": "https://github.com/altangent/lightnode/issues"
+  },
+  "dependencies": {
+    "chacha": "^2.1.0",
+    "futoin-hkdf": "^1.0.3",
+    "secp256k1": "^3.6.2"
+  },
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "mocha": "^6.0.1",
+    "nyc": "^13.3.0",
+    "sinon": "^7.2.4"
+  }
+}

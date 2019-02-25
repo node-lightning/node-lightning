@@ -1,6 +1,6 @@
 const winston = require('winston');
-const { sha256, ecdh, hkdf, ccpEncrypt, ccpDecrypt } = require('../crypto');
-const { generatePubKey } = require('../wallet/key');
+const { sha256, ecdh, hkdf, ccpEncrypt, ccpDecrypt } = require('@lightnode/crypto');
+const { generatePubKey } = require('@lightnode/crypto');
 
 /**
  * State machine for perforing noise-protocol handshake, message

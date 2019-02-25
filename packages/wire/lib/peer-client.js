@@ -1,8 +1,8 @@
 const net = require('net');
 const winston = require('winston');
+const { generateRandomKey } = require('@lightnode/crypto');
+const { MessageFactory } = require('@lightnode/messages');
 const NoiseState = require('./noise-state');
-const { generateRandomKey } = require('../wallet/key');
-const MessageFactory = require('../messages/message-factory');
 const PingPongState = require('./pingpong-state');
 
 class PeerClient {

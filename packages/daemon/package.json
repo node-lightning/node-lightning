@@ -1,0 +1,35 @@
+{
+  "name": "@lightnode/daemon",
+  "version": "0.1.0",
+  "description": "Lightnode Daemon - Node.js implementation of the Lightning Network",
+  "keywords": [
+    "lightning network",
+    "bitcoin"
+  ],
+  "author": "Brian Mancini <bmancini@gmail.com>",
+  "homepage": "https://github.com/altangent/lightnode#readme",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/altangent/lightnode.git"
+  },
+  "bugs": {
+    "url": "https://github.com/altangent/lightnode/issues"
+  },
+  "scripts": {
+    "start": "node src",
+    "watch": "nodemon --watch ../",
+    "test": "echo \"Error: run tests from root\" && exit 1"
+  },
+  "dependencies": {
+    "@lightnode/wire": "file:../wire",
+    "winston": "^3.2.1"
+  },
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "mocha": "^6.0.1",
+    "nodemon": "^1.18.10",
+    "nyc": "^13.3.0",
+    "sinon": "^7.2.4"
+  }
+}
