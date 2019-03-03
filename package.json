@@ -5,10 +5,10 @@
   "scripts": {
     "start": "cd packages/daemon; npm run start",
     "bootstrap": "lerna bootstrap --hoist",
-    "pretest": "eslint packages",
+    "lint": "eslint packages",
     "test": "mocha --recursive \"packages/**/__tests__/**/*.spec.js\"",
-    "test:coverage": "nyc mocha --recursive \"packages/**/__tests__/**/*.spec.js\"",
-    "ci": "test:coverage && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js"
+    "coverage": "nyc mocha --recursive \"packages/**/__tests__/**/*.spec.js\"",
+    "ci": "npm run lint && npm run test:coverage && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js"
   },
   "keywords": [
     "lightning-network",
