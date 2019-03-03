@@ -18,7 +18,7 @@
     "url": "git+https://github.com/altangent/lightnode.git"
   },
   "scripts": {
-    "test": "nyc mocha --recursive \"__tests__/**/*.spec.js\""
+    "test": "echo \"Error: run tests from root\""
   },
   "bugs": {
     "url": "https://github.com/altangent/lightnode/issues"

@@ -19,7 +19,7 @@
   "scripts": {
     "start": "node src",
     "watch": "nodemon --watch ../",
-    "test": "echo \"Error: run tests from root\" && exit 1"
+    "test": "echo \"Error: run tests from root\""
   },
   "dependencies": {
     "@lightnode/wire": "^0.1.0",

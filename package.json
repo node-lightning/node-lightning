@@ -4,6 +4,8 @@
   "description": "Node.js implementation of the Bitcoin Lightning Network",
   "scripts": {
     "start": "cd packages/daemon; npm run start",
+    "bootstrap": "lerna bootstrap --hoist",
+    "pretest": "eslint packages",
     "test": "lerna run test"
   },
   "keywords": [
