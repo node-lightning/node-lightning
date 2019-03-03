@@ -30,7 +30,7 @@
   },
   "dependencies": {
     "@lightnode/crypto": "file:../lightnode-crypto",
-    "@lightnode/messages": "file:../messages",
+    "@lightnode/messages": "file:../lightnode-messages",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "mocha": "^6.0.1",
