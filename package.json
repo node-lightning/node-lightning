@@ -27,14 +27,5 @@
     "nyc": "^13.3.0",
     "prettier": "^1.16.4",
     "sinon": "^7.2.6"
-  },
-  "dependencies": {
-    "@lightnode/crypto": "file:packages/lightnode-crypto",
-    "@lightnode/daemon": "file:src/daemon",
-    "@lightnode/invoice": "file:packages/lightnode-invoice",
-    "@lightnode/messages": "file:packages/lightnode-messages",
-    "@lightnode/txhandling": "file:packages/lightnode-txhandling",
-    "@lightnode/wire": "file:packages/lightnode-wire"
-  },
-  "mocha": {}
+  }
 }
