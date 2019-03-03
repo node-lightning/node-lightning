@@ -29,8 +29,8 @@
     "url": "https://github.com/altangent/lightnode/issues"
   },
   "dependencies": {
-    "@lightnode/crypto": "file:../lightnode-crypto",
-    "@lightnode/messages": "file:../lightnode-messages",
+    "@lightnode/crypto": "^0.1.0",
+    "@lightnode/messages": "^0.1.0",
     "winston": "^3.2.1"
   },
   "devDependencies": {
