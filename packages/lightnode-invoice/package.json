@@ -46,11 +46,8 @@
   },
   "devDependencies": {
     "chai": "^4.2.0",
-    "coveralls": "^3.0.1",
-    "eslint": "^4.19.1",
-    "mocha": "^5.2.0",
+    "mocha": "^6.0.2",
     "nyc": "^13.3.0",
-    "prettier": "^1.13.4",
-    "sinon": "^7.2.2"
+    "sinon": "^7.2.6"
   }
 }

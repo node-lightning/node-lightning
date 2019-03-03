@@ -31,11 +31,13 @@
   "dependencies": {
     "@lightnode/crypto": "file:../lightnode-crypto",
     "@lightnode/messages": "file:../lightnode-messages",
+    "winston": "^3.2.1"
+  },
+  "devDependencies": {
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
-    "mocha": "^6.0.1",
+    "mocha": "^6.0.2",
     "nyc": "^13.3.0",
-    "sinon": "^7.2.4",
-    "winston": "^3.2.1"
+    "sinon": "^7.2.6"
   }
 }
