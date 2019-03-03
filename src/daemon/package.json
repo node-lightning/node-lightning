@@ -22,7 +22,7 @@
     "test": "echo \"Error: run tests from root\" && exit 1"
   },
   "dependencies": {
-    "@lightnode/wire": "file:../wire",
+    "@lightnode/wire": "file:../../packages/lightnode-wire",
     "winston": "^3.2.1"
   },
   "devDependencies": {
