@@ -1,13 +1,11 @@
-# Lightning Network Invoice Protocol Encoder/Decoder
+# @lightnode/invlice - BOLT 11 Lightning Network Invoice Encoder/Decoder
 
 [![CircleCI](https://circleci.com/gh/altangent/lightnode-invoice/tree/master.svg?style=shield)](https://circleci.com/gh/altangent/lightnode-invoice/tree/master)
 [![Coverage Status](https://coveralls.io/repos/github/altangent/lightnode-invoice/badge.svg?branch=master)](https://coveralls.io/github/altangent/lightnode-invoice?branch=master)
 
-A JavaScript invoice encoding/decoding library for the Bitcoin Lightning Network.
+A JavaScript invoice encoding/decoding library for the Lightning Network.
 
-This library intends to be [BOLT #11](https://github.com/lightningnetwork/lightning-rfc/blob/master/11-payment-encoding.md) compliant.
-
-This software is a work in progress. Use at your own risk.
+This library is [BOLT #11](https://github.com/lightningnetwork/lightning-rfc/blob/master/11-payment-encoding.md) compliant.
 
 ## Usage
 

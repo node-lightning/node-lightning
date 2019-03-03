@@ -1,5 +1,5 @@
 const { expect } = require('chai');
-const bech32 = require('./bech32');
+const bech32 = require('../lib/bech32');
 
 describe('bech32', () => {
   let input1 =

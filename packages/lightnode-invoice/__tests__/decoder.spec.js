@@ -2,7 +2,7 @@ const { expect } = require('chai');
 const crypto = require('crypto');
 const bs58check = require('bs58check');
 const bech32 = require('bech32');
-const decoder = require('./decoder');
+const decoder = require('../lib/decoder');
 
 describe('decoder', () => {
   it('must fail if checksum incorrect', () => {

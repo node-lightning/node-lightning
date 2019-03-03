@@ -1,5 +1,5 @@
 const { expect } = require('chai');
-const Invoice = require('./invoice');
+const Invoice = require('../lib/invoice');
 
 describe('invoice', () => {
   let sut;

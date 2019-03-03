@@ -1,6 +1,6 @@
 const { expect } = require('chai');
-const sut = require('./encoder');
-const Invoice = require('./invoice');
+const sut = require('../lib/encoder');
+const Invoice = require('../lib/invoice');
 
 describe('encoder', () => {
   const privKey = Buffer.from(
