@@ -1,6 +1,7 @@
 {
   "name": "@lightnode/daemon",
   "version": "0.1.0",
+  "private": true,
   "description": "Lightnode Daemon - Node.js implementation of the Lightning Network",
   "keywords": [
     "lightning network",
@@ -17,19 +18,10 @@
     "url": "https://github.com/altangent/lightnode/issues"
   },
   "scripts": {
-    "start": "node src",
-    "watch": "nodemon --watch ../",
-    "test": "echo \"Error: run tests from root\""
+    "start": "node src"
   },
   "dependencies": {
-    "@lightnode/wire": "^0.1.0",
+    "@lightnode/wire": "file:../../packages/lightnode-wire",
     "winston": "^3.2.1"
-  },
-  "devDependencies": {
-    "chai": "^4.2.0",
-    "mocha": "^6.0.2",
-    "nodemon": "^1.18.10",
-    "nyc": "^13.3.0",
-    "sinon": "^7.2.6"
   }
 }

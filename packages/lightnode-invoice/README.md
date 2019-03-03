@@ -1,4 +1,4 @@
-# @lightnode/invlice - BOLT 11 Lightning Network Invoice Encoder/Decoder
+# @lightnode/invoice - BOLT 11 Lightning Network Invoice Encoder/Decoder
 
 [![CircleCI](https://circleci.com/gh/altangent/lightnode-invoice/tree/master.svg?style=shield)](https://circleci.com/gh/altangent/lightnode-invoice/tree/master)
 [![Coverage Status](https://coveralls.io/repos/github/altangent/lightnode-invoice/badge.svg?branch=master)](https://coveralls.io/github/altangent/lightnode-invoice?branch=master)

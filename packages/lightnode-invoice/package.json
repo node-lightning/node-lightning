@@ -3,20 +3,6 @@
   "version": "0.3.0",
   "description": "Lightning Network invoice protocol library",
   "main": "lib/index.js",
-  "scripts": {
-    "test": "nyc --reporter=lcov --reporter=text mocha --recursive \"__tests__/**/*.spec.js\"",
-    "format": "prettier --write src/*.js",
-    "lint": "eslint lib/*.js",
-    "validate": "npm run format; npm run lint; npm test",
-    "ci": "npm run lint; npm run test && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js"
-  },
-  "directories": {
-    "lib": "lib",
-    "test": "__tests__"
-  },
-  "files": [
-    "lib"
-  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/altangent/lightnode-invoice.git"
@@ -43,11 +29,5 @@
     "decimal.js": "^10.0.1",
     "secp256k1": "^3.5.0",
     "simple-buffer-cursor": "^1.0.2"
-  },
-  "devDependencies": {
-    "chai": "^4.2.0",
-    "mocha": "^6.0.2",
-    "nyc": "^13.3.0",
-    "sinon": "^7.2.6"
   }
 }

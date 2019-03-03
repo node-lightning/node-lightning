@@ -11,33 +11,16 @@
   "homepage": "https://github.com/altangent/lightnode#readme",
   "license": "MIT",
   "main": "lib/index.js",
-  "directories": {
-    "lib": "lib",
-    "test": "__tests__"
-  },
-  "files": [
-    "lib"
-  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/altangent/lightnode.git"
-  },
-  "scripts": {
-    "test": "nyc mocha --recursive \"__tests__/**/*.spec.js\""
   },
   "bugs": {
     "url": "https://github.com/altangent/lightnode/issues"
   },
   "dependencies": {
-    "@lightnode/crypto": "^0.1.0",
-    "@lightnode/messages": "^0.1.0",
+    "@lightnode/crypto": "file:../lightnode-crypto",
+    "@lightnode/messages": "file:../lightnode-messages",
     "winston": "^3.2.1"
-  },
-  "devDependencies": {
-    "chai": "^4.2.0",
-    "chai-as-promised": "^7.1.1",
-    "mocha": "^6.0.2",
-    "nyc": "^13.3.0",
-    "sinon": "^7.2.6"
   }
 }
