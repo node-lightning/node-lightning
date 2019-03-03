@@ -1,5 +1,5 @@
 {
-  "name": "@lightnode/monorepo",
+  "name": "lightnode",
   "version": "0.1.0",
   "description": "Node.js implementation of the Bitcoin Lightning Network",
   "scripts": {
@@ -7,7 +7,7 @@
     "bootstrap": "lerna bootstrap --hoist",
     "lint": "eslint packages",
     "test": "mocha --recursive \"packages/**/__tests__/**/*.spec.js\"",
-    "coverage": "nyc mocha --recursive \"packages/**/__tests__/**/*.spec.js\"",
+    "test:coverage": "nyc --reporter=lcov --reporter=text mocha --recursive \"packages/**/__tests__/**/*.spec.js\"",
     "ci": "npm run lint && npm run test:coverage && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js"
   },
   "keywords": [
