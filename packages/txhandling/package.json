@@ -27,7 +27,7 @@
     "url": "https://github.com/altangent/lightnode/issues"
   },
   "dependencies": {
-    "@lightnode/crypto": "file:../crypto",
+    "@lightnode/crypto": "file:../lightnode-crypto",
     "bn.js": "^4.11.8",
     "secp256k1": "^3.6.2"
   },

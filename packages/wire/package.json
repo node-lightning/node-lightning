@@ -29,7 +29,7 @@
     "url": "https://github.com/altangent/lightnode/issues"
   },
   "dependencies": {
-    "@lightnode/crypto": "file:../crypto",
+    "@lightnode/crypto": "file:../lightnode-crypto",
     "@lightnode/messages": "file:../messages",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
