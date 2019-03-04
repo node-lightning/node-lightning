@@ -10,7 +10,4 @@ jobs:
       - run: npm install
       - run: npm run bootstrap
       - run: npm run test
-      - run: cd packages/lightnode-invoice && bash <(curl -s https://codecov.io/bash) -c -F @lightnode/crypto
-      - run: cd packages/lightnode-messages && bash <(curl -s https://codecov.io/bash) -c -F @lightnode/messages
-      - run: cd packages/lightnode-txhandling && bash <(curl -s https://codecov.io/bash) -c -F @lightnode/txhandling
-      - run: cd packages/lightnode-wire && bash <(curl -s https://codecov.io/bash) -c -F @lightnode/wire
+      - run: bash <(curl -s https://codecov.io/bash)
