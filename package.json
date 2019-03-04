@@ -5,7 +5,8 @@
   "scripts": {
     "start": "cd packages/daemon; npm run start",
     "bootstrap": "lerna bootstrap --hoist",
-    "prelint": "eslint packages",
+    "pretest": "npm run lint",
+    "lint": "eslint packages src",
     "test": "lerna run test"
   },
   "keywords": [
