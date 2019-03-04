@@ -5,6 +5,9 @@
   "author": "Brian Mancini <bmancini@gmail.com>",
   "homepage": "https://github.com/altangent/lightnode#readme",
   "license": "MIT",
+  "scripts": {
+    "test": "nyc --reporter=lcov --reporter=text mocha --recursive \"__tests__/**/*.spec.js\""
+  },
   "main": "lib/txhandling.js",
   "publishConfig": {
     "access": "public"
@@ -20,5 +23,9 @@
     "@lightnode/crypto": "0.1.0",
     "bn.js": "^4.11.8",
     "secp256k1": "^3.6.2"
+  },
+  "devDependencies": {
+    "mocha": "^6.0.2",
+    "nyc": "^13.3.0"
   }
 }

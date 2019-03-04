@@ -2,6 +2,9 @@
   "name": "@lightnode/wire",
   "version": "0.1.0",
   "description": "Implements Lightning Network Bolt #8 - Encryption and Authenticated Transport",
+  "scripts": {
+    "test": "nyc --reporter=lcov --reporter=text mocha --recursive \"__tests__/**/*.spec.js\""
+  },
   "keywords": [
     "lightning network",
     "bolt 8",
@@ -22,5 +25,9 @@
     "@lightnode/crypto": "0.1.0",
     "@lightnode/messages": "0.1.0",
     "winston": "^3.2.1"
+  },
+  "devDependencies": {
+    "mocha": "^6.0.2",
+    "nyc": "^13.3.0"
   }
 }

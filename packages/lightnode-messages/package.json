@@ -2,6 +2,9 @@
   "name": "@lightnode/messages",
   "version": "0.1.0",
   "description": "Lightning Network Messages",
+  "scripts": {
+    "test": "nyc --reporter=lcov --reporter=text mocha --recursive \"__tests__/**/*.spec.js\""
+  },
   "keywords": [
     "lightning",
     "network",
@@ -26,5 +29,9 @@
     "bn.js": "^4.11.8",
     "simple-buffer-cursor": "^1.0.3",
     "winston": "^3.2.1"
+  },
+  "devDependencies": {
+    "mocha": "^6.0.2",
+    "nyc": "^13.3.0"
   }
 }
