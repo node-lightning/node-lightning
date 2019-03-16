@@ -1,11 +1,9 @@
 # @lightnode/invoice - BOLT 11 Lightning Network Invoice Encoder/Decoder
 
-[![CircleCI](https://circleci.com/gh/altangent/lightnode-invoice/tree/master.svg?style=shield)](https://circleci.com/gh/altangent/lightnode-invoice/tree/master)
-[![Coverage Status](https://coveralls.io/repos/github/altangent/lightnode-invoice/badge.svg?branch=master)](https://coveralls.io/github/altangent/lightnode-invoice?branch=master)
+[![CircleCI](https://circleci.com/gh/altangent/lightnode/tree/master.svg?style=shield)](https://circleci.com/gh/altangent/lightnode/tree/master)
+[![codecov](https://codecov.io/gh/altangent/lightnode/branch/master/graph/badge.svg)](https://codecov.io/gh/altangent/lightnode)
 
-A JavaScript invoice encoding/decoding library for the Lightning Network.
-
-This library is [BOLT #11](https://github.com/lightningnetwork/lightning-rfc/blob/master/11-payment-encoding.md) compliant.
+A Node.js invoice encoding/decoding library for the Lightning Network. This library is [BOLT #11](https://github.com/lightningnetwork/lightning-rfc/blob/master/11-payment-encoding.md) compliant.
 
 ## Usage
 
@@ -95,9 +93,4 @@ Represents a payment invoice that contains the following properties
 
 ## Contributing
 
-Contributions are welcome. Integrated tooling includes unit testing, linting, and formatting via Prettier. These command can be run via `npm test`, `npm run lint` and `npm run format`.
-
-Before submitting PRs:
-
-- Add appropriate test coverage for your issue
-- Run `npm run validate` to ensure coding standards are followed
+Refer to the Lightnode [contributing guide](https://github.com/altangent/lightnode/blob/master/CONTRIBUTING.md)
