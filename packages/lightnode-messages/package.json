@@ -1,6 +1,6 @@
 {
   "name": "@lightnode/messages",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Lightning Network Messages",
   "scripts": {
     "test": "nyc --reporter=lcov --reporter=text mocha --recursive \"__tests__/**/*.spec.js\""

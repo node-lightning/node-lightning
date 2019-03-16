@@ -1,6 +1,6 @@
 {
   "name": "@lightnode/wire",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Implements Lightning Network Bolt #8 - Encryption and Authenticated Transport",
   "scripts": {
     "test": "nyc --reporter=lcov --reporter=text mocha --recursive \"__tests__/**/*.spec.js\""
@@ -22,8 +22,8 @@
     "url": "https://github.com/altangent/lightnode/issues"
   },
   "dependencies": {
-    "@lightnode/crypto": "0.1.0",
-    "@lightnode/messages": "0.1.0",
+    "@lightnode/crypto": "^0.1.1",
+    "@lightnode/messages": "^0.1.1",
     "winston": "^3.2.1"
   },
   "devDependencies": {

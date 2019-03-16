@@ -1,6 +1,6 @@
 {
   "name": "@lightnode/crypto",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Crypto suite for Lightnode",
   "author": "Brian Mancini <bmancini@gmail.com>",
   "homepage": "https://github.com/altangent/lightnode#readme",
