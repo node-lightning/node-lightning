@@ -73,7 +73,8 @@ Encodes an invoice into a bech32 encode lightning invoice.
 Represents a payment invoice that contains the following properties
 
 - `network: String` - network prefix (Bitcoin Mainnet `bc`, Bitcoin Testnet `tb`, Bitcoin Regression `crt`, Bitcoin Simnet `sm`
-- `amount: Float` - amount in bitcoin
+- `value: String` - value in bitcoin
+- `valueSatoshi: String` - value in Satoshi
 - `timestamp: Int` - timestamp of the invoice
 - `fields: Array` - raw fields that are known in BOLT 11
 - `unknownFields: Array` - raw fields that are unknown in BOLT 11

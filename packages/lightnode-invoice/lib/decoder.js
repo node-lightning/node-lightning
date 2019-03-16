@@ -3,16 +3,26 @@ const crypto = require('./crypto');
 const bech32 = require('./bech32');
 const WordCursor = require('./word-cursor');
 const Invoice = require('./invoice');
+const Decimal = require('decimal.js');
 
 module.exports = {
   decode,
 };
 
+/**
+ * Decodes an invoice into an Invoice object
+ * @param {String} invoice
+ * @return {Invoice}
+ */
 function decode(invoice) {
+  // Decode the invoice into prefix and words.
+  // The words will be interated over to decode the rest of thee invoice
   let { prefix, words } = bech32.decode(invoice);
 
+  // Parse the prefix into the network and the amount.
   let { network, amount } = parsePrefix(prefix);
 
+  // Construct a word cursor to read from the remaining data
   let wordcursor = new WordCursor(words);
 
   let timestamp = wordcursor.readUIntBE(7); // read 7 words / 35 bits
@@ -95,13 +105,6 @@ function decode(invoice) {
   preHashData = Buffer.concat([Buffer.from(prefix), preHashData]);
   let hashData = crypto.sha256(preHashData);
 
-  // console.log(
-  //   sigBytes.toString('hex'),
-  //   recoveryFlag,
-  //   preHashData.toString('hex'),
-  //   hashData.toString('hex')
-  // );
-
   // recovery pubkey from ecdsa sig
   let pubkey = crypto.ecdsaRecovery(hashData, sigBytes, recoveryFlag);
 
@@ -110,7 +113,7 @@ function decode(invoice) {
 
   let result = new Invoice();
   result.network = network;
-  result.amount = amount;
+  result.value = amount;
   result.timestamp = timestamp;
   result.fields = fields;
   result.unknownFields = unknownFields;
@@ -154,7 +157,7 @@ function parsePrefix(prefix) {
     }
   }
 
-  amount = amount === '' ? null : parseInt(amount) * getAmountMultiplier(multiplier);
+  amount = amount === '' ? null : new Decimal(amount).mul(getAmountMultiplier(multiplier));
 
   if (!isValidNetwork(network)) throw new Error('Invalid network');
   if (!isValidAmount(amount)) throw new Error('Invalid amount');

@@ -2,7 +2,9 @@ const { expect } = require('chai');
 const Invoice = require('../lib/invoice');
 
 describe('invoice', () => {
+  /** @type {Invoice} */
   let sut;
+
   beforeEach(() => {
     sut = new Invoice();
   });
@@ -17,6 +19,91 @@ describe('invoice', () => {
       sut.shortDesc = 'hello';
       sut.shortDesc = 'world';
       expect(sut.fields.length).to.equal(1);
+    });
+  });
+
+  describe('amount', () => {
+    it('should set the amount when a Number', () => {
+      sut.amount = 1;
+      expect(sut.amount).to.equal('1');
+    });
+    it('should set the amount when a String', () => {
+      sut.amount = '1';
+      expect(sut.amount).to.equal('1');
+    });
+    it('should set 0 to null', () => {
+      sut.amount = null;
+      expect(sut.amount).to.equal(null);
+    });
+    it('should set null to null', () => {
+      sut.amount = null;
+      expect(sut.amount).to.equal(null);
+    });
+    it('should set empty string to null', () => {
+      sut.amount = '';
+      expect(sut.amount).to.equal(null);
+    });
+    it('should have correct amount when value set', () => {
+      sut.value = 0.00001;
+      expect(sut.amount).to.equal('0.00001');
+    });
+    it('should have correct amount when valueSatoshi set', () => {
+      sut.valueSatoshi = 1000;
+      expect(sut.amount).to.equal('0.00001');
+    });
+  });
+
+  describe('value', () => {
+    it('should set the value when a Number', () => {
+      sut.value = 1;
+      expect(sut.value).to.equal('1');
+    });
+    it('should set the value when a String', () => {
+      sut.value = '1';
+      expect(sut.value).to.equal('1');
+    });
+    it('should set 0 to null', () => {
+      sut.value = null;
+      expect(sut.value).to.equal(null);
+    });
+    it('should set null to null', () => {
+      sut.value = null;
+      expect(sut.value).to.equal(null);
+    });
+    it('should set empty string to null', () => {
+      sut.value = '';
+      expect(sut.value).to.equal(null);
+    });
+    it('should have correct value when valueSatoshi set', () => {
+      sut.valueSatoshi = 1000;
+      expect(sut.value).to.equal('0.00001');
+    });
+  });
+
+  describe('valueSatoshi', () => {
+    it('should set the value when a Number', () => {
+      sut.valueSatoshi = 1000;
+      expect(sut.valueSatoshi).to.equal('1000');
+    });
+    it('should set the value when a String', () => {
+      sut.valueSatoshi = '1000';
+      expect(sut.valueSatoshi).to.equal('1000');
+    });
+    it('should set 0 to null', () => {
+      sut.valueSatoshi = 0;
+      expect(sut.valueSatoshi).to.equal(null);
+    });
+    it('should set null to null', () => {
+      sut.valueSatoshi = null;
+      expect(sut.valueSatoshi).to.equal(null);
+    });
+    it('should set empty string to null', () => {
+      sut.valueSatoshi = null;
+      expect(sut.valueSatoshi).to.equal(null);
+    });
+    it('should have correct valueSatoshi when value set', () => {
+      sut.value = 0.00001;
+      expect(sut.valueSatoshi).to.equal('1000');
     });
   });
 
