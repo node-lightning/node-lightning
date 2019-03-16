@@ -131,20 +131,26 @@ function parsePrefix(prefix) {
   let network = '';
   let amount = '';
   let multiplier;
-  let parsingNetwork = true;
+  let hasNetwork = false;
+  let hasAmount = false;
 
   for (let i = 2; i < prefix.length; i++) {
     let charCode = prefix.charCodeAt(i);
 
-    if (parsingNetwork) {
+    if (!hasNetwork) {
       if (charCode >= 97 && charCode <= 122) network += prefix[i];
-      if (charCode >= 48 && charCode <= 57) parsingNetwork = false;
+      else hasNetwork = true;
     }
 
-    if (!parsingNetwork) {
-      if (multiplier !== undefined) throw new Error('Invalid prefix');
+    if (hasNetwork && !hasAmount) {
       if (charCode >= 48 && charCode <= 57) amount += prefix[i];
+      else if (amount) hasAmount = true;
+      else throw new Error('Invalid amount');
+    }
+
+    if (hasAmount) {
       if (charCode >= 97 && charCode <= 122) multiplier = prefix[i];
+      else throw new Error('Invalid character');
     }
   }
 

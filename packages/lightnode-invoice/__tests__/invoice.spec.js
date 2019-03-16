@@ -93,49 +93,49 @@ describe('invoice', () => {
   describe('addFallbackAddress', () => {
     it('Bitcoin Mainnet P2PKH - 1', () => {
       sut.addFallbackAddress('17VZNX1SN5NtKa8UQFxwQbFeFc3iqRYhem');
-      expect(sut.fields[0].value.type).to.equal(17);
+      expect(sut.fields[0].value.version).to.equal(17);
       expect(sut.fields[0].value.address).to.deep.equal(
         Buffer.from('47376c6f537d62177a2c41c4ca9b45829ab99083', 'hex')
       );
     });
     it('Bitcoin Testnet P2PKH - m', () => {
       sut.addFallbackAddress('mipcBbFg9gMiCh81Kj8tqqdgoZub1ZJRfn');
-      expect(sut.fields[0].value.type).to.equal(17);
+      expect(sut.fields[0].value.version).to.equal(17);
       expect(sut.fields[0].value.address).to.deep.equal(
         Buffer.from('243f1394f44554f4ce3fd68649c19adc483ce924', 'hex')
       );
     });
     it('Bitcoin Testnet P2PKH - n', () => {
       sut.addFallbackAddress('n11ByR8jqq6DiPB7ny2Udt9tK7QDVKNXKw');
-      expect(sut.fields[0].value.type).to.equal(17);
+      expect(sut.fields[0].value.version).to.equal(17);
       expect(sut.fields[0].value.address).to.deep.equal(
         Buffer.from('d5c174880d3dcdaf904cd89f06f1f2862c948cb7', 'hex')
       );
     });
     it('Bitcoin Mainnet P2SH - 3', () => {
       sut.addFallbackAddress('3EktnHQD7RiAE6uzMj2ZifT9YgRrkSgzQX');
-      expect(sut.fields[0].value.type).to.equal(18);
+      expect(sut.fields[0].value.version).to.equal(18);
       expect(sut.fields[0].value.address).to.deep.equal(
         Buffer.from('8f55563b9a19f321c211e9b9f38cdf686ea07845', 'hex')
       );
     });
     it('Bitcoin Testnet P2SH - 2', () => {
       sut.addFallbackAddress('2MzQwSSnBHWHqSAqtTVQ6v47XtaisrJa1Vc');
-      expect(sut.fields[0].value.type).to.equal(18);
+      expect(sut.fields[0].value.version).to.equal(18);
       expect(sut.fields[0].value.address).to.deep.equal(
         Buffer.from('4e9f39ca4688ff102128ea4ccda34105324305b0', 'hex')
       );
     });
     it('Bitcoin Mainnet Bech32', () => {
       sut.addFallbackAddress('bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4');
-      expect(sut.fields[0].value.type).to.equal(0);
+      expect(sut.fields[0].value.version).to.equal(0);
       expect(sut.fields[0].value.address).to.deep.equal(
         Buffer.from('751e76e8199196d454941c45d1b3a323f1433bd6', 'hex')
       );
     });
     it('Bitcoin Testnet Bech32', () => {
       sut.addFallbackAddress('tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx');
-      expect(sut.fields[0].value.type).to.equal(0);
+      expect(sut.fields[0].value.version).to.equal(0);
       expect(sut.fields[0].value.address).to.deep.equal(
         Buffer.from('751e76e8199196d454941c45d1b3a323f1433bd6', 'hex')
       );

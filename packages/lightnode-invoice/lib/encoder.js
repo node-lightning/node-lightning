@@ -109,7 +109,7 @@ function _encodeData(invoice, writer) {
           let dataLen = bech32.sizeofBits(datum.value.address.byteLength * 8) + 1;
           writer.writeUIntBE(datum.type, 1);
           writer.writeUIntBE(dataLen, 2);
-          writer.writeUIntBE(datum.value.type, 1);
+          writer.writeUIntBE(datum.value.version, 1);
           writer.writeBytes(datum.value.address);
         }
         break;

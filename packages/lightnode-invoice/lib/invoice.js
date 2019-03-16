@@ -86,20 +86,20 @@ class Invoice {
   }
 
   addFallbackAddress(addrStr) {
-    let type, address;
+    let version, address;
     if (addrStr.startsWith('1') || addrStr.startsWith('m') || addrStr.startsWith('n')) {
-      type = 17;
+      version = 17;
       address = bs58check.decode(addrStr).slice(1); // remove prefix
     } else if (addrStr.startsWith('3') || addrStr.startsWith('2')) {
-      type = 18;
+      version = 18;
       address = bs58check.decode(addrStr).slice(1); // remove prefix
     } else if (addrStr.startsWith('bc1') || addrStr.startsWith('tb1')) {
       let words = bech32.decode(addrStr).words;
-      type = words[0];
+      version = words[0];
       address = bech32.fromWords(words.slice(1));
     }
     if (Array.isArray(address)) address = Buffer.from(address);
-    this.fields.push({ type: 9, value: { type, address } });
+    this.fields.push({ type: 9, value: { version, address } });
   }
 
   addRoute(routes) {

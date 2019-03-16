@@ -10,14 +10,78 @@ describe('decoder', () => {
     expect(() => decoder.decode(input)).to.throw(/Invalid checksum/);
   });
 
-  it('must fail if prefix does not start with ln');
-  it('must fail if unknown network');
-  it('must fail if amount contains non-digit');
-  it('must fail if amount contains invalid multiplier');
+  it('must fail if prefix does not start with ln', () => {
+    let input = bech32.encode('bad', bech32.toWords('test'));
+    expect(() => decoder.decode(input)).to.throw(/Invalid prefix/);
+  });
+  it('must fail if unknown network', () => {
+    let input = bech32.encode('lnbad1', bech32.toWords('test'));
+    expect(() => decoder.decode(input)).to.throw(/Invalid network/);
+  });
+  it('must fail if amount contains non-digit', () => {
+    let input = bech32.encode('lnbc1&m', bech32.toWords('test'));
+    expect(() => decoder.decode(input)).to.throw(/Invalid character/);
+  });
+  it('must fail if multiplier contains non-digit', () => {
+    let input = bech32.encode('lnbc1m&', bech32.toWords('test'));
+    expect(() => decoder.decode(input)).to.throw(/Invalid character/);
+  });
+  it('must fail if amount contains invalid amount', () => {
+    let input = bech32.encode('lnbc0m', bech32.toWords('test'));
+    expect(() => decoder.decode(input)).to.throw(/Invalid amount/);
+  });
+  it('must fail when multiplier without amount', () => {
+    let input = bech32.encode('lnbcm', bech32.toWords('test'));
+    expect(() => decoder.decode(input)).to.throw(/Invalid network/);
+  });
+  it('must fail if amount contains invalid multiplier', () => {
+    let input = bech32.encode('lnbc1a', bech32.toWords('test'));
+    expect(() => decoder.decode(input)).to.throw(/Invalid multiplier/);
+  });
+  it('should have no amount when amount is empty', () => {
+    let input = 'lnbc1pvjluezpp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqdq5xysxxatsyp3k7enxv4jshwlglv23cytkzvq8ld39drs8sq656yh2zn0aevrwu6uqctaklelhtpjnmgjdzmvwsh0kuxuwqf69fjeap9m5mev2qzpp27xfswhs5vgqmn9xzq'; // prettier-ignore
+    let result = decoder.decode(input);
+    expect(result.amount).to.be.null;
+  });
+  it('should have correct amount with pico multiplier', () => {
+    let input = 'lnbc1p1pvjluezpp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqdq5xysxxatsyp3k7enxv4jshz8a9p67cuw60898ljqx55lt5hu8yy6nr4rkpsjj69uwzcgsgjwytn65ftnuzsw3fs95aw3pvcfedxzzh34u089hjwrzjl757zw9hxcp0n43t8'; // prettier-ignore
+    let result = decoder.decode(input);
+    expect(result.amount).to.equal(0.000000000001);
+  });
+  it('should have correct amount with nano multiplier', () => {
+    let input = 'lnbc1n1pvjluezpp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqdq5xysxxatsyp3k7enxv4jsydccnehd6uwnnkpk3v94mfeun6rk025yygw0l73usy93snxzwmmhzqxpu2nv80dp2hz47y8tk8znv3mnaez5lvhznfws500cp8f43ucp00ns2d'; // prettier-ignore
+    let result = decoder.decode(input);
+    expect(result.amount).to.equal(0.000000001);
+  });
+  it('should have correct amount with micro multiplier', () => {
+    let input = 'lnbc1u1pvjluezpp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqdq5xysxxatsyp3k7enxv4jssz5kxlujxj66rcfq6w2ye7dr27u3unumw6wkrs3r9795lrwzallswnvsa0l6dfqm8rzmquv20dqj5zv48n352qfwqtw8572vdha9f0spm5lkzk'; // prettier-ignore
+    let result = decoder.decode(input);
+    expect(result.amount).to.equal(0.000001);
+  });
+  it('should have correct amount with milli multiplier', () => {
+    let input = 'lnbc1m1pvjluezpp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqdq5xysxxatsyp3k7enxv4js6qu20kendkn4qgalrnmcwmnffvswt0clnlfeuqkcdenpttsqynh3fl37rqrvc2p8y80jxcyz470ur69jh2ugfcdgjyu0l0mmh0ja2vcpzgn39l'; //prettier-ignore
+    let result = decoder.decode(input);
+    expect(result.amount).to.equal(0.001);
+  });
+  it('should have correct amount with no multiplier', () => {
+    let input = 'lnbc11pvjluezpp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqdq5xysxxatsyp3k7enxv4jsn4qy2qvfxxml5e6mnynqy9mhz4x4vqzqtnwp92fw6xrz5rvspm98u6jg0slh85kq7934eh86tg2up7h5cxhyf229gsrrtstfw5zcheqqm2ezmv'; // prettier-ignore
+    let result = decoder.decode(input);
+    expect(result.amount).to.equal(1);
+  });
 
   it('must fail if the signature is invalid');
 
-  it('must skip f field with unknown version');
+  it('must skip f field with unknown version', () => {
+    let input = 'lnbc11pvjluezpp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqdq5xysxxatsyp3k7enxv4jsfqfndpjkcmr0vwkqhkwv54grmkq6r8w4tweqj3d44x66fx42uc6zufkw6ytdus4jxnyrwce5ryjv5hs23l4zcrl2u0vuzzs73eeyugr8gf85gcufgycpmplv60'; // prettier-ignore
+    let result = decoder.decode(input);
+    expect(result.unknownFields[0]).to.deep.equal({
+      type: 9,
+      value: {
+        version: 19,
+        address: Buffer.from('hello'),
+      },
+    });
+  });
   it('must skip p field with length !== 52');
   it('must skip h field with length !== 52');
   it('must skip n field with length !== 53');
@@ -26,11 +90,9 @@ describe('decoder', () => {
     'must use n field to validate signature instead of performing signature recovery if a valid n is provided'
   );
 
-  describe('it vectors', () => {
+  describe('test vectors', () => {
     const sha256 = crypto.createHash('sha256');
-    sha256.update(
-      'One piece of chocolate cake, one icecream cone, one pickle, one slice of swiss cheese, one slice of salami, one lollypop, one piece of cherry pie, one sausage, one cupcake, and one slice of watermelon'
-    );
+    sha256.update('One piece of chocolate cake, one icecream cone, one pickle, one slice of swiss cheese, one slice of salami, one lollypop, one piece of cherry pie, one sausage, one cupcake, and one slice of watermelon'); // prettier-ignore
     const hashDescription = sha256.digest();
 
     const pubkey = Buffer.from(
@@ -278,7 +340,7 @@ describe('decoder', () => {
     });
   });
 
-  describe('additional it vectors', () => {
+  describe('additional test vectors', () => {
     it('send 0.02 BTC, on simnet', () => {
       let input =
         'lnsb20m1pd3dfr9pp5s90vpp5a7sxzd4zenxxesvfge73nqslj4h7zn29059hgyp7jdvjqdqqcqzysqngw58lu63trytwj7ktx7vasdutvvan7paq5qrgjj6wg065qzr8pv8p6q7kcdeg0kdpek09gc7xf6y972gy7t3pl6gtcqww440znz6gpfec4kj';
