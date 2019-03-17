@@ -354,5 +354,28 @@ describe('decoder', () => {
       let result = decoder.decode(input);
       expect(result.amount).to.equal('0.00001');
     });
+    it('should decode an invoice with a payee node', () => {
+      let input =
+        'lnbc1pvjluezpp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqnp4q0n326hr8v9zprg8gsvezcch06gfaqqhde2aj730yg0durunfhv66t9sfxuhugqeh0pjtckefuffen5pqnvajdcljyk6a3en4zym4m7krcflhf0wyryvya8dxclyg36d0z4a6zmzxfpc25uxtfk6ls55zpegqfjw4su';
+      let result = decoder.decode(input);
+      expect(result.payeeNode.toString('hex')).to.equal(
+        '03e7156ae33b0a208d0744199163177e909e80176e55d97a2f221ede0f934dd9ad'
+      );
+    });
+    it('should decode custom min final CLTV expiry', () => {
+      let input =
+        'lnbc1pvjluezpp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqdqad45ku3nfdeskcsmvw3my27rsd9e8jcqp0huernjk8n84gcyeyneleczksmtmhmpyc5uxzfuy92akwq6593gqqcy4e0cse5jcfkmhge0wyd7hrlvrvxumr5k5lggl727tjzwc83ygpnwqcaz';
+      let result = decoder.decode(input);
+      expect(result.minFinalCltvExpiry).to.equal(15);
+    });
+    it('should process unknown field', () => {
+      let input =
+        'lnbc1pvjluezpp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqdqvw4hxkmn0wahq7qgdpjkcmr0530rjesw23a7fgq3se6egxrtqez5mqpuveg0zsryumrrq8v2433xm25p57n54t767y8wtljmtwljatr93cnn6e8cayjg46p0uq5rp0cq0gz348';
+      let result = decoder.decode(input);
+      let unknown = result.unknownFields[0];
+      expect(unknown).to.not.be.undefined;
+      expect(unknown.type).to.equal(30);
+      expect(unknown.value.toString()).to.equal('hello');
+    });
   });
 });

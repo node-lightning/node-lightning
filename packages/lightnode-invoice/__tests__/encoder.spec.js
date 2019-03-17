@@ -1,4 +1,5 @@
 const { expect } = require('chai');
+const secp255k1 = require('secp256k1');
 const sut = require('../lib/encoder');
 const Invoice = require('../lib/invoice');
 
@@ -7,6 +8,7 @@ describe('encoder', () => {
     'e126f68f7eafcc8b74f54d269fe206be715000f94dac067d1c04a8ca3b2db734',
     'hex'
   );
+  const pubKey = secp255k1.publicKeyCreate(privKey);
 
   describe('amount encoder', () => {
     let tests = [
@@ -177,6 +179,48 @@ describe('encoder', () => {
       let result = sut.encode(invoice, privKey);
       expect(result).to.equal(
         'lnbc20m1pvjluezhp58yjmdan79s6qqdhdzgynm4zwqd5d7xmw5fk98klysy043l2ahrqspp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqfp4qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3q28j0v3rwgy9pvjnd48ee2pl8xrpxysd5g44td63g6xcjcu003j3qe8878hluqlvl3km8rm92f5stamd3jw763n3hck0ct7p8wwj463cql26ava'
+      );
+    });
+  });
+
+  describe('additional test vectors', () => {
+    it('should encode an invoice with payee node', () => {
+      let invoice = new Invoice();
+      invoice.network = 'bc';
+      invoice.timestamp = 1496314658;
+      invoice.paymentHash = '0001020304050607080900010203040506070809000102030405060708090102';
+      invoice.shortDesc = 'payeeNode';
+      invoice.payeeNode = pubKey;
+      let result = sut.encode(invoice, privKey);
+      expect(result).to.equal(
+        'lnbc1pvjluezpp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqdq0wpshjet9fehkgegnp4q0n326hr8v9zprg8gsvezcch06gfaqqhde2aj730yg0durunfhv66jrn3jpuzln5u4sgsxurshr37q03fcz2nxz0cn97ns454pxx2vzaqvzqsjqds74agj3uhlhctd7h28n7tvrasle948jsxfc45r4jddxgqdh2cll'
+      );
+    });
+    it('should encode min final CLTV expiry', () => {
+      let invoice = new Invoice();
+      invoice.network = 'bc';
+      invoice.timestamp = 1496314658;
+      invoice.paymentHash = '0001020304050607080900010203040506070809000102030405060708090102';
+      invoice.shortDesc = 'minFinalCltvExpiry';
+      invoice.minFinalCltvExpiry = 15;
+      let result = sut.encode(invoice, privKey);
+      expect(result).to.equal(
+        'lnbc1pvjluezpp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqdqad45ku3nfdeskcsmvw3my27rsd9e8jcqp0huernjk8n84gcyeyneleczksmtmhmpyc5uxzfuy92akwq6593gqqcy4e0cse5jcfkmhge0wyd7hrlvrvxumr5k5lggl727tjzwc83ygpnwqcaz'
+      );
+    });
+    it('should encode unknown field', () => {
+      let invoice = new Invoice();
+      invoice.network = 'bc';
+      invoice.timestamp = 1496314658;
+      invoice.paymentHash = '0001020304050607080900010203040506070809000102030405060708090102';
+      invoice.shortDesc = 'unknown';
+      invoice.fields.push({
+        type: 30,
+        value: Buffer.from('hello'),
+      });
+      let result = sut.encode(invoice, privKey);
+      expect(result).to.equal(
+        'lnbc1pvjluezpp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqdqvw4hxkmn0wahq7qgdpjkcmr0530rjesw23a7fgq3se6egxrtqez5mqpuveg0zsryumrrq8v2433xm25p57n54t767y8wtljmtwljatr93cnn6e8cayjg46p0uq5rp0cq0gz348'
       );
     });
   });

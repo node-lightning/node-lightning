@@ -146,9 +146,16 @@ function _encodeData(invoice, writer) {
           let dataLen = bech32Util.sizeofNum(datum.value);
           writer.writeUIntBE(datum.type, 1);
           writer.writeUIntBE(dataLen, 2);
-          writer.writeUIntBE(datum.value);
+          writer.writeUIntBE(datum.value, dataLen);
         }
         break;
+      default: {
+        if (!(datum.value instanceof Buffer)) throw new Error('Cannot process unknown field');
+        let dataLen = bech32Util.sizeofBits(datum.value.byteLength * 8);
+        writer.writeUIntBE(datum.type, 1);
+        writer.writeUIntBE(dataLen, 2);
+        writer.writeBytes(datum.value);
+      }
     }
   }
 }

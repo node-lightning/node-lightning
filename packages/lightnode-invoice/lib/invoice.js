@@ -49,7 +49,7 @@ class Invoice {
    * @deprecated Use `value` instead
    */
   get amount() {
-    return this._value ? this._value.mul(1e-11).toString() : null;
+    return this.hasValue ? this._value.mul(1e-11).toString() : null;
   }
 
   /**
@@ -72,7 +72,7 @@ class Invoice {
    *  precision loss.
    */
   get value() {
-    return this._value ? this._value.mul(1e-11).toString() : null;
+    return this.hasValue ? this._value.mul(1e-11).toString() : null;
   }
 
   /**
@@ -94,7 +94,7 @@ class Invoice {
    *  precision loss.
    */
   get valueSatoshi() {
-    return this._value ? this._value.mul(1e-3).toString() : null;
+    return this.hasValue ? this._value.mul(1e-3).toString() : null;
   }
 
   /**
