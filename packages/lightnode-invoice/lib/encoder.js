@@ -1,5 +1,6 @@
 const Decimal = require('decimal.js');
-const bech32 = require('./bech32');
+const bech32 = require('bech32');
+const bech32Util = require('./bech32-util');
 const WordCursor = require('./word-cursor');
 const crypto = require('./crypto');
 const { FIELD_TYPE } = require('./constants');
@@ -28,7 +29,7 @@ function encode(invoice, privKey) {
   _encodeData(invoice, writer);
 
   // generate sig data
-  let sigData = bech32.convertWords(writer.words, 5, 8);
+  let sigData = bech32Util.convertWords(writer.words, 5, 8, true);
   sigData = Buffer.concat([Buffer.from(prefix, 'utf8'), Buffer.from(sigData)]);
 
   // generate sig hash
@@ -39,7 +40,9 @@ function encode(invoice, privKey) {
   writer.writeBytes(signature);
   writer.writeUIntBE(recovery, 1);
 
-  return bech32.encode(prefix, writer.words);
+  // finally encode the invoice in bech32 and allow
+  // an invoice to be any length
+  return bech32.encode(prefix, writer.words, Number.MAX_SAFE_INTEGER);
 }
 
 function _decimalDigits(val) {
@@ -78,7 +81,7 @@ function _encodeData(invoice, writer) {
         {
           let bits = datum.value.length * (264 + 64 + 32 + 32 + 16);
           writer.writeUIntBE(datum.type, 1);
-          let dataLen = bech32.sizeofBits(bits);
+          let dataLen = bech32Util.sizeofBits(bits);
           writer.writeUIntBE(dataLen, 2);
           let buffer = Buffer.alloc(bits / 8);
           let position = 0;
@@ -99,7 +102,7 @@ function _encodeData(invoice, writer) {
         break;
       case FIELD_TYPE.EXPIRY:
         {
-          let dataLen = bech32.sizeofNum(datum.value);
+          let dataLen = bech32Util.sizeofNum(datum.value);
           writer.writeUIntBE(datum.type, 1);
           writer.writeUIntBE(dataLen, 2);
           writer.writeUIntBE(datum.value, dataLen);
@@ -107,7 +110,7 @@ function _encodeData(invoice, writer) {
         break;
       case FIELD_TYPE.FALLBACK_ADDRESS:
         {
-          let dataLen = bech32.sizeofBits(datum.value.address.byteLength * 8) + 1;
+          let dataLen = bech32Util.sizeofBits(datum.value.address.byteLength * 8) + 1;
           writer.writeUIntBE(datum.type, 1);
           writer.writeUIntBE(dataLen, 2);
           writer.writeUIntBE(datum.value.version, 1);
@@ -117,7 +120,7 @@ function _encodeData(invoice, writer) {
       case FIELD_TYPE.SHORT_DESC:
         {
           let buf = Buffer.from(datum.value, 'utf8');
-          let dataLen = bech32.sizeofBits(buf.byteLength * 8);
+          let dataLen = bech32Util.sizeofBits(buf.byteLength * 8);
           writer.writeUIntBE(datum.type, 1);
           writer.writeUIntBE(dataLen, 2);
           writer.writeBytes(buf);
@@ -132,7 +135,7 @@ function _encodeData(invoice, writer) {
         break;
       case FIELD_TYPE.HASH_DESC:
         {
-          let dataLen = bech32.sizeofBits(datum.value.byteLength * 8);
+          let dataLen = bech32Util.sizeofBits(datum.value.byteLength * 8);
           writer.writeUIntBE(datum.type, 1);
           writer.writeUIntBE(dataLen, 2);
           writer.writeBytes(datum.value);
@@ -140,7 +143,7 @@ function _encodeData(invoice, writer) {
         break;
       case FIELD_TYPE.MIN_FINAL_CLTV_EXPIRY:
         {
-          let dataLen = bech32.sizeofNum(datum.value);
+          let dataLen = bech32Util.sizeofNum(datum.value);
           writer.writeUIntBE(datum.type, 1);
           writer.writeUIntBE(dataLen, 2);
           writer.writeUIntBE(datum.value);

@@ -1,6 +1,6 @@
 const BufferCursor = require('simple-buffer-cursor');
+const bech32 = require('bech32');
 const crypto = require('./crypto');
-const bech32 = require('./bech32');
 const WordCursor = require('./word-cursor');
 const Invoice = require('./invoice');
 const Decimal = require('decimal.js');
@@ -18,7 +18,7 @@ module.exports = {
 function decode(invoice) {
   // Decode the invoice into prefix and words.
   // The words will be interated over to decode the rest of thee invoice
-  let { prefix, words } = bech32.decode(invoice);
+  let { prefix, words } = bech32.decode(invoice, Number.MAX_SAFE_INTEGER);
 
   // Parse the prefix into the network and the amount.
   let { network, amount } = parsePrefix(prefix);

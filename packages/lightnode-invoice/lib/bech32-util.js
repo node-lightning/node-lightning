@@ -1,44 +1,20 @@
-const bech32 = require('bech32');
-
 module.exports = {
-  decode,
-  encode,
   convertWords,
   sizeofNum,
   sizeofBits,
 };
 
 /**
- * Decodes a bech32 encoded invoice into prefix and words
- * @param {String} invoice
- * @returns {Object.<String, Buffer>}
- */
-function decode(invoice) {
-  let { prefix, words } = bech32.decode(invoice, Number.MAX_SAFE_INTEGER);
-  return {
-    prefix,
-    words,
-  };
-}
-
-/**
- * Encodes a prefix and words
- * @param {string} prefix
- * @param {Buffer} words
- */
-function encode(prefix, words) {
-  return bech32.encode(prefix, words, Number.MAX_SAFE_INTEGER);
-}
-
-/**
- * Converts a Buffer into a a word array
+ * Converts a Buffer into a a word array and optionally pads bits.
+ * This function is needed because the default bech32 fromWords/toWords
+ * functions do not allow us to optionally include/exclude padding.
  * @param {Buffer} data
  * @param {number} inBits
  * @param {number} outBits
  * @param {boolean} pad
  * @return {Array[number]} converted words
  */
-function convertWords(data, inBits, outBits, pad = true) {
+function convertWords(data, inBits, outBits, pad) {
   var value = 0;
   var bits = 0;
   var maxV = (1 << outBits) - 1;

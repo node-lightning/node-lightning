@@ -1,4 +1,4 @@
-const bech32 = require('./bech32');
+const bech32Util = require('./bech32-util');
 
 class WordCursor {
   constructor(words = []) {
@@ -24,8 +24,8 @@ class WordCursor {
     this._merge(words);
   }
 
-  writeBytes(buf) {
-    let words = bech32.convertWords(buf, 8, 5, true);
+  writeBytes(buf, pad = true) {
+    let words = bech32Util.convertWords(buf, 8, 5, pad);
     this._merge(words);
   }
 
@@ -43,7 +43,7 @@ class WordCursor {
   readBytes(numWords, pad = false) {
     let words = this.words.slice(this.position, this.position + numWords);
     this.position += numWords;
-    return Buffer.from(bech32.convertWords(words, 5, 8, pad));
+    return Buffer.from(bech32Util.convertWords(words, 5, 8, pad));
   }
 }
 
