@@ -4,6 +4,7 @@ const bech32 = require('./bech32');
 const WordCursor = require('./word-cursor');
 const Invoice = require('./invoice');
 const Decimal = require('decimal.js');
+const { FIELD_TYPE, ADDRESS_VERSION } = require('./constants');
 
 module.exports = {
   decode,
@@ -38,10 +39,10 @@ function decode(invoice) {
     let value;
 
     switch (type) {
-      case 1: // p - 256-bit sha256 payment_hash
+      case FIELD_TYPE.PAYMENT_HASH: // p - 256-bit sha256 payment_hash
         value = wordcursor.readBytes(len);
         break;
-      case 3: // r - variable, one or more entries containing extra routing info
+      case FIELD_TYPE.ROUTE: // r - variable, one or more entries containing extra routing info
         {
           value = [];
           let bytes = wordcursor.readBytes(len);
@@ -57,10 +58,10 @@ function decode(invoice) {
           }
         }
         break;
-      case 6: // x - expiry time in seconds
+      case FIELD_TYPE.EXPIRY: // x - expiry time in seconds
         value = wordcursor.readUIntBE(len);
         break;
-      case 9: // f - variable depending on version
+      case FIELD_TYPE.FALLBACK_ADDRESS: // f - variable depending on version
         {
           let version = wordcursor.readUIntBE(1);
           let address = wordcursor.readBytes(len - 1);
@@ -68,22 +69,26 @@ function decode(invoice) {
             version,
             address,
           };
-          if (version !== 0 && version !== 17 && version !== 18) {
+          if (
+            version !== ADDRESS_VERSION.SEGWIT &&
+            version !== ADDRESS_VERSION.P2PKH &&
+            version !== ADDRESS_VERSION.P2SH
+          ) {
             unknownFields.push({ type, value });
             continue;
           }
         }
         break;
-      case 13: // d - short description of purpose of payment utf-8
+      case FIELD_TYPE.SHORT_DESC: // d - short description of purpose of payment utf-8
         value = wordcursor.readBytes(len).toString('utf8');
         break;
-      case 19: // n - 33-byte public key of the payee node
+      case FIELD_TYPE.PAYEE_NODE: // n - 33-byte public key of the payee node
         value = wordcursor.readBytes(len);
         break;
-      case 23: // h - 256-bit sha256 description of purpose of payment
+      case FIELD_TYPE.HASH_DESC: // h - 256-bit sha256 description of purpose of payment
         value = wordcursor.readBytes(len);
         break;
-      case 24: // c - min_final_cltv_expiry to use for the last HTLC in the route
+      case FIELD_TYPE.MIN_FINAL_CLTV_EXPIRY: // c - min_final_cltv_expiry to use for the last HTLC in the route
         value = wordcursor.readUIntBE(len);
         break;
       default:
