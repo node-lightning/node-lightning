@@ -10,25 +10,25 @@ describe('encoder', () => {
 
   describe('amount encoder', () => {
     let tests = [
-      [1, '1'],
-      [0.1, '100m'],
-      [0.01, '10m'],
-      [0.001, '1m'],
-      [0.0001, '100u'],
-      [0.00001, '10u'],
-      [0.000001, '1u'],
-      [0.0000001, '100n'],
-      [0.00000001, '10n'],
-      [0.000000001, '1n'],
-      [0.0000000001, '100p'],
-      [0.00000000001, '10p'],
-      [0.000000000001, '1p'],
-      [0.0025, '2500u'],
-      [1.0025, '1002500u'],
-      [1.000200501, '1000200501n'],
+      ['1', '1'],
+      ['0.1', '100m'],
+      ['0.01', '10m'],
+      ['0.001', '1m'],
+      ['0.0001', '100u'],
+      ['0.00001', '10u'],
+      ['0.000001', '1u'],
+      ['0.0000001', '100n'],
+      ['0.00000001', '10n'],
+      ['0.000000001', '1n'],
+      ['0.0000000001', '100p'],
+      ['0.00000000001', '10p'],
+      ['0.000000000001', '1p'],
+      ['0.0025', '2500u'],
+      ['1.0025', '1002500u'],
+      ['1.000200501', '1000200501n'],
     ];
     for (let [input, expected] of tests) {
-      it(`encode amount ${input.toFixed(12)} to ${expected}`, () => {
+      it(`encode amount ${input} to ${expected}`, () => {
         expect(sut.encodeAmount(input)).to.equal(expected);
       });
     }
@@ -51,7 +51,7 @@ describe('encoder', () => {
       let invoice = new Invoice();
       invoice.network = 'bc';
       invoice.timestamp = 1496314658;
-      invoice.amount = 0.0025;
+      invoice.value = 0.0025;
       invoice.paymentHash = '0001020304050607080900010203040506070809000102030405060708090102';
       invoice.shortDesc = '1 cup coffee';
       invoice.expiry = 60;
@@ -65,7 +65,7 @@ describe('encoder', () => {
       let invoice = new Invoice();
       invoice.network = 'bc';
       invoice.timestamp = 1496314658;
-      invoice.amount = 0.0025;
+      invoice.value = 0.0025;
       invoice.paymentHash = '0001020304050607080900010203040506070809000102030405060708090102';
       invoice.shortDesc = 'ナンセンス 1杯';
       invoice.expiry = 60;
@@ -79,7 +79,7 @@ describe('encoder', () => {
       let invoice = new Invoice();
       invoice.network = 'bc';
       invoice.timestamp = 1496314658;
-      invoice.amount = 0.02;
+      invoice.value = 0.02;
       invoice.paymentHash = '0001020304050607080900010203040506070809000102030405060708090102';
       invoice.hashDesc =
         'One piece of chocolate cake, one icecream cone, one pickle, one slice of swiss cheese, one slice of salami, one lollypop, one piece of cherry pie, one sausage, one cupcake, and one slice of watermelon';
@@ -93,7 +93,7 @@ describe('encoder', () => {
       let invoice = new Invoice();
       invoice.network = 'tb';
       invoice.timestamp = 1496314658;
-      invoice.amount = 0.02;
+      invoice.value = 0.02;
       invoice.hashDesc =
         'One piece of chocolate cake, one icecream cone, one pickle, one slice of swiss cheese, one slice of salami, one lollypop, one piece of cherry pie, one sausage, one cupcake, and one slice of watermelon';
       invoice.paymentHash = '0001020304050607080900010203040506070809000102030405060708090102';
@@ -108,7 +108,7 @@ describe('encoder', () => {
       let invoice = new Invoice();
       invoice.network = 'bc';
       invoice.timestamp = 1496314658;
-      invoice.amount = 0.02;
+      invoice.value = 0.02;
       invoice.paymentHash = '0001020304050607080900010203040506070809000102030405060708090102';
       invoice.hashDesc =
         'One piece of chocolate cake, one icecream cone, one pickle, one slice of swiss cheese, one slice of salami, one lollypop, one piece of cherry pie, one sausage, one cupcake, and one slice of watermelon';
@@ -139,7 +139,7 @@ describe('encoder', () => {
       let invoice = new Invoice();
       invoice.network = 'bc';
       invoice.timestamp = 1496314658;
-      invoice.amount = 0.02;
+      invoice.value = 0.02;
       invoice.hashDesc =
         'One piece of chocolate cake, one icecream cone, one pickle, one slice of swiss cheese, one slice of salami, one lollypop, one piece of cherry pie, one sausage, one cupcake, and one slice of watermelon';
       invoice.paymentHash = '0001020304050607080900010203040506070809000102030405060708090102';
@@ -154,7 +154,7 @@ describe('encoder', () => {
       let invoice = new Invoice();
       invoice.network = 'bc';
       invoice.timestamp = 1496314658;
-      invoice.amount = 0.02;
+      invoice.value = 0.02;
       invoice.hashDesc =
         'One piece of chocolate cake, one icecream cone, one pickle, one slice of swiss cheese, one slice of salami, one lollypop, one piece of cherry pie, one sausage, one cupcake, and one slice of watermelon';
       invoice.paymentHash = '0001020304050607080900010203040506070809000102030405060708090102';
@@ -169,7 +169,7 @@ describe('encoder', () => {
       let invoice = new Invoice();
       invoice.network = 'bc';
       invoice.timestamp = 1496314658;
-      invoice.amount = 0.02;
+      invoice.value = 0.02;
       invoice.hashDesc =
         'One piece of chocolate cake, one icecream cone, one pickle, one slice of swiss cheese, one slice of salami, one lollypop, one piece of cherry pie, one sausage, one cupcake, and one slice of watermelon';
       invoice.paymentHash = '0001020304050607080900010203040506070809000102030405060708090102';
