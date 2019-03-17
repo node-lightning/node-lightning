@@ -14,62 +14,72 @@ describe('decoder', () => {
     let input = bech32.encode('bad', bech32.toWords('test'));
     expect(() => decoder.decode(input)).to.throw(/Invalid prefix/);
   });
+
   it('must fail if unknown network', () => {
     let input = bech32.encode('lnbad1', bech32.toWords('test'));
     expect(() => decoder.decode(input)).to.throw(/Invalid network/);
   });
+
   it('must fail if amount contains non-digit', () => {
     let input = bech32.encode('lnbc1&m', bech32.toWords('test'));
     expect(() => decoder.decode(input)).to.throw(/Invalid character/);
   });
+
   it('must fail if multiplier contains non-digit', () => {
     let input = bech32.encode('lnbc1m&', bech32.toWords('test'));
     expect(() => decoder.decode(input)).to.throw(/Invalid character/);
   });
+
   it('must fail if amount contains invalid amount', () => {
     let input = bech32.encode('lnbc0m', bech32.toWords('test'));
     expect(() => decoder.decode(input)).to.throw(/Invalid amount/);
   });
+
   it('must fail when multiplier without amount', () => {
     let input = bech32.encode('lnbcm', bech32.toWords('test'));
     expect(() => decoder.decode(input)).to.throw(/Invalid network/);
   });
+
   it('must fail if amount contains invalid multiplier', () => {
     let input = bech32.encode('lnbc1a', bech32.toWords('test'));
     expect(() => decoder.decode(input)).to.throw(/Invalid multiplier/);
   });
+
   it('should have no amount when amount is empty', () => {
     let input = 'lnbc1pvjluezpp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqdq5xysxxatsyp3k7enxv4jshwlglv23cytkzvq8ld39drs8sq656yh2zn0aevrwu6uqctaklelhtpjnmgjdzmvwsh0kuxuwqf69fjeap9m5mev2qzpp27xfswhs5vgqmn9xzq'; // prettier-ignore
     let result = decoder.decode(input);
     expect(result.amount).to.be.null;
   });
+
   it('should have correct amount with pico multiplier', () => {
     let input = 'lnbc1p1pvjluezpp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqdq5xysxxatsyp3k7enxv4jshz8a9p67cuw60898ljqx55lt5hu8yy6nr4rkpsjj69uwzcgsgjwytn65ftnuzsw3fs95aw3pvcfedxzzh34u089hjwrzjl757zw9hxcp0n43t8'; // prettier-ignore
     let result = decoder.decode(input);
     expect(result.amount).to.equal('0.000000000001');
   });
+
   it('should have correct amount with nano multiplier', () => {
     let input = 'lnbc1n1pvjluezpp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqdq5xysxxatsyp3k7enxv4jsydccnehd6uwnnkpk3v94mfeun6rk025yygw0l73usy93snxzwmmhzqxpu2nv80dp2hz47y8tk8znv3mnaez5lvhznfws500cp8f43ucp00ns2d'; // prettier-ignore
     let result = decoder.decode(input);
     expect(result.amount).to.equal('0.000000001');
   });
+
   it('should have correct amount with micro multiplier', () => {
     let input = 'lnbc1u1pvjluezpp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqdq5xysxxatsyp3k7enxv4jssz5kxlujxj66rcfq6w2ye7dr27u3unumw6wkrs3r9795lrwzallswnvsa0l6dfqm8rzmquv20dqj5zv48n352qfwqtw8572vdha9f0spm5lkzk'; // prettier-ignore
     let result = decoder.decode(input);
     expect(result.amount).to.equal('0.000001');
   });
+
   it('should have correct amount with milli multiplier', () => {
     let input = 'lnbc1m1pvjluezpp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqdq5xysxxatsyp3k7enxv4js6qu20kendkn4qgalrnmcwmnffvswt0clnlfeuqkcdenpttsqynh3fl37rqrvc2p8y80jxcyz470ur69jh2ugfcdgjyu0l0mmh0ja2vcpzgn39l'; //prettier-ignore
     let result = decoder.decode(input);
     expect(result.amount).to.equal('0.001');
   });
+
   it('should have correct amount with no multiplier', () => {
     let input = 'lnbc11pvjluezpp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqdq5xysxxatsyp3k7enxv4jsn4qy2qvfxxml5e6mnynqy9mhz4x4vqzqtnwp92fw6xrz5rvspm98u6jg0slh85kq7934eh86tg2up7h5cxhyf229gsrrtstfw5zcheqqm2ezmv'; // prettier-ignore
     let result = decoder.decode(input);
     expect(result.amount).to.equal('1');
   });
-
-  it('must fail if the signature is invalid');
 
   it('must skip f field with unknown version', () => {
     let input = 'lnbc11pvjluezpp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqdq5xysxxatsyp3k7enxv4jsfqfndpjkcmr0vwkqhkwv54grmkq6r8w4tweqj3d44x66fx42uc6zufkw6ytdus4jxnyrwce5ryjv5hs23l4zcrl2u0vuzzs73eeyugr8gf85gcufgycpmplv60'; // prettier-ignore
@@ -82,13 +92,57 @@ describe('decoder', () => {
       },
     });
   });
-  it('must skip p field with length !== 52');
-  it('must skip h field with length !== 52');
-  it('must skip n field with length !== 53');
-  it('must check sha256 of h field matches the hashed description');
-  it(
-    'must use n field to validate signature instead of performing signature recovery if a valid n is provided'
-  );
+
+  it('must skip p (payment hash) with length !== 52', () => {
+    // generated with payment hash '000102030405060708090001020304050607080900010203040506070809010200000000';
+    let input =
+      'lnbc1pvjluezdpl2pkx2ctnv5sxxmmwwd5kgetjypeh2ursdae8g6twvus8g6rfwvs8qun0dfjkxaqpp6qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqqqqqqqtqaxnfek4ygrx305qsmd2dgrd3wgwcln668ap6mdtsxlyf0v9g9hts94px9z7adcgkwv66ydzjufx4qgr3jvs09mleuctyv3yjnsdcsphnuj0m';
+    let result = decoder.decode(input);
+    let unknown = result.unknownFields[0];
+    expect(unknown).to.not.be.undefined;
+    expect(unknown.type).to.equal(1);
+    expect(unknown.value.toString('hex')).to.equal(
+      '000102030405060708090001020304050607080900010203040506070809010200000000'
+    );
+  });
+
+  it('must skip h (hash desc) field with length !== 52', () => {
+    // generateed with invalid hash description: 00000000000000000000000000000000112233
+    let input =
+      'lnbc11pvjluezpp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqhqlqqqqqqqqqqqqqqqqqqqqqqqqqqgjyvcj9m7zcp3s9uamfa0ud53vw7ejlw6kzzyfmaek6s8ndfc05f4tu054t38mz4n0y4w39sla46zaj8nt37s8pgt56y7p4gu29uhhued85sq3lfz5f';
+    let result = decoder.decode(input);
+    let unknown = result.unknownFields[0];
+    expect(unknown).to.not.be.undefined;
+    expect(unknown.type).to.equal(23);
+    expect(unknown.value.toString('hex')).to.equal('00000000000000000000000000000000112233');
+  });
+
+  it('must skip n (payee node) with length !== 53', () => {
+    // generated with payee node of invalid pub key: 029e03a901b85534ff1e92c43c74431f7ce72046060fcf7a95c37e148f78c7725500000000
+    let input =
+      'lnbc11pvjluezpp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqdq5xysxxatsyp3k7enxv4jsnpuq20q82gphp2nflc7jtzrcazrra7wwgzxqc8u7754cdlpfrmccae92qqqqqqqulye7spj6xpv60s0xhxtd3nysc6pl2e787p4xz3upel08ldnztsxuk9444972yjg8ukjdx64jmxq77fw28nf652ut68pwjx98zqlmuqpjz27xn';
+    let result = decoder.decode(input);
+    let unknown = result.unknownFields[0];
+    expect(unknown).to.not.be.undefined;
+    expect(unknown.type).to.equal(19);
+    expect(unknown.value.toString('hex')).to.equal(
+      '029e03a901b85534ff1e92c43c74431f7ce72046060fcf7a95c37e148f78c7725500000000'
+    );
+  });
+
+  it('must check sha256 of h field matches the hashed description'); // this should be moved to the validator
+
+  it('must use n field (payee node) to validate signature instead of performing signature recovery if a valid n is provided', () => {
+    let input =
+      'lnbc11pvjluezpp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqdq5xysxxatsyp3k7enxv4jsnp4q0n326hr8v9zprg8gsvezcch06gfaqqhde2aj730yg0durunfhv66ghfg0ykn0a8jsk8qvcsgv053m8celd4r3ae6n6upln5v4mvddjrnvzf08tk40t40j4r5t82x9qqqwp86udyxy3le8qvkmhzgpld0etsqd3ew8u';
+    expect(() => decoder.decode(input)).to.not.throw();
+  });
+
+  it('should throw when invalid pubkey assigned to payee node field', () => {
+    let input =
+      'lnbc11pvjluezpp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqdq5xysxxatsyp3k7enxv4jsnp4q0n326hr8v9zprg8gsvezcch06gfaqqhde2aj730yg0durunfhv65407eksnvvecq9vztqk0gtajdze0srmjkz5kaatkjp3afc2fm62xrkf4s345v36vwm9mvse86dpuk9wq2cnsy6jym6cu2xl0rt0p4vqcpje3h3d';
+    expect(() => decoder.decode(input)).to.throw(/Signature invalid/);
+  });
 
   describe('test vectors', () => {
     const sha256 = crypto.createHash('sha256');

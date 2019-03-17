@@ -8,17 +8,9 @@ const { FIELD_TYPE } = require('./constants');
 module.exports = {
   encode,
   encodeAmount,
-  validate,
 };
 
-function validate(/*invoice */) {
-  // check valid network
-  // check valid amount
-}
-
 function encode(invoice, privKey) {
-  validate(invoice);
-
   let writer = new WordCursor();
 
   let encodedAmount = encodeAmount(invoice.value) || '';
@@ -37,6 +29,7 @@ function encode(invoice, privKey) {
 
   // sign
   let { signature, recovery } = crypto.ecdsaSign(sigHash, privKey);
+
   writer.writeBytes(signature);
   writer.writeUIntBE(recovery, 1);
 
@@ -73,9 +66,14 @@ function _encodeData(invoice, writer) {
   for (let datum of invoice.fields) {
     switch (datum.type) {
       case FIELD_TYPE.PAYMENT_HASH:
-        writer.writeUIntBE(datum.type, 1);
-        writer.writeUIntBE(52, 2);
-        writer.writeBytes(datum.value);
+        {
+          // should be 52, but allow for creation of variable length
+          // values so we can construct non-valid invoices for testing
+          let dataLen = bech32Util.sizeofBytes(datum.value.byteLength);
+          writer.writeUIntBE(datum.type, 1);
+          writer.writeUIntBE(dataLen, 2);
+          writer.writeBytes(datum.value);
+        }
         break;
       case FIELD_TYPE.ROUTE:
         {
@@ -110,7 +108,7 @@ function _encodeData(invoice, writer) {
         break;
       case FIELD_TYPE.FALLBACK_ADDRESS:
         {
-          let dataLen = bech32Util.sizeofBits(datum.value.address.byteLength * 8) + 1;
+          let dataLen = bech32Util.sizeofBytes(datum.value.address.byteLength) + 1;
           writer.writeUIntBE(datum.type, 1);
           writer.writeUIntBE(dataLen, 2);
           writer.writeUIntBE(datum.value.version, 1);
@@ -120,7 +118,7 @@ function _encodeData(invoice, writer) {
       case FIELD_TYPE.SHORT_DESC:
         {
           let buf = Buffer.from(datum.value, 'utf8');
-          let dataLen = bech32Util.sizeofBits(buf.byteLength * 8);
+          let dataLen = bech32Util.sizeofBytes(buf.byteLength);
           writer.writeUIntBE(datum.type, 1);
           writer.writeUIntBE(dataLen, 2);
           writer.writeBytes(buf);
@@ -128,14 +126,17 @@ function _encodeData(invoice, writer) {
         break;
       case FIELD_TYPE.PAYEE_NODE:
         {
+          // should be 53, but allow for creation of variable length
+          // values so we can construct non-valid invoices for testing
+          let dataLen = bech32Util.sizeofBytes(datum.value.byteLength);
           writer.writeUIntBE(datum.type, 1);
-          writer.writeUIntBE(53, 2);
+          writer.writeUIntBE(dataLen, 2);
           writer.writeBytes(datum.value);
         }
         break;
       case FIELD_TYPE.HASH_DESC:
         {
-          let dataLen = bech32Util.sizeofBits(datum.value.byteLength * 8);
+          let dataLen = bech32Util.sizeofBytes(datum.value.byteLength);
           writer.writeUIntBE(datum.type, 1);
           writer.writeUIntBE(dataLen, 2);
           writer.writeBytes(datum.value);
@@ -151,7 +152,7 @@ function _encodeData(invoice, writer) {
         break;
       default: {
         if (!(datum.value instanceof Buffer)) throw new Error('Cannot process unknown field');
-        let dataLen = bech32Util.sizeofBits(datum.value.byteLength * 8);
+        let dataLen = bech32Util.sizeofBytes(datum.value.byteLength);
         writer.writeUIntBE(datum.type, 1);
         writer.writeUIntBE(dataLen, 2);
         writer.writeBytes(datum.value);

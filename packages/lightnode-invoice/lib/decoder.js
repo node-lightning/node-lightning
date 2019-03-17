@@ -39,8 +39,15 @@ function decode(invoice) {
     let value;
 
     switch (type) {
+      case 0:
+        continue; // read off padding
       case FIELD_TYPE.PAYMENT_HASH: // p - 256-bit sha256 payment_hash
         value = wordcursor.readBytes(len);
+        // push non-standard length field into unknown fields
+        if (len !== 52) {
+          unknownFields.push({ type, value });
+          continue;
+        }
         break;
       case FIELD_TYPE.ROUTE: // r - variable, one or more entries containing extra routing info
         {
@@ -84,16 +91,24 @@ function decode(invoice) {
         break;
       case FIELD_TYPE.PAYEE_NODE: // n - 33-byte public key of the payee node
         value = wordcursor.readBytes(len);
+        if (len !== 53) {
+          unknownFields.push({ type, value });
+          continue;
+        }
         break;
       case FIELD_TYPE.HASH_DESC: // h - 256-bit sha256 description of purpose of payment
         value = wordcursor.readBytes(len);
+        if (len !== 52) {
+          unknownFields.push({ type, value });
+          continue;
+        }
         break;
       case FIELD_TYPE.MIN_FINAL_CLTV_EXPIRY: // c - min_final_cltv_expiry to use for the last HTLC in the route
         value = wordcursor.readUIntBE(len);
         break;
       default:
-        // ignore unknown fields
-        unknownFields.push({ type, value: wordcursor.readBytes(len) });
+        value = wordcursor.readBytes(len);
+        unknownFields.push({ type, value });
         continue;
     }
 
@@ -110,8 +125,13 @@ function decode(invoice) {
   preHashData = Buffer.concat([Buffer.from(prefix), preHashData]);
   let hashData = crypto.sha256(preHashData);
 
-  // recovery pubkey from ecdsa sig
-  let pubkey = crypto.ecdsaRecovery(hashData, sigBytes, recoveryFlag);
+  // extract the pubkey for verifying the signature by either:
+  // 1: using the payee field value (n)
+  // 2: performing signature recovery
+  let payeeNodeField = fields.find(p => p.type === FIELD_TYPE.PAYEE_NODE);
+  let pubkey = payeeNodeField
+    ? payeeNodeField.value // use payee node provided
+    : crypto.ecdsaRecovery(hashData, sigBytes, recoveryFlag); // recovery pubkey from ecdsa sig
 
   // validate signature
   if (!crypto.ecdsaVerify(pubkey, hashData, sigBytes)) throw new Error('Signature invalid');

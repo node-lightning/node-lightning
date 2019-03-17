@@ -2,6 +2,7 @@ module.exports = {
   convertWords,
   sizeofNum,
   sizeofBits,
+  sizeofBytes,
 };
 
 /**
@@ -53,4 +54,13 @@ function sizeofNum(num) {
  */
 function sizeofBits(bits) {
   return Math.ceil(bits / 5);
+}
+
+/**
+ * Calculates the number of words needeed to store
+ * the supplied number of bytes
+ * @param {number} bytes
+ */
+function sizeofBytes(bytes) {
+  return sizeofBits(bytes * 8);
 }
