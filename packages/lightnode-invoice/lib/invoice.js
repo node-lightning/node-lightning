@@ -37,6 +37,7 @@ class Invoice {
 
   /**
    * Returns true if a value has been set for the invoice
+   * @returns {boolean}
    */
   get hasValue() {
     return this._value instanceof Decimal;
@@ -44,7 +45,7 @@ class Invoice {
 
   /**
    * Gets the value in bitcoin as a string
-   * @return {String} value in bitcoin
+   * @return {string} value in bitcoin
    * @deprecated Use `value` instead
    */
   get amount() {
@@ -54,7 +55,7 @@ class Invoice {
   /**
    * Sets the value in bitcoin
    * @deprecated Use `value` instead
-   * @param {Number|String} val
+   * @param {number|string} val
    */
   set amount(val) {
     if (!val) this._value = null;
@@ -63,7 +64,7 @@ class Invoice {
 
   /**
    * Gets the value in bitcoin as a string
-   * @return {String} value in bitcoin
+   * @return {string} value in bitcoin
    * @note We internally store the amount as a Decimal object
    *  to ensure we do not enounter integer overflow or floating point
    *  precision issues. We return the user consumable value as a string
@@ -76,7 +77,7 @@ class Invoice {
 
   /**
    * Sets the value in bitcoin
-   * @param {Number|String} val
+   * @param {number|string} val
    */
   set value(val) {
     if (!val) this._value = null;
@@ -85,7 +86,7 @@ class Invoice {
 
   /**
    * Gets the value in satoshi
-   * @returns {String}
+   * @returns {string}
    * @note We internally store the amount as a Decimal object
    *  to ensure we do not enounter integer overflow or floating point
    *  precision issues. We return the user consumable value as a string
@@ -98,33 +99,102 @@ class Invoice {
 
   /**
    * Sets thee value in satoshi
-   * @param {Number|String|Null} val
+   * @param {number|string|null} val
    */
   set valueSatoshi(val) {
     if (!val) this._value = null;
     else this._value = new Decimal(val).mul(1e3);
   }
 
+  /**
+   * Get the expiry time, defualt is 9
+   * @returns {number}
+   */
   get expiry() {
     return this._getFieldValue(FIELD_TYPE.EXPIRY, FIELD_DEFAULT.EXPIRY);
   }
 
+  /**
+   * Sets the expiry time
+   * @param {number} the expiry time
+   */
+  set expiry(value) {
+    this._setFieldValue(FIELD_TYPE.EXPIRY, value);
+  }
+
+  /**
+   * Gets the payment hash
+   * @returns {Buffer} 32-byte buffer of the payment hash
+   */
   get paymentHash() {
     return this._getFieldValue(FIELD_TYPE.PAYMENT_HASH);
   }
 
+  /**
+   * Sets the payment hash
+   * @param {string|Buffer} value hex encoded striing of Buffeer
+   */
+  set paymentHash(value) {
+    if (typeof value === 'string') value = Buffer.from(value, 'hex');
+    this._setFieldValue(FIELD_TYPE.PAYMENT_HASH, value);
+  }
+
+  /**
+   * Gets the short description text. Maximum valid length is 639 bytes.
+   * @return {string}
+   */
   get shortDesc() {
     return this._getFieldValue(FIELD_TYPE.SHORT_DESC);
   }
 
+  /**
+   * Sets the short description text
+   * @param {string} value
+   */
+  set shortDesc(value) {
+    this._setFieldValue(FIELD_TYPE.SHORT_DESC, value);
+  }
+
+  /**
+   * Gets the 32-byte hash of the description
+   * @return {Buffer}
+   */
   get hashDesc() {
     return this._getFieldValue(FIELD_TYPE.HASH_DESC);
   }
 
+  /**
+   * Sets the hash description by creating a 256-bit hash of the supplied string
+   * or directly assigning the Buffer
+   * This must be used for descriptions that are over 639 bytes long.
+   * @param {string|Buffer} value string hash value or Buffer
+   */
+  set hashDesc(value) {
+    if (typeof value === 'string') value = crypto.sha256(value);
+    this._setFieldValue(FIELD_TYPE.HASH_DESC, value);
+  }
+
+  /**
+   * Gets the 33-byte public key of the payee node.
+   * @returns {Buffer}
+   */
   get payeeNode() {
     return this._getFieldValue(FIELD_TYPE.PAYEE_NODE);
   }
 
+  /**
+   * Sets the 33-byte public key of the payee node
+   * @param {string|Buffer} value hex-encoded string or buffer
+   */
+  set payeeNode(value) {
+    if (typeof value === 'string') value = Buffer.from(value, 'hex');
+    this._setFieldValue(FIELD_TYPE.PAYEE_NODE, value);
+  }
+
+  /**
+   * Gets the min final route CLTV expiry. Default is 9.
+   * @returns {number}
+   */
   get minFinalCltvExpiry() {
     return this._getFieldValue(
       FIELD_TYPE.MIN_FINAL_CLTV_EXPIRY,
@@ -132,41 +202,26 @@ class Invoice {
     );
   }
 
-  get fallbackAddresses() {
-    return this.fields.filter(p => p.type === FIELD_TYPE.FALLBACK_ADDRESS).map(p => p.value);
-  }
-
-  get routes() {
-    return this.fields.filter(p => p.type === FIELD_TYPE.ROUTE).map(p => p.value);
-  }
-
-  set expiry(value) {
-    this._setFieldValue(FIELD_TYPE.EXPIRY, value);
-  }
-
-  set paymentHash(value) {
-    if (typeof value === 'string') value = Buffer.from(value, 'hex');
-    this._setFieldValue(FIELD_TYPE.PAYMENT_HASH, value);
-  }
-
-  set shortDesc(value) {
-    this._setFieldValue(FIELD_TYPE.SHORT_DESC, value);
-  }
-
-  set hashDesc(value) {
-    if (typeof value === 'string') value = crypto.sha256(value);
-    this._setFieldValue(FIELD_TYPE.HASH_DESC, value);
-  }
-
-  set payeeNode(value) {
-    if (typeof value === 'string') value = Buffer.from(value, 'hex');
-    this._setFieldValue(FIELD_TYPE.PAYEE_NODE, value);
-  }
-
+  /**
+   * Sets the min final route CLTV expiry.
+   * @param {number} value
+   */
   set minFinalCltvExpiry(value) {
     this._setFieldValue(FIELD_TYPE.MIN_FINAL_CLTV_EXPIRY, value);
   }
 
+  /**
+   * Gets a list of fall back addresses
+   * @returns {[Object<number,Buffer>]}
+   */
+  get fallbackAddresses() {
+    return this.fields.filter(p => p.type === FIELD_TYPE.FALLBACK_ADDRESS).map(p => p.value);
+  }
+
+  /**
+   * Adds a fallback address
+   * @param {string} addrStr
+   */
   addFallbackAddress(addrStr) {
     let version, address;
     if (addrStr.startsWith('1') || addrStr.startsWith('m') || addrStr.startsWith('n')) {
@@ -184,6 +239,17 @@ class Invoice {
     this.fields.push({ type: FIELD_TYPE.FALLBACK_ADDRESS, value: { version, address } });
   }
 
+  /**
+   * Gets the list of routes
+   */
+  get routes() {
+    return this.fields.filter(p => p.type === FIELD_TYPE.ROUTE).map(p => p.value);
+  }
+
+  /**
+   * Adds a collection of routes to the invoice
+   * @param {[Object]} route
+   */
   addRoute(routes) {
     for (let route of routes) {
       if (typeof route.pubkey === 'string') route.pubkey = Buffer.from(route.pubkey, 'hex');
