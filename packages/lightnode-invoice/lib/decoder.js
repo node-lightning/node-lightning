@@ -179,10 +179,10 @@ function isValidAmount(amount) {
 function getAmountMultiplier(char) {
   if (char === undefined) return 1;
   let units = {
-    m: 10 ** -3,
-    u: 10 ** -6,
-    n: 10 ** -9,
-    p: 10 ** -12,
+    m: 1e-3,
+    u: 1e-6,
+    n: 1e-9,
+    p: 1e-12,
   };
   if (units[char]) return units[char];
   throw new Error('Invalid multiplier');

@@ -58,10 +58,10 @@ function _decimalDigits(val) {
 function encodeAmount(amount) {
   if (!amount) return;
   let decs = _decimalDigits(amount);
-  if (decs > 9) return (amount * 10 ** 12).toFixed(0) + 'p';
-  if (decs > 6) return (amount * 10 ** 9).toFixed(0) + 'n';
-  if (decs > 3) return (amount * 10 ** 6).toFixed(0) + 'u';
-  if (decs > 0) return (amount * 10 ** 3).toFixed(0) + 'm';
+  if (decs > 9) return (amount * 1e12).toFixed(0) + 'p';
+  if (decs > 6) return (amount * 1e9).toFixed(0) + 'n';
+  if (decs > 3) return (amount * 1e6).toFixed(0) + 'u';
+  if (decs > 0) return (amount * 1e3).toFixed(0) + 'm';
   return amount.toFixed(0);
 }
 

@@ -47,7 +47,7 @@ class Invoice {
    * @deprecated Use `value` instead
    */
   get amount() {
-    return this._value ? this._value.mul(10 ** -11).toString() : null;
+    return this._value ? this._value.mul(1e-11).toString() : null;
   }
 
   /**
@@ -57,7 +57,7 @@ class Invoice {
    */
   set amount(val) {
     if (!val) this._value = null;
-    else this._value = new Decimal(val).mul(10 ** 11);
+    else this._value = new Decimal(val).mul(1e11);
   }
 
   /**
@@ -70,7 +70,7 @@ class Invoice {
    *  precision loss.
    */
   get value() {
-    return this._value ? this._value.mul(10 ** -11).toString() : null;
+    return this._value ? this._value.mul(1e-11).toString() : null;
   }
 
   /**
@@ -79,7 +79,7 @@ class Invoice {
    */
   set value(val) {
     if (!val) this._value = null;
-    else this._value = new Decimal(val).mul(10 ** 11);
+    else this._value = new Decimal(val).mul(1e11);
   }
 
   /**
@@ -92,7 +92,7 @@ class Invoice {
    *  precision loss.
    */
   get valueSatoshi() {
-    return this._value ? this._value.mul(10 ** -3).toString() : null;
+    return this._value ? this._value.mul(1e-3).toString() : null;
   }
 
   /**
@@ -101,7 +101,7 @@ class Invoice {
    */
   set valueSatoshi(val) {
     if (!val) this._value = null;
-    else this._value = new Decimal(val).mul(10 ** 3);
+    else this._value = new Decimal(val).mul(1e3);
   }
 
   get expiry() {
