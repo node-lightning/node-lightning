@@ -8,18 +8,36 @@ module.exports = {
   sizeofBits,
 };
 
+/**
+ * Decodes a bech32 encoded invoice into prefix and words
+ * @param {String} invoice
+ * @returns {Object.<String, Buffer>}
+ */
 function decode(invoice) {
-  let { prefix, words } = bech32.decode(invoice, 1023);
+  let { prefix, words } = bech32.decode(invoice, Number.MAX_SAFE_INTEGER);
   return {
     prefix,
     words,
   };
 }
 
+/**
+ * Encodes a prefix and words
+ * @param {string} prefix
+ * @param {Buffer} words
+ */
 function encode(prefix, words) {
-  return bech32.encode(prefix, words, 1023);
+  return bech32.encode(prefix, words, Number.MAX_SAFE_INTEGER);
 }
 
+/**
+ * Converts a Buffer into a a word array
+ * @param {Buffer} data
+ * @param {number} inBits
+ * @param {number} outBits
+ * @param {boolean} pad
+ * @return {Array[number]} converted words
+ */
 function convertWords(data, inBits, outBits, pad = true) {
   var value = 0;
   var bits = 0;
