@@ -28,6 +28,7 @@
   "homepage": "https://github.com/altangent/lightnode-invoice#readme",
   "dependencies": {
     "bech32": "^1.1.3",
+    "bn.js": "^4.11.8",
     "bs58check": "^2.1.2",
     "decimal.js": "^10.1.1",
     "secp256k1": "^3.5.0",

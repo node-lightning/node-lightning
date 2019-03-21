@@ -1,18 +1,17 @@
 const bs58check = require('bs58check');
 const bech32 = require('bech32');
 const crypto = require('./crypto');
-const Decimal = require('decimal.js');
+const BN = require('bn.js');
 const { FIELD_TYPE, FIELD_DEFAULT, ADDRESS_VERSION } = require('./constants');
 
-// configure decimal so that we can ensure millisats is correctly
-// stringify into standard (non-exponential) notation.
-Decimal.set({ toExpNeg: -15 });
+const bitcoinToMsatMult = 1e11;
+const satToMsatMult = 1e3;
 
 class Invoice {
   constructor() {
     this.network;
 
-    /** @type {Decimal} */
+    /** @type {BN} */
     this._value;
 
     this.timestamp;
@@ -40,70 +39,71 @@ class Invoice {
    * @returns {boolean}
    */
   get hasValue() {
-    return this._value instanceof Decimal;
+    return this._value instanceof BN;
   }
 
   /**
-   * Gets the value in bitcoin as a string
-   * @return {string} value in bitcoin
-   * @deprecated Use `value` instead
+    Warning: there is the possibility of precision loss!
+
+    Gets the value in bitcoin as a string by converting from msat
+    into bitcoin.
+
+    This function is maintained for backwards compaibility and is
+    deprecated. Use `value` which uses satoshi by default.
+
+    @deprecated Use `value`
+    @return {string} value in bitcoin
    */
   get amount() {
-    return this.hasValue ? this._value.mul(1e-11).toString() : null;
+    return this.hasValue ? (this._value.toNumber() / bitcoinToMsatMult).toFixed(8) : null;
   }
 
   /**
-   * Sets the value in bitcoin
-   * @deprecated Use `value` instead
-   * @param {number|string} val
+    Sets the value in bitcoin
+    @deprecated Use `value` instead
+    @param {number|string} val
    */
   set amount(val) {
     if (!val) this._value = null;
-    else this._value = new Decimal(val).mul(1e11);
+    else this._value = new BN(parseFloat(val) * bitcoinToMsatMult);
   }
 
   /**
-   * Gets the value in bitcoin as a string
-   * @return {string} value in bitcoin
-   * @note We internally store the amount as a Decimal object
-   *  to ensure we do not enounter integer overflow or floating point
-   *  precision issues. We return the user consumable value as a string
-   *  because it is the most portable mechanism for passing numbers without
-   *  precision loss.
+    Gets the value in satoshi as a strings. Msat fractions are truncated.
+
+    @return {string}
    */
   get value() {
-    return this.hasValue ? this._value.mul(1e-11).toString() : null;
+    return this.hasValue ? this._value.divn(satToMsatMult).toString() : null;
   }
 
   /**
-   * Sets the value in bitcoin
-   * @param {number|string} val
+    Sets the value in satoshi from a string or number
+
+    @param {string|number} val
    */
   set value(val) {
     if (!val) this._value = null;
-    else this._value = new Decimal(val).mul(1e11);
+    else this._value = new BN(val).muln(satToMsatMult);
   }
 
   /**
-   * Gets the value in satoshi
-   * @returns {string}
-   * @note We internally store the amount as a Decimal object
-   *  to ensure we do not enounter integer overflow or floating point
-   *  precision issues. We return the user consumable value as a string
-   *  because it is the most portable mechanism for passing numbers without
-   *  precision loss.
+    Gets the value in millisataoshi as a string
+
+    @return {string}
    */
-  get valueSatoshi() {
-    return this.hasValue ? this._value.mul(1e-3).toString() : null;
+  get valueMsat() {
+    return this.hasValue ? this._value.toString() : null;
   }
 
   /**
-   * Sets thee value in satoshi
-   * @param {number|string|null} val
+    Sets the value in millisatoshi
+
+    @param {number|string|BN} val
    */
-  set valueSatoshi(val) {
+  set valueMsat(val) {
     if (!val) this._value = null;
-    else this._value = new Decimal(val).mul(1e3);
+    else this._value = val instanceof BN ? val : new BN(val);
   }
 
   /**
