@@ -1,9 +1,10 @@
 const BufferCursor = require('simple-buffer-cursor');
 const bech32 = require('bech32');
+const BN = require('bn.js');
 const crypto = require('./crypto');
 const WordCursor = require('./word-cursor');
 const Invoice = require('./invoice');
-const Decimal = require('decimal.js');
+const { charToMsatMultiplier } = require('./amount-util');
 const { FIELD_TYPE, ADDRESS_VERSION } = require('./constants');
 
 module.exports = {
@@ -11,17 +12,17 @@ module.exports = {
 };
 
 /**
- * Decodes an invoice into an Invoice object
- * @param {String} invoice
- * @return {Invoice}
+ Decodes an invoice into an Invoice object
+ @param {String} invoice
+ @return {Invoice}
  */
 function decode(invoice) {
   // Decode the invoice into prefix and words.
   // The words will be interated over to decode the rest of thee invoice
   let { prefix, words } = bech32.decode(invoice, Number.MAX_SAFE_INTEGER);
 
-  // Parse the prefix into the network and the amount.
-  let { network, amount } = parsePrefix(prefix);
+  // Parse the prefix into the network and the value in msat.
+  let { network, value } = parsePrefix(prefix);
 
   // Construct a word cursor to read from the remaining data
   let wordcursor = new WordCursor(words);
@@ -134,19 +135,18 @@ function decode(invoice) {
     : crypto.ecdsaRecovery(hashData, sigBytes, recoveryFlag); // recovery pubkey from ecdsa sig
 
   // validate signature
+  // note if we performed signature recovery this will always match
+  // so we may want to just skip this if we had signature recovery
   if (!crypto.ecdsaVerify(pubkey, hashData, sigBytes)) throw new Error('Signature invalid');
 
+  // constuct the invoice
   let result = new Invoice();
   result.network = network;
-  result.value = amount;
+  result.valueMsat = value;
   result.timestamp = timestamp;
   result.fields = fields;
   result.unknownFields = unknownFields;
-  result.signature = {
-    r,
-    s,
-    recoveryFlag,
-  };
+  result.signature = { r, s, recoveryFlag };
   result.pubkey = pubkey;
   result.hashData = hashData;
   return result;
@@ -154,10 +154,26 @@ function decode(invoice) {
 
 //////////////
 
+/**
+  Parses the prefix into network and value and then performs
+  validations on the values.
+
+  This code is rough. Should refactor into two steps:
+  1) tokenize
+  2) parse tokens
+
+  @param {string} prefix
+
+  @return {object}
+  {
+    network: <string>
+    value: <BN>
+  }
+ */
 function parsePrefix(prefix) {
   if (!prefix.startsWith('ln')) throw new Error('Invalid prefix');
   let network = '';
-  let amount = '';
+  let value = '';
   let multiplier;
   let hasNetwork = false;
   let hasAmount = false;
@@ -171,8 +187,8 @@ function parsePrefix(prefix) {
     }
 
     if (hasNetwork && !hasAmount) {
-      if (charCode >= 48 && charCode <= 57) amount += prefix[i];
-      else if (amount) hasAmount = true;
+      if (charCode >= 48 && charCode <= 57) value += prefix[i];
+      else if (value) hasAmount = true;
       else throw new Error('Invalid amount');
     }
 
@@ -182,14 +198,14 @@ function parsePrefix(prefix) {
     }
   }
 
-  amount = amount === '' ? null : new Decimal(amount).mul(getAmountMultiplier(multiplier));
+  value = value === '' ? null : new BN(value).mul(charToMsatMultiplier(multiplier));
 
   if (!isValidNetwork(network)) throw new Error('Invalid network');
-  if (!isValidAmount(amount)) throw new Error('Invalid amount');
+  if (!isValidValue(value)) throw new Error('Invalid amount');
 
   return {
     network,
-    amount,
+    value,
   };
 }
 
@@ -197,18 +213,6 @@ function isValidNetwork(network) {
   return network === 'bc' || network === 'tb' || network === 'bcrt' || network === 'sb';
 }
 
-function isValidAmount(amount) {
-  return amount === null || amount > 0;
-}
-
-function getAmountMultiplier(char) {
-  if (char === undefined) return 1;
-  let units = {
-    m: 1e-3,
-    u: 1e-6,
-    n: 1e-9,
-    p: 1e-12,
-  };
-  if (units[char]) return units[char];
-  throw new Error('Invalid multiplier');
+function isValidValue(value) {
+  return value === null || value > 0;
 }

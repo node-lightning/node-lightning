@@ -55,7 +55,7 @@ class Invoice {
     @return {string} value in bitcoin
    */
   get amount() {
-    return this.hasValue ? (this._value.toNumber() / bitcoinToMsatMult).toFixed(8) : null;
+    return this.hasValue ? (this._value.toNumber() / bitcoinToMsatMult).toFixed(11) : null;
   }
 
   /**

@@ -25,11 +25,11 @@ describe('invoice', () => {
   describe('amount', () => {
     it('should set the amount when a Number', () => {
       sut.amount = 1;
-      expect(sut.amount).to.equal('1.00000000');
+      expect(sut.amount).to.equal('1.00000000000');
     });
     it('should set the amount when a String', () => {
       sut.amount = '1';
-      expect(sut.amount).to.equal('1.00000000');
+      expect(sut.amount).to.equal('1.00000000000');
     });
     it('should set 0 to null', () => {
       sut.amount = null;
@@ -45,15 +45,15 @@ describe('invoice', () => {
     });
     it('should have correct amount when value set', () => {
       sut.value = 1000;
-      expect(sut.amount).to.equal('0.00001000');
+      expect(sut.amount).to.equal('0.00001000000');
     });
     it('should have correct amount when valueMsat set', () => {
       sut.valueMsat = 1000;
-      expect(sut.amount).to.equal('0.00000001');
+      expect(sut.amount).to.equal('0.00000001000');
     });
-    it('should have not have value when sub sat', () => {
+    it('should have have value when sub sat', () => {
       sut.valueMsat = 10;
-      expect(sut.amount).to.equal('0.00000000');
+      expect(sut.amount).to.equal('0.00000000010');
     });
   });
 
