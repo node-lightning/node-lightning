@@ -4,7 +4,7 @@ const BN = require('bn.js');
 const crypto = require('./crypto');
 const WordCursor = require('./word-cursor');
 const Invoice = require('./invoice');
-const { charToMsatMultiplier } = require('./amount-util');
+const hrpToPico = require('./hrp-pico');
 const { FIELD_TYPE, ADDRESS_VERSION } = require('./constants');
 
 module.exports = {
@@ -21,7 +21,7 @@ function decode(invoice) {
   // The words will be interated over to decode the rest of thee invoice
   let { prefix, words } = bech32.decode(invoice, Number.MAX_SAFE_INTEGER);
 
-  // Parse the prefix into the network and the value in msat.
+  // Parse the prefix into the network and the value in pico bitcoin.
   let { network, value } = parsePrefix(prefix);
 
   // Construct a word cursor to read from the remaining data
@@ -141,8 +141,8 @@ function decode(invoice) {
 
   // constuct the invoice
   let result = new Invoice();
+  result._value = value; // directly assign pico value since there is not setter
   result.network = network;
-  result.valueMsat = value;
   result.timestamp = timestamp;
   result.fields = fields;
   result.unknownFields = unknownFields;
@@ -161,6 +161,8 @@ function decode(invoice) {
   This code is rough. Should refactor into two steps:
   1) tokenize
   2) parse tokens
+
+  Value is returned as pico bitcoin.
 
   @param {string} prefix
 
@@ -198,9 +200,11 @@ function parsePrefix(prefix) {
     }
   }
 
-  console.log(value, charToMsatMultiplier(multiplier));
-
-  value = value === '' ? null : new BN(value).mul(charToMsatMultiplier(multiplier));
+  // returns null if we do not have a value
+  if (value === '') value = null;
+  // otherwise we multiply by the value by the pico amount to obtain
+  // the actual pico value of the
+  else value = new BN(value).mul(hrpToPico(multiplier));
 
   if (!isValidNetwork(network)) throw new Error('Invalid network');
   if (!isValidValue(value)) throw new Error('Invalid amount');

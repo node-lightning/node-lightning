@@ -4,15 +4,16 @@ const crypto = require('./crypto');
 const BN = require('bn.js');
 const { FIELD_TYPE, FIELD_DEFAULT, ADDRESS_VERSION } = require('./constants');
 
-const bitcoinToMsatMult = 1e11;
-const satToMsatMult = 1e3;
+const picoToMsat = 10;
+const picoToSat = picoToMsat * 1000;
+const picoToBtc = 1e12;
 
 class Invoice {
   constructor() {
     this.network;
 
     /** @type {BN} */
-    this._value;
+    this._value; // value stores in pico bitcoin
 
     this.timestamp;
     this.fields = [];
@@ -55,7 +56,7 @@ class Invoice {
     @return {string} value in bitcoin
    */
   get amount() {
-    return this.hasValue ? (this._value.toNumber() / bitcoinToMsatMult).toFixed(11) : null;
+    return this.hasValue ? (this._value.toNumber() / picoToBtc).toFixed(11) : null;
   }
 
   /**
@@ -65,7 +66,7 @@ class Invoice {
    */
   set amount(val) {
     if (!val) this._value = null;
-    else this._value = new BN(parseFloat(val) * bitcoinToMsatMult);
+    else this._value = new BN(parseFloat(val) * picoToBtc);
   }
 
   /**
@@ -74,7 +75,7 @@ class Invoice {
     @return {string}
    */
   get value() {
-    return this.hasValue ? this._value.divn(satToMsatMult).toString() : null;
+    return this.hasValue ? this._value.divn(picoToSat).toString() : null;
   }
 
   /**
@@ -84,7 +85,7 @@ class Invoice {
    */
   set value(val) {
     if (!val) this._value = null;
-    else this._value = new BN(val).muln(satToMsatMult);
+    else this._value = new BN(val).muln(picoToSat);
   }
 
   /**
@@ -93,17 +94,17 @@ class Invoice {
     @return {string}
    */
   get valueMsat() {
-    return this.hasValue ? this._value.toString() : null;
+    return this.hasValue ? this._value.divn(picoToMsat).toString() : null;
   }
 
   /**
     Sets the value in millisatoshi
 
-    @param {number|string|BN} val
+    @param {number|string} val
    */
   set valueMsat(val) {
     if (!val) this._value = null;
-    else this._value = val instanceof BN ? val : new BN(val);
+    else this._value = new BN(val).muln(picoToMsat);
   }
 
   /**

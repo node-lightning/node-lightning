@@ -1,9 +1,8 @@
-const BN = require('bn.js');
 const bech32 = require('bech32');
 const bech32Util = require('./bech32-util');
 const WordCursor = require('./word-cursor');
 const crypto = require('./crypto');
-const encodeMsat = require('./encode-msat');
+const encodePico = require('./encode-pico');
 const { FIELD_TYPE } = require('./constants');
 
 module.exports = {
@@ -13,7 +12,7 @@ module.exports = {
 function encode(invoice, privKey) {
   let writer = new WordCursor();
 
-  let encodedAmount = encodeMsat(invoice.valueMsat) || '';
+  let encodedAmount = encodePico(invoice._value ? invoice._value.toString() : null) || '';
   let prefix = `ln${invoice.network}${encodedAmount}`;
 
   writer.writeUIntBE(invoice.timestamp, 7);
