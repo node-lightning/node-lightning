@@ -1,19 +1,19 @@
-const Decimal = require('decimal.js');
+const BN = require('bn.js');
 const bech32 = require('bech32');
 const bech32Util = require('./bech32-util');
 const WordCursor = require('./word-cursor');
 const crypto = require('./crypto');
+const encodeMsat = require('./encode-msat');
 const { FIELD_TYPE } = require('./constants');
 
 module.exports = {
   encode,
-  encodeAmount,
 };
 
 function encode(invoice, privKey) {
   let writer = new WordCursor();
 
-  let encodedAmount = encodeAmount(invoice.value) || '';
+  let encodedAmount = encodeMsat(invoice.valueMsat) || '';
   let prefix = `ln${invoice.network}${encodedAmount}`;
 
   writer.writeUIntBE(invoice.timestamp, 7);
@@ -36,30 +36,6 @@ function encode(invoice, privKey) {
   // finally encode the invoice in bech32 and allow
   // an invoice to be any length
   return bech32.encode(prefix, writer.words, Number.MAX_SAFE_INTEGER);
-}
-
-function _decimalDigits(val) {
-  val = new Decimal(val);
-  for (let i = 0; i <= 12; i++) {
-    if (
-      val
-        .mul(10 ** i)
-        .mod(1)
-        .equals(0)
-    )
-      return i;
-  }
-  return 18;
-}
-
-function encodeAmount(amount) {
-  if (!amount) return;
-  let decs = _decimalDigits(amount);
-  if (decs > 9) return new Decimal(amount).mul(1e12).toFixed(0) + 'p';
-  if (decs > 6) return new Decimal(amount).mul(1e9).toFixed(0) + 'n';
-  if (decs > 3) return new Decimal(amount).mul(1e6).toFixed(0) + 'u';
-  if (decs > 0) return new Decimal(amount).mul(1e3).toFixed(0) + 'm';
-  return amount;
 }
 
 function _encodeData(invoice, writer) {

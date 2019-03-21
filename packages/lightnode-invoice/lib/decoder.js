@@ -198,6 +198,8 @@ function parsePrefix(prefix) {
     }
   }
 
+  console.log(value, charToMsatMultiplier(multiplier));
+
   value = value === '' ? null : new BN(value).mul(charToMsatMultiplier(multiplier));
 
   if (!isValidNetwork(network)) throw new Error('Invalid network');

@@ -4,6 +4,13 @@ module.exports = {
   charToMsatMultiplier,
 };
 
+let units = {
+  m: new BN(1e8),
+  u: new BN(1e5),
+  n: new BN(1e2),
+  p: new BN(1),
+};
+
 /**
  * Converts an amount character into a
  * multiplier that will be used
@@ -13,12 +20,6 @@ module.exports = {
  */
 function charToMsatMultiplier(char) {
   if (char === undefined) return new BN(1e11);
-  let units = {
-    m: new BN(1e8),
-    u: new BN(1e5),
-    n: new BN(1e2),
-    p: new BN(1),
-  };
   if (units[char]) return units[char];
   throw new Error('Invalid multiplier');
 }

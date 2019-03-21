@@ -52,7 +52,7 @@ describe('decoder', () => {
   });
 
   it('should have correct valueMsat with pico multiplier', () => {
-    let input = 'lnbc1p1pvjluezpp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqdq5xysxxatsyp3k7enxv4jshz8a9p67cuw60898ljqx55lt5hu8yy6nr4rkpsjj69uwzcgsgjwytn65ftnuzsw3fs95aw3pvcfedxzzh34u089hjwrzjl757zw9hxcp0n43t8'; // prettier-ignore
+    let input = 'lnbc10p1pvjluezpp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqdq5xysxxatsyp3k7enxv4jseccf6w0x0jznsldtk8zggwp4py4ck2yk5gsgxdu5udzel4ct9gtsyy7nexyfwflwrxl4wpy96uks55uv4fuc3cdjr3tj83wzjp8q6vcq0la8ay'; // prettier-ignore
     let result = decoder.decode(input);
     expect(result.valueMsat).to.equal('1');
   });
