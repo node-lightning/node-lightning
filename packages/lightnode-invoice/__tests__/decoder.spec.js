@@ -48,7 +48,7 @@ describe('decoder', () => {
   it('should have no amount when amount is empty', () => {
     let input = 'lnbc1pvjluezpp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqdq5xysxxatsyp3k7enxv4jshwlglv23cytkzvq8ld39drs8sq656yh2zn0aevrwu6uqctaklelhtpjnmgjdzmvwsh0kuxuwqf69fjeap9m5mev2qzpp27xfswhs5vgqmn9xzq'; // prettier-ignore
     let result = decoder.decode(input);
-    expect(result.amount).to.be.null;
+    expect(result.valueMsat).to.be.null;
   });
 
   it('should have correct valueMsat with pico multiplier', () => {
@@ -181,7 +181,7 @@ describe('decoder', () => {
       let result = decoder.decode(input);
       expect(result.network).to.equal('bc');
       expect(parseFloat(result.amount)).to.equal(0.0025);
-      expect(result.value).to.equal('250000');
+      expect(result.valueSat).to.equal('250000');
       expect(result.timestamp).to.equal(1496314658);
       expect(result.fields.length).to.equal(3);
       expect(result.paymentHash).to.deep.equal(
@@ -204,7 +204,7 @@ describe('decoder', () => {
         'lnbc2500u1pvjluezpp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqdpquwpc4curk03c9wlrswe78q4eyqc7d8d0xqzpuyk0sg5g70me25alkluzd2x62aysf2pyy8edtjeevuv4p2d5p76r4zkmneet7uvyakky2zr4cusd45tftc9c5fh0nnqpnl2jfll544esqchsrny';
       let result = decoder.decode(input);
       expect(result.network).to.equal('bc');
-      expect(result.value).to.equal('250000');
+      expect(result.valueSat).to.equal('250000');
       expect(result.timestamp).to.equal(1496314658);
       expect(result.fields.length).to.equal(3);
       expect(result.paymentHash).to.deep.equal(
@@ -228,7 +228,7 @@ describe('decoder', () => {
       let result = decoder.decode(input);
       expect(result.network).to.equal('bc');
       expect(parseFloat(result.amount)).to.equal(0.02);
-      expect(result.value).to.equal('2000000');
+      expect(result.valueSat).to.equal('2000000');
       expect(result.timestamp).to.equal(1496314658);
       expect(result.fields.length).to.equal(2);
       expect(result.paymentHash).to.deep.equal(
@@ -250,7 +250,7 @@ describe('decoder', () => {
         'lntb20m1pvjluezhp58yjmdan79s6qqdhdzgynm4zwqd5d7xmw5fk98klysy043l2ahrqspp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqfpp3x9et2e20v6pu37c5d9vax37wxq72un98kmzzhznpurw9sgl2v0nklu2g4d0keph5t7tj9tcqd8rexnd07ux4uv2cjvcqwaxgj7v4uwn5wmypjd5n69z2xm3xgksg28nwht7f6zspwp3f9t';
       let result = decoder.decode(input);
       expect(result.network).to.equal('tb');
-      expect(result.value).to.equal('2000000');
+      expect(result.valueSat).to.equal('2000000');
       expect(result.timestamp).to.equal(1496314658);
       expect(result.fields.length).to.equal(3);
       expect(result.hashDesc).to.deep.equal(hashDescription);
@@ -276,7 +276,7 @@ describe('decoder', () => {
         'lnbc20m1pvjluezpp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqhp58yjmdan79s6qqdhdzgynm4zwqd5d7xmw5fk98klysy043l2ahrqsfpp3qjmp7lwpagxun9pygexvgpjdc4jdj85fr9yq20q82gphp2nflc7jtzrcazrra7wwgzxqc8u7754cdlpfrmccae92qgzqvzq2ps8pqqqqqqpqqqqq9qqqvpeuqafqxu92d8lr6fvg0r5gv0heeeqgcrqlnm6jhphu9y00rrhy4grqszsvpcgpy9qqqqqqgqqqqq7qqzqj9n4evl6mr5aj9f58zp6fyjzup6ywn3x6sk8akg5v4tgn2q8g4fhx05wf6juaxu9760yp46454gpg5mtzgerlzezqcqvjnhjh8z3g2qqdhhwkj';
       let result = decoder.decode(input);
       expect(result.network).to.equal('bc');
-      expect(result.value).to.equal('2000000');
+      expect(result.valueSat).to.equal('2000000');
       expect(result.timestamp).to.equal(1496314658);
       expect(result.fields.length).to.equal(4);
       expect(result.paymentHash).to.deep.equal(
@@ -320,7 +320,7 @@ describe('decoder', () => {
         'lnbc20m1pvjluezhp58yjmdan79s6qqdhdzgynm4zwqd5d7xmw5fk98klysy043l2ahrqspp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqfppj3a24vwu6r8ejrss3axul8rxldph2q7z9kmrgvr7xlaqm47apw3d48zm203kzcq357a4ls9al2ea73r8jcceyjtya6fu5wzzpe50zrge6ulk4nvjcpxlekvmxl6qcs9j3tz0469gq5g658y';
       let result = decoder.decode(input);
       expect(result.network).to.equal('bc');
-      expect(result.value).to.equal('2000000');
+      expect(result.valueSat).to.equal('2000000');
       expect(result.timestamp).to.equal(1496314658);
       expect(result.fields.length).to.equal(3);
       expect(result.hashDesc).to.deep.equal(hashDescription);
@@ -348,7 +348,7 @@ describe('decoder', () => {
       let { words } = bech32.decode('bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4');
       let p2wpkh = Buffer.from(bech32.fromWords(words.slice(1)));
       expect(result.network).to.equal('bc');
-      expect(result.value).to.equal('2000000');
+      expect(result.valueSat).to.equal('2000000');
       expect(result.timestamp).to.equal(1496314658);
       expect(result.fields.length).to.equal(3);
       expect(result.hashDesc).to.deep.equal(hashDescription);
@@ -376,7 +376,7 @@ describe('decoder', () => {
       );
       let address = Buffer.from(bech32.fromWords(words.slice(1)));
       expect(result.network).to.equal('bc');
-      expect(result.value).to.equal('2000000');
+      expect(result.valueSat).to.equal('2000000');
       expect(result.timestamp).to.equal(1496314658);
       expect(result.fields.length).to.equal(3);
       expect(result.hashDesc).to.deep.equal(hashDescription);
@@ -402,7 +402,7 @@ describe('decoder', () => {
         'lnsb20m1pd3dfr9pp5s90vpp5a7sxzd4zenxxesvfge73nqslj4h7zn29059hgyp7jdvjqdqqcqzysqngw58lu63trytwj7ktx7vasdutvvan7paq5qrgjj6wg065qzr8pv8p6q7kcdeg0kdpek09gc7xf6y972gy7t3pl6gtcqww440znz6gpfec4kj';
       let result = decoder.decode(input);
       expect(result.network).to.equal('sb');
-      expect(result.value).to.equal('2000000');
+      expect(result.valueSat).to.equal('2000000');
     });
     it('should decode amount with floating point issues', () => {
       let input =

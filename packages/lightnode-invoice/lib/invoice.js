@@ -74,7 +74,7 @@ class Invoice {
 
     @return {string}
    */
-  get value() {
+  get valueSat() {
     return this.hasValue ? this._value.divn(picoToSat).toString() : null;
   }
 
@@ -83,7 +83,7 @@ class Invoice {
 
     @param {string|number} val
    */
-  set value(val) {
+  set valueSat(val) {
     if (!val) this._value = null;
     else this._value = new BN(val).muln(picoToSat);
   }

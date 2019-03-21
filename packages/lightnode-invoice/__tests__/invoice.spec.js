@@ -44,7 +44,7 @@ describe('invoice', () => {
       expect(sut.amount).to.equal(null);
     });
     it('should have correct amount when value set', () => {
-      sut.value = 1000;
+      sut.valueSat = 1000;
       expect(sut.amount).to.equal('0.00001000000');
     });
     it('should have correct amount when valueMsat set', () => {
@@ -57,34 +57,34 @@ describe('invoice', () => {
     });
   });
 
-  describe('value', () => {
+  describe('valueSat', () => {
     it('should set the value when a Number', () => {
-      sut.value = 1;
-      expect(sut.value).to.equal('1');
+      sut.valueSat = 1;
+      expect(sut.valueSat).to.equal('1');
     });
     it('should set the value when a String', () => {
-      sut.value = '1';
-      expect(sut.value).to.equal('1');
+      sut.valueSat = '1';
+      expect(sut.valueSat).to.equal('1');
     });
     it('should set 0 to null', () => {
-      sut.value = null;
-      expect(sut.value).to.equal(null);
+      sut.valueSat = null;
+      expect(sut.valueSat).to.equal(null);
     });
     it('should set null to null', () => {
-      sut.value = null;
-      expect(sut.value).to.equal(null);
+      sut.valueSat = null;
+      expect(sut.valueSat).to.equal(null);
     });
     it('should set empty string to null', () => {
-      sut.value = '';
-      expect(sut.value).to.equal(null);
+      sut.valueSat = '';
+      expect(sut.valueSat).to.equal(null);
     });
     it('should have correct value when amount set', () => {
       sut.amount = '0.00001000';
-      expect(sut.value).to.equal('1000');
+      expect(sut.valueSat).to.equal('1000');
     });
     it('should have correct value when valueMsat set', () => {
       sut.valueMsat = 1000;
-      expect(sut.value).to.equal('1');
+      expect(sut.valueSat).to.equal('1');
     });
   });
 
@@ -114,7 +114,7 @@ describe('invoice', () => {
       expect(sut.valueMsat).to.equal('1000000');
     });
     it('should have correct value when value set', () => {
-      sut.value = 1000;
+      sut.valueSat = 1000;
       expect(sut.valueMsat).to.equal('1000000');
     });
   });

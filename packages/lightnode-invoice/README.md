@@ -10,7 +10,7 @@ A Node.js invoice encoding/decoding library for the Lightning Network. This libr
 Decode an invoice
 
 ```javascript
-let invoice = require('lightnode-invoice');
+let invoice = require('@lightnode/invoice');
 let input =
   'lnbc2500u1pvjluezpp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqdq5xysxxatsyp3k7enxv4jsxqzpuaztrnwngzn3kdzw5hydlzf03qdgm2hdq27cqv3agm2awhz5se903vruatfhq77w3ls4evs3ch9zw97j25emudupq63nyw24cg27h2rspfj9srp';
 let result = invoice.decode(input);
@@ -24,7 +24,8 @@ Invoice {
      { type: 6, value: 60 } ],
   unknownFields: [],
   network: 'bc',
-  amount: 0.0025,
+  value: 0.0025,
+  valueSatoshi
   timestamp: 1496314658,
   signature:
    { r: <Buffer e8 96 39 ba 68 14 e3 66 89 d4 b9 1b f1 25 f1 03 51 b5 5d a0 57 b0 06 47 a8 da ba eb 8a 90 c9 5f>,
@@ -38,19 +39,20 @@ Invoice {
 Encode an invoice
 
 ```javascript
-let invoice = require('lightnode-invoice');
+let invoice = require('@lightnode/invoice');
 let privKey = Buffer.from(
   'e126f68f7eafcc8b74f54d269fe206be715000f94dac067d1c04a8ca3b2db734',
   'hex'
 );
 
-let input = new Invoice();
-input.timestamp = 1496314658;
-input.amount = 0.0025;
-input.paymentHash = '0001020304050607080900010203040506070809000102030405060708090102';
-input.shortDesc = '1 cup coffee';
-input.expiry = 60;
-result = invoice.encode(input, privKey);
+let invoice = new Invoice();
+invoice.network = 'bc';
+invoice.valueSat = 250000;
+invoice.timestamp = 1496314658;
+invoice.paymentHash = '0001020304050607080900010203040506070809000102030405060708090102';
+invoice.shortDesc = '1 cup coffee';
+invoice.expiry = 60;
+result = invoice.encode(invoice, privKey);
 console.log(result);
 
 /*
@@ -73,8 +75,8 @@ Encodes an invoice into a bech32 encode lightning invoice.
 Represents a payment invoice that contains the following properties
 
 - `network: String` - network prefix (Bitcoin Mainnet `bc`, Bitcoin Testnet `tb`, Bitcoin Regression `crt`, Bitcoin Simnet `sm`
-- `value: String` - value in bitcoin
-- `valueSatoshi: String` - value in Satoshi
+- `valueSat: String` - value in satoshi
+- `valueMsat: String` - value in millisatoshi
 - `timestamp: Int` - timestamp of the invoice
 - `fields: Array` - raw fields that are known in BOLT 11
 - `unknownFields: Array` - raw fields that are unknown in BOLT 11
