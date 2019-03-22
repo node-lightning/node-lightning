@@ -85,6 +85,7 @@ Represents a payment invoice that contains the following properties
 - `hashData: Buffer(32)` - SHA256 of the data that was signed
 - `expiry: Int` - expiry time in seconds, defaults to 3600 (per BOLT 11)
 - `paymentHash: Buffer(32)` - SHA256 of the payment_preimage provided in return for payment
+- `desc: String` - automatically sets the description correctly
 - `shortDesc: String` - short description
 - `hashDesc: Buffer(var)` - hash of the long description
 - `payeeNode: Buffer(33)`: optional pubkey of the payee node

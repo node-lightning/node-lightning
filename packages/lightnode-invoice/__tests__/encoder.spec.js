@@ -1,5 +1,6 @@
 const { expect } = require('chai');
 const secp255k1 = require('secp256k1');
+const crypto = require('../lib/crypto');
 const sut = require('../lib/encoder');
 const Invoice = require('../lib/invoice');
 
@@ -9,6 +10,10 @@ describe('encoder', () => {
     'hex'
   );
   const pubKey = secp255k1.publicKeyCreate(privKey);
+
+  const hashDesc = crypto.sha256(
+    'One piece of chocolate cake, one icecream cone, one pickle, one slice of swiss cheese, one slice of salami, one lollypop, one piece of cherry pie, one sausage, one cupcake, and one slice of watermelon'
+  );
 
   describe('test vectors', () => {
     it('donation of any amount using payment_hash 0001020304050607080900010203040506070809000102030405060708090102 to me @03e7156ae33b0a208d0744199163177e909e80176e55d97a2f221ede0f934dd9ad', () => {
@@ -57,8 +62,7 @@ describe('encoder', () => {
       invoice.timestamp = 1496314658;
       invoice.valueSat = 2000000;
       invoice.paymentHash = '0001020304050607080900010203040506070809000102030405060708090102';
-      invoice.hashDesc =
-        'One piece of chocolate cake, one icecream cone, one pickle, one slice of swiss cheese, one slice of salami, one lollypop, one piece of cherry pie, one sausage, one cupcake, and one slice of watermelon';
+      invoice.hashDesc = hashDesc;
       let result = sut.encode(invoice, privKey);
       expect(result).to.equal(
         'lnbc20m1pvjluezpp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqhp58yjmdan79s6qqdhdzgynm4zwqd5d7xmw5fk98klysy043l2ahrqscc6gd6ql3jrc5yzme8v4ntcewwz5cnw92tz0pc8qcuufvq7khhr8wpald05e92xw006sq94mg8v2ndf4sefvf9sygkshp5zfem29trqq2yxxz7'
@@ -70,8 +74,7 @@ describe('encoder', () => {
       invoice.network = 'tb';
       invoice.timestamp = 1496314658;
       invoice.valueSat = 2000000;
-      invoice.hashDesc =
-        'One piece of chocolate cake, one icecream cone, one pickle, one slice of swiss cheese, one slice of salami, one lollypop, one piece of cherry pie, one sausage, one cupcake, and one slice of watermelon';
+      invoice.hashDesc = hashDesc;
       invoice.paymentHash = '0001020304050607080900010203040506070809000102030405060708090102';
       invoice.addFallbackAddress('mk2QpYatsKicvFVuTAQLBryyccRXMUaGHP');
       let result = sut.encode(invoice, privKey);
@@ -86,8 +89,7 @@ describe('encoder', () => {
       invoice.timestamp = 1496314658;
       invoice.valueSat = 2000000;
       invoice.paymentHash = '0001020304050607080900010203040506070809000102030405060708090102';
-      invoice.hashDesc =
-        'One piece of chocolate cake, one icecream cone, one pickle, one slice of swiss cheese, one slice of salami, one lollypop, one piece of cherry pie, one sausage, one cupcake, and one slice of watermelon';
+      invoice.hashDesc = hashDesc;
       invoice.addFallbackAddress('1RustyRX2oai4EYYDpQGWvEL62BBGqN9T');
       invoice.addRoute([
         {
@@ -116,8 +118,7 @@ describe('encoder', () => {
       invoice.network = 'bc';
       invoice.timestamp = 1496314658;
       invoice.valueSat = 2000000;
-      invoice.hashDesc =
-        'One piece of chocolate cake, one icecream cone, one pickle, one slice of swiss cheese, one slice of salami, one lollypop, one piece of cherry pie, one sausage, one cupcake, and one slice of watermelon';
+      invoice.hashDesc = hashDesc;
       invoice.paymentHash = '0001020304050607080900010203040506070809000102030405060708090102';
       invoice.addFallbackAddress('3EktnHQD7RiAE6uzMj2ZifT9YgRrkSgzQX');
       let result = sut.encode(invoice, privKey);
@@ -131,8 +132,7 @@ describe('encoder', () => {
       invoice.network = 'bc';
       invoice.timestamp = 1496314658;
       invoice.valueSat = 2000000;
-      invoice.hashDesc =
-        'One piece of chocolate cake, one icecream cone, one pickle, one slice of swiss cheese, one slice of salami, one lollypop, one piece of cherry pie, one sausage, one cupcake, and one slice of watermelon';
+      invoice.hashDesc = hashDesc;
       invoice.paymentHash = '0001020304050607080900010203040506070809000102030405060708090102';
       invoice.addFallbackAddress('bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4');
       let result = sut.encode(invoice, privKey);
@@ -146,8 +146,7 @@ describe('encoder', () => {
       invoice.network = 'bc';
       invoice.timestamp = 1496314658;
       invoice.valueSat = 2000000;
-      invoice.hashDesc =
-        'One piece of chocolate cake, one icecream cone, one pickle, one slice of swiss cheese, one slice of salami, one lollypop, one piece of cherry pie, one sausage, one cupcake, and one slice of watermelon';
+      invoice.hashDesc = hashDesc;
       invoice.paymentHash = '0001020304050607080900010203040506070809000102030405060708090102';
       invoice.addFallbackAddress('bc1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3qccfmv3');
       let result = sut.encode(invoice, privKey);
