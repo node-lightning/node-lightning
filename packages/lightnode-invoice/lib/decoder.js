@@ -149,6 +149,7 @@ function decode(invoice) {
   result.signature = { r, s, recoveryFlag };
   result.pubkey = pubkey;
   result.hashData = hashData;
+  result.usedSigRecovery = !!payeeNodeField;
   return result;
 }
 

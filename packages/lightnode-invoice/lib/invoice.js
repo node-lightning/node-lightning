@@ -28,7 +28,7 @@ class Invoice {
     this.signature = null;
     this.pubkey = null;
     this.hashData = null;
-    this.usedSignatureRecovery = false;
+    this.usedSigRecovery = false;
   }
 
   /**
