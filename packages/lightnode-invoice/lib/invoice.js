@@ -1,6 +1,5 @@
 const bs58check = require('bs58check');
 const bech32 = require('bech32');
-const crypto = require('./crypto');
 const BN = require('bn.js');
 const { FIELD_TYPE, FIELD_DEFAULT, ADDRESS_VERSION } = require('./constants');
 
@@ -22,17 +21,6 @@ class Invoice {
     this.signature;
     this.pubkey;
     this.hashData;
-  }
-
-  _getFieldValue(type, def) {
-    let field = this.fields.find(p => p.type === type);
-    return field ? field.value : def;
-  }
-
-  _setFieldValue(type, value) {
-    let field = this.fields.find(p => p.type === type);
-    if (field) field.value = value;
-    else this.fields.push({ type, value });
   }
 
   /**
@@ -141,37 +129,48 @@ class Invoice {
   }
 
   /**
-   * Gets the short description text. Maximum valid length is 639 bytes.
-   * @return {string}
+    Gets the short description text.
+
+    @return {string}
    */
   get shortDesc() {
     return this._getFieldValue(FIELD_TYPE.SHORT_DESC);
   }
 
   /**
-   * Sets the short description text
-   * @param {string} value
+    Sets the short description text. Maximum valid length is 639 bytes.
+    Only a single short desc or hash desc field is allowed.
+
+    Setting this field will remove any hash desc fields.
+
+    @param {string} value
    */
   set shortDesc(value) {
+    this._removeFieldByType(FIELD_TYPE.HASH_DESC);
     this._setFieldValue(FIELD_TYPE.SHORT_DESC, value);
   }
 
   /**
-   * Gets the 32-byte hash of the description
-   * @return {Buffer}
+    Gets the 32-byte hash of the description.
+
+    @return {Buffer}
    */
   get hashDesc() {
     return this._getFieldValue(FIELD_TYPE.HASH_DESC);
   }
 
   /**
-   * Sets the hash description by creating a 256-bit hash of the supplied string
-   * or directly assigning the Buffer
-   * This must be used for descriptions that are over 639 bytes long.
-   * @param {string|Buffer} value string hash value or Buffer
+    Sets the hash description to the string or hex-encoded
+    Buffer provided. This must be used for descriptions
+    that are over 639 bytes long.
+
+    Setting this field will remove any short desc fields.
+
+    @param {string|Buffer} value string hash value or Buffer
    */
   set hashDesc(value) {
-    if (typeof value === 'string') value = crypto.sha256(value);
+    if (typeof value === 'string') value = Buffer.from(value, 'hex');
+    this._removeFieldByType(FIELD_TYPE.SHORT_DESC);
     this._setFieldValue(FIELD_TYPE.HASH_DESC, value);
   }
 
@@ -258,6 +257,41 @@ class Invoice {
         route.short_channel_id = Buffer.from(route.short_channel_id, 'hex');
     }
     this.fields.push({ type: FIELD_TYPE.ROUTE, value: routes });
+  }
+
+  ///////////////////////////////////////////////////////////////////
+
+  /**
+    Gets the value of thee first matching field that matches the field
+    type. If no result is found, the default value will used
+    @private
+    @param {number} type the field type
+    @param {any} def default value
+   */
+  _getFieldValue(type, def) {
+    let field = this.fields.find(p => p.type === type);
+    return field ? field.value : def;
+  }
+
+  /**
+    Sets the field value for the first matching field. If no
+    field exists it will insert a new field with the type and value
+    supplied.
+    @param {number} type the field type
+    @param {any} value the field value
+   */
+  _setFieldValue(type, value) {
+    let field = this.fields.find(p => p.type === type);
+    if (field) field.value = value;
+    else this.fields.push({ type, value });
+  }
+
+  /**
+    Removes the fields that match the supplied type.
+    @param {number} type the field value
+   */
+  _removeFieldByType(type) {
+    this.fields = this.fields.filter(p => p.type !== type);
   }
 }
 
