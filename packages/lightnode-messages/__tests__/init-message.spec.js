@@ -66,7 +66,7 @@ describe('InitMessage', () => {
     obj.setLocalBit(6);
     obj.setLocalBit(7);
     obj.localGossipQueries = false;
-    expect(obj.localGossipQueries.toNumber()).to.equal(0);
+    expect(obj.localFeatures.toNumber()).to.equal(0);
   });
 
   describe('.serialize', () => {
