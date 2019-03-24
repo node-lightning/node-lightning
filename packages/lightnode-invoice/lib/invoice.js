@@ -9,12 +9,14 @@ const picoToSat = picoToMsat * 1000;
 const picoToBtc = 1e12;
 const MAX_SHORT_DESC_BYTES = 639;
 
-/**
- Invoice is the state container used for building an invoice or
- contains the results from decoded invoice. The invoice does not
- perform validation, it is simply a state container.
- */
 class Invoice {
+  /**
+    Invoice is the state container used for invoice data. It is used
+    when building an invoice or contains the results from decoded
+    invoices. The Invoice type does not perform validation on
+    data it contains but does contain helper methods to help
+    construct proper invoices.
+  */
   constructor() {
     /** @type {BN} */
     this._value; // value stores in pico bitcoin
@@ -32,11 +34,12 @@ class Invoice {
   }
 
   /**
-    hasValue property returns true when the invoice has a value
-    associated with it. Invoices may optionally contain a value
-    which provides for an unspecified paymen to be sent
+    Returns true when the invoice has a value
+    associated with it. Invoices may optionally contain a value.
+    When there is no value, the invoice is for the receipt of
+    any value.
 
-    @returns {boolean}
+    @type boolean
    */
   get hasValue() {
     return this._value instanceof BN;
@@ -46,66 +49,59 @@ class Invoice {
     Warning: there is the possibility of precision loss!
 
     Gets the value in bitcoin as a string by converting from pico btc
-    into bitcoin.
+    into bitcoin. Returns null if the invoice has no amount.
 
-    This function is maintained for backwards compaibility and is
-    deprecated. Use `valueSat` which uses satoshi and returns
-    a string that can be loaded into a an extended decimal precision
-    library such as decimal.js.
+    Sets the value from a number or string that represeents a bitcoin
+    value, such as 0.0001 to represent 10000 satoshi. Setting a falsy
+    value will remove the value from the invoice.
 
-    @deprecated Use `valueSat`
-    @return {string} value in bitcoin as a string
+    @deprecated This property is maintained for backwards compaibility.
+    Use property `valueSat` or `valueMsat` instead.
+
+    @type string
    */
   get amount() {
     return this.hasValue ? (this._value.toNumber() / picoToBtc).toFixed(11) : null;
   }
 
-  /**
-    Sets the value in bitcoin
-
-    @deprecated Use `value` instead
-    @param {number|string} val
-   */
   set amount(val) {
     if (!val) this._value = null;
     else this._value = new BN(parseFloat(val) * picoToBtc);
   }
 
   /**
-    Warning: Msat fractions are truncated.
+    Warning: Msat fractions are truncated!
 
-    Gets the value in satoshi as a string.
+    Gets the value in satoshi as a string by converting from pico btc
+    into satoshi. Returns null if the invoice has no amount.
 
-    @return {string}
+    Sets the value in satoshi from a string or number, such as 10000 satoshi.
+    Setting a falsy value will remove the value from the invoice.
+
+    @type string
    */
   get valueSat() {
     return this.hasValue ? this._value.divn(picoToSat).toString() : null;
   }
 
-  /**
-    Sets the value in satoshi from a string or number
-
-    @param {string|number} val
-   */
   set valueSat(val) {
     if (!val) this._value = null;
     else this._value = new BN(val).muln(picoToSat);
   }
 
   /**
-    Gets the value in millisataoshi as a string
+    Gets the value in milli-sataoshi as a string or returns null
+    if the invoice has no amount.
 
-    @return {string}
+    Sets the value in millisatoshi from a string or number. Setting a falsy
+    value will remove the value from the invoice.
+
+    @type string
    */
   get valueMsat() {
     return this.hasValue ? this._value.divn(picoToMsat).toString() : null;
   }
 
-  /**
-    Sets the value in millisatoshi
-
-    @param {number|string} val
-   */
   set valueMsat(val) {
     if (!val) this._value = null;
     else this._value = new BN(val).muln(picoToMsat);
@@ -115,18 +111,15 @@ class Invoice {
     Get the expiry time for the invoice as a big endian number
     of seconds. The defualt is one hour (3600).
 
-    @returns {number}
+    Sets the expiry time in seconds for the invoice.  Only a single
+    expiry field is valid in the invoice.
+
+    @type number
    */
   get expiry() {
     return this._getFieldValue(FIELD_TYPE.EXPIRY, FIELD_DEFAULT.EXPIRY);
   }
 
-  /**
-    Sets the expiry time in seconds for the invoice.  Only a single
-    expiry field is valid in the invoice.
-
-    @param {number} the expiry time
-   */
   set expiry(value) {
     this._setFieldValue(FIELD_TYPE.EXPIRY, value);
   }
@@ -135,45 +128,38 @@ class Invoice {
     Gets the 256-bit payment hash. The preimage of this value
     will provide proof of payment.
 
-    @returns {Buffer} 32-byte buffer of the payment hash
+    Sets the 256-bit payment hash for the invoice from a Buffer
+    or hex-encoded string. Only a single field of this type is
+    valid in the invoice.
+
+    @type Buffer
    */
   get paymentHash() {
     return this._getFieldValue(FIELD_TYPE.PAYMENT_HASH);
   }
 
-  /**
-    Sets the 256-bit payment hash for the invoice. Only a single
-    field of this type is valid in the invoice.
-
-    @param {string|Buffer} value hex encoded striing of Buffeer
-   */
   set paymentHash(value) {
     if (typeof value === 'string') value = Buffer.from(value, 'hex');
     this._setFieldValue(FIELD_TYPE.PAYMENT_HASH, value);
   }
 
   /**
-    Gets the description as either a short desc or hash desc
+    Gets the description as either a shortDesc or hashDesc
     value. If it is the former it is returned as a string.
-    Hash desc is returned as a buffer of the hash.
+    hashDesc is returned as a buffer of the hash.
 
-    @return {string|Buffer}
+    Sets the description for the invoice. An invoice must use hash
+    description for messages longer than 639 bytes. If the string is
+    longer than 639 bytes, the description will be hashed and stored
+    in hashDesc. Otherwise, the raw string will be stored in the
+    short desc.
+
+    @type string | Buffer
    */
   get desc() {
     return this.shortDesc || this.hashDesc;
   }
 
-  /**
-    Convenience method that sets the description for the invoice.
-    An invoice must use hash decsription for messages longer than
-    639 bytes.
-
-    If the string is longer than 639 bytes, the description will
-    be hashed and stored in the hash-desc.  Otherwise the
-    raw string will be stored in the short desc.
-
-    @param {string} desc
-   */
   set desc(desc) {
     let len = Buffer.byteLength(desc);
     if (len > MAX_SHORT_DESC_BYTES) this.hashDesc = crypto.sha256(desc);
@@ -181,45 +167,41 @@ class Invoice {
   }
 
   /**
-    Gets the short description text.
+    Gets the short description text. Returns null when the invoice
+    does not contain a short description. An invoice must set
+    either a short description or a hash description.
 
-    @return {string}
+    Sets the short description text. Maximum valid length is 639
+    bytes. Only a single short desc or hash desc field is allowed.
+    Setting this field will remove the hashDesc field value.
+
+    @type string
    */
   get shortDesc() {
     return this._getFieldValue(FIELD_TYPE.SHORT_DESC);
   }
 
-  /**
-    Sets the short description text. Maximum valid length is 639 bytes.
-    Only a single short desc or hash desc field is allowed.
-
-    Setting this field will remove any hash desc fields.
-
-    @param {string} value
-   */
   set shortDesc(value) {
     this._removeFieldByType(FIELD_TYPE.HASH_DESC);
     this._setFieldValue(FIELD_TYPE.SHORT_DESC, value);
   }
 
   /**
-    Gets the 32-byte hash of the description.
+    Gets the 256-bit hash of the description. Returns
+    null when an invoice does not contain a hash description.
+    An invoice must contain either a shortDesc or hashDesc.
 
-    @return {Buffer}
+    Sets the hash description to the hex-encoded string or
+    Buffer containing the the hashed description.
+    This must be used for descriptions that are over 639 bytes
+    long. Setting this field will remove any short desc fields.
+
+    @type Buffer
    */
   get hashDesc() {
     return this._getFieldValue(FIELD_TYPE.HASH_DESC);
   }
 
-  /**
-    Sets the hash description to the string or hex-encoded
-    Buffer provided. This must be used for descriptions
-    that are over 639 bytes long.
-
-    Setting this field will remove any short desc fields.
-
-    @param {string|Buffer} value string hash value or Buffer
-   */
   set hashDesc(value) {
     if (typeof value === 'string') value = Buffer.from(value, 'hex');
     this._removeFieldByType(FIELD_TYPE.SHORT_DESC);
@@ -229,32 +211,31 @@ class Invoice {
   /**
     Gets the 33-byte public key of the payee node. This is
     used to explicitly describe the payee node instead of
-    relying on pub key in signature recovery.
+    relying on pub key recovery from the signature.
 
-    @returns {Buffer}
-   */
-  get payeeNode() {
-    return this._getFieldValue(FIELD_TYPE.PAYEE_NODE);
-  }
-
-  /**
     Sets the 33-byte public key of the payee node. This is
     used to set the public key explicitly instead of relying
     on signature recovery. This field must match the pubkey
     used to generate the signature.
 
-    @param {string|Buffer} value hex-encoded string or buffer
+    @type Buffer
    */
+  get payeeNode() {
+    return this._getFieldValue(FIELD_TYPE.PAYEE_NODE);
+  }
+
   set payeeNode(value) {
     if (typeof value === 'string') value = Buffer.from(value, 'hex');
     this._setFieldValue(FIELD_TYPE.PAYEE_NODE, value);
   }
 
   /**
-    Gets the min final route CLTV expiry used in the final route.
-    Default is 9.
+    Gets the min final route CLTV expiry. If none is provided,
+    the default is 9.
 
-    @returns {number}
+    Sets the min final route CLTV expiry used in the final route.
+
+    @type number
    */
   get minFinalCltvExpiry() {
     return this._getFieldValue(
@@ -263,11 +244,6 @@ class Invoice {
     );
   }
 
-  /**
-    Sets the min final route CLTV expiry used in the final route.
-
-    @param {number} value
-   */
   set minFinalCltvExpiry(value) {
     this._setFieldValue(FIELD_TYPE.MIN_FINAL_CLTV_EXPIRY, value);
   }
@@ -277,11 +253,11 @@ class Invoice {
     multiple fallback addresses to send to an on-chain address
     in the event of failure.
 
-    @returns {[Object]}
-    {
-      version: Int,
-      address: Buffer(var)
-    }
+    @type
+      [{
+        version: number,
+        address: Buffer
+      }]
    */
   get fallbackAddresses() {
     return this.fields.filter(p => p.type === FIELD_TYPE.FALLBACK_ADDRESS).map(p => p.value);
@@ -323,13 +299,12 @@ class Invoice {
     Route information is necessary to route payments to private
     nodes.
 
-    @return {[Object]}
-    [{
-      pubkey: Buffer(33),
-      short_channel_id: Buffer(8),
-      fee_base_msat: Int,
-      fee_proportional_millionths: Int,
-      cltv_expiry_delta: Int
+    @type [{
+      pubkey: Buffer,
+      short_channel_id: Buffer,
+      fee_base_msat: number,
+      fee_proportional_millionths: number,
+      cltv_expiry_delta: number
     }]
    */
   get routes() {
@@ -344,14 +319,16 @@ class Invoice {
     Multiple route fields can be added to an invoice in according
     with BOLT 11 to give the routing options.
 
-    @param {[Object]} routes array of route objects
-    {
-      pubkey: Buffer(33),
-      short_channel_id: Buffer(8),
-      fee_base_msat: Int,
-      fee_proportional_millionths: Int,
-      cltv_expiry_delta: Int
-    }
+    @param {
+      [{
+        pubkey: Buffer,
+        short_channel_id: Buffer,
+        fee_base_msat: number,
+        fee_proportional_millionths: number,
+        cltv_expiry_delta: number
+      }]
+    } routes array of route objects
+
    */
   addRoute(routes) {
     for (let route of routes) {
@@ -366,7 +343,8 @@ class Invoice {
 
   /**
     Gets the value of thee first matching field that matches the field
-    type. If no result is found, the default value will used
+    type. If no result is found, the default value will be used.
+
     @private
     @param {number} type the field type
     @param {any} def default value
@@ -380,6 +358,7 @@ class Invoice {
     Sets the field value for the first matching field. If no
     field exists it will insert a new field with the type and value
     supplied.
+
     @param {number} type the field type
     @param {any} value the field value
    */
@@ -391,6 +370,7 @@ class Invoice {
 
   /**
     Removes the fields that match the supplied type.
+
     @param {number} type the field value
    */
   _removeFieldByType(type) {
