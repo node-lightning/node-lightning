@@ -13,7 +13,7 @@ class PingMessage {
    */
   constructor() {
     /**
-      Ping message type is 17
+      Ping message type is 18
       @type number
      */
     this.type = MESSAGE_TYPE.PING;

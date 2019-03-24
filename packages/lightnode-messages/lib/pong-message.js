@@ -15,7 +15,7 @@ class PongMessage {
    */
   constructor(numPongBytes = 0) {
     /**
-      Message type = 18
+      Message type = 19
       @type number
      */
     this.type = MESSAGE_TYPE.PONG;
