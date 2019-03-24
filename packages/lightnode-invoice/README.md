@@ -14,25 +14,32 @@ let invoice = require('@lightnode/invoice');
 let input =
   'lnbc2500u1pvjluezpp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqdq5xysxxatsyp3k7enxv4jsxqzpuaztrnwngzn3kdzw5hydlzf03qdgm2hdq27cqv3agm2awhz5se903vruatfhq77w3ls4evs3ch9zw97j25emudupq63nyw24cg27h2rspfj9srp';
 let result = invoice.decode(input);
-console.log(result);
 /*
 Invoice {
-  fields:
-   [ { type: 1,
-       value: <Buffer 00 01 02 03 04 05 06 07 08 09 00 01 02 03 04 05 06 07 08 09 00 01 02 03 04 05 06 07 08 09 01 02> },
-     { type: 13, value: '1 cup coffee' },
-     { type: 6, value: 60 } ],
-  unknownFields: [],
   network: 'bc',
-  value: 0.0025,
-  valueSatoshi
+  valueMsat: 250000000,
+  valueSat: 250000,
   timestamp: 1496314658,
-  signature:
-   { r: <Buffer e8 96 39 ba 68 14 e3 66 89 d4 b9 1b f1 25 f1 03 51 b5 5d a0 57 b0 06 47 a8 da ba eb 8a 90 c9 5f>,
-     s: <Buffer 16 0f 9d 5a 6e 0f 79 d1 fc 2b 96 42 38 b9 44 e2 fa 4a a6 77 c6 f0 20 d4 66 47 2a b8 42 bd 75 0e>,
-     recoveryFlag: 1 },
+  paymentHash: <Buffer 00 01 02 03 04 05 06 07 08 09 00 01 02 03 04 05 06 07 08 09 00 01 02 03 04 05 06 07 08 09 01 02>,
+  desc: '1 cup coffee',
+  shortDesc: '1 cup coffee',
+  expiry: 60,
+  fields:
+    [
+      { type: 1, value: <Buffer 00 01 02 03 04 05 06 07 08 09 00 01 02 03 04 05 06 07 08 09 00 01 02 03 04 05 06 07 08 09 01 02> },
+      { type: 13, value: '1 cup coffee' },
+      { type: 6, value: 60 }
+    ],
+  unknownFields: [],
+  signature: {
+    r: <Buffer e8 96 39 ba 68 14 e3 66 89 d4 b9 1b f1 25 f1 03 51 b5 5d a0 57 b0 06 47 a8 da ba eb 8a 90 c9 5f>,
+    s: <Buffer 16 0f 9d 5a 6e 0f 79 d1 fc 2b 96 42 38 b9 44 e2 fa 4a a6 77 c6 f0 20 d4 66 47 2a b8 42 bd 75 0e>,
+    recoveryFlag: 1
+  },
   pubkey: <Buffer 03 e7 15 6a e3 3b 0a 20 8d 07 44 19 91 63 17 7e 90 9e 80 17 6e 55 d9 7a 2f 22 1e de 0f 93 4d d9 ad>,
-  hashData: <Buffer 3c d6 ef 07 74 40 40 55 6e 01 be 64 f6 8f d9 e1 56 5f b4 7d 78 c4 23 08 b1 ee 00 5a ca 5a 0d 86> }
+  hashData: <Buffer 3c d6 ef 07 74 40 40 55 6e 01 be 64 f6 8f d9 e1 56 5f b4 7d 78 c4 23 08 b1 ee 00 5a ca 5a 0d 86>,
+  usedSigRecovery: true
+}
 */
 ```
 
@@ -66,7 +73,7 @@ lnbc2500u1pvjluezpp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqdq5xysxx
 
 Decodes a bech32 encoded lightning invoice. Exceptions are thrown for invalid invoices.
 
-#### `.encode(Invoice): String`
+#### `.encode(Invoice): string`
 
 Encodes an invoice into a bech32 encode lightning invoice.
 
@@ -74,7 +81,7 @@ Encodes an invoice into a bech32 encode lightning invoice.
 
 Represents a payment invoice that contains the following properties
 
-- `network: String` - network prefix (Bitcoin Mainnet `bc`, Bitcoin Testnet `tb`, Bitcoin Regression `crt`, Bitcoin Simnet `sm`
+- `network: string` - network prefix (Bitcoin Mainnet `bc`, Bitcoin Testnet `tb`, Bitcoin Regression `crt`, Bitcoin Simnet `sm`
 - `valueSat: String` - value in satoshi
 - `valueMsat: String` - value in millisatoshi
 - `timestamp: Int` - timestamp of the invoice
@@ -94,7 +101,11 @@ Represents a payment invoice that contains the following properties
 - `routes: Array`: list of routes that should be used in the format `{ pubkey: Buffer(33), short_channel_id: Buffer(8), fee_base_msat: Int, fee_proportional_millionths: Int, cltv_expiry_delta: Int }`
 - `addFallbackAddress(address: string)` adds a P2PKH or P2SH address in base58check or bech32 encoding.
 - `addRoute(route: [Route])` adds a new private route with each sub-route being of the form `{ pubkey: Buffer(33), short_channel_id: Buffer(8), fee_base_msat: Int, fee_proportional_millionths: Int, cltv_expiry_delta: Int }`
+- `signature` the signature for the invoice in the format `{ r: Buffer(32), s: Buffer(32), recoveryFlag: Int }`
+- `pubkey: Buffer(33)` the compressed public key recovered from the signature, or the pubkey from `payeeNode` when supplied.
+- `hashData: Buffer(32)` the 256-bit hash of the data used to generate the signature signature.
+- `usedSigRecovery: boolean` indicates if signature recovery was used on the invoice, which indicates that an external comparison of the recovered pubkey must be performed against a known pubkey.
 
 ## Contributing
 
-Refer to the Lightnode [contributing guide](https://github.com/altangent/lightnode/blob/master/CONTRIBUTING.md)
+Refer to the Lightnode [contributing guide](https://github.com/altangent/lightnode/blob/master/CONTRIBUTING.md).
