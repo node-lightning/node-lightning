@@ -25,7 +25,7 @@ class NoiseState {
     this.rn = Buffer.alloc(12);
   }
 
-  async _initialize(key) {
+  _initialize(key) {
     winston.debug('initialize noise state');
     this.h = sha256(Buffer.from(this.protocolName));
     this.ck = this.h;
@@ -33,7 +33,7 @@ class NoiseState {
     this.h = sha256(Buffer.concat([this.h, key.compressed()]));
   }
 
-  async initiatorAct1() {
+  initiatorAct1() {
     winston.debug('initiator act1');
     this._initialize(this.rs);
     this.h = sha256(Buffer.concat([this.h, this.es.compressed()]));
@@ -51,7 +51,7 @@ class NoiseState {
     return m;
   }
 
-  async initiatorAct2(m) {
+  initiatorAct2(m) {
     winston.debug('initiator act2');
     // ACT 2
 
@@ -87,7 +87,7 @@ class NoiseState {
     this.h = sha256(Buffer.concat([this.h, c]));
   }
 
-  async initiatorAct3() {
+  initiatorAct3() {
     // ACT 3
     winston.debug('initiator act3');
 
@@ -122,7 +122,7 @@ class NoiseState {
     return m;
   }
 
-  async receiveAct1(m) {
+  receiveAct1(m) {
     this._initialize(this.ls);
 
     winston.debug('receive act1');
@@ -157,7 +157,7 @@ class NoiseState {
     this.h = sha256(Buffer.concat([this.h, c]));
   }
 
-  async recieveAct2() {
+  recieveAct2() {
     // 1. e = generateKey() => done in initialization
 
     // 2. h = sha256(h || e.pub.compressed())
@@ -182,7 +182,7 @@ class NoiseState {
     return m;
   }
 
-  async receiveAct3(m) {
+  receiveAct3(m) {
     // 1. read exactly 66 bytes from the network buffer
     if (m.length !== 66) throw new Error('ACT3_READ_FAILED');
 
@@ -222,7 +222,7 @@ class NoiseState {
     this.sn = 0;
   }
 
-  async encryptMessage(m) {
+  encryptMessage(m) {
     // step 1/2. serialize m length into int16
     let l = Buffer.alloc(2);
     l.writeUInt16BE(m.length);
@@ -243,7 +243,7 @@ class NoiseState {
     return Buffer.concat([lc, c]);
   }
 
-  async decryptLength(lc) {
+  decryptLength(lc) {
     let l = ccpDecrypt(this.rk, this.rn, Buffer.alloc(0), lc);
 
     if (this._incrementRecievingNonce() >= 1000) this._rotateRecievingKeys();
@@ -251,7 +251,7 @@ class NoiseState {
     return l.readUInt16BE();
   }
 
-  async decryptMessage(c) {
+  decryptMessage(c) {
     let m = ccpDecrypt(this.rk, this.rn, Buffer.alloc(0), c);
 
     if (this._incrementRecievingNonce() >= 1000) this._rotateRecievingKeys();

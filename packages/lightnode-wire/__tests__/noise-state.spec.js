@@ -1,10 +1,6 @@
-const chai = require('chai');
-const chaiAsPromised = require('chai-as-promised');
+const { expect } = require('chai');
 const { generateKey } = require('@lightnode/crypto');
 const NoiseState = require('../lib/noise-state');
-
-chai.use(chaiAsPromised);
-const { expect } = chai;
 
 describe('noise-state', () => {
   describe('initiator', () => {
@@ -30,8 +26,8 @@ describe('noise-state', () => {
 
     describe('act 1', () => {
       let m;
-      before(async () => {
-        m = await sut.initiatorAct1();
+      before(() => {
+        m = sut.initiatorAct1();
       });
       it('should set the hash correctly', () => {
         expect(sut.h.toString('hex')).to.deep.equal(
@@ -46,12 +42,12 @@ describe('noise-state', () => {
     });
 
     describe('act2', () => {
-      before(async () => {
+      before(() => {
         let input = Buffer.from(
           '0002466d7fcae563e5cb09a0d1870bb580344804617879a14949cf22285f1bae3f276e2470b93aac583c9ef6eafca3f730ae',
           'hex'
         );
-        await sut.initiatorAct2(input);
+        sut.initiatorAct2(input);
       });
       it('should set the hash correctly', () => {
         expect(sut.h.toString('hex')).to.deep.equal(
@@ -62,8 +58,8 @@ describe('noise-state', () => {
 
     describe('act3', () => {
       let m;
-      before(async () => {
-        m = await sut.initiatorAct3();
+      before(() => {
+        m = sut.initiatorAct3();
       });
       it('should have the correct output', () => {
         expect(m.toString('hex')).to.deep.equal(
@@ -83,8 +79,8 @@ describe('noise-state', () => {
     });
 
     describe('send messages', () => {
-      it('should encrypt message properly', async () => {
-        let m = await sut.encryptMessage(Buffer.from('68656c6c6f', 'hex'));
+      it('should encrypt message properly', () => {
+        let m = sut.encryptMessage(Buffer.from('68656c6c6f', 'hex'));
         expect(m.toString('hex')).to.deep.equal(
           'cf2b30ddf0cf3f80e7c35a6e6730b59fe802473180f396d88a8fb0db8cbcf25d2f214cf9ea1d95'
         );
@@ -94,10 +90,10 @@ describe('noise-state', () => {
         expect(sut.sn.toString('hex')).to.deep.equal('000000000200000000000000');
       });
 
-      it('should rotate keys correctly', async () => {
+      it('should rotate keys correctly', () => {
         let input = Buffer.from('68656c6c6f', 'hex');
         for (let i = 1; i < 1001; i++) {
-          let m = await sut.encryptMessage(input);
+          let m = sut.encryptMessage(input);
           sent.push(m);
           let tests = {
             1: '72887022101f0b6753e0c7de21657d35a4cb2a1f5cde2650528bbc8f837d0f0d7ad833b1a256a1',
@@ -114,34 +110,34 @@ describe('noise-state', () => {
     });
 
     describe('receive messages', () => {
-      before(async () => {
+      before(() => {
         sut = new NoiseState({ ls, rs, es });
-        await sut.initiatorAct1();
-        await sut.initiatorAct2(
+        sut.initiatorAct1();
+        sut.initiatorAct2(
           Buffer.from(
             '0002466d7fcae563e5cb09a0d1870bb580344804617879a14949cf22285f1bae3f276e2470b93aac583c9ef6eafca3f730ae',
             'hex'
           )
         );
-        await sut.initiatorAct3();
+        sut.initiatorAct3();
         // swap rk and sk to allow for "receiving"
         sut.rk = sut.sk;
       });
 
-      it('should decrypt the length', async () => {
-        let l = await sut.decryptLength(sent[0].slice(0, 18));
+      it('should decrypt the length', () => {
+        let l = sut.decryptLength(sent[0].slice(0, 18));
         expect(l).to.deep.equal(5);
       });
 
-      it('should decrypt the message', async () => {
-        let m = await sut.decryptMessage(sent[0].slice(18));
+      it('should decrypt the message', () => {
+        let m = sut.decryptMessage(sent[0].slice(18));
         expect(m.toString()).to.deep.equal('hello');
       });
 
-      it('should rotate keys correctly', async () => {
+      it('should rotate keys correctly', () => {
         for (let i = 1; i < 1001; i++) {
-          let l = await sut.decryptLength(sent[i].slice(0, 18));
-          let m = await sut.decryptMessage(sent[i].slice(18));
+          let l = sut.decryptLength(sent[i].slice(0, 18));
+          let m = sut.decryptMessage(sent[i].slice(18));
 
           expect(l).to.deep.equal(5, 'failed on message' + i);
           expect(m.toString()).to.deep.equal('hello', 'failed on message' + i);
@@ -150,46 +146,46 @@ describe('noise-state', () => {
     });
 
     describe('with errors', () => {
-      it('transport-initiator act2 short read test', async () => {
+      it('transport-initiator act2 short read test', () => {
         sut = new NoiseState({ ls, rs, es });
-        await sut.initiatorAct1();
+        sut.initiatorAct1();
         let input = Buffer.from(
           '0002466d7fcae563e5cb09a0d1870bb580344804617879a14949cf22285f1bae3f276e2470b93aac583c9ef6eafca3f730',
           'hex'
         );
-        await expect(sut.initiatorAct2(input)).to.be.rejectedWith('ACT2_READ_FAILED');
+        expect(() => sut.initiatorAct2(input)).to.throw('ACT2_READ_FAILED');
       });
 
-      it('transport-initiator act2 bad version test', async () => {
+      it('transport-initiator act2 bad version test', () => {
         sut = new NoiseState({ ls, rs, es });
-        await sut.initiatorAct1();
+        sut.initiatorAct1();
         let input = Buffer.from(
           '0102466d7fcae563e5cb09a0d1870bb580344804617879a14949cf22285f1bae3f276e2470b93aac583c9ef6eafca3f730ae',
           'hex'
         );
-        await expect(sut.initiatorAct2(input)).to.be.rejectedWith('ACT2_BAD_VERSION');
+        expect(() => sut.initiatorAct2(input)).to.throw('ACT2_BAD_VERSION');
       });
 
-      it('transport-initiator act2 bad key serialization test', async () => {
+      it('transport-initiator act2 bad key serialization test', () => {
         sut = new NoiseState({ ls, rs, es });
-        await sut.initiatorAct1();
+        sut.initiatorAct1();
         let input = Buffer.from(
           '0004466d7fcae563e5cb09a0d1870bb580344804617879a14949cf22285f1bae3f276e2470b93aac583c9ef6eafca3f730ae',
           'hex'
         );
-        await expect(sut.initiatorAct2(input)).to.be.rejectedWith(
+        expect(() => sut.initiatorAct2(input)).to.throw(
           'the public key could not be parsed or is invalid'
         );
       });
 
-      it('transport-initiator act2 bad MAC test', async () => {
+      it('transport-initiator act2 bad MAC test', () => {
         sut = new NoiseState({ ls, rs, es });
-        await sut.initiatorAct1();
+        sut.initiatorAct1();
         let input = Buffer.from(
           '0002466d7fcae563e5cb09a0d1870bb580344804617879a14949cf22285f1bae3f276e2470b93aac583c9ef6eafca3f730af',
           'hex'
         );
-        await expect(sut.initiatorAct2(input)).to.be.rejectedWith('unable to authenticate');
+        expect(() => sut.initiatorAct2(input)).to.throw('unable to authenticate');
       });
     });
   });
@@ -200,13 +196,13 @@ describe('noise-state', () => {
     let sut;
 
     describe('act 1', () => {
-      before(async () => {
+      before(() => {
         sut = new NoiseState({ ls, es });
         let input = Buffer.from(
           '00036360e856310ce5d294e8be33fc807077dc56ac80d95d9cd4ddbd21325eff73f70df6086551151f58b8afe6c195782c6a',
           'hex'
         );
-        await sut.receiveAct1(input);
+        sut.receiveAct1(input);
       });
       it('should setup hash', () => {
         expect(sut.h.toString('hex')).to.equal(
@@ -215,17 +211,17 @@ describe('noise-state', () => {
       });
     });
 
-    describe('act 2', async () => {
+    describe('act 2', () => {
       let m;
-      before(async () => {
-        m = await sut.recieveAct2();
+      before(() => {
+        m = sut.recieveAct2();
       });
       it('should setup hash', () => {
         expect(sut.h.toString('hex')).to.equal(
           '90578e247e98674e661013da3c5c1ca6a8c8f48c90b485c0dfa1494e23d56d72'
         );
       });
-      it('should return correct message', async () => {
+      it('should return correct message', () => {
         expect(m.toString('hex')).to.equal(
           '0002466d7fcae563e5cb09a0d1870bb580344804617879a14949cf22285f1bae3f276e2470b93aac583c9ef6eafca3f730ae'
         );
@@ -233,12 +229,12 @@ describe('noise-state', () => {
     });
 
     describe('act 3', () => {
-      before(async () => {
+      before(() => {
         let input = Buffer.from(
           '00b9e3a702e93e3a9948c2ed6e5fd7590a6e1c3a0344cfc9d5b57357049aa22355361aa02e55a8fc28fef5bd6d71ad0c38228dc68b1c466263b47fdf31e560e139ba',
           'hex'
         );
-        await sut.receiveAct3(input);
+        sut.receiveAct3(input);
       });
       it('should have correct rk', () => {
         expect(sut.rk.toString('hex')).to.equal(
@@ -258,136 +254,136 @@ describe('noise-state', () => {
     });
 
     describe('with errors', () => {
-      it('transport-responder act1 short read test', async () => {
+      it('transport-responder act1 short read test', () => {
         sut = new NoiseState({ ls, es });
         let input = Buffer.from(
           '00036360e856310ce5d294e8be33fc807077dc56ac80d95d9cd4ddbd21325eff73f70df6086551151f58b8afe6c195782c'
         );
-        return expect(sut.receiveAct1(input)).to.be.rejectedWith('ACT1_READ_FAILED');
+        expect(() => sut.receiveAct1(input)).to.throw('ACT1_READ_FAILED');
       });
 
-      it('transport-responder act1 bad version test', async () => {
+      it('transport-responder act1 bad version test', () => {
         sut = new NoiseState({ ls, es });
         let input = Buffer.from(
           '01036360e856310ce5d294e8be33fc807077dc56ac80d95d9cd4ddbd21325eff73f70df6086551151f58b8afe6c195782c6a',
           'hex'
         );
-        return expect(sut.receiveAct1(input)).to.be.rejectedWith('ACT1_BAD_VERSION');
+        expect(() => sut.receiveAct1(input)).to.throw('ACT1_BAD_VERSION');
       });
 
-      it('transport-responder act1 bad key serialization test', async () => {
+      it('transport-responder act1 bad key serialization test', () => {
         sut = new NoiseState({ ls, es });
         let input = Buffer.from(
           '00046360e856310ce5d294e8be33fc807077dc56ac80d95d9cd4ddbd21325eff73f70df6086551151f58b8afe6c195782c6a',
           'hex'
         );
-        return expect(sut.receiveAct1(input)).to.be.rejectedWith(
+        expect(() => sut.receiveAct1(input)).to.throw(
           'the public key could not be parsed or is invalid'
         );
       });
 
-      it('transport-responder act1 bad MAC test', async () => {
+      it('transport-responder act1 bad MAC test', () => {
         sut = new NoiseState({ ls, es });
         let input = Buffer.from(
           '00036360e856310ce5d294e8be33fc807077dc56ac80d95d9cd4ddbd21325eff73f70df6086551151f58b8afe6c195782c6b',
           'hex'
         );
-        return expect(sut.receiveAct1(input)).to.be.rejectedWith('unable to authenticate');
+        expect(() => sut.receiveAct1(input)).to.throw('unable to authenticate');
       });
 
-      it('transport-responder act3 bad version test', async () => {
+      it('transport-responder act3 bad version test', () => {
         sut = new NoiseState({ ls, es });
-        await sut.receiveAct1(
+        sut.receiveAct1(
           Buffer.from(
             '00036360e856310ce5d294e8be33fc807077dc56ac80d95d9cd4ddbd21325eff73f70df6086551151f58b8afe6c195782c6a',
             'hex'
           )
         );
-        await sut.recieveAct2();
-        await expect(
+        sut.recieveAct2();
+        expect(() =>
           sut.receiveAct3(
             Buffer.from(
               '01b9e3a702e93e3a9948c2ed6e5fd7590a6e1c3a0344cfc9d5b57357049aa22355361aa02e55a8fc28fef5bd6d71ad0c38228dc68b1c466263b47fdf31e560e139ba',
               'hex'
             )
           )
-        ).to.be.rejectedWith('ACT3_BAD_VERSION');
+        ).to.throw('ACT3_BAD_VERSION');
       });
 
-      it('transport-responder act3 short read test', async () => {
+      it('transport-responder act3 short read test', () => {
         sut = new NoiseState({ ls, es });
-        await sut.receiveAct1(
+        sut.receiveAct1(
           Buffer.from(
             '00036360e856310ce5d294e8be33fc807077dc56ac80d95d9cd4ddbd21325eff73f70df6086551151f58b8afe6c195782c6a',
             'hex'
           )
         );
-        await sut.recieveAct2();
-        await expect(
+        sut.recieveAct2();
+        expect(() =>
           sut.receiveAct3(
             Buffer.from(
               '00b9e3a702e93e3a9948c2ed6e5fd7590a6e1c3a0344cfc9d5b57357049aa22355361aa02e55a8fc28fef5bd6d71ad0c38228dc68b1c466263b47fdf31e560e139',
               'hex'
             )
           )
-        ).to.be.rejectedWith('ACT3_READ_FAILED');
+        ).to.throw('ACT3_READ_FAILED');
       });
 
-      it('transport-responder act3 bad MAC for ciphertext test', async () => {
+      it('transport-responder act3 bad MAC for ciphertext test', () => {
         sut = new NoiseState({ ls, es });
-        await sut.receiveAct1(
+        sut.receiveAct1(
           Buffer.from(
             '00036360e856310ce5d294e8be33fc807077dc56ac80d95d9cd4ddbd21325eff73f70df6086551151f58b8afe6c195782c6a',
             'hex'
           )
         );
-        await sut.recieveAct2();
-        await expect(
+        sut.recieveAct2();
+        expect(() =>
           sut.receiveAct3(
             Buffer.from(
               '00c9e3a702e93e3a9948c2ed6e5fd7590a6e1c3a0344cfc9d5b57357049aa22355361aa02e55a8fc28fef5bd6d71ad0c38228dc68b1c466263b47fdf31e560e139ba',
               'hex'
             )
           )
-        ).to.be.rejectedWith('unable to authenticate');
+        ).to.throw('unable to authenticate');
       });
 
-      it('transport-responder act3 bad rs test', async () => {
+      it('transport-responder act3 bad rs test', () => {
         sut = new NoiseState({ ls, es });
-        await sut.receiveAct1(
+        sut.receiveAct1(
           Buffer.from(
             '00036360e856310ce5d294e8be33fc807077dc56ac80d95d9cd4ddbd21325eff73f70df6086551151f58b8afe6c195782c6a',
             'hex'
           )
         );
-        await sut.recieveAct2();
-        await expect(
+        sut.recieveAct2();
+        expect(() =>
           sut.receiveAct3(
             Buffer.from(
               '00bfe3a702e93e3a9948c2ed6e5fd7590a6e1c3a0344cfc9d5b57357049aa2235536ad09a8ee351870c2bb7f78b754a26c6cef79a98d25139c856d7efd252c2ae73c',
               'hex'
             )
           )
-        ).to.be.rejectedWith('the public key could not be parsed or is invalid');
+        ).to.throw('the public key could not be parsed or is invalid');
       });
 
-      it('transport-responder act3 bad MAC test', async () => {
+      it('transport-responder act3 bad MAC test', () => {
         sut = new NoiseState({ ls, es });
-        await sut.receiveAct1(
+        sut.receiveAct1(
           Buffer.from(
             '00036360e856310ce5d294e8be33fc807077dc56ac80d95d9cd4ddbd21325eff73f70df6086551151f58b8afe6c195782c6a',
             'hex'
           )
         );
-        await sut.recieveAct2();
-        await expect(
+        sut.recieveAct2();
+        expect(() =>
           sut.receiveAct3(
             Buffer.from(
               '00b9e3a702e93e3a9948c2ed6e5fd7590a6e1c3a0344cfc9d5b57357049aa22355361aa02e55a8fc28fef5bd6d71ad0c38228dc68b1c466263b47fdf31e560e139bb',
               'hex'
             )
           )
-        ).to.be.rejectedWith('unable to authenticate');
+        ).to.throw('unable to authenticate');
       });
     });
   });
