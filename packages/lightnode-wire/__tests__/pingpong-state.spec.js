@@ -39,7 +39,7 @@ describe('pingpong-state', () => {
         await wait(15);
         expect(sut._peerClient.sendMessage.args[0][0]).to.deep.equal({
           type: 18,
-          num_pong_bytes: 1,
+          numPongBytes: 1,
           ignored: Buffer.alloc(0),
         });
       });
@@ -51,7 +51,7 @@ describe('pingpong-state', () => {
         sut.onMessage({ type: 258 });
         expect(sut._peerClient.sendMessage.args[0][0]).to.deep.equal({
           type: 18,
-          num_pong_bytes: 1,
+          numPongBytes: 1,
           ignored: Buffer.alloc(0),
         });
       });
@@ -98,14 +98,14 @@ describe('pingpong-state', () => {
   });
 
   describe('when ping received', () => {
-    it('it should not send ping when num_pong_bytes gte 65532', () => {
+    it('it should not send ping when numPongBytes gte 65532', () => {
       sut = createAndStart({ PING_INTERVAL_MS: 10, PONG_TIMEOUT_MS: 3 });
-      sut.onMessage({ type: 18, num_pong_bytes: 65532 });
+      sut.onMessage({ type: 18, numPongBytes: 65532 });
       expect(sut._peerClient.disconnect.callCount).to.equal(0);
     });
     it('it should send correct pong', () => {
       sut = createAndStart({ PING_INTERVAL_MS: 10, PONG_TIMEOUT_MS: 3 });
-      sut.onMessage({ type: 18, num_pong_bytes: 1 });
+      sut.onMessage({ type: 18, numPongBytes: 1 });
       expect(sut._peerClient.sendMessage.args[0][0]).to.deep.equal({
         type: 19,
         ignored: Buffer.alloc(1),
@@ -113,9 +113,9 @@ describe('pingpong-state', () => {
     });
     it('it should disconnect if ping flood', () => {
       sut = createAndStart({ PING_FLOOD_THRESHOLD: 2 });
-      sut.onMessage({ type: 18, num_pong_bytes: 1 });
-      sut.onMessage({ type: 18, num_pong_bytes: 1 });
-      sut.onMessage({ type: 18, num_pong_bytes: 1 });
+      sut.onMessage({ type: 18, numPongBytes: 1 });
+      sut.onMessage({ type: 18, numPongBytes: 1 });
+      sut.onMessage({ type: 18, numPongBytes: 1 });
       expect(sut._peerClient.disconnect.callCount).to.equal(1);
     });
   });
@@ -123,13 +123,13 @@ describe('pingpong-state', () => {
   describe('normal ping frequency', () => {
     it('should not trigger disconnect', async () => {
       sut = createAndStart({ PING_FLOOD_THRESHOLD: 2, PING_INTERVAL_MS: 10 });
-      sut.onMessage({ type: 18, num_pong_bytes: 1 });
+      sut.onMessage({ type: 18, numPongBytes: 1 });
       await wait(10);
-      sut.onMessage({ type: 18, num_pong_bytes: 1 });
+      sut.onMessage({ type: 18, numPongBytes: 1 });
       await wait(10);
-      sut.onMessage({ type: 18, num_pong_bytes: 1 });
+      sut.onMessage({ type: 18, numPongBytes: 1 });
       await wait(10);
-      sut.onMessage({ type: 18, num_pong_bytes: 1 });
+      sut.onMessage({ type: 18, numPongBytes: 1 });
       await wait(10);
       expect(sut._peerClient.disconnect.callCount).to.equal(0);
     });
