@@ -24,6 +24,7 @@ class PingPongState {
     this.PING_INTERVAL_MS = 60000;
     this.PONG_TIMEOUT_MS = 15000;
     this.PING_FLOOD_THRESHOLD = 10;
+    this.PONG_REQUIRED_THRESHOLD = 65532;
   }
   /**
    * Starts the PingPongState manager by starting a ping interval that will
@@ -49,7 +50,7 @@ class PingPongState {
       this._checkForPingFlood();
 
       // only send pong when num_pong_bytes as per spec
-      if (m.num_pong_bytes < 65532) this._sendPong(m);
+      if (m.numPongBytes < this.PONG_REQUIRED_THRESHOLD) this._sendPong(m);
     }
 
     // recieved pong
@@ -107,7 +108,7 @@ class PingPongState {
     clearTimeout(this._pongTimeoutHandle);
 
     // check that pong is a valid one and if not, we disconnect
-    if (this._sentPing && this._sentPing.num_pong_bytes !== pong.ignored.length) {
+    if (this._sentPing && this._sentPing.numPongBytes !== pong.ignored.length) {
       this._peerClient.disconnect();
       return;
     }
