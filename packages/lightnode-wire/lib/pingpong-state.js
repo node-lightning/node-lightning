@@ -87,7 +87,7 @@ class PingPongState {
 
   _sendPong(ping) {
     // construct and send a message
-    let pong = PongMessage.createReply(ping);
+    let pong = new PongMessage(ping.numPongBytes);
     this._peerClient.sendMessage(pong);
   }
 
