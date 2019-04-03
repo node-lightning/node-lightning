@@ -1,8 +1,18 @@
 const { expect } = require('chai');
+const winston = require('winston');
+const sinon = require('sinon');
 const { generateKey } = require('@lightnode/crypto');
 const NoiseState = require('../lib/noise-state');
 
-describe('noise-state', () => {
+describe('NoiseState', () => {
+  let sandbox;
+  before(() => {
+    sandbox = sinon.createSandbox();
+    sandbox.stub(winston);
+  });
+  after(() => {
+    sandbox.restore();
+  });
   describe('initiator', () => {
     let rs = {
       pub: Buffer.from('028d7500dd4c12685d1f568b4c2b5048e8534b873319f3a8daa612b469132ec7f7', 'hex'),
