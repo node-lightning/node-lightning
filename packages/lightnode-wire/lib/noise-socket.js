@@ -213,8 +213,6 @@ class NoiseSocket extends Duplex {
           }
         } else {
           switch (this._readState) {
-            case READ_STATE.AWAITING_HANDSHAKE:
-              break;
             case READ_STATE.READY_FOR_LEN:
               readMore = this._processPacketLength();
               break;

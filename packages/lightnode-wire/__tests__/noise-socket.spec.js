@@ -132,6 +132,14 @@ describe('noise-socket', () => {
       expect(sut._processPacketBody.called).to.be.true;
     });
 
+    it('should return false when BLOCKED', () => {
+      sut._handshakeState = NoiseSocket.HANDSHAKE_STATE.READY;
+      sut._readState = NoiseSocket.READ_STATE.BLOCKED;
+      sut._onData();
+      expect(sut._processPacketLength.called).to.be.false;
+      expect(sut._processPacketBody.called).to.be.false;
+    });
+
     it('should throw when UNKOWN', () => {
       sut._handshakeState = NoiseSocket.HANDSHAKE_STATE.READY;
       sut._readState = -1;
@@ -157,6 +165,72 @@ describe('noise-socket', () => {
     });
   });
 
+  describe('_processInitiator', () => {
+    describe('when not enough data', () => {
+      it('should return false', () => {
+        let sut = new NoiseSocket({ socket, noiseState });
+        expect(sut._processInitiator()).to.not.be.true;
+      });
+    });
+
+    describe('when data', () => {
+      beforeEach(() => {
+        socket.read.returns(Buffer.alloc(50));
+        noiseState.recieveAct2.returns('act2 message');
+      });
+
+      it('should send act2 reply', () => {
+        let sut = new NoiseSocket({ socket, noiseState });
+        sut._processInitiator();
+        expect(socket.write.args[0][0]).to.equal('act2 message');
+      });
+
+      it('should transition to AWAITING_INITIATOR_REPLY', () => {
+        let sut = new NoiseSocket({ socket, noiseState });
+        sut._processInitiator();
+        expect(sut._handshakeState).to.equal(NoiseSocket.HANDSHAKE_STATE.AWAITING_INITIATOR_REPLY);
+      });
+    });
+  });
+
+  describe('_processInitiatorReply', () => {
+    describe('when not enough data', () => {
+      it('should return false', () => {
+        let sut = new NoiseSocket({ socket, noiseState });
+        expect(sut._processInitiatorReply()).to.not.be.true;
+      });
+    });
+
+    describe('when data', () => {
+      beforeEach(() => {
+        socket.read.returns(Buffer.alloc(66));
+      });
+
+      it('should transition to READ', () => {
+        let sut = new NoiseSocket({ socket, noiseState });
+        sut._processInitiator();
+        expect(sut._handshakeState).to.equal(NoiseSocket.HANDSHAKE_STATE.READY);
+      });
+
+      it('should emit connect event', done => {
+        let sut = new NoiseSocket({ socket, noiseState });
+        sut.on('connect', () => done());
+        sut._processInitiatorReply();
+      });
+
+      it('should emit ready event', done => {
+        let sut = new NoiseSocket({ socket, noiseState });
+        sut.on('ready', () => done());
+        sut._processInitiatorReply();
+      });
+
+      it('should return true to indicate data was processed', () => {
+        let sut = new NoiseSocket({ socket, noiseState });
+        expect(sut._processInitiatorReply()).to.be.true;
+      });
+    });
+  });
+
   describe('_processResponderReply', () => {
     describe('when not enough data', () => {
       it('should return if not enough data', () => {
@@ -177,10 +251,10 @@ describe('noise-socket', () => {
         expect(socket.write.args[0][0]).to.equal('act3 message');
       });
 
-      it('should transition to state READY_FOR_LEN', () => {
+      it('should transition to state READY', () => {
         let sut = new NoiseSocket({ socket, noiseState });
         sut._processResponderReply();
-        expect(sut._readState).to.equal(2);
+        expect(sut._handshakeState).to.equal(NoiseSocket.HANDSHAKE_STATE.READY);
       });
 
       it('should emit connect event', done => {
@@ -299,6 +373,21 @@ describe('noise-socket', () => {
   });
 
   describe('_read', () => {
+    it('should abort if handshake not ready', done => {
+      let sut = new NoiseSocket({ socket, noiseState });
+      sut._handshakeState = NoiseSocket.HANDSHAKE_STATE.BLOCKED;
+      sandbox.stub(sut, '_onData');
+      sut._read();
+      setTimeout(() => {
+        try {
+          expect(sut._onData.called).to.be.false;
+          done();
+        } catch (ex) {
+          done(ex);
+        }
+      }, 1);
+    });
+
     it('should trigger read asynchrously to prevent cycle', done => {
       let sut = new NoiseSocket({ socket, noiseState });
       sut._handshakeState = NoiseSocket.HANDSHAKE_STATE.READY;
