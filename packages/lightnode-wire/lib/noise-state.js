@@ -21,8 +21,11 @@ class NoiseState {
     this.rk;
     this.sk;
 
-    this.sn = Buffer.alloc(12);
-    this.rn = Buffer.alloc(12);
+    /** @type Buffer */
+    this.sn;
+
+    /** @type Buffer */
+    this.rn;
   }
 
   _initialize(key) {
@@ -117,7 +120,11 @@ class NoiseState {
     this.rk = sk.slice(32);
     this.sk = sk.slice(0, 32);
 
-    // 7. send m = 0 || c || t
+    // 7. rn = 0, sn = 0
+    this.sn = Buffer.alloc(12);
+    this.rn = Buffer.alloc(12);
+
+    // 8. send m = 0 || c || t
     let m = Buffer.concat([Buffer.alloc(1), c, t]);
     return m;
   }
@@ -218,8 +225,8 @@ class NoiseState {
     this.sk = sk.slice(32);
 
     // 10. rn = 0, sn = 0
-    this.rn = 0;
-    this.sn = 0;
+    this.rn = Buffer.alloc(12);
+    this.sn = Buffer.alloc(12);
   }
 
   encryptMessage(m) {
