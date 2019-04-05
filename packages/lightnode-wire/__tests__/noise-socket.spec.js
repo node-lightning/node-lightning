@@ -206,9 +206,9 @@ describe('noise-socket', () => {
         socket.read.returns(Buffer.alloc(66));
       });
 
-      it('should transition to READ', () => {
+      it('should transition to READY', () => {
         let sut = new NoiseSocket({ socket, noiseState });
-        sut._processInitiator();
+        sut._processInitiatorReply();
         expect(sut._handshakeState).to.equal(NoiseSocket.HANDSHAKE_STATE.READY);
       });
 
@@ -299,7 +299,7 @@ describe('noise-socket', () => {
       it('should transition to READY_FOR_BODY', () => {
         let sut = new NoiseSocket({ socket, noiseState });
         sut._processPacketLength();
-        expect(sut._readState).to.equal(3);
+        expect(sut._readState).to.equal(NoiseSocket.READ_STATE.READY_FOR_BODY);
       });
 
       it('should return true indicating data was processed', () => {
