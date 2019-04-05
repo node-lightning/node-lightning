@@ -86,41 +86,54 @@ describe('noise-socket', () => {
     let sut;
     beforeEach(() => {
       sut = new NoiseSocket({ socket, noiseState });
-      sandbox.stub(sut, '_processHandshakeReply');
+      sandbox.stub(sut, '_processInitiator');
+      sandbox.stub(sut, '_processInitiatorReply');
+      sandbox.stub(sut, '_processResponderReply');
       sandbox.stub(sut, '_processPacketLength');
       sandbox.stub(sut, '_processPacketBody');
       sandbox.stub(sut, '_terminate');
     });
 
-    it('should no-op when PENDING', () => {
-      sut._readState = 0;
+    it('should throw when INITIATOR_INITIATING', () => {
+      sut._handshakeState = NoiseSocket.HANDSHAKE_STATE.INITIATOR_INITIATING;
       sut._onData();
+      expect(sut._terminate.called).to.be.true;
     });
 
-    it('should process handshake when AWAITING_HANDSHAKE_REPLY', () => {
-      sut._readState = 1;
+    it('should process responder act1 when AWAITING_INITIATOR', () => {
+      sut._handshakeState = NoiseSocket.HANDSHAKE_STATE.AWAITING_INITIATOR;
       sut._onData();
-      expect(sut._processHandshakeReply.called).to.be.true;
+      expect(sut._processInitiator.called).to.be.true;
+    });
+
+    it('should process responder act3 when AWAITING_INITIATOR_REPLY', () => {
+      sut._handshakeState = NoiseSocket.HANDSHAKE_STATE.AWAITING_INITIATOR_REPLY;
+      sut._onData();
+      expect(sut._processInitiatorReply.called).to.be.true;
+    });
+
+    it('should process initiator act2 when AWAITING_RESPONDER_REPLY', () => {
+      sut._handshakeState = NoiseSocket.HANDSHAKE_STATE.AWAITING_RESPONDER_REPLY;
+      sut._onData();
+      expect(sut._processResponderReply.called).to.be.true;
     });
 
     it('should process length when READY_FOR_LEN', () => {
-      sut._readState = 2;
+      sut._handshakeState = NoiseSocket.HANDSHAKE_STATE.READY;
+      sut._readState = NoiseSocket.READ_STATE.READY_FOR_LEN;
       sut._onData();
       expect(sut._processPacketLength.called).to.be.true;
     });
 
     it('should process body when READY_FOR_BODY', () => {
-      sut._readState = 3;
+      sut._handshakeState = NoiseSocket.HANDSHAKE_STATE.READY;
+      sut._readState = NoiseSocket.READ_STATE.READY_FOR_BODY;
       sut._onData();
       expect(sut._processPacketBody.called).to.be.true;
     });
 
-    it('should no-op when PENDING', () => {
-      sut._readState = 4;
-      sut._onData();
-    });
-
     it('should throw when UNKOWN', () => {
+      sut._handshakeState = NoiseSocket.HANDSHAKE_STATE.READY;
       sut._readState = -1;
       sut._onData();
       expect(sut._terminate.called).to.be.true;
@@ -137,18 +150,18 @@ describe('noise-socket', () => {
       expect(socket.write.args[0][0]).is.equal('act1 message');
     });
 
-    it('should transition state to AWAITING_HANDSHAKE_REPLY', () => {
+    it('should transition state to AWAITING_RESPONDER_REPLY', () => {
       let sut = new NoiseSocket({ socket, noiseState, initiator: true });
       sut._initiateHandshake();
-      expect(sut._readState).to.equal(1);
+      expect(sut._readState).to.equal(NoiseSocket.HANDSHAKE_STATE.AWAITING_RESPONDER_REPLY);
     });
   });
 
-  describe('_processHandshakeReply', () => {
+  describe('_processResponderReply', () => {
     describe('when not enough data', () => {
       it('should return if not enough data', () => {
         let sut = new NoiseSocket({ socket, noiseState });
-        expect(sut._processHandshakeReply()).to.not.be.true;
+        expect(sut._processResponderReply()).to.not.be.true;
       });
     });
 
@@ -160,31 +173,31 @@ describe('noise-socket', () => {
 
       it('should write act3 message', () => {
         let sut = new NoiseSocket({ socket, noiseState });
-        sut._processHandshakeReply();
+        sut._processResponderReply();
         expect(socket.write.args[0][0]).to.equal('act3 message');
       });
 
       it('should transition to state READY_FOR_LEN', () => {
         let sut = new NoiseSocket({ socket, noiseState });
-        sut._processHandshakeReply();
+        sut._processResponderReply();
         expect(sut._readState).to.equal(2);
       });
 
       it('should emit connect event', done => {
         let sut = new NoiseSocket({ socket, noiseState });
         sut.on('connect', () => done());
-        sut._processHandshakeReply();
+        sut._processResponderReply();
       });
 
       it('should emit ready event', done => {
         let sut = new NoiseSocket({ socket, noiseState });
         sut.on('ready', () => done());
-        sut._processHandshakeReply();
+        sut._processResponderReply();
       });
 
       it('should return true to indicate data was processed', () => {
         let sut = new NoiseSocket({ socket, noiseState });
-        expect(sut._processHandshakeReply()).to.be.true;
+        expect(sut._processResponderReply()).to.be.true;
       });
     });
   });
@@ -288,6 +301,7 @@ describe('noise-socket', () => {
   describe('_read', () => {
     it('should trigger read asynchrously to prevent cycle', done => {
       let sut = new NoiseSocket({ socket, noiseState });
+      sut._handshakeState = NoiseSocket.HANDSHAKE_STATE.READY;
       sandbox.stub(sut, '_onData');
       sut._read();
       expect(sut._onData.called).to.be.false;
@@ -302,9 +316,10 @@ describe('noise-socket', () => {
     });
     it('should transition from BLOCKED TO READY_FOR_LEN', () => {
       let sut = new NoiseSocket({ socket, noiseState });
-      sut._readState = 4;
+      sut._handshakeState = NoiseSocket.HANDSHAKE_STATE.READY;
+      sut._readState = NoiseSocket.READ_STATE.BLOCKED;
       sut._read();
-      expect(sut._readState).to.equal(2);
+      expect(sut._readState).to.equal(NoiseSocket.READ_STATE.READY_FOR_LEN);
     });
   });
 
@@ -312,7 +327,7 @@ describe('noise-socket', () => {
     it('shouuld write the encrypted message', () => {
       let sut = new NoiseSocket({ socket, noiseState });
       noiseState.encryptMessage.returns('encrypted message');
-      sut._write('some data');
+      sut._write('some data', null, sinon.stub());
       expect(socket.write.args[0][0]).to.equal('encrypted message');
     });
   });

@@ -4,9 +4,68 @@ const { Duplex } = require('stream');
 const { Socket } = require('net');
 const NoiseError = require('./noise-error');
 
+/**
+  States that the handshake process can be in. States depend on
+  whether the socket is the connection Initiator or Responder.
+
+  Initiator:
+    1.  create and send Iniatitor act1 and transition to
+        AWAITING_RESPONDER_REPLY
+    2.  process the Responder's reply as act2
+    3.  create Initiator act3 reply to complete the handshake
+        and transitions to READY
+
+  Responder:
+    1.  begins in AWAITING_INITIATOR waiting to receive act1
+    2.  processes act1 and creates a reply as act2 and transitions
+        to AWAITING_INITIATOR_REPLY
+    3.  processes the Initiator's reply to complete the handshake
+        and transition to READY
+ */
+const HANDSHAKE_STATE = {
+  /**
+    Initial state for the Initiator. Initiator will transition to
+    AWAITING_RESPONDER_REPLY once act1 is completed and sent.
+
+    @type number
+   */
+  INITIATOR_INITIATING: 0,
+
+  /**
+    Responders begin in this state and wait for the Intiator to begin
+    the handshake. Sockets originating from the NoiseServer will
+    begin in this state.
+
+    @type number
+  */
+  AWAITING_INITIATOR: 1,
+
+  /**
+    Initiator has sent act1 and is awaiting the reply from the responder.
+    Once received, the intiator will create the reply
+
+    @type number
+  */
+  AWAITING_RESPONDER_REPLY: 2,
+
+  /**
+    Responder has  sent a reply to the inititator, the Responder will be
+    waiting for the final stage of the handshake sent by the Initiator.
+
+    @type number
+  */
+  AWAITING_INITIATOR_REPLY: 3,
+
+  /**
+    Responder/Initiator have completed the handshake and we're ready to
+    start sending and receiving over the socket.
+
+    @type number
+   */
+  READY: 100,
+};
+
 const READ_STATE = {
-  PENDING: 0,
-  AWAITING_HANDSHAKE_REPLY: 1,
   READY_FOR_LEN: 2,
   READY_FOR_BODY: 3,
   BLOCKED: 4,
@@ -34,11 +93,25 @@ class NoiseSocket extends Duplex {
     assert.ok(socket instanceof Socket,new NoiseError('socket argument must be an instance of Socket')); // prettier-ignore
 
     /**
+      Controls the handshake process at the start of the connection.
+      The socket is not readable until the handshake has been
+      performed.
+
+      @private
+      @type HANDSHAKE_STATE
+     */
+    this._handshakeState = initiator
+      ? HANDSHAKE_STATE.INITIATOR_INITIATING
+      : HANDSHAKE_STATE.AWAITING_INITIATOR;
+
+    /**
       Controls how reading and piping from the underlying
       TCP socket to the Duplex Streams read buffer works
+
       @private
+      @type READ_STATE
      */
-    this._readState = READ_STATE.PENDING;
+    this._readState = READ_STATE.READY_FOR_LEN;
 
     /**
       Private property that maintains the handshakes and
@@ -46,7 +119,7 @@ class NoiseSocket extends Duplex {
       proper key rotation scheme used defined in BOLT #8.
 
       @private
-      @type NoiseState
+      @type ./noise-state/NoiseState
      */
     this._noiseState = noiseState;
 
@@ -117,24 +190,43 @@ class NoiseSocket extends Duplex {
       // we encounter a back pressure issue;
       let readMore = true;
       do {
-        switch (this._readState) {
-          case READ_STATE.PENDING:
-            readMore = false;
-            break;
-          case READ_STATE.AWAITING_HANDSHAKE_REPLY:
-            readMore = this._processHandshakeReply();
-            break;
-          case READ_STATE.READY_FOR_LEN:
-            readMore = this._processPacketLength();
-            break;
-          case READ_STATE.READY_FOR_BODY:
-            readMore = this._processPacketBody();
-            break;
-          case READ_STATE.BLOCKED:
-            readMore = false;
-            break;
-          default:
-            throw new NoiseError('Unknown state', { state: this._readState });
+        if (this._handshakeState !== HANDSHAKE_STATE.READY) {
+          switch (this._handshakeState) {
+            // Initiator received data before initialized
+            case HANDSHAKE_STATE.INITIATOR_INITIATING:
+              throw new NoiseError('Pending state is invalid');
+
+            // Responder Act1
+            case HANDSHAKE_STATE.AWAITING_INITIATOR:
+              readMore = this._processInitiator();
+              break;
+
+            // Responder Act3
+            case HANDSHAKE_STATE.AWAITING_INITIATOR_REPLY:
+              readMore = this._processInitiatorReply();
+              break;
+
+            // Initiator Act2
+            case HANDSHAKE_STATE.AWAITING_RESPONDER_REPLY:
+              readMore = this._processResponderReply();
+              break;
+          }
+        } else {
+          switch (this._readState) {
+            case READ_STATE.AWAITING_HANDSHAKE:
+              break;
+            case READ_STATE.READY_FOR_LEN:
+              readMore = this._processPacketLength();
+              break;
+            case READ_STATE.READY_FOR_BODY:
+              readMore = this._processPacketBody();
+              break;
+            case READ_STATE.BLOCKED:
+              readMore = false;
+              break;
+            default:
+              throw new NoiseError('Unknown read state', { state: this._readState });
+          }
         }
       } while (readMore);
     } catch (err) {
@@ -146,12 +238,57 @@ class NoiseSocket extends Duplex {
   }
 
   _initiateHandshake() {
+    // create Initiator Act 1 message
     let m = this._noiseState.initiatorAct1();
+
+    // send message to Responder
     this._socket.write(m);
-    this._readState = READ_STATE.AWAITING_HANDSHAKE_REPLY;
+
+    // transition state
+    this._handshakeState = HANDSHAKE_STATE.AWAITING_RESPONDER_REPLY;
   }
 
-  _processHandshakeReply() {
+  _processInitiator() {
+    // must read 50 bytes
+    let m = this._socket.read(50);
+    if (!m) return false;
+
+    // validate initiator act1 message
+    this._noiseState.receiveAct1(m);
+
+    // create reply message
+    m = this._noiseState.recieveAct2();
+
+    // send the reply
+    this._socket.write(m);
+
+    // transition
+    this._handshakeState = HANDSHAKE_STATE.AWAITING_INITIATOR_REPLY;
+
+    // indicate processing was successful
+    return true;
+  }
+
+  _processInitiatorReply() {
+    // must read 66 bytes
+    let m = this._socket.read(66);
+    if (!m) return false;
+
+    // validate initiator act3 message
+    this._noiseState.receiveAct3(m);
+
+    // transition
+    this._handshakeState = HANDSHAKE_STATE.READY;
+
+    // emit that we're ready!
+    this.emit('connect');
+    this.emit('ready');
+
+    // return true to continue processing
+    return true;
+  }
+
+  _processResponderReply() {
     // must read 50 bytes
     let m = this._socket.read(50);
     if (!m) return;
@@ -166,7 +303,7 @@ class NoiseSocket extends Duplex {
     this._socket.write(m);
 
     // transition
-    this._readState = READ_STATE.READY_FOR_LEN;
+    this._handshakeState = HANDSHAKE_STATE.READY;
 
     // emit that we're ready!
     this.emit('connect');
@@ -238,6 +375,10 @@ class NoiseSocket extends Duplex {
   }
 
   _read() {
+    if (this._handshakeState !== HANDSHAKE_STATE.READY) {
+      return;
+    }
+
     if (this._readState === READ_STATE.BLOCKED) {
       winston.debug('socket read is unblocked');
       this._readState = READ_STATE.READY_FOR_LEN;
@@ -251,15 +392,17 @@ class NoiseSocket extends Duplex {
   }
 
   // TODO - respect write backpressure
-  _write(data) {
+  _write(data, encoding, cbk) {
     winston.debug('sending ' + data.toString('hex'));
     let c = this._noiseState.encryptMessage(data);
     this._socket.write(c);
+    cbk();
   }
 
   _final() {}
 }
 
 NoiseSocket.READ_STATE = READ_STATE;
+NoiseSocket.HANDSHAKE_STATE = HANDSHAKE_STATE;
 
 module.exports = NoiseSocket;
