@@ -1,27 +1,24 @@
 {
-  "name": "@lightnode/daemon",
+  "name": "@lntools/daemon",
   "version": "0.1.1",
   "private": true,
-  "description": "Lightnode Daemon - Node.js implementation of the Lightning Network",
+  "description": "LNTools Daemon - Basic implementation of a Lightning Network",
   "keywords": [
     "lightning network",
     "bitcoin"
   ],
   "author": "Brian Mancini <bmancini@gmail.com>",
-  "homepage": "https://github.com/altangent/lightnode#readme",
+  "homepage": "https://github.com/altangent/lntools/tree/master/src/lntools-daemon",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/altangent/lightnode.git"
-  },
-  "bugs": {
-    "url": "https://github.com/altangent/lightnode/issues"
+    "url": "git+https://github.com/altangent/lntools.git"
   },
   "scripts": {
     "start": "node src"
   },
   "dependencies": {
-    "@lightnode/wire": "^0.1.1",
+    "@lntools/wire": "^0.1.1",
     "winston": "^3.2.1"
   }
 }

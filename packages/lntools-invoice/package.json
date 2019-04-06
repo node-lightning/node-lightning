@@ -1,0 +1,36 @@
+{
+  "name": "@lntools/invoice",
+  "version": "0.4.1",
+  "description": "BOLT 11 Lightning Network invoice encoding/decoding library",
+  "main": "lib/index.js",
+  "scripts": {
+    "test": "nyc --reporter=lcov --reporter=text mocha --recursive \"__tests__/**/*.spec.js\""
+  },
+  "homepage": "https://github.com/altangent/lntools/tree/master/packages/lntools-invoice",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/altangent/lntools.git"
+  },
+  "keywords": [
+    "bolt-11",
+    "bitcoin",
+    "lightning-invoice",
+    "lightning-payment",
+    "lightning-network",
+    "payment-encoding",
+    "lightnode-invoice"
+  ],
+  "author": "Brian Mancini <bmancini@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "bech32": "^1.1.3",
+    "bn.js": "^4.11.8",
+    "bs58check": "^2.1.2",
+    "secp256k1": "^3.5.0",
+    "simple-buffer-cursor": "^1.0.2"
+  },
+  "devDependencies": {
+    "mocha": "^6.0.2",
+    "nyc": "^13.3.0"
+  }
+}

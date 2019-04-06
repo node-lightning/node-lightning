@@ -1,0 +1,25 @@
+{
+  "name": "@lntools/chain",
+  "version": "0.1.1",
+  "description": "Lightning Network on-chain transaction handling tools",
+  "author": "Brian Mancini <bmancini@gmail.com>",
+  "homepage": "https://github.com/altangent/lntools/tree/master/packages/lntools-chain",
+  "license": "MIT",
+  "scripts": {
+    "test": "nyc --reporter=lcov --reporter=text mocha --recursive \"__tests__/**/*.spec.js\""
+  },
+  "main": "lib/txhandling.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/altangent/lntools.git"
+  },
+  "dependencies": {
+    "@lntools/crypto": "^0.1.1",
+    "bn.js": "^4.11.8",
+    "secp256k1": "^3.6.2"
+  },
+  "devDependencies": {
+    "mocha": "^6.0.2",
+    "nyc": "^13.3.0"
+  }
+}

@@ -1,7 +1,7 @@
 const winston = require('winston');
 winston.level = 'debug';
 
-const { PeerClient } = require('@lightnode/wire');
+const { PeerClient } = require('@lntools/wire');
 
 class App {
   static async run() {

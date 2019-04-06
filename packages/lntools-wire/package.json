@@ -1,0 +1,34 @@
+{
+  "name": "@lntools/wire",
+  "version": "0.1.1",
+  "description": "Lightning Network Wire Protocol",
+  "scripts": {
+    "test": "nyc --reporter=lcov --reporter=text mocha --recursive \"__tests__/**/*.spec.js\""
+  },
+  "keywords": [
+    "lightning",
+    "network",
+    "bolt2",
+    "bolt7",
+    "wire protocol",
+    "lightning-network"
+  ],
+  "author": "Brian Mancini <bmancini@gmail.com>",
+  "homepage": "https://github.com/altangent/lntools/tree/master/packages/lntools-wire",
+  "license": "MIT",
+  "main": "lib/index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/altangent/lntools.git"
+  },
+  "dependencies": {
+    "@lntools/crypto": "^0.1.1",
+    "bn.js": "^4.11.8",
+    "simple-buffer-cursor": "^1.0.3",
+    "winston": "^3.2.1"
+  },
+  "devDependencies": {
+    "mocha": "^6.0.2",
+    "nyc": "^13.3.0"
+  }
+}

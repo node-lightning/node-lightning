@@ -1,9 +1,10 @@
 {
-  "name": "lightnode",
+  "name": "@lntools/main",
   "version": "0.1.0",
-  "description": "Node.js implementation of the Bitcoin Lightning Network",
+  "description": "Toolkit for the Bitcoin Lightning Network",
   "scripts": {
     "start": "cd packages/daemon; npm run start",
+    "link": "lerna link",
     "bootstrap": "lerna bootstrap --hoist",
     "pretest": "npm run lint",
     "lint": "eslint packages src",
@@ -11,6 +12,7 @@
   },
   "keywords": [
     "lightning-network",
+    "lntools",
     "bitcoin"
   ],
   "author": "Brian Mancini <bmancini@gmail.com>",

@@ -1,0 +1,32 @@
+{
+  "name": "@lntools/noise",
+  "version": "0.1.1",
+  "description": "BOLT8 Lightning Network Noise Protocol Socket",
+  "scripts": {
+    "test": "nyc --reporter=lcov --reporter=text mocha --recursive \"__tests__/**/*.spec.js\""
+  },
+  "keywords": [
+    "lightning network",
+    "bolt8",
+    "noise protocol",
+    "socket",
+    "server",
+    "bitcoin"
+  ],
+  "author": "Brian Mancini <bmancini@gmail.com>",
+  "homepage": "https://github.com/altangent/lntools/tree/master/packages/lntools-noise",
+  "license": "MIT",
+  "main": "lib/index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/altangent/lntools.git"
+  },
+  "dependencies": {
+    "@lntools/crypto": "^0.1.1",
+    "winston": "^3.2.1"
+  },
+  "devDependencies": {
+    "mocha": "^6.0.2",
+    "nyc": "^13.3.0"
+  }
+}

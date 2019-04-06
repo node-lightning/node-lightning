@@ -1,1 +1,0 @@
-# @lightnode/wire
