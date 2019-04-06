@@ -7,6 +7,14 @@ const MESSAGE_TYPE = {
   ERROR: 17,
   PING: 18,
   PONG: 19,
+
+  // Channel (32-127)
+
+  // Commitment (128-255)
+
+  // Routing (256-511)
+  CHANNEL_ANNOUNCEMENT: 256,
+  ANNOUNCEMENT_SIGNATURES: 259,
 };
 
 module.exports = {

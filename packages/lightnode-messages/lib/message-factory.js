@@ -1,13 +1,15 @@
 const winston = require('winston');
+const { MESSAGE_TYPE } = require('./constants');
 
 const typeMap = {
   // control messages
-  16: require('./init-message'),
-  17: require('./error-message'),
-  18: require('./ping-message'),
-  19: require('./pong-message'),
+  [MESSAGE_TYPE.INIT]: require('./init-message'),
+  [MESSAGE_TYPE.ERROR]: require('./error-message'),
+  [MESSAGE_TYPE.PING]: require('./ping-message'),
+  [MESSAGE_TYPE.PONG]: require('./pong-message'),
 
   // channel messages
+  256: require('./channel-announcement'),
   258: require('./channel-update'),
 };
 

@@ -18,11 +18,11 @@ class ChannelUpdate {
   static deserialize(payload) {
     let instance = new ChannelUpdate();
     let reader = BufferCursor.from(payload);
-    reader.readUInt16BE();
+    reader.readUInt16BE(); // read off type
 
     instance.signature = reader.readBytes(64);
     instance.chain_hash = reader.readBytes(32);
-    instance.short_channel_id = reader.readUInt8();
+    instance.short_channel_id = reader.readBytes(8);
     instance.timestamp = reader.readUInt32BE();
     instance.flags = reader.readUInt16BE();
     instance.cltv_expiry_delta = reader.readUInt16BE();
