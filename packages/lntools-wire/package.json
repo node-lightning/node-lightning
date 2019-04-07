@@ -23,6 +23,7 @@
   },
   "dependencies": {
     "@lntools/crypto": "^0.1.1",
+    "@lntools/noise": "^0.1.1",
     "bn.js": "^4.11.8",
     "simple-buffer-cursor": "^1.0.3",
     "winston": "^3.2.1"

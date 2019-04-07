@@ -1,22 +1,22 @@
-const PingMessage = require('./ping-message');
-const PongMessage = require('./pong-message');
+const PingMessage = require('./messages/ping-message');
+const PongMessage = require('./messages/pong-message');
 
-/**
- * Maintains ping/pong state for a client where by it will perform several functions. Refer to
- * Bolt01 for all nuances of implementation.
- *
- * 0. Upon receipt of a message from the remote server, we reset the ping timeout as
- *    we are aware that the server is still live.
- *
- * 1. When there are no messages from a client for a period of time, it will emit a ping
- *    and wait for the pong.  If not pong is received, or the pong is invalid, then the
- *    connection is terminated.
- *
- * 2. When a ping is received an appropriate pong message will be sent. If pong messages
- *    are received more frequently than 30 second, then they are ignored. If more than
- *    5 pings are receiced in a 30 second period, then we will close the connection.
- */
 class PingPongState {
+  /**
+    Maintains ping/pong state for a client where by it will perform several functions. Refer to
+    Bolt01 for all nuances of implementation.
+
+    0. Upon receipt of a message from the remote server, we reset the ping timeout as
+      we are aware that the server is still live.
+
+    1. When there are no messages from a client for a period of time, it will emit a ping
+      and wait for the pong.  If not pong is received, or the pong is invalid, then the
+      connection is terminated.
+
+    2. When a ping is received an appropriate pong message will be sent. If pong messages
+      are received more frequently than 30 second, then they are ignored. If more than
+      5 pings are receiced in a 30 second period, then we will close the connection.
+ */
   constructor(peerClient) {
     this._peerClient = peerClient;
     this._lastMessageReceived = undefined;
@@ -26,9 +26,10 @@ class PingPongState {
     this.PING_FLOOD_THRESHOLD = 10;
     this.PONG_REQUIRED_THRESHOLD = 65532;
   }
+
   /**
-   * Starts the PingPongState manager by starting a ping interval that will
-   * consider sending a ping every 60s
+   Starts the PingPongState manager by starting a ping interval that will
+   consider sending a ping every 60s
    */
   start() {
     this._sendPingIntervalHandle = setInterval(
@@ -38,7 +39,7 @@ class PingPongState {
   }
 
   /**
-   * Handles incoming messages
+    Handles incoming messages
    */
   onMessage(m) {
     // update the time of the last received message
@@ -60,8 +61,8 @@ class PingPongState {
   }
 
   /**
-   * Fires prior to the peer being disconnected
-   * and will clean up resources
+    Fires prior to the peer being disconnected
+    and will clean up resources
    */
   onDisconnecting() {
     clearTimeout(this._pongTimeoutHandle);
