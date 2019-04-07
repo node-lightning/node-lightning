@@ -8,7 +8,8 @@
     "bootstrap": "lerna bootstrap --hoist",
     "pretest": "npm run lint",
     "lint": "eslint packages src",
-    "test": "lerna run test"
+    "test": "lerna run test",
+    "ci": "lerna run test"
   },
   "keywords": [
     "lightning-network",

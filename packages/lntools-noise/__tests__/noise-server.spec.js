@@ -13,11 +13,15 @@ describe('NoiseServer', () => {
     });
 
     it('should bind the error event', done => {
-      let sut = new NoiseServer({ localSecret: ls });
-      sut.on('error', () => {
+      let sut1 = new NoiseServer({ localSecret: ls });
+      sut1.listen({ port: 10000, host: '127.0.0.1' });
+      let sut2 = new NoiseServer({ localSecret: ls });
+      sut2.listen({ port: 10000, host: '127.0.0.1' });
+      sut2.on('error', () => {
+        sut1.close();
+        sut2.close();
         done();
       });
-      sut.listen({ port: 10000, host: '127.0.0.2' });
     });
   });
 

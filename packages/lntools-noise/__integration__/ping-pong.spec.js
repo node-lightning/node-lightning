@@ -60,7 +60,7 @@ function createServer(done) {
     socket.on('error', done);
   });
 
-  server.listen({ port: 10000 });
+  server.listen({ port: 10000, host: '127.0.0.1' });
 
   return server;
 }
@@ -75,7 +75,7 @@ function createClient(done) {
     localSecret: ls,
     remoteSecret: rs,
     ephemeralSecret: es,
-    host: 'localhost',
+    host: '127.0.0.1',
     port: 10000,
   });
 

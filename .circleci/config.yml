@@ -9,5 +9,5 @@ jobs:
       - checkout
       - run: npm install
       - run: npm run bootstrap
-      - run: npm run test
+      - run: npm run ci
       - run: bash <(curl -s https://codecov.io/bash)
