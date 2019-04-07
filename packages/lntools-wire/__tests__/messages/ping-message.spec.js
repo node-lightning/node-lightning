@@ -1,5 +1,5 @@
 const { expect } = require('chai');
-const PingMessage = require('../lib/ping-message');
+const PingMessage = require('../../lib/messages/ping-message');
 
 describe('PingMessage', () => {
   describe('get .triggersReply', () => {

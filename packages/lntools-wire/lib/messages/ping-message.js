@@ -1,5 +1,5 @@
 const BufferCursor = require('simple-buffer-cursor');
-const { MESSAGE_TYPE, PONG_BYTE_THRESHOLD } = require('./constants');
+const { MESSAGE_TYPE, PONG_BYTE_THRESHOLD } = require('../constants');
 
 class PingMessage {
   /**

@@ -1,6 +1,6 @@
 const { expect } = require('chai');
 const BN = require('bn.js');
-let InitMessage = require('../lib/init-message');
+let InitMessage = require('../../lib/messages/init-message');
 
 describe('InitMessage', () => {
   it('should have correct default values', () => {

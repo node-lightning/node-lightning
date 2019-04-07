@@ -1,5 +1,5 @@
 const { expect } = require('chai');
-const ErrorMessage = require('../lib/error-message');
+const ErrorMessage = require('../../lib/messages/error-message');
 
 describe('ErrorMessage', () => {
   describe('.serialize', () => {

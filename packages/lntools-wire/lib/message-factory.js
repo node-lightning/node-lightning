@@ -1,16 +1,19 @@
 const winston = require('winston');
 const { MESSAGE_TYPE } = require('./constants');
+const messages = require('./messages');
 
 const typeMap = {
   // control messages
-  [MESSAGE_TYPE.INIT]: require('./init-message'),
-  [MESSAGE_TYPE.ERROR]: require('./error-message'),
-  [MESSAGE_TYPE.PING]: require('./ping-message'),
-  [MESSAGE_TYPE.PONG]: require('./pong-message'),
+  [MESSAGE_TYPE.INIT]: messages.InitMessage,
+  [MESSAGE_TYPE.ERROR]: messages.ErrorMessage,
+  [MESSAGE_TYPE.PING]: messages.PingMessage,
+  [MESSAGE_TYPE.PONG]: messages.PongMessage,
 
   // channel messages
-  256: require('./channel-announcement'),
-  258: require('./channel-update'),
+  [MESSAGE_TYPE.ANNOUNCEMENT_SIGNATURES]: messages.AnnouncementSignaturesMessage,
+  [MESSAGE_TYPE.NODE_ANNOUNCEMENT]: messages.NodeAnnouncementMessage,
+  [MESSAGE_TYPE.CHANNEL_ANNOUNCEMENT]: messages.ChannelAnnouncementMessage,
+  [MESSAGE_TYPE.CHANNEL_UPDATE]: messages.ChannelUpdateMessage,
 };
 
 function constructType(type) {
@@ -22,7 +25,7 @@ function deserialize(buffer) {
 
   let Type = constructType(type);
   if (Type) return Type.deserialize(buffer);
-  else winston.warn('unknown message type', type);
+  else winston.warn('unknown message type ' + type);
 }
 
 function construct(type, args) {

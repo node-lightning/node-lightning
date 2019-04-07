@@ -1,7 +1,7 @@
 const BufferCursor = require('simple-buffer-cursor');
 const BN = require('bn.js');
-const bitwise = require('./bitwise');
-const { MESSAGE_TYPE } = require('./constants');
+const bitwise = require('../bitwise');
+const { MESSAGE_TYPE } = require('../constants');
 
 class InitMessage {
   /**
@@ -13,12 +13,12 @@ class InitMessage {
     This message contains two fields; globalfeatures and localfeatures,
     that are used to signal how the message should operate. The values
     of are defined in the BOLT #9.
-   */
+  */
   constructor() {
     this.type = MESSAGE_TYPE.INIT; // 16
 
-    this.globalFeatures = new BN();
-    this.localFeatures = new BN();
+    this.globalFeatures = new BN(0);
+    this.localFeatures = new BN(0);
   }
 
   /**

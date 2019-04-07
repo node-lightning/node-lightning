@@ -1,5 +1,5 @@
 const BufferCursor = require('simple-buffer-cursor');
-const { MESSAGE_TYPE } = require('./constants');
+const { MESSAGE_TYPE } = require('../constants');
 
 class ErrorMessage {
   /**

@@ -1,5 +1,5 @@
 const { expect } = require('chai');
-const PongMessage = require('../lib/pong-message');
+const PongMessage = require('../../lib/messages/pong-message');
 describe('PongMessage', () => {
   describe('.serialize', () => {
     it('should serialize with ignored bytes', () => {
