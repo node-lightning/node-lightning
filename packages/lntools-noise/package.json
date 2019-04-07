@@ -3,7 +3,7 @@
   "version": "0.1.1",
   "description": "BOLT8 Lightning Network Noise Protocol Socket",
   "scripts": {
-    "test": "nyc --reporter=lcov --reporter=text mocha --recursive \"__tests__/**/*.spec.js\""
+    "test": "nyc --reporter=lcov --reporter=text --exclude \"__integration__\" --exclude \"__tests__\" mocha --recursive \"__tests__/**/*.spec.js\" --recursive \"__integration__/**/*.spec.js\""
   },
   "keywords": [
     "lightning network",
