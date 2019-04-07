@@ -146,7 +146,6 @@ class NoiseSocket extends Duplex {
     this._socket.on('error', err => this.emit('error', err));
     this._socket.on('lookup', (e, a, f, h) => this.emit('lookup', e, a, f, h));
     this._socket.on('readable', this._onData.bind(this));
-    this._socket.on('ready', () => this.emit('ready'));
     this._socket.on('timeout', () => this.emit('timeout'));
   }
 

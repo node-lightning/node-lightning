@@ -6,10 +6,25 @@ const crypto = require('@lntools/crypto');
 
 module.exports = {
   NoiseState: require('./noise-state'),
+  NoiseSocket: require('./noise-socket'),
   connect,
   createServer,
 };
 
+/**
+  Connect to a remote noise socket server.
+
+  @param {any} localSecret
+
+  @param {any} remoteSecret
+
+  @param {any} [ephemeralSecret]
+
+  @param {string} [host]
+  @param {number} [port]
+
+  @returns NoiseSocket
+ */
 function connect({ localSecret, remoteSecret, ephemeralSecret, host, port = 9735 }) {
   if (!ephemeralSecret) {
     ephemeralSecret = crypto.generateRandomKey();
