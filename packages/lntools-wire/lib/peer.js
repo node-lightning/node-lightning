@@ -14,11 +14,57 @@ const PeerStates = {
 
 class Peer extends EventEmitter {
   /**
+    Peer is an EventEmitter that layers the Lightning Network wire
+    protocol ontop of an @lntools/noise NoiseSocket.
 
+    Peer itself is a state-machine with three states:
+    1. pending
+    2. awaiting_peer_init
+    3. ready
+
+    The Peer instance starts in `pending` until the underlying NoiseSocket
+    has connected.
+
+    It then immediately sends the InitMessage as specified in the Peer
+    constructor.
+
+    At this point, the Peer transitions to `awaiting_peer_init`.
+
+    Once the remote peer has sent its InitMessage, the state is
+    transitioned to `ready` and the Peer can be begin sending and
+    receiving messages.
+
+    Once the peer is in the `ready` state it will begin emitting `message`
+    events when it receives new messages from the peer.
+
+    The Peer will also start a PingPong state machine to manage sending
+    and receiving Pings and Pongs as defined in BOLT01
+
+    A choice (probably wrongly) was made to make Peer an EventEmitter
+    instead of a DuplexStream operating in object mode. We need to keep
+    the noise socket in flowing mode (instead of paused) because we will
+    not know the length of messages until after we have deserialized the
+    message. This makes it a challenge to implement a DuplexStream that
+    emits objects (such as messages).
+
+    @emits ready the underlying socket has performed its handshake and
+    initialization message swap has occurred.
+
+    @emits message a new message has been received. Only sent after the
+    `ready` event has fired.
+
+    @emits error emitted when there is an error processing a message.
+    The underlying socket will be closed after this event is emitted.
+
+    @emits close emitted when the connection to the peer has completedly
+    closed.
+
+    @emits end emitted when the connection to the peer is ending.
    */
   constructor({ initRoutingSync = false } = {}) {
     super();
 
+    /** @type PeerState */
     this.state = Peer.states.pending;
 
     /** @type NoiseSocket */
@@ -34,10 +80,19 @@ class Peer extends EventEmitter {
     this.pingPongState = new PingPongState(this);
   }
 
+  /**
+    Connect to the remote peer and binds socket events into the Peer.
+
+    @param {Object} opts
+    @param {Object} localSecret
+    @param {Object} remoteSecret
+    @param {string} host
+    @param {number} [port]
+   */
   connect({ localSecret, remoteSecret, host, port = 9735 }) {
     this.socket = noise.connect({ localSecret, remoteSecret, host, port });
     this.socket.on('ready', this._onSocketReady.bind(this));
-    this.socket.on('end', this._onSocketClose.bind(this));
+    this.socket.on('end', this._onSocketEnd.bind(this));
     this.socket.on('close', this._onSocketClose.bind(this));
     this.socket.on('error', this._onSocketError.bind(this));
     this.socket.on('data', this._onSocketData.bind(this));
@@ -52,15 +107,15 @@ class Peer extends EventEmitter {
    */
   sendMessage(m) {
     assert.ok(this.state == PeerStates.ready, new Error('Peer is not ready'));
-
-    winston.debug('sending msg', JSON.stringify(m));
     m = m.serialize();
     return this.socket.write(m);
   }
 
+  /**
+    Closes the socket
+   */
   disconnect() {
-    if (this.pingPongState) this.pingPongState.onDisconnecting();
-    this.socket.disconnect();
+    this.socket.end();
   }
 
   /////////////////////////////////////////////////////////
@@ -75,18 +130,15 @@ class Peer extends EventEmitter {
   }
 
   _onSocketEnd() {
-    if (this.pingPongState) this.pingPongState.onDisconnecting();
     this.emit('end');
   }
 
   _onSocketClose() {
+    if (this.pingPongState) this.pingPongState.onDisconnecting();
     this.emit('close');
   }
 
   _onSocketError(err) {
-    // end the connection if we received an error
-    this.socket.end();
-
     // emit what error we recieved
     this.emit('error', err);
   }
