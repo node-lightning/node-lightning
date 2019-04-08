@@ -33,19 +33,19 @@ class ChannelUpdate {
   }
 
   serialize() {
-    let result = Buffer.alloc(123);
-    let writer = BufferCursor.from(result);
-    writer.writeUInt16BE(this.type);
-    writer.writeBytes(this.signature);
-    writer.writeBytes(this.chain_hash);
-    writer.writeUInt8(this.short_channel_id);
-    writer.writeUInt32BE(this.timestamp);
-    writer.writeUInt16BE(this.flags);
-    writer.writeUInt16BE(this.cltv_expiry_delta);
-    writer.writeBytes(this.htlc_minimum_msat);
-    writer.writeUInt32BE(this.fee_base_msat);
-    writer.writeUInt32BE(this.fee_proportional_millionths);
-    return result;
+    // let result = Buffer.alloc(123);
+    // let writer = BufferCursor.from(result);
+    // writer.writeUInt16BE(this.type);
+    // writer.writeBytes(this.signature);
+    // writer.writeBytes(this.chain_hash);
+    // writer.writeUInt8(this.short_channel_id);
+    // writer.writeUInt32BE(this.timestamp);
+    // writer.writeUInt16BE(this.flags);
+    // writer.writeUInt16BE(this.cltv_expiry_delta);
+    // writer.writeBytes(this.htlc_minimum_msat);
+    // writer.writeUInt32BE(this.fee_base_msat);
+    // writer.writeUInt32BE(this.fee_proportional_millionths);
+    // return result;
   }
 }
 

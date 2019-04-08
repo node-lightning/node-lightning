@@ -10,7 +10,7 @@ const typeMap = {
   [MESSAGE_TYPE.PONG]: messages.PongMessage,
 
   // channel messages
-  [MESSAGE_TYPE.ANNOUNCEMENT_SIGNATURES]: messages.AnnouncementSignaturesMessage,
+  // [MESSAGE_TYPE.ANNOUNCEMENT_SIGNATURES]: messages.AnnouncementSignaturesMessage,
   [MESSAGE_TYPE.NODE_ANNOUNCEMENT]: messages.NodeAnnouncementMessage,
   [MESSAGE_TYPE.CHANNEL_ANNOUNCEMENT]: messages.ChannelAnnouncementMessage,
   [MESSAGE_TYPE.CHANNEL_UPDATE]: messages.ChannelUpdateMessage,
