@@ -1,0 +1,16 @@
+{
+  "name": "@lntools/bitcoind",
+  "version": "0.1.0",
+  "description": "Basic bitcoind JSONRPC and ZMQ client",
+  "keywords": [],
+  "author": "Brian Mancini <bmancini@gmail.com>",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "scripts": {
+    "tsc": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "zeromq": "^5.1.0"
+  }
+}
