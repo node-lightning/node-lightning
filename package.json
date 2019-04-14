@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "Toolkit for the Bitcoin Lightning Network",
   "scripts": {
+    "tsc": "lerna run tsc",
     "start": "cd packages/daemon; npm run start",
     "link": "lerna link",
     "bootstrap": "lerna bootstrap --hoist",
@@ -19,6 +20,7 @@
   "author": "Brian Mancini <bmancini@gmail.com>",
   "license": "MIT",
   "devDependencies": {
+    "@types/node": "^11.13.4",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "coveralls": "^3.0.3",
@@ -28,6 +30,7 @@
     "nodemon": "^1.18.10",
     "nyc": "^13.3.0",
     "prettier": "^1.16.4",
-    "sinon": "^7.2.6"
+    "sinon": "^7.2.6",
+    "typescript": "^3.4.3"
   }
 }
