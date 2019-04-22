@@ -7,8 +7,7 @@
   "license": "MIT",
   "main": "dist/index.js",
   "scripts": {
-    "tsc": "tsc",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "tsc": "tsc"
   },
   "dependencies": {
     "bn.js": "^4.11.8"
