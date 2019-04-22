@@ -404,12 +404,10 @@ class NoiseSocket extends Duplex {
     setImmediate(() => this._onData());
   }
 
-  // TODO - respect write backpressure
-  _write(data, encoding, cbk) {
+  _write(data, encoding, cb) {
     winston.debug('sending ' + data.toString('hex'));
     let c = this._noiseState.encryptMessage(data);
-    this._socket.write(c);
-    cbk();
+    this._socket.write(c, cb);
   }
 
   _final() {}
