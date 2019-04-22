@@ -1,8 +1,14 @@
+// @ts-check
+
 const assert = require('assert');
 const winston = require('winston');
 const { Duplex } = require('stream');
 const { Socket } = require('net');
 const NoiseError = require('./noise-error');
+
+// Types below are required for TypeScript checking
+// eslint-disable-next-line no-unused-vars
+const NoiseState = require('./noise-state');
 
 /**
   States that the handshake process can be in. States depend on
@@ -21,13 +27,14 @@ const NoiseError = require('./noise-error');
         to AWAITING_INITIATOR_REPLY
     3.  processes the Initiator's reply to complete the handshake
         and transition to READY
+
+  @readonly
+  @enum {number}
  */
 const HANDSHAKE_STATE = {
   /**
     Initial state for the Initiator. Initiator will transition to
     AWAITING_RESPONDER_REPLY once act1 is completed and sent.
-
-    @type number
    */
   INITIATOR_INITIATING: 0,
 
@@ -35,36 +42,32 @@ const HANDSHAKE_STATE = {
     Responders begin in this state and wait for the Intiator to begin
     the handshake. Sockets originating from the NoiseServer will
     begin in this state.
-
-    @type number
   */
   AWAITING_INITIATOR: 1,
 
   /**
     Initiator has sent act1 and is awaiting the reply from the responder.
     Once received, the intiator will create the reply
-
-    @type number
   */
   AWAITING_RESPONDER_REPLY: 2,
 
   /**
     Responder has  sent a reply to the inititator, the Responder will be
     waiting for the final stage of the handshake sent by the Initiator.
-
-    @type number
   */
   AWAITING_INITIATOR_REPLY: 3,
 
   /**
     Responder/Initiator have completed the handshake and we're ready to
     start sending and receiving over the socket.
-
-    @type number
    */
   READY: 100,
 };
 
+/**
+  @readonly
+  @enum {number}
+ */
 const READ_STATE = {
   READY_FOR_LEN: 2,
   READY_FOR_BODY: 3,
@@ -82,9 +85,12 @@ class NoiseSocket extends Duplex {
     Noise Protocol Framework.
 
     @param {Object} opts
-    @param {Socket} opts.socket socket that will be wrapped
-    @param {NoiseState} opts.noiseState state machine for noise connections
-    @param {boolean} opts.initiator connection is the initiator
+    @param {Socket} opts.socket standard TCP Socket from the net
+      module that will be wrapped
+    @param {NoiseState} opts.noiseState state machine for noise
+      connections that is injected into the socket
+    @param {boolean} [opts.initiator=false] set to true when this socket
+      is initiating the connection. Defaults to false.
    */
   constructor({ socket, noiseState, initiator = false }) {
     super();
@@ -109,7 +115,7 @@ class NoiseSocket extends Duplex {
       TCP socket to the Duplex Streams read buffer works
 
       @private
-      @type READ_STATE
+      @type {READ_STATE}
      */
     this._readState = READ_STATE.READY_FOR_LEN;
 
@@ -119,7 +125,7 @@ class NoiseSocket extends Duplex {
       proper key rotation scheme used defined in BOLT #8.
 
       @private
-      @type ./noise-state/NoiseState
+      @type {NoiseState}
      */
     this._noiseState = noiseState;
 
@@ -150,18 +156,28 @@ class NoiseSocket extends Duplex {
   }
 
   /**
-    Ends the connection and emits a close event when the underlying
-    socket has completely closed.
+    Half-closes the socket. It is still possible that the opposite
+    side is still sending data.
+
+    @returns {NoiseSocket}
    */
   end() {
-    this._socket.end(() => this.emit('close'));
+    this._socket.end();
     return this;
   }
 
-  // TODO - terminate with error
-  _terminate(err) {
-    if (err) this.emit('error', err);
-    this.end();
+  /**
+    Destroys the socket and ensures that no more I/O activity happens
+    on the socket. When an `err` is included, an 'error' event will
+    be emitted and all listeners will receive the error as an
+    argument.
+
+    @param {Error} [err] optional error to send
+    @returns {NoiseSocket}
+   */
+  destroy(err) {
+    this._socket.destroy(err);
+    return this;
   }
 
   _onConnected() {
@@ -170,7 +186,7 @@ class NoiseSocket extends Duplex {
         this._initiateHandshake();
       }
     } catch (err) {
-      this._terminate(err);
+      this.destroy(err);
     }
   }
 
@@ -222,7 +238,7 @@ class NoiseSocket extends Duplex {
               readMore = false;
               break;
             default:
-              throw new NoiseError('Unknown read state', { state: this._readState });
+              throw new NoiseError('Unknown read state');
           }
         }
       } while (readMore);
@@ -230,7 +246,7 @@ class NoiseSocket extends Duplex {
       // Terminate on failures as we won't be able to recovery
       // since the noise state has rotated nonce and we won't
       // be able to any more data without additional errors.
-      this._terminate(err);
+      this.destroy(err);
     }
   }
 
@@ -385,7 +401,7 @@ class NoiseSocket extends Duplex {
     // _read was triggered by stream.read() originating inside
     // a "readable" event handler. Attempting to push more data
     // synchronously will not trigger another "readable" event.
-    setImmediate(() => this._onData('from _read'));
+    setImmediate(() => this._onData());
   }
 
   // TODO - respect write backpressure

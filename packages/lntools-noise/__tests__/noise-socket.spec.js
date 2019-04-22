@@ -32,13 +32,10 @@ describe('noise-socket', () => {
   });
 
   describe('.end', () => {
-    it('should emit close event when socket is closed', done => {
-      socket.end.yields();
-
+    it('should call end on the socket', () => {
       let sut = new NoiseSocket({ socket, noiseState });
-
-      sut.on('close', () => done());
       sut.end();
+      expect(socket.end.called).to.be.true;
     });
     it('should return the instance', () => {
       let sut = new NoiseSocket({ socket, noiseState });
@@ -46,16 +43,21 @@ describe('noise-socket', () => {
     });
   });
 
-  describe('._terminate', () => {
-    it('should emit error if there is one', done => {
+  describe('.destroy', () => {
+    it('should call destroy on the socket', () => {
       let sut = new NoiseSocket({ socket, noiseState });
-      sut.on('error', () => done());
-      sut._terminate(new Error('bye'));
+      sut.destroy();
+      expect(socket.destroy.called).to.be.true;
     });
-    it('should call end on the socket', () => {
+    it('should call destroy on the socket with the error', () => {
       let sut = new NoiseSocket({ socket, noiseState });
-      sut._terminate();
-      expect(socket.end.called).to.be.true;
+      let err = new Error();
+      sut.destroy(err);
+      expect(socket.destroy.args[0][0]).to.equal(err);
+    });
+    it('should return the instance', () => {
+      let sut = new NoiseSocket({ socket, noiseState });
+      expect(sut.destroy()).to.equal(sut);
     });
   });
 
@@ -72,7 +74,7 @@ describe('noise-socket', () => {
         let sut = new NoiseSocket({ socket, noiseState, initiator: true });
 
         sandbox.stub(sut, '_initiateHandshake').throws(new Error('boom'));
-        let spy = sinon.spy(sut, '_terminate');
+        let spy = sinon.spy(sut, 'destroy');
         sut.on('error', () => {});
 
         sut._onConnected();
@@ -91,13 +93,13 @@ describe('noise-socket', () => {
       sandbox.stub(sut, '_processResponderReply');
       sandbox.stub(sut, '_processPacketLength');
       sandbox.stub(sut, '_processPacketBody');
-      sandbox.stub(sut, '_terminate');
+      sandbox.stub(sut, 'destroy');
     });
 
     it('should throw when INITIATOR_INITIATING', () => {
       sut._handshakeState = NoiseSocket.HANDSHAKE_STATE.INITIATOR_INITIATING;
       sut._onData();
-      expect(sut._terminate.called).to.be.true;
+      expect(sut.destroy.called).to.be.true;
     });
 
     it('should process responder act1 when AWAITING_INITIATOR', () => {
@@ -144,7 +146,7 @@ describe('noise-socket', () => {
       sut._handshakeState = NoiseSocket.HANDSHAKE_STATE.READY;
       sut._readState = -1;
       sut._onData();
-      expect(sut._terminate.called).to.be.true;
+      expect(sut.destroy.called).to.be.true;
     });
   });
 
