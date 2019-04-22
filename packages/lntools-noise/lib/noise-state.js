@@ -1,12 +1,19 @@
+// @ts-check
+
 const winston = require('winston');
 const { sha256, ecdh, hkdf, ccpEncrypt, ccpDecrypt } = require('@lntools/crypto');
 const { generatePubKey } = require('@lntools/crypto');
 
-/**
- * State machine for perforing noise-protocol handshake, message
- * encryption and decryption, and key rotation.
- */
 class NoiseState {
+  /**
+    State machine for perforing noise-protocol handshake, message
+    encryption and decryption, and key rotation.
+
+    @param {Object} opts
+    @param {import('@lntools/crypto/lib/key').ECKey} opts.ls local secret
+    @param {import('@lntools/crypto/lib/key').ECKey} [opts.rs] remote secret
+    @param {import('@lntools/crypto/lib/key').ECKey} [opts.es] ephemeral secret
+  */
   constructor({ ls, rs, es }) {
     this.ls = ls;
     this.rs = rs;
@@ -47,7 +54,7 @@ class NoiseState {
     this.ck = temp_k1.slice(0, 32);
     this.temp_k1 = temp_k1.slice(32);
 
-    let c = ccpEncrypt(this.temp_k1, Buffer.alloc(12), this.h, '');
+    let c = ccpEncrypt(this.temp_k1, Buffer.alloc(12), this.h, Buffer.alloc(0));
     this.h = sha256(Buffer.concat([this.h, c]));
 
     let m = Buffer.concat([Buffer.alloc(1), this.es.compressed(), c]);
@@ -113,10 +120,10 @@ class NoiseState {
     this.temp_k3 = temp_k3.slice(32);
 
     // 5. t = encryptWithAD(temp_k3, 0, h, zero)
-    let t = ccpEncrypt(this.temp_k3, Buffer.alloc(12), this.h, '');
+    let t = ccpEncrypt(this.temp_k3, Buffer.alloc(12), this.h, Buffer.alloc(0));
 
     // 6. sk, rk = hkdf(ck, zero)
-    let sk = hkdf(this.ck, '');
+    let sk = hkdf(this.ck, Buffer.alloc(0));
     this.rk = sk.slice(32);
     this.sk = sk.slice(0, 32);
 
@@ -179,7 +186,7 @@ class NoiseState {
     this.temp_k2 = temp_k2.slice(32);
 
     // 5. c = encryptWithAd(temp_k2, 0, h, zero)
-    let c = ccpEncrypt(this.temp_k2, Buffer.alloc(12), this.h, '');
+    let c = ccpEncrypt(this.temp_k2, Buffer.alloc(12), this.h, Buffer.alloc(0));
 
     // 6. h = sha256(h || c)
     this.h = sha256(Buffer.concat([this.h, c]));
@@ -220,7 +227,7 @@ class NoiseState {
     ccpDecrypt(this.temp_k3, Buffer.alloc(12), this.h, t);
 
     // 9. rk, sk = hkdf(ck, zero)
-    let sk = hkdf(this.ck, '');
+    let sk = hkdf(this.ck, Buffer.alloc(0));
     this.rk = sk.slice(0, 32);
     this.sk = sk.slice(32);
 
@@ -232,7 +239,7 @@ class NoiseState {
   encryptMessage(m) {
     // step 1/2. serialize m length into int16
     let l = Buffer.alloc(2);
-    l.writeUInt16BE(m.length);
+    l.writeUInt16BE(m.length, 0);
 
     // step 3. encrypt l, using chachapoly1305, sn, sk)
     let lc = ccpEncrypt(this.sk, this.sn, Buffer.alloc(0), l);
@@ -255,7 +262,7 @@ class NoiseState {
 
     if (this._incrementRecievingNonce() >= 1000) this._rotateRecievingKeys();
 
-    return l.readUInt16BE();
+    return l.readUInt16BE(0);
   }
 
   decryptMessage(c) {

@@ -1,3 +1,5 @@
+// @ts-check
+
 const assert = require('assert');
 const { EventEmitter } = require('events');
 const { Server } = require('net');
@@ -16,12 +18,10 @@ class NoiseServer extends EventEmitter {
     NoiseState.
 
     @param {Object} opts
-
-    @param {Buffer} opts.localSecret 32-byte buffer with
-    the local private key
-
-    @param {Function} [opts.ephemeralSecretFactory] optional
-    function for creating the ephemeral secret
+    @param {import('@lntools/crypto/lib/key').ECKey} opts.localSecret local secret
+    used by the server
+    @param {() => import('@lntools/crypto/lib/key').ECKey} [opts.ephemeralSecretFactory] optional
+    function for creating the ephemeral secret used by each connection
    */
   constructor(opts, connListener) {
     super();
@@ -37,7 +37,7 @@ class NoiseServer extends EventEmitter {
     this.ephemeralSecretFactory = opts.ephemeralSecretFactory || crypto.generateRandomKey;
 
     // construct and bind the server
-    this._server = new Server(opts);
+    this._server = new Server();
     this._server.on('connection', this._onConnection.bind(this));
     this._server.on('error', err => this.emit('error', err));
     this._server.on('close', () => this.emit('close'));
@@ -46,6 +46,12 @@ class NoiseServer extends EventEmitter {
     if (connListener) this.on('connection', connListener);
   }
 
+  /**
+    Called when the socket receives a new socket connection. Emits the `connection` event.
+
+    @private
+    @param {import('net').Socket} socket
+   */
   _onConnection(socket) {
     let ls = this.localSecret;
     let es = this.ephemeralSecretFactory();
@@ -58,27 +64,27 @@ class NoiseServer extends EventEmitter {
     Returns the address the server is listeening on. If the server is
     not listening, it will return undefined.
 
-    @returns
-    {
-      address: String
-      family: String - "IPv4", IPv6"
-      port: Number
-    }
+    @returns {string|import('net').AddressInfo}
    */
   address() {
     return this._server.address();
   }
 
+  /**
+    Stops the server from accepting new connections and keeps existing connections open.
+    This function is asynchronous, the server is fully closed when all connections are
+    ended and the server emits a `close` event. The optional `cb` event will be called
+    once the `close` event occurs.
+
+    @param {(err: Error) => void} [cb]
+   */
   close(cb) {
     this._server.close(cb);
   }
 
   /**
     Asynchronously get the number of concurrent connections on the server. Works when sockets were sent to forks.
-
-    Callback has two arguments err and count.
-
-    @param {function} cb
+    @param {(error: Error, count: number) => void} cb
    */
   getConnections(cb) {
     this._server.getConnections(cb);
@@ -95,18 +101,18 @@ class NoiseServer extends EventEmitter {
     the operating system will assign an arbitrary unused port, which can be retrieved
     by using server.address().port after the 'listening' event has been emitted.
 
-    @param {String} opts.host Optional host to listen on. If host is omitted, the server
+    @param {String} [opts.host] Optional host to listen on. If host is omitted, the server
     will accept connections on the unspecified IPv6 address (::) when IPv6 is available,
     or the unspecified IPv4 address (0.0.0.0) otherwise. In most operating systems,
     listening to the unspecified IPv6 address (::) may cause NoiseSocket to also
     listen on the unspecified IPv4 address (0.0.0.0).
 
-    @param {Number} opts.backlog Optional value to specify the maximum length of the
+    @param {Number} [opts.backlog] Optional value to specify the maximum length of the
     queue of pending connections. The actual length will be determined by the OS through
     sysctl settings such as tcp_max_syn_backlog and somaxconn on Linux. The default value
     of this parameter is 511 (not 512).
 
-    @param {function} callback called when the server is listening. Automatically binds
+    @param {() => void} [callback] called when the server is listening. Automatically binds
     the function to the `listening` event.
 
     @returns {NoiseServer}
