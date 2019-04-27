@@ -22,7 +22,7 @@
     "url": "git+https://github.com/altangent/lntools.git"
   },
   "dependencies": {
-    "@lntools/crypto": "^0.1.1",
+    "@lntools/crypto": "^0.2.0",
     "winston": "^3.2.1"
   },
   "devDependencies": {
