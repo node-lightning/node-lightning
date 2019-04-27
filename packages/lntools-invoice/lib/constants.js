@@ -1,3 +1,5 @@
+// @ts-check
+
 module.exports = {
   FIELD_TYPE: {
     PAYMENT_HASH: 1,

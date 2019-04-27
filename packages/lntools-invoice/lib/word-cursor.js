@@ -1,3 +1,5 @@
+// @ts-check
+
 const bech32Util = require('./bech32-util');
 
 class WordCursor {

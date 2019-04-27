@@ -1,3 +1,5 @@
+// @ts-check
+
 const BN = require('bn.js');
 
 module.exports = hrpToPico;

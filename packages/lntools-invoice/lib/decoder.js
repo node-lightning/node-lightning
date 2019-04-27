@@ -1,3 +1,5 @@
+// @ts-check
+
 const BufferCursor = require('simple-buffer-cursor');
 const bech32 = require('bech32');
 const BN = require('bn.js');

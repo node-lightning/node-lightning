@@ -1,10 +1,11 @@
 {
   "name": "@lntools/invoice",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "BOLT 11 Lightning Network invoice encoding/decoding library",
   "main": "lib/index.js",
   "scripts": {
-    "test": "nyc --reporter=lcov --reporter=text mocha --recursive \"__tests__/**/*.spec.js\""
+    "test": "nyc --reporter=lcov --reporter=text mocha --recursive \"__tests__/**/*.spec.js\"",
+    "tsc": "tsc"
   },
   "homepage": "https://github.com/altangent/lntools/tree/master/packages/lntools-invoice",
   "repository": {

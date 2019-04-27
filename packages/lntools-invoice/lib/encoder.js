@@ -1,3 +1,5 @@
+// @ts-check
+
 const bech32 = require('bech32');
 const bech32Util = require('./bech32-util');
 const WordCursor = require('./word-cursor');
@@ -20,8 +22,8 @@ function encode(invoice, privKey) {
   _encodeData(invoice, writer);
 
   // generate sig data
-  let sigData = bech32Util.convertWords(writer.words, 5, 8, true);
-  sigData = Buffer.concat([Buffer.from(prefix, 'utf8'), Buffer.from(sigData)]);
+  let bytes = bech32Util.convertWords(writer.words, 5, 8, true);
+  let sigData = Buffer.concat([Buffer.from(prefix, 'utf8'), Buffer.from(bytes)]);
 
   // generate sig hash
   let sigHash = crypto.sha256(sigData);

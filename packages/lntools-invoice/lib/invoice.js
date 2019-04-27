@@ -1,3 +1,5 @@
+// @ts-check
+
 const bs58check = require('bs58check');
 const bech32 = require('bech32');
 const crypto = require('./crypto');
@@ -21,15 +23,45 @@ class Invoice {
     /** @type {BN} */
     this._value; // value stores in pico bitcoin
 
+    /** @type {string} */
     this.network = null;
 
-    this.timestamp = null;
+    /** @type {number} */
+    this.timestamp = 0;
+
+    /** @type {Array<any>} */
     this.fields = [];
+
+    /** @type {Array<any>} */
     this.unknownFields = [];
 
+    /**
+      ECDSA signature used to sign the invoice.
+      @type {{ r: Buffer, s: Buffer, recoveryFlag: number }}
+     */
     this.signature = null;
+
+    /**
+      Compressed public key on elliptic curve secp256k1 corresponding
+      to the node that generated and signed the invoice. Returned
+      as 33-bytes.
+      @type {Buffer}
+     */
     this.pubkey = null;
+
+    /**
+      Buffer containing the buffer of the data used to generate the
+      hash used in the signature.
+      @type {Buffer}
+     */
     this.hashData = null;
+
+    /**
+      Inidicates if signature recovery was used when decoding and
+      performing signature verification for an invoice. This value
+      will be false if a payee node field was provided.
+      @type {boolean}
+      */
     this.usedSigRecovery = false;
   }
 
@@ -39,7 +71,7 @@ class Invoice {
     When there is no value, the invoice is for the receipt of
     any value.
 
-    @type boolean
+    @type {boolean}
    */
   get hasValue() {
     return this._value instanceof BN;
@@ -58,7 +90,7 @@ class Invoice {
     @deprecated This property is maintained for backwards compaibility.
     Use property `valueSat` or `valueMsat` instead.
 
-    @type string
+    @type {string}
    */
   get amount() {
     return this.hasValue ? (this._value.toNumber() / picoToBtc).toFixed(11) : null;
@@ -78,7 +110,7 @@ class Invoice {
     Sets the value in satoshi from a string or number, such as 10000 satoshi.
     Setting a falsy value will remove the value from the invoice.
 
-    @type string
+    @type {string}
    */
   get valueSat() {
     return this.hasValue ? this._value.divn(picoToSat).toString() : null;
@@ -96,7 +128,7 @@ class Invoice {
     Sets the value in millisatoshi from a string or number. Setting a falsy
     value will remove the value from the invoice.
 
-    @type string
+    @type {string}
    */
   get valueMsat() {
     return this.hasValue ? this._value.divn(picoToMsat).toString() : null;
@@ -114,7 +146,7 @@ class Invoice {
     Sets the expiry time in seconds for the invoice.  Only a single
     expiry field is valid in the invoice.
 
-    @type number
+    @type {number}
    */
   get expiry() {
     return this._getFieldValue(FIELD_TYPE.EXPIRY, FIELD_DEFAULT.EXPIRY);
@@ -132,10 +164,10 @@ class Invoice {
     or hex-encoded string. Only a single field of this type is
     valid in the invoice.
 
-    @type Buffer
+    @type {Buffer}
    */
   get paymentHash() {
-    return this._getFieldValue(FIELD_TYPE.PAYMENT_HASH);
+    return /** @type {Buffer} */ (this._getFieldValue(FIELD_TYPE.PAYMENT_HASH));
   }
 
   set paymentHash(value) {
@@ -154,7 +186,7 @@ class Invoice {
     in hashDesc. Otherwise, the raw string will be stored in the
     short desc.
 
-    @type string | Buffer
+    @type {string | Buffer}
    */
   get desc() {
     return this.shortDesc || this.hashDesc;
@@ -163,6 +195,7 @@ class Invoice {
   set desc(desc) {
     let len = Buffer.byteLength(desc);
     if (len > MAX_SHORT_DESC_BYTES) this.hashDesc = crypto.sha256(desc);
+    // @ts-ignore
     else this.shortDesc = desc;
   }
 
@@ -175,7 +208,7 @@ class Invoice {
     bytes. Only a single short desc or hash desc field is allowed.
     Setting this field will remove the hashDesc field value.
 
-    @type string
+    @type {string}
    */
   get shortDesc() {
     return this._getFieldValue(FIELD_TYPE.SHORT_DESC);
@@ -196,7 +229,7 @@ class Invoice {
     This must be used for descriptions that are over 639 bytes
     long. Setting this field will remove any short desc fields.
 
-    @type Buffer
+    @type {Buffer}
    */
   get hashDesc() {
     return this._getFieldValue(FIELD_TYPE.HASH_DESC);
@@ -218,7 +251,7 @@ class Invoice {
     on signature recovery. This field must match the pubkey
     used to generate the signature.
 
-    @type Buffer
+    @type {Buffer}
    */
   get payeeNode() {
     return this._getFieldValue(FIELD_TYPE.PAYEE_NODE);
@@ -235,7 +268,7 @@ class Invoice {
 
     Sets the min final route CLTV expiry used in the final route.
 
-    @type number
+    @type {number}
    */
   get minFinalCltvExpiry() {
     return this._getFieldValue(
@@ -253,13 +286,10 @@ class Invoice {
     multiple fallback addresses to send to an on-chain address
     in the event of failure.
 
-    @type
-      [{
-        version: number,
-        address: Buffer
-      }]
+    @type {[{ version: number, address: Buffer}]}
    */
   get fallbackAddresses() {
+    // @ts-ignore
     return this.fields.filter(p => p.type === FIELD_TYPE.FALLBACK_ADDRESS).map(p => p.value);
   }
 
@@ -299,15 +329,16 @@ class Invoice {
     Route information is necessary to route payments to private
     nodes.
 
-    @type [{
+    @type {[{
       pubkey: Buffer,
       short_channel_id: Buffer,
       fee_base_msat: number,
       fee_proportional_millionths: number,
       cltv_expiry_delta: number
-    }]
+    }]}
    */
   get routes() {
+    // @ts-ignore
     return this.fields.filter(p => p.type === FIELD_TYPE.ROUTE).map(p => p.value);
   }
 
@@ -327,7 +358,7 @@ class Invoice {
         fee_proportional_millionths: number,
         cltv_expiry_delta: number
       }]
-    } routes array of route objects
+    } routes
 
    */
   addRoute(routes) {
@@ -347,7 +378,8 @@ class Invoice {
 
     @private
     @param {number} type the field type
-    @param {any} def default value
+    @param {any} [def] default value
+    @returns {any}
    */
   _getFieldValue(type, def) {
     let field = this.fields.find(p => p.type === type);

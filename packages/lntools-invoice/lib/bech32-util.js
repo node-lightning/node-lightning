@@ -1,3 +1,5 @@
+// @ts-check
+
 module.exports = {
   convertWords,
   sizeofNum,
@@ -12,11 +14,11 @@ module.exports = {
   The encoder needs to pad bits.  The decoder does not care about the
   padding bits.
 
-  @param {Buffer} data
-  @param {number} inBits
-  @param {number} outBits
-  @param {boolean} pad
-  @return {Array[number]} converted words
+  @param {Buffer} data input data
+  @param {number} inBits number of bits in, usually 5 or 8
+  @param {number} outBits number of bits out, usualy 8 or 5
+  @param {boolean} pad indicates if output should be padded
+  @return {Array<number>} converted words
  */
 function convertWords(data, inBits, outBits, pad) {
   var value = 0;
@@ -47,7 +49,8 @@ function convertWords(data, inBits, outBits, pad) {
   encode a number, we need to determine how many words
   are necessary to encode the value.
 
-  @param {number} num
+  @param {number} num integer value
+  @returns {number} number of words
  */
 function sizeofNum(num) {
   return Math.ceil(Math.log2(num) / 5);
@@ -58,7 +61,8 @@ function sizeofNum(num) {
   the supplied number of bits. In bech32, each words is 5 bits
   (2^5 = 32).
 
-  @param {number} bits
+  @param {number} bits number of bits
+  @returns {number} number of words
  */
 function sizeofBits(bits) {
   return Math.ceil(bits / 5);
@@ -71,6 +75,7 @@ function sizeofBits(bits) {
   convert to words.
 
   @param {number} bytes
+  @returns {number} number of words
  */
 function sizeofBytes(bytes) {
   return sizeofBits(bytes * 8);
