@@ -2,7 +2,7 @@
 
 const winston = require('winston');
 const { sha256, ecdh, hkdf, ccpEncrypt, ccpDecrypt } = require('@lntools/crypto');
-const { generatePubKey } = require('@lntools/crypto');
+const { getPublicKey } = require('@lntools/crypto');
 
 class NoiseState {
   /**
@@ -10,14 +10,32 @@ class NoiseState {
     encryption and decryption, and key rotation.
 
     @param {Object} opts
-    @param {import('@lntools/crypto/lib/key').ECKey} opts.ls local secret
-    @param {import('@lntools/crypto/lib/key').ECKey} [opts.rs] remote secret
-    @param {import('@lntools/crypto/lib/key').ECKey} [opts.es] ephemeral secret
+    @param {Buffer} opts.ls local private key
+    @param {Buffer} [opts.es] ephemeral private key
   */
-  constructor({ ls, rs, es }) {
+  constructor({ ls, es }) {
+    /** @type {Buffer} */
     this.ls = ls;
-    this.rs = rs;
+
+    /** @type {Buffer} */
+    this.lp = getPublicKey(ls);
+
+    /** @type {Buffer} */
     this.es = es;
+
+    /** @type {Buffer} */
+    this.ep = getPublicKey(es);
+
+    /**
+      Remote compressed public key
+      @type {Buffer}
+    */
+    this.rs;
+
+    /**
+      Compressed public key
+      @type {Buffer}
+    */
     this.re;
 
     this.protocolName = Buffer.from('Noise_XK_secp256k1_ChaChaPoly_SHA256');
@@ -35,20 +53,30 @@ class NoiseState {
     this.rn;
   }
 
-  _initialize(key) {
+  /**
+   *
+   * @param {Buffer} pubkey
+   */
+  _initialize(pubkey) {
     winston.debug('initialize noise state');
     this.h = sha256(Buffer.from(this.protocolName));
     this.ck = this.h;
     this.h = sha256(Buffer.concat([this.h, this.prologue]));
-    this.h = sha256(Buffer.concat([this.h, key.compressed()]));
+    this.h = sha256(Buffer.concat([this.h, pubkey]));
   }
 
-  initiatorAct1() {
+  /**
+    Initiator Act1
+    @param {Buffer} rs remote public key
+    @return {Buffer}
+   */
+  initiatorAct1(rs) {
     winston.debug('initiator act1');
+    this.rs = rs;
     this._initialize(this.rs);
-    this.h = sha256(Buffer.concat([this.h, this.es.compressed()]));
+    this.h = sha256(Buffer.concat([this.h, this.ep]));
 
-    let ss = ecdh(this.rs.pub, this.es.priv);
+    let ss = ecdh(this.rs, this.es);
 
     let temp_k1 = hkdf(this.ck, ss);
     this.ck = temp_k1.slice(0, 32);
@@ -57,7 +85,7 @@ class NoiseState {
     let c = ccpEncrypt(this.temp_k1, Buffer.alloc(12), this.h, Buffer.alloc(0));
     this.h = sha256(Buffer.concat([this.h, c]));
 
-    let m = Buffer.concat([Buffer.alloc(1), this.es.compressed(), c]);
+    let m = Buffer.concat([Buffer.alloc(1), this.ep, c]);
     return m;
   }
 
@@ -74,16 +102,16 @@ class NoiseState {
     let c = m.slice(34);
 
     // 2a. convert re to public key
-    this.re = generatePubKey(re);
+    this.re = re;
 
     // 3. assert version is known version
     if (v !== 0) throw new Error('ACT2_BAD_VERSION');
 
     // 4. sha256(h || re.serializedCompressed');
-    this.h = sha256(Buffer.concat([this.h, this.re.compressed()]));
+    this.h = sha256(Buffer.concat([this.h, this.re]));
 
     // 5. ss = ECDH(re, e.priv);
-    let ss = ecdh(this.re.compressed(), this.es.priv);
+    let ss = ecdh(this.re, this.es);
 
     // 6. ck, temp_k2 = HKDF(cd, ss)
     let temp_k2 = hkdf(this.ck, ss);
@@ -105,14 +133,14 @@ class NoiseState {
       this.temp_k2,
       Buffer.from([0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0]),
       this.h,
-      this.ls.compressed()
+      this.lp
     );
 
     // 2. h = sha256(h || c)
     this.h = sha256(Buffer.concat([this.h, c]));
 
     // 3. ss = ECDH(re, s.priv)
-    let ss = ecdh(this.re.compressed(), this.ls.priv);
+    let ss = ecdh(this.re, this.ls);
 
     // 4. ck, temp_k3 = HKDF(ck, ss)
     let temp_k3 = hkdf(this.ck, ss);
@@ -137,7 +165,7 @@ class NoiseState {
   }
 
   receiveAct1(m) {
-    this._initialize(this.ls);
+    this._initialize(this.lp);
 
     winston.debug('receive act1');
 
@@ -157,7 +185,7 @@ class NoiseState {
     this.h = sha256(Buffer.concat([this.h, re]));
 
     // 5. ss = ECDH(re, ls.priv);
-    let ss = ecdh(re, this.ls.priv);
+    let ss = ecdh(re, this.ls);
 
     // 6. ck, temp_k1 = HKDF(cd, ss)
     let temp_k1 = hkdf(this.ck, ss);
@@ -175,10 +203,10 @@ class NoiseState {
     // 1. e = generateKey() => done in initialization
 
     // 2. h = sha256(h || e.pub.compressed())
-    this.h = sha256(Buffer.concat([this.h, this.es.compressed()]));
+    this.h = sha256(Buffer.concat([this.h, this.ep]));
 
     // 3. ss = ecdh(re, e.priv)
-    let ss = ecdh(this.re, this.es.priv);
+    let ss = ecdh(this.re, this.es);
 
     // 4. ck, temp_k2 = hkdf(ck, ss)
     let temp_k2 = hkdf(this.ck, ss);
@@ -192,7 +220,7 @@ class NoiseState {
     this.h = sha256(Buffer.concat([this.h, c]));
 
     // 7. m = 0 || e.pub.compressed() Z|| c
-    let m = Buffer.concat([Buffer.alloc(1), this.es.compressed(), c]);
+    let m = Buffer.concat([Buffer.alloc(1), this.ep, c]);
     return m;
   }
 
@@ -210,13 +238,13 @@ class NoiseState {
 
     // 4. rs = decryptWithAD(temp_k2, 1, h, c)
     let rs = ccpDecrypt(this.temp_k2, Buffer.from('000000000100000000000000', 'hex'), this.h, c);
-    this.rs = generatePubKey(rs);
+    this.rs = rs;
 
     // 5. h = sha256(h || c)
     this.h = sha256(Buffer.concat([this.h, c]));
 
     // 6. ss = ECDH(rs, e.priv)
-    let ss = ecdh(this.rs.compressed(), this.es.priv);
+    let ss = ecdh(this.rs, this.es);
 
     // 7. ck, temp_k3 = hkdf(cs, ss)
     let temp_k3 = hkdf(this.ck, ss);

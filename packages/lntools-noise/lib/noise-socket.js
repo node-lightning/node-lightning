@@ -89,14 +89,30 @@ class NoiseSocket extends Duplex {
       module that will be wrapped
     @param {NoiseState} opts.noiseState state machine for noise
       connections that is injected into the socket
-    @param {boolean} [opts.initiator=false] set to true when this socket
-      is initiating the connection. Defaults to false.
+    @param {Buffer} [opts.rs] remote public key when connecting to a
+      remote server. When provided, makes the socket the noise
+      state initiator.
    */
-  constructor({ socket, noiseState, initiator = false }) {
+  constructor({ socket, noiseState, rs }) {
     super();
 
     // perform type assertions
     assert.ok(socket instanceof Socket,new NoiseError('socket argument must be an instance of Socket')); // prettier-ignore
+
+    /**
+      Remote public key as a 33-byte compressed public key for
+      elliptic curve secp256k1
+      @type {Buffer}
+     */
+    this.rs = rs;
+
+    /**
+      Indicates if the socket was the connection initiator
+      which will determine how the handshake happens.
+
+      @type Boolean
+    */
+    this.initiator = rs !== undefined;
 
     /**
       Controls the handshake process at the start of the connection.
@@ -106,7 +122,7 @@ class NoiseSocket extends Duplex {
       @private
       @type HANDSHAKE_STATE
      */
-    this._handshakeState = initiator
+    this._handshakeState = this.initiator
       ? HANDSHAKE_STATE.INITIATOR_INITIATING
       : HANDSHAKE_STATE.AWAITING_INITIATOR;
 
@@ -128,14 +144,6 @@ class NoiseSocket extends Duplex {
       @type {NoiseState}
      */
     this._noiseState = noiseState;
-
-    /**
-      Indicates if the socket was the connection initiator
-      which will determine how the handshake happens.
-
-      @type Boolean
-    */
-    this.initiator = initiator;
 
     /** @type number */
     this.messagesReceived = 0;
@@ -252,7 +260,7 @@ class NoiseSocket extends Duplex {
 
   _initiateHandshake() {
     // create Initiator Act 1 message
-    let m = this._noiseState.initiatorAct1();
+    let m = this._noiseState.initiatorAct1(this.rs);
 
     // send message to Responder
     this._socket.write(m);

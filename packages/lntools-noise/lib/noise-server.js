@@ -18,23 +18,27 @@ class NoiseServer extends EventEmitter {
     NoiseState.
 
     @param {Object} opts
-    @param {import('@lntools/crypto/lib/key').ECKey} opts.localSecret local secret
+    @param {Buffer} opts.ls local private key as a 32-byte private
+    key for elliptic curve secp256k1
     used by the server
-    @param {() => import('@lntools/crypto/lib/key').ECKey} [opts.ephemeralSecretFactory] optional
-    function for creating the ephemeral secret used by each connection
+    @param {() => Buffer} [opts.esFactory] optional
+    function for creating the ephemeral private key used
+    by each connection
    */
   constructor(opts, connListener) {
     super();
 
     // localSecret assertions
-    this.localSecret = opts.localSecret;
+    assert.ok(Buffer.isBuffer(opts.ls), new NoiseError('ls must be a buffer'));
+    assert.ok(crypto.validPrivateKey(opts.ls), new NoiseError('ls must be valid public key'));
+    this.ls = opts.ls;
 
-    // ephemeralSecretFactory
+    // ephemeral secret factory
     assert.ok(
-      !opts.ephemeralSecretFactory || typeof opts.ephemeralSecretFactory === 'function',
-      new NoiseError('ephemeralSecretFactory must be a function')
+      !opts.esFactory || typeof opts.esFactory === 'function',
+      new NoiseError('esFactory must be a function')
     );
-    this.ephemeralSecretFactory = opts.ephemeralSecretFactory || crypto.generateRandomKey;
+    this.esFactory = opts.esFactory || crypto.createPrivateKey;
 
     // construct and bind the server
     this._server = new Server();
@@ -53,10 +57,10 @@ class NoiseServer extends EventEmitter {
     @param {import('net').Socket} socket
    */
   _onConnection(socket) {
-    let ls = this.localSecret;
-    let es = this.ephemeralSecretFactory();
+    let ls = this.ls;
+    let es = this.esFactory();
     let noiseState = new NoiseState({ ls, es });
-    let noiseSocket = new NoiseSocket({ socket, noiseState, initiator: false });
+    let noiseSocket = new NoiseSocket({ socket, noiseState });
     this.emit('connection', noiseSocket);
   }
 

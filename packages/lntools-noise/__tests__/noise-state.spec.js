@@ -1,7 +1,6 @@
 const { expect } = require('chai');
 const winston = require('winston');
 const sinon = require('sinon');
-const { generateKey } = require('@lntools/crypto');
 const NoiseState = require('../lib/noise-state');
 
 describe('NoiseState', () => {
@@ -14,18 +13,10 @@ describe('NoiseState', () => {
     sandbox.restore();
   });
   describe('initiator', () => {
-    let rs = {
-      pub: Buffer.from('028d7500dd4c12685d1f568b4c2b5048e8534b873319f3a8daa612b469132ec7f7', 'hex'),
-      compressed() {
-        return Buffer.from(
-          '028d7500dd4c12685d1f568b4c2b5048e8534b873319f3a8daa612b469132ec7f7',
-          'hex'
-        );
-      },
-    };
-    let ls = generateKey('1111111111111111111111111111111111111111111111111111111111111111');
-    let es = generateKey('1212121212121212121212121212121212121212121212121212121212121212');
-    let sut = new NoiseState({ ls, rs, es });
+    let rs = Buffer.from('028d7500dd4c12685d1f568b4c2b5048e8534b873319f3a8daa612b469132ec7f7', 'hex'); // prettier-ignore
+    let ls = Buffer.from('1111111111111111111111111111111111111111111111111111111111111111','hex'); // prettier-ignore
+    let es = Buffer.from('1212121212121212121212121212121212121212121212121212121212121212', 'hex'); // prettier-ignore
+    let sut = new NoiseState({ ls, es });
 
     let sent = [
       Buffer.from(
@@ -37,7 +28,7 @@ describe('NoiseState', () => {
     describe('act 1', () => {
       let m;
       before(() => {
-        m = sut.initiatorAct1();
+        m = sut.initiatorAct1(rs);
       });
       it('should set the hash correctly', () => {
         expect(sut.h.toString('hex')).to.deep.equal(
@@ -121,8 +112,8 @@ describe('NoiseState', () => {
 
     describe('receive messages', () => {
       before(() => {
-        sut = new NoiseState({ ls, rs, es });
-        sut.initiatorAct1();
+        sut = new NoiseState({ ls, es });
+        sut.initiatorAct1(rs);
         sut.initiatorAct2(
           Buffer.from(
             '0002466d7fcae563e5cb09a0d1870bb580344804617879a14949cf22285f1bae3f276e2470b93aac583c9ef6eafca3f730ae',
@@ -157,8 +148,8 @@ describe('NoiseState', () => {
 
     describe('with errors', () => {
       it('transport-initiator act2 short read test', () => {
-        sut = new NoiseState({ ls, rs, es });
-        sut.initiatorAct1();
+        sut = new NoiseState({ ls, es });
+        sut.initiatorAct1(rs);
         let input = Buffer.from(
           '0002466d7fcae563e5cb09a0d1870bb580344804617879a14949cf22285f1bae3f276e2470b93aac583c9ef6eafca3f730',
           'hex'
@@ -167,8 +158,8 @@ describe('NoiseState', () => {
       });
 
       it('transport-initiator act2 bad version test', () => {
-        sut = new NoiseState({ ls, rs, es });
-        sut.initiatorAct1();
+        sut = new NoiseState({ ls, es });
+        sut.initiatorAct1(rs);
         let input = Buffer.from(
           '0102466d7fcae563e5cb09a0d1870bb580344804617879a14949cf22285f1bae3f276e2470b93aac583c9ef6eafca3f730ae',
           'hex'
@@ -177,8 +168,8 @@ describe('NoiseState', () => {
       });
 
       it('transport-initiator act2 bad key serialization test', () => {
-        sut = new NoiseState({ ls, rs, es });
-        sut.initiatorAct1();
+        sut = new NoiseState({ ls, es });
+        sut.initiatorAct1(rs);
         let input = Buffer.from(
           '0004466d7fcae563e5cb09a0d1870bb580344804617879a14949cf22285f1bae3f276e2470b93aac583c9ef6eafca3f730ae',
           'hex'
@@ -189,8 +180,8 @@ describe('NoiseState', () => {
       });
 
       it('transport-initiator act2 bad MAC test', () => {
-        sut = new NoiseState({ ls, rs, es });
-        sut.initiatorAct1();
+        sut = new NoiseState({ ls, es });
+        sut.initiatorAct1(rs);
         let input = Buffer.from(
           '0002466d7fcae563e5cb09a0d1870bb580344804617879a14949cf22285f1bae3f276e2470b93aac583c9ef6eafca3f730af',
           'hex'
@@ -201,8 +192,8 @@ describe('NoiseState', () => {
   });
 
   describe('responder', () => {
-    let ls = generateKey('2121212121212121212121212121212121212121212121212121212121212121');
-    let es = generateKey('2222222222222222222222222222222222222222222222222222222222222222');
+    let ls = Buffer.from('2121212121212121212121212121212121212121212121212121212121212121', 'hex'); // prettier-ignore
+    let es = Buffer.from('2222222222222222222222222222222222222222222222222222222222222222', 'hex'); //prettier-ignore
     let sut;
     let sent = [];
 
@@ -258,7 +249,7 @@ describe('NoiseState', () => {
         );
       });
       it('should have the remote pub key', () => {
-        expect(sut.rs.compressed().toString('hex')).to.equal(
+        expect(sut.rs.toString('hex')).to.equal(
           '034f355bdcb7cc0af728ef3cceb9615d90684bb5b2ca5f859ab0f0b704075871aa'
         );
       });

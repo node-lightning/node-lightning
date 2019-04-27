@@ -39,11 +39,11 @@ describe('ping-pong integration test', () => {
 });
 
 function createServer(done) {
-  let ls = crypto.generateKey('2121212121212121212121212121212121212121212121212121212121212121');
-  let esf = () => crypto.generateKey('2222222222222222222222222222222222222222222222222222222222222222'); // prettier-ignore
+  let ls = Buffer.from('2121212121212121212121212121212121212121212121212121212121212121', 'hex'); // prettier-ignore
+  let esFactory = () => Buffer.from('2222222222222222222222222222222222222222222222222222222222222222', 'hex'); // prettier-ignore
 
   // create a server
-  let server = noise.createServer({ localSecret: ls, ephemeralSecretFactory: esf }, socket => {
+  let server = noise.createServer({ ls, esFactory }, socket => {
     // send first message on connect
     socket.on('connect', () => {
       socket.write(Buffer.from('ping'));
@@ -66,18 +66,12 @@ function createServer(done) {
 }
 
 function createClient(done) {
-  let ls = crypto.generateKey('1111111111111111111111111111111111111111111111111111111111111111');
-  let rs = crypto.generateKey('2121212121212121212121212121212121212121212121212121212121212121');
-  let es = crypto.generateKey('1212121212121212121212121212121212121212121212121212121212121212');
+  let ls = Buffer.from('1111111111111111111111111111111111111111111111111111111111111111', 'hex'); // prettier-ignore
+  let rs = crypto.getPublicKey(Buffer.from('2121212121212121212121212121212121212121212121212121212121212121', 'hex')); // prettier-ignore
+  let es = Buffer.from('1212121212121212121212121212121212121212121212121212121212121212', 'hex'); // prettier-ignore
   let count = 0;
 
-  let socket = noise.connect({
-    localSecret: ls,
-    remoteSecret: rs,
-    ephemeralSecret: es,
-    host: '127.0.0.1',
-    port: 10000,
-  });
+  let socket = noise.connect({ ls, rs, es, host: '127.0.0.1', port: 10000 });
 
   socket.on('data', data => {
     if (count > 1000) return; // received reply to last message and socket hasn't closed yet

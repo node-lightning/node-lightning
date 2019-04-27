@@ -64,14 +64,14 @@ describe('noise-socket', () => {
   describe('._connected', () => {
     describe('when initiator', () => {
       it('should send initialize the handshake', () => {
-        let sut = new NoiseSocket({ socket, noiseState, initiator: true });
+        let sut = new NoiseSocket({ socket, noiseState, rs: Buffer.alloc(33) });
         sandbox.stub(sut, '_initiateHandshake');
         sut._onConnected();
         expect(sut._initiateHandshake.called).to.be.true;
       });
 
       it('should terminate on act1 message generation failure', () => {
-        let sut = new NoiseSocket({ socket, noiseState, initiator: true });
+        let sut = new NoiseSocket({ socket, noiseState, rs: Buffer.alloc(33) });
 
         sandbox.stub(sut, '_initiateHandshake').throws(new Error('boom'));
         let spy = sinon.spy(sut, 'destroy');
