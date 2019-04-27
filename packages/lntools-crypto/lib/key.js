@@ -2,80 +2,59 @@
 
 const crypto = require('crypto');
 const secp256k1 = require('secp256k1');
+const BN = require('bn.js');
+
+const minPrivateKey = new BN(Buffer.from('01', 'hex'));
+const maxPrivateKey = new BN(Buffer.from('fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364140', 'hex')); // prettier-ignore
 
 module.exports = {
-  generateRandomKey,
-  generateKey,
-  generatePubKey,
+  validPrivateKey,
+  createPrivateKey,
+  getPublicKey,
 };
 
 /**
-  An elliptic curve key store. This class optionally contains the private
-  key and a public key in either the compressed or uncompressed format.
+  Returns true when the Buffer represents a 256-bit number that is between
+  0x1 and 0xffffffffffffffffffffffffffffffffbaaedce6af48a03bbfd25e8cd0364140
+  as documented in https://en.bitcoin.it/wiki/Private_key
 
-  @typedef ECKey
-  @property {Buffer} [priv] private key Buffer, should be 32-bytes
-  @property {Buffer} pub prublic key Buffer in either compressed (33-bytes)
-    or uncompressed (64-bytes) format
-  @property {() => Buffer} compressed  Return the compressed public key for the elliptic curve key regardless
-    of whether the public key is stored as a compressed or uncompressed key.
-*/
+  @param {Buffer} privKey
+  @returns {boolean}
+ */
+function validPrivateKey(privKey) {
+  if (!Buffer.isBuffer(privKey)) return false;
+  if (privKey.length !== 32) return false;
+
+  let val = new BN(privKey);
+  return val.gte(minPrivateKey) && val.lte(maxPrivateKey);
+}
 
 /**
-  Generates a cryptographially secure key and returns
-  an ECKey object
+  Generates a cryptographially secure 256-bit private key
+  that is valid for elliptic curve secp256k1
 
   @remarks This method uses crypto.randomBytes to
-  generate the random value.
+  generate the random value. It may be better to use a
+  HRBG
 
-  @returns {ECKey} the result elliptic curve key
+  @returns {Buffer} the 256-bit private key
  */
-function generateRandomKey() {
-  let privateKey = crypto.randomBytes(32);
-  return {
-    priv: privateKey,
-    pub: secp256k1.publicKeyCreate(privateKey, true),
-    compressed() {
-      return this.pub;
-    },
-  };
+function createPrivateKey() {
+  let result;
+  do {
+    result = crypto.randomBytes(32);
+  } while (!validPrivateKey);
+  return result;
 }
 
 /**
-  Generaets an ECKey object from the hex-encoded private
-  key provided.
+  Gets the public key in the ellitic curve secp256k1
+  from the provided private key
 
-  @param {string} privKeyHex hex-encoded private key
-
-  @returns {ECKey}
+  @param {Buffer} privKey 256-bit private key
+  @returns {Buffer} 33-byte buffer for compressed,
+  65-byte buffer for uncompressed
  */
-function generateKey(privKeyHex) {
-  let privateKey = Buffer.from(privKeyHex, 'hex');
-  return {
-    priv: privateKey,
-    pub: secp256k1.publicKeyCreate(privateKey, true),
-    compressed() {
-      return this.pub;
-    },
-  };
-}
-
-/**
-  Generates an ECKey object from the hex-encoded public
-  key provided.
-
-  @param {string|Buffer} compressedKey hex-encoded public key
-
-  @returns {ECKey}
- */
-function generatePubKey(compressedKey) {
-  let publicKey = Buffer.isBuffer(compressedKey)
-    ? compressedKey
-    : Buffer.from(compressedKey, 'hex');
-  return {
-    pub: publicKey,
-    compressed() {
-      return this.pub;
-    },
-  };
+function getPublicKey(privKey, compressed = true) {
+  return secp256k1.publicKeyCreate(privKey, compressed);
 }
