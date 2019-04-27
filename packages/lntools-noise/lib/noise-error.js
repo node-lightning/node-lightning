@@ -1,3 +1,5 @@
+// @ts-check
+
 module.exports;
 
 class NoiseError extends Error {

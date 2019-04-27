@@ -138,7 +138,7 @@ class NoiseServer extends EventEmitter {
   /**
     Set this property to reject connections when the server's connection count gets high.
 
-    @type number
+    @type {number}
    */
   get maxConnections() {
     return this._server.maxConnections;
