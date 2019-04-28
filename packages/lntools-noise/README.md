@@ -36,12 +36,15 @@ const noise = require('@lntools/noise');
 // curve secp256k1
 const ls = Buffer.from('1111111111111111111111111111111111111111111111111111111111111111', 'hex');
 
-// rp is compressed public key as a Buffer(33) defining a point
+// rpk is compressed public key as a Buffer(33) defining a point
 // on elliptic curve secp256k1
-const rp = Buffer.from('028d7500dd4c12685d1f568b4c2b5048e8534b873319f3a8daa612b469132ec7f7', 'hex');
+const rpk = Buffer.from(
+  '028d7500dd4c12685d1f568b4c2b5048e8534b873319f3a8daa612b469132ec7f7',
+  'hex'
+);
 
 // Create a new `NoiseSocket` instance using the `connect` factory
-const socket = noise.connect({ ls, rp, host: '127.0.0.1', port: 9735 });
+const socket = noise.connect({ ls, rpk, host: '127.0.0.1', port: 9735 });
 
 // Socket will emit the `connect` event when the TCP connection is
 // established, however the socket is not yet ready because the

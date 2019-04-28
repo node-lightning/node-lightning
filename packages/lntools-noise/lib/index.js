@@ -19,20 +19,20 @@ module.exports = {
   @param {Object} opts
   @param {Buffer} opts.ls local secret as a 32-byte secp256k1
   private key
-  @param {Buffer} opts.rs remote compressed public key, 33-bytes
   @param {Buffer} [opts.es] optional ephemeral private key,
+  @param {Buffer} opts.rpk remote compressed public key, 33-bytes
   32-byte secp256k1 private key. If not provided, one is generated.
   @param {string} [opts.host] optional host. Defaults to localhost.
   @param {number} [opts.port] optional port. Defaults to 9735.
   @returns {NoiseSocket}
  */
-function connect({ ls, rs, es, host, port = 9735 }) {
+function connect({ ls, es, rpk, host, port = 9735 }) {
   if (!es) {
     es = crypto.createPrivateKey();
   }
   let noiseState = new NoiseState({ ls, es });
   let socket = new Socket();
-  let instance = new NoiseSocket({ socket, noiseState, rs });
+  let instance = new NoiseSocket({ socket, noiseState, rpk });
   socket.connect({ host, port });
   return instance;
 }

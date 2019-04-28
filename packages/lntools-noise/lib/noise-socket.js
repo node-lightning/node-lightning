@@ -89,11 +89,11 @@ class NoiseSocket extends Duplex {
       module that will be wrapped
     @param {NoiseState} opts.noiseState state machine for noise
       connections that is injected into the socket
-    @param {Buffer} [opts.rs] remote public key when connecting to a
+    @param {Buffer} [opts.rpk] remote public key when connecting to a
       remote server. When provided, makes the socket the noise
       state initiator.
    */
-  constructor({ socket, noiseState, rs }) {
+  constructor({ socket, noiseState, rpk }) {
     super();
 
     // perform type assertions
@@ -104,7 +104,7 @@ class NoiseSocket extends Duplex {
       elliptic curve secp256k1
       @type {Buffer}
      */
-    this.rs = rs;
+    this.rpk = rpk;
 
     /**
       Indicates if the socket was the connection initiator
@@ -112,7 +112,7 @@ class NoiseSocket extends Duplex {
 
       @type Boolean
     */
-    this.initiator = rs !== undefined;
+    this.initiator = rpk !== undefined;
 
     /**
       Controls the handshake process at the start of the connection.
@@ -151,9 +151,7 @@ class NoiseSocket extends Duplex {
     /** @type Socket */
     this._socket = socket;
 
-    // TODO - implement proper close
     this._socket.on('close', hadError => this.emit('close', hadError));
-    // TODO - configure connecting property
     this._socket.on('connect', this._onConnected.bind(this));
     this._socket.on('drain', () => this.emit('drain'));
     this._socket.on('end', () => this.emit('end'));
@@ -260,7 +258,7 @@ class NoiseSocket extends Duplex {
 
   _initiateHandshake() {
     // create Initiator Act 1 message
-    let m = this._noiseState.initiatorAct1(this.rs);
+    let m = this._noiseState.initiatorAct1(this.rpk);
 
     // send message to Responder
     this._socket.write(m);

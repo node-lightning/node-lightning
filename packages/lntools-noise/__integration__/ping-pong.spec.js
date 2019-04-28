@@ -67,11 +67,11 @@ function createServer(done) {
 
 function createClient(done) {
   let ls = Buffer.from('1111111111111111111111111111111111111111111111111111111111111111', 'hex'); // prettier-ignore
-  let rs = crypto.getPublicKey(Buffer.from('2121212121212121212121212121212121212121212121212121212121212121', 'hex')); // prettier-ignore
+  let rpk = crypto.getPublicKey(Buffer.from('2121212121212121212121212121212121212121212121212121212121212121', 'hex')); // prettier-ignore
   let es = Buffer.from('1212121212121212121212121212121212121212121212121212121212121212', 'hex'); // prettier-ignore
   let count = 0;
 
-  let socket = noise.connect({ ls, rs, es, host: '127.0.0.1', port: 10000 });
+  let socket = noise.connect({ ls, es, rpk, host: '127.0.0.1', port: 10000 });
 
   socket.on('data', data => {
     if (count > 1000) return; // received reply to last message and socket hasn't closed yet
