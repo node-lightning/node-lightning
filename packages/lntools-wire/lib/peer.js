@@ -53,6 +53,9 @@ class Peer extends EventEmitter {
     @emits message a new message has been received. Only sent after the
     `ready` event has fired.
 
+    @emits rawmessage outputs the message as a raw buffer instead of
+    a deserialized message.
+
     @emits error emitted when there is an error processing a message.
     The underlying socket will be closed after this event is emitted.
 
@@ -84,13 +87,16 @@ class Peer extends EventEmitter {
     Connect to the remote peer and binds socket events into the Peer.
 
     @param {Object} opts
-    @param {Object} localSecret
-    @param {Object} remoteSecret
-    @param {string} host
-    @param {number} [port]
+    @param {Buffer} opts.ls local secret as a 32-byte private key on
+    elliptic curve secp256k1
+    @param {Buffer} opts.rpk remote node's known public key as a 33-byte
+    compressed public key reperesenting the affine coorindate on elliptic
+    curve secp256k1
+    @param {string} [opts.host]
+    @param {number} [opts.port]
    */
-  connect({ localSecret, remoteSecret, host, port = 9735 }) {
-    this.socket = noise.connect({ localSecret, remoteSecret, host, port });
+  connect({ ls, rpk, host, port = 9735 }) {
+    this.socket = noise.connect({ ls, rpk, host, port });
     this.socket.on('ready', this._onSocketReady.bind(this));
     this.socket.on('end', this._onSocketEnd.bind(this));
     this.socket.on('close', this._onSocketClose.bind(this));
@@ -217,6 +223,7 @@ class Peer extends EventEmitter {
       this.pingPongState.onMessage(m);
 
       // emit the message
+      this.emit('rawmessage', raw);
       this.emit('message', m);
     }
   }
