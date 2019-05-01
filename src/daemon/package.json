@@ -18,7 +18,8 @@
     "start": "node src"
   },
   "dependencies": {
-    "@lntools/wire": "^0.1.1",
+    "@lntools/crypto": "^0.3.0",
+    "@lntools/wire": "^0.1.2",
     "winston": "^3.2.1"
   }
 }

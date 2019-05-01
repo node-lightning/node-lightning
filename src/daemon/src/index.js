@@ -10,6 +10,7 @@ winston.configure({
 });
 
 const { Peer } = require('@lntools/wire');
+const crypto = require('@lntools/crypto');
 
 class App {
   static async run() {
@@ -31,11 +32,16 @@ class App {
     let host = '38.87.54.163';
     let port = 9745;
 
-    // hard coding to some testnet values for now
-    let ls = Buffer.from('535e52756e85ee72c83429ce2cc0ff4c801c9d2f8f3c0fd84b2f4dac0b2c0c18', 'hex');
+    // generate a new random key
+    let ls = crypto.createPrivateKey();
+    winston.info('pubkey: ' + crypto.getPublicKey(ls).toString('hex'));
 
     let peer = new Peer();
     await peer.connect({ ls, rpk: pubkey, host, port });
+
+    // temporarily add this to output messages
+    // eslint-disable-next-line no-console
+    peer.on('message', console.log);
   }
 }
 
