@@ -18,7 +18,7 @@ class ChannelAnnouncement {
   constructor() {
     /**
       The message type - 256
-      @type number
+      @type {number}
      */
     this.type = MESSAGE_TYPE.CHANNEL_ANNOUNCEMENT;
 
@@ -27,7 +27,7 @@ class ChannelAnnouncement {
       data: features, chainHash, shortChannelId, nodeId1,
       nodeId1, bitcoinKey1, and bitcoinKey2.
 
-      @type Buffer
+      @type {Buffer}
      */
     this.nodeSignature1;
 
@@ -45,7 +45,7 @@ class ChannelAnnouncement {
       data: features, chainHash, shortChannelId, nodeId1,
       nodeId1, bitcoinKey1, and bitcoinKey2.
 
-      @type Buffer
+      @type {Buffer}
      */
     this.bitcoinSignature1;
 
@@ -54,14 +54,14 @@ class ChannelAnnouncement {
       data: features, chainHash, shortChannelId, nodeId1,
       nodeId1, bitcoinKey1, and bitcoinKey2.
 
-      @type Buffer
+      @type {Buffer}
      */
     this.bitcoinSignature2;
 
     /**
       The channel features stored as a BN value.
 
-      @type BN
+      @type {BN}
      */
     this.features;
 
@@ -69,7 +69,7 @@ class ChannelAnnouncement {
       Must set chain_hash to a 32-byte hash that uniquely identifies
       the chain that the channel opened within.
 
-      @type Buffer
+      @type {Buffer}
      */
     this.chainHash;
 
@@ -85,7 +85,7 @@ class ChannelAnnouncement {
       This property gets and sets a raw Buffer containing all
       parts.
 
-      @type Buffer
+      @type {Buffer}
      */
     this.shortChannelId;
 
@@ -94,7 +94,7 @@ class ChannelAnnouncement {
       numerically greater of the two DER-encoded keys
       sorted in ascending numerical order.
 
-      @type Buffer
+      @type {Buffer}
      */
     this.nodeId1;
 
@@ -103,7 +103,7 @@ class ChannelAnnouncement {
       numerically greater of the two DER-encoded keys
       sorted in ascending numerical order.
 
-      @type Buffer
+      @type {Buffer}
      */
     this.nodeId2;
 
@@ -111,7 +111,7 @@ class ChannelAnnouncement {
       The 33-byte compressed Bitcoin public key used by
       node_id_1 to create the funding transaction.
 
-      @type Buffer
+      @type {Buffer}
      */
     this.bitcoinKey1;
 
@@ -119,23 +119,10 @@ class ChannelAnnouncement {
       The 33-byte compressed Bitcoin public key used by
       node_id_2 to create the funding transaction.
 
-      @type Buffer
+      @type {Buffer}
      */
     this.bitcoinKey2;
   }
-
-  // get shortChannelIdParts() {
-  //   return {
-  //     block: this.shortChannelId.readUIntBE(0, 3),
-  //     txIdx: this.shortChannelId.readUIntBE(3, 3),
-  //     voutIdx: this.shortChannelId.readUIntBE(6, 2),
-  //   };
-  // }
-
-  // get shortChannelIdString() {
-  //   let { block, txIdx, voutIdx } = this.shortChannelIdParts();
-  //   return `${block}x${txIdx}x${voutIdx}`;
-  // }
 
   /**
     Deserializes the Buffer into a ChannelAnnouncement message.
@@ -168,7 +155,7 @@ class ChannelAnnouncement {
     Serializes the intancee into a Buffer suitable
     for wire transport
 
-    @returns Buffer
+    @returns {Buffer}
    */
   serialize() {
     let featuresBuffer = this.features.toBuffer('be');

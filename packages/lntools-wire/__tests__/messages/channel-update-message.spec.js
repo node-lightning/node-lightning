@@ -15,16 +15,20 @@ describe('ChannelUpdateMessage', () => {
     it('should deserialize without error', () => {
       let result = ChannelUpdateMessage.deserialize(input);
       expect(result.type).to.equal(258);
-      expect(result.chain_hash).to.deep.equal(
+      expect(result.chainHash).to.deep.equal(
         Buffer.from('43497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea330900000000', 'hex')
       );
-      expect(result.short_channel_id).to.deep.equal(Buffer.from('13a8b30001130000', 'hex'));
+      expect(result.shortChannelId).to.deep.equal(Buffer.from('13a8b30001130000', 'hex'));
       expect(result.timestamp).to.equal(1554581498);
-      expect(result.flags).to.equal(256);
-      expect(result.cltv_expiry_delta).to.equal(144);
-      expect(result.htlc_minimum_msat).to.deep.equal(Buffer.from('00000000000003e8', 'hex'));
-      expect(result.fee_base_msat).to.equal(1000);
-      expect(result.fee_proportional_millionths).to.equal(1);
+      expect(result.messageFlags).to.equal(1);
+      expect(result.channelFlags).to.equal(0);
+      expect(result.cltvExpiryDelta).to.equal(144);
+      expect(result.htlcMinimumMsat.toNumber()).to.equal(1000);
+      expect(result.htlcMaximumMsat.toNumber()).to.equal(100000000);
+      expect(result.feeBaseMsat).to.equal(1000);
+      expect(result.feeProportionalMillionths).to.equal(1);
+      expect(result.direction).to.equal(0);
+      expect(result.disabled).to.be.false;
     });
   });
 

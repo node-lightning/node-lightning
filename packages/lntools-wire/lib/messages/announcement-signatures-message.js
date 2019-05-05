@@ -17,13 +17,15 @@ class AnnouncementSignaturesMessage {
   constructor() {
     /**
       Message type - 259
+
+      @type {number}
      */
     this.type = MESSAGE_TYPE.ANNOUNCEMENT_SIGNATURES;
 
     /**
       Buffer of the channel_id for the message.
 
-      @type Buffer
+      @type {Buffer}
      */
     this.channelId = Buffer.alloc(0);
 
@@ -31,19 +33,23 @@ class AnnouncementSignaturesMessage {
       Buffer containing the short_channel_id that represents
       the unique description of the funding transaction.
 
-      @type Buffer
+      @type {Buffer}
      */
     this.shortChannelId = Buffer.alloc(0);
 
     /**
       Buffer containing the signature of the channel_announcement
       message signed by the endpoint's node_id.
+
+      @type {Buffer}
      */
     this.nodeSignature = Buffer.alloc(0);
 
     /**
       Buffer containing the signaturee of the channel_announcment
       messagee signed by the endpoint's bitcoin_key.
+
+      @type {Buffer}
      */
     this.bitcoinSignature = Buffer.alloc(0);
   }
@@ -52,7 +58,7 @@ class AnnouncementSignaturesMessage {
     Deserializes a Buffer into an AnnouncementSignaturesMessage.
 
     @param {Buffer} payload
-    @return AnnouncementSignaturesMessage
+    @return {AnnouncementSignaturesMessage}
    */
   static deserialize(payload) {
     let reader = BufferCursor.from(payload);
@@ -69,6 +75,8 @@ class AnnouncementSignaturesMessage {
   /**
     Serializes the instance into a Buffer suitable for
     transmission on the wire.
+
+    @returns {Buffer}
    */
   serialize() {
     let buffer = Buffer.alloc(

@@ -9,18 +9,51 @@ class NodeAnnouncement {
     nodes not associated with an already known channel are ignored.
    */
   constructor() {
-    /** @type number */
-    this.type = MESSAGE_TYPE.NODE_ANNOUNCEMENT; // 257
+    /**
+      Type 257
 
-    /** @type Buffer */
+      @type number
+    */
+    this.type = MESSAGE_TYPE.NODE_ANNOUNCEMENT;
+
+    /**
+      Signature of the announcement message by the node's public key
+      returned as a 64-byte Buffer.
+
+      @type {Buffer}
+    */
     this.signature;
 
     /** @type BN */
     this.features;
+
+    /**
+
+      @type number
+    */
     this.timestamp;
-    this.node_id;
-    this.rgb_color;
+
+    /**
+      Compressed public key of the node that is a 33-byte
+      buffer.
+
+      @type {Buffer}
+     */
+    this.nodeId;
+
+    /**
+      Color of the node returned as a 3-byte Buffer.
+
+      @type {Buffer}
+     */
+    this.rgbColor;
+
+    /**
+      Alias of the node returned as a 32-byte Buffer.
+      @type {Buffer}
+     */
     this.alias;
+
     this.addresses;
   }
 
@@ -35,8 +68,8 @@ class NodeAnnouncement {
     instance.features = new BN(reader.readBytes(flen));
 
     instance.timestamp = reader.readUInt32BE();
-    instance.node_id = reader.readBytes(33);
-    instance.rgb_color = reader.readBytes(3);
+    instance.nodeId = reader.readBytes(33);
+    instance.rgbColor = reader.readBytes(3);
     instance.alias = reader.readBytes(32);
 
     let addrlen = reader.readUInt16BE();
@@ -46,7 +79,7 @@ class NodeAnnouncement {
   }
 
   serialize() {
-    // todo
+    // TODO
   }
 }
 
