@@ -149,7 +149,9 @@ class BufferCursor {
   }
 
   /**
-    Read bytes from the buffer
+    Read bytes from the buffer into a new Buffer. Unlike the default
+    slice method, the values do not point to the same memory location
+    as the source buffer. The values are copied to a new buffer.
 
     @param {number} [len] optional number of bytes to read, returns
     all remaining bytes when omitted
@@ -161,13 +163,15 @@ class BufferCursor {
       return Buffer.alloc(0);
     } else if (len > 0) {
       if (this._position + len > this._buffer.length) throw new RangeError('Index out of range');
-      let result = this._buffer.slice(this._position, this._position + len);
+      let slice = this._buffer.slice(this._position, this._position + len);
+      let result = Buffer.alloc(slice.length, slice);
       this._position += len;
       this._lastReadBytes = len;
       return result;
     } else {
       if (this._position === this._buffer.length) throw new RangeError('Index out of range');
-      let result = this._buffer.slice(this._position);
+      let slice = this._buffer.slice(this._position);
+      let result = Buffer.alloc(slice.length, slice);
       this._position = this._buffer.length;
       this._lastReadBytes = result.length;
       return result;
@@ -186,11 +190,13 @@ class BufferCursor {
       return Buffer.alloc(0);
     } else if (len > 0) {
       if (this._position + len > this._buffer.length) throw new RangeError('Index out of range');
-      let result = this._buffer.slice(this._position, this._position + len);
+      let slice = this._buffer.slice(this._position, this._position + len);
+      let result = Buffer.alloc(slice.length, slice);
       return result;
     } else {
       if (this._position === this._buffer.length) throw new RangeError('Index out of range');
-      let result = this._buffer.slice(this._position);
+      let slice = this._buffer.slice(this._position);
+      let result = Buffer.alloc(slice.length, slice);
       return result;
     }
   }

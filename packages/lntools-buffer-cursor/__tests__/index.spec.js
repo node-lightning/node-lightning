@@ -112,6 +112,12 @@ describe('readBytes', () => {
     buffer = new BufferCursor(Buffer.alloc(0));
     expect(buffer.readBytes(0)).to.deep.equal(Buffer.alloc(0));
   });
+  it('should not share memory with the underlying buffer', () => {
+    buffer = new BufferCursor(Buffer.from([0, 1, 2, 3]));
+    let result = buffer.readBytes();
+    result.reverse();
+    expect(buffer.buffer).to.deep.equal(Buffer.from([0, 1, 2, 3]));
+  });
 });
 
 describe('lastVarUint', () => {
@@ -177,6 +183,12 @@ describe('peakBytes', () => {
     let sut = new BufferCursor(Buffer.from([1]));
     sut.readBytes();
     expect(() => sut.peakBytes()).to.throw('Index out of range');
+  });
+  it('should not share memory with the underlying buffer', () => {
+    let sut = new BufferCursor(Buffer.from([0, 1, 2, 3]));
+    let result = sut.peakBytes();
+    result.reverse();
+    expect(sut.buffer).to.deep.equal(Buffer.from([0, 1, 2, 3]));
   });
 });
 
