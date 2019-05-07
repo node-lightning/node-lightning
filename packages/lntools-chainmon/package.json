@@ -1,0 +1,20 @@
+{
+  "name": "@lntools/chainmon",
+  "version": "0.1.0",
+  "description": "Bitcoin chain monitioring",
+  "main": "index.js",
+  "directories": {
+    "lib": "dist"
+  },
+  "scripts": {
+    "tsc": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Brian Mancini <bmancini@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "@lntools/bitcoind": "^0.1.0",
+    "@lntools/bitcoin": "^0.1.0"
+  }
+}
