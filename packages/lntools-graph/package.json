@@ -1,0 +1,36 @@
+{
+  "name": "@lntools/graph",
+  "version": "0.1.0",
+  "description": "Peer graph tools",
+  "keywords": [
+    "lightning network",
+    "graph",
+    "bolt7"
+  ],
+  "author": "Brian Mancini <bmancini@gmail.com>",
+  "homepage": "https://github.com/altangent/lightnode#readme",
+  "license": "MIT",
+  "main": "lib/index.js",
+  "directories": {
+    "lib": "lib",
+    "test": "__tests__"
+  },
+  "files": [
+    "lib"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/altangent/lightnode.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: run tests from root\" && exit 1"
+  },
+  "dependencies": {
+    "@lntools/wire": "^0.1.0",
+    "@lntools/crypt": "^0.1.1"
+  },
+  "devDependencies": {
+    "mocha": "^6.1.3",
+    "nyc": "^13.3.0"
+  }
+}
