@@ -1,0 +1,21 @@
+{
+  "name": "@lntools/bitcoin",
+  "version": "0.1.0",
+  "description": "Bitcoin protocol",
+  "keywords": [],
+  "author": "Brian Mancini <bmancini@gmail.com>",
+  "license": "MIT",
+  "main": "lib/index.js",
+  "scripts": {
+    "tsc": "tsc"
+  },
+  "dependencies": {
+    "@lntools/buffer-cursor": "^0.1.0",
+    "@lntools/crypto": "^0.3.0",
+    "bitcoin-ops": "^1.4.1",
+    "bn.js": "^4.11.8"
+  },
+  "devDependencies": {
+    "@types/bn.js": "^4.11.5"
+  }
+}

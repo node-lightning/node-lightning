@@ -1,0 +1,9 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "allowJs": true,
+    "maxNodeModuleJsDepth": 2,
+    "noEmit": true
+  },
+  "include": ["./lib"]
+}
