@@ -370,6 +370,10 @@ describe('position', () => {
     writebuf.writeBytes(Buffer.alloc(5));
     expect(writebuf.position).to.equal(18);
   });
+  it('should set to specified value', () => {
+    readbuf.position = 0;
+    expect(readbuf.position).to.equal(0);
+  });
 });
 
 describe('eof', () => {

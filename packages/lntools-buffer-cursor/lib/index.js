@@ -22,11 +22,15 @@ class BufferCursor {
   }
 
   /**
-    Gets the current position of the cursor in the buffer
+    Gets or sets the current position of the cursor in the buffer
     @type {number}
    */
   get position() {
     return this._position;
+  }
+
+  set position(val) {
+    this._position = val;
   }
 
   /**
