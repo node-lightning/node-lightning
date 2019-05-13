@@ -5,7 +5,9 @@ const { sha256 } = require('@lntools/crypto');
 module.exports = {
   decodeTx,
   decodeTxId,
+  decodeTxSize,
   isSegWitTx,
+  indexOfWitness,
 };
 
 /**
@@ -25,16 +27,14 @@ function isSegWitTx(raw) {
 /**
   Decodes the txId and hash from the Buffer.
 
-  For non-segwit transitions, the hash value is the
-  double-sha256 of version|vins|vouts|locktime. The txid
-  is the reverse of the hash.
+  For non-segwit transitions, the hash value is the double-sha256 of
+  version|vins|vouts|locktime. The txid is the reverse of the hash.
 
-  For segwit transactions, the hash value is returned as
-  the wtxid as calculated by the double-sha256 of
-   version|0x00|0x01|inputs|outputs|witness|locktime. The
-  txId is calculate the same as legacy transactions by
-  performing a double sha256 hash of the data minus segwit
-  data and markers.
+  For segwit transactions, the hash value is returned as the wtxid as
+  calculated by the double-sha256 of
+   version|0x00|0x01|inputs|outputs|witness|locktime. The txId is
+  calculate the same as legacy transactions by performing a double
+  sha256 hash of the data minus segwit data and markers.
 
   @param {Buffer} raw
   @returns {{
@@ -56,12 +56,133 @@ function decodeTxId(raw) {
     txId = Buffer.alloc(txidHash.length, txidHash).reverse();
     hash = sha256(sha256(raw)).reverse();
   } else {
-    hash = sha256(sha256(raw));
-    txId = Buffer.alloc(hash.length, hash).reverse();
+    let rawhash = sha256(sha256(raw));
+    txId = Buffer.alloc(rawhash.length, rawhash).reverse();
+    hash = Buffer.alloc(rawhash.length, rawhash).reverse();
   }
   return {
     txId,
     hash,
+  };
+}
+
+/**
+  Decodes the size, virtual size, and weight properties
+  from the raw transaction buffer.
+
+  size is the number of raw bytes.
+  weight is the number of witness bytes + the number of non-witness
+    bytes multiplied by four.
+  vsize is the weight divided by four.
+
+  @param {Buffer} raw
+  @returns {{
+    size: Number,
+    vsize: Number,
+    weight: Number
+  }}
+ */
+function decodeTxSize(raw) {
+  let cursor = new BufferCursor(raw);
+  let hasWitness = isSegWitTx(raw);
+
+  let nwBytes = 0;
+  let wBytes = 0;
+
+  // version
+  nwBytes += 4;
+  cursor.position += 4;
+
+  // witness flags
+  if (hasWitness) {
+    wBytes += 2;
+    cursor.position += 2;
+  }
+
+  // number of inputs
+  let vinLen = cursor.readVarUint().toNumber();
+  nwBytes += cursor.lastReadBytes;
+
+  for (let idx = 0; idx < vinLen; idx++) {
+    // prev output hash
+    cursor.position += 32;
+    nwBytes += 32;
+
+    // prev output index
+    cursor.position += 4;
+    nwBytes += 4;
+
+    // script sig length
+    let scriptSigLen = cursor.readVarUint().toNumber(); // safe to convert
+    nwBytes += cursor.lastReadBytes;
+
+    // script sig
+    cursor.position += scriptSigLen;
+    nwBytes += scriptSigLen;
+
+    // seqeuence
+    cursor.position += 4;
+    nwBytes += 4;
+  }
+
+  // number of outputs
+  let voutLen = cursor.readVarUint().toNumber(); // safe to convert
+  nwBytes += cursor.lastReadBytes;
+
+  // process each output
+  for (let idx = 0; idx < voutLen; idx++) {
+    // valid in sats
+    cursor.position += 8;
+    nwBytes += 8;
+
+    // pubkey/redeem script len
+    let pubKeyScriptLen = cursor.readVarUint().toNumber(); // safe to convert
+    nwBytes += cursor.lastReadBytes;
+
+    // pubkeyScript/redeemScript
+    cursor.position += pubKeyScriptLen;
+    nwBytes += pubKeyScriptLen;
+  }
+
+  // process witness data
+  if (hasWitness) {
+    // for each input
+    for (let i = 0; i < vinLen; i++) {
+      // find how many witness components there are
+      let witnessItems = cursor.readVarUint().toNumber(); // safe to convert
+      wBytes += cursor.lastReadBytes;
+
+      // read each witness component
+      for (let w = 0; w < witnessItems; w++) {
+        // read the item length
+        let itemLen = cursor.readVarUint().toNumber(); // safe to convert
+        wBytes += cursor.lastReadBytes;
+
+        // read the item data
+        cursor.position += itemLen;
+        wBytes += itemLen;
+      }
+    }
+  }
+
+  // locktime
+  cursor.position += 4;
+  nwBytes += 4;
+
+  // size will be the raw length of bytes
+  let size = raw.length;
+
+  // weight is non-witness bytes * 4 + witness bytes
+  let weight = nwBytes * 4 + wBytes;
+
+  // virtual size is weight / 4
+  // this is equivalent for non-segwit transactions
+  let vsize = Math.ceil(weight / 4);
+
+  return {
+    size,
+    vsize,
+    weight,
   };
 }
 
@@ -110,8 +231,6 @@ function indexOfWitness(raw) {
   @returns {import("./tx").Tx}
  */
 function decodeTx(raw) {
-  let wBytes = 0;
-  let nwBytes = 0;
   let cursor = new BufferCursor(raw);
 
   /**  @type {Array<import("./tx").TxIn>} */
@@ -122,7 +241,6 @@ function decodeTx(raw) {
 
   // read version
   let version = cursor.readUInt32LE();
-  nwBytes += cursor.lastReadBytes;
 
   // check for precesnse of witness marker and version flag
   let hasWitness = isSegWitTx(raw);
@@ -130,33 +248,26 @@ function decodeTx(raw) {
   // if we have witness, we need to read off the marker/flag now
   if (hasWitness) {
     cursor.readBytes(2);
-    wBytes += cursor.lastReadBytes;
   }
 
   // number of inputs
   let vinLen = cursor.readVarUint().toNumber(); // safe to convert
-  nwBytes += cursor.lastReadBytes;
 
   for (let idx = 0; idx < vinLen; idx++) {
     // prev output hash
     let hash = cursor.readBytes(32);
-    nwBytes += cursor.lastReadBytes;
 
     // prev output index
     let vout = cursor.readUInt32LE();
-    nwBytes += cursor.lastReadBytes;
 
     // script sig length
     let scriptSigLen = cursor.readVarUint().toNumber(); // safe to convert
-    nwBytes += cursor.lastReadBytes;
 
     // script sig
     let scriptSig = cursor.readBytes(scriptSigLen);
-    nwBytes += cursor.lastReadBytes;
 
     // seqeuence
     let sequence = cursor.readUInt32LE();
-    nwBytes += cursor.lastReadBytes;
 
     // add to inputs
     vins.push({
@@ -170,21 +281,17 @@ function decodeTx(raw) {
 
   // number of outputs
   let voutLen = cursor.readVarUint().toNumber(); // safe to convert
-  nwBytes += cursor.lastReadBytes;
 
   // process each output
   for (let idx = 0; idx < voutLen; idx++) {
     // valid in sats
     let value = cursor.readUInt64LE();
-    nwBytes += cursor.lastReadBytes;
 
     // pubkey/redeem script len
     let pubKeyScriptLen = cursor.readVarUint().toNumber(); // safe to convert
-    nwBytes += cursor.lastReadBytes;
 
     // pubkeyScript/redeemScript
     let pubKeyScript = cursor.readBytes(pubKeyScriptLen);
-    nwBytes += cursor.lastReadBytes;
 
     // add to outputs
     vouts.push({
@@ -199,18 +306,15 @@ function decodeTx(raw) {
     for (let i = 0; i < vinLen; i++) {
       // find how many witness components there are
       let witnessItems = cursor.readVarUint().toNumber(); // safe to convert
-      wBytes += cursor.lastReadBytes;
 
       // read each witness component
       vins[i].witness = [];
       for (let w = 0; w < witnessItems; w++) {
         // read the item length
         let itemLen = cursor.readVarUint().toNumber(); // safe to convert
-        wBytes += cursor.lastReadBytes;
 
         // read the item data
         let item = cursor.readBytes(itemLen);
-        wBytes += cursor.lastReadBytes;
 
         // add to witness stack
         vins[i].witness.push(item);
@@ -220,19 +324,11 @@ function decodeTx(raw) {
 
   // finally attach the locktime
   let locktime = cursor.readUInt32LE();
-  nwBytes += cursor.lastReadBytes;
 
-  // size will be the raw length of bytes
-  let size = raw.length;
+  // decode the size
+  let { size, vsize, weight } = decodeTxSize(raw);
 
-  // weight is non-witness bytes * 4 + witness bytes
-  let weight = nwBytes * 4 + wBytes;
-
-  // virtual size is weight / 4
-  // this is equivalent for non-segwit transactions
-  let vsize = Math.ceil(weight / 4);
-
-  // calculate the txId and hash
+  // decode the txId and hash
   let { txId, hash } = decodeTxId(raw);
 
   return {

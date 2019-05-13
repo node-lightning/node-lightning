@@ -7,15 +7,18 @@
   "license": "MIT",
   "main": "lib/index.js",
   "scripts": {
+    "test": "nyc --reporter=lcov --reporter=text mocha --recursive \"__tests__/**/*.spec.js\"",
     "tsc": "tsc"
   },
   "dependencies": {
-    "@lntools/buffer-cursor": "^0.1.0",
+    "@lntools/buffer-cursor": "^0.1.4",
     "@lntools/crypto": "^0.3.0",
     "bitcoin-ops": "^1.4.1",
     "bn.js": "^4.11.8"
   },
   "devDependencies": {
-    "@types/bn.js": "^4.11.5"
+    "@types/bn.js": "^4.11.5",
+    "mocha": "^6.0.2",
+    "nyc": "^13.3.0"
   }
 }
