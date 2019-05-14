@@ -14,7 +14,6 @@ export interface Tx {
 
 export interface TxIn {
   txId: Buffer;
-  hash: Buffer;
   vout: number;
   scriptSig?: Buffer;
   witness?: Array<Buffer>;

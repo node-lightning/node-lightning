@@ -5,6 +5,7 @@ const crypto = require('crypto');
 module.exports = {
   sha256,
   hash160,
+  hash256,
 };
 
 /**
@@ -29,4 +30,14 @@ function hash160(data) {
   let hash = crypto.createHash('ripemd160');
   hash.update(sha256(data));
   return hash.digest();
+}
+
+/**
+  Performs double sha256 hash
+
+  @param {Buffer} data
+  @returns {Buffer} 32-byte buffer
+ */
+function hash256(data) {
+  return sha256(sha256(data));
 }
