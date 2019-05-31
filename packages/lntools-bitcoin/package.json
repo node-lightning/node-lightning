@@ -14,7 +14,8 @@
     "@lntools/buffer-cursor": "^0.1.4",
     "@lntools/crypto": "^0.3.0",
     "bitcoin-ops": "^1.4.1",
-    "bn.js": "^4.11.8"
+    "bn.js": "^4.11.8",
+    "pushdata-bitcoin": "^1.0.1"
   },
   "devDependencies": {
     "@types/bn.js": "^4.11.5",
