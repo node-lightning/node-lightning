@@ -18,21 +18,25 @@ function indexOfWitness(raw) {
   if (!isSegWitTx(raw)) return -1;
 
   let cursor = new BufferCursor(raw);
-  cursor.readUInt32LE(); // version
-  cursor.readBytes(2); // marker and version
-  let vinLen = cursor.readVarUint().toNumber(); // safe to convert
+  cursor.position += 4; // version
+  cursor.position += 2; // segwit marker and version
+
+  let vinLen = cursor.readVarUint().toNumber(); // number of inputs
   for (let idx = 0; idx < vinLen; idx++) {
-    cursor.readBytes(32); // prev output hash
-    cursor.readUInt32LE(); // prev output index
-    let scriptSigLen = cursor.readVarUint().toNumber(); // safe to convert
-    cursor.readBytes(scriptSigLen); // script sig
-    cursor.readUInt32LE(); // sequence
+    cursor.position += 32; // prev output hash
+    cursor.position += 4; // prev output index
+
+    let scriptSigLen = cursor.readVarUint().toNumber(); // script sig length
+    cursor.position += scriptSigLen; // script sig
+    cursor.position += 4; // sequence
   }
-  let voutLen = cursor.readVarUint().toNumber(); // safe to convert
+
+  let voutLen = cursor.readVarUint().toNumber(); // number of outputs
   for (let idx = 0; idx < voutLen; idx++) {
-    cursor.readUInt64LE(); // sats
-    let pubKeyScriptLen = cursor.readVarUint().toNumber(); // safe to convert
-    cursor.readBytes(pubKeyScriptLen); // pubkeyScript/redeemScript
+    cursor.position += 8; // sats
+
+    let pubKeyScriptLen = cursor.readVarUint().toNumber(); // pubkeyscript length
+    cursor.position += pubKeyScriptLen; // pubkeyScript/redeemScript
   }
   return cursor.position;
 }
