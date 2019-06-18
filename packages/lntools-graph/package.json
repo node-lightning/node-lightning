@@ -23,7 +23,7 @@
     "url": "git+https://github.com/altangent/lightnode.git"
   },
   "scripts": {
-    "test": "echo \"Error: run tests from root\" && exit 1"
+    "test": "echo \"Error: run tests from root\""
   },
   "dependencies": {
     "@lntools/wire": "^0.1.0",
