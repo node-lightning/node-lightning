@@ -27,7 +27,7 @@
   },
   "dependencies": {
     "@lntools/wire": "^0.1.0",
-    "@lntools/crypt": "^0.1.1"
+    "@lntools/crypto": "^0.3.0"
   },
   "devDependencies": {
     "mocha": "^6.1.3",
