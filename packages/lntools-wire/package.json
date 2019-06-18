@@ -22,7 +22,7 @@
     "url": "git+https://github.com/altangent/lntools.git"
   },
   "dependencies": {
-    "@lntools/crypto": "^0.1.1",
+    "@lntools/crypto": "^0.4.0",
     "@lntools/noise": "^0.1.0",
     "bn.js": "^4.11.8",
     "simple-buffer-cursor": "^1.0.3",
