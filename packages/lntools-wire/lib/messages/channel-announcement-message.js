@@ -1,6 +1,7 @@
 const BufferCursor = require('simple-buffer-cursor');
 const { MESSAGE_TYPE } = require('../constants');
 const BN = require('bn.js');
+const crypto = require('@lntools/crypto');
 
 class ChannelAnnouncement {
   /**
@@ -190,6 +191,33 @@ class ChannelAnnouncement {
     writer.writeBytes(this.bitcoinKey1);
     writer.writeBytes(this.bitcoinKey2);
     return result;
+  }
+
+  /**
+    Message hashing is after the first 258 bytes of the message
+    and excludes the type and signatures. It performs a double
+    sha-256 hash of the remaining bytes.
+    @param {ChannelAnnouncement} msg
+    @returns {boolean}
+   */
+  static hash(msg) {
+    let bytes = msg.serialize().slice(258);
+    return crypto.hash256(bytes);
+  }
+
+  /**
+
+    @param {ChannelAnnouncement} msg
+    @returns {boolean}
+   */
+  static verifySignatures(msg) {
+    let hash = ChannelAnnouncement.hash(msg);
+    return (
+      crypto.verifySig(hash, msg.bitcoinSignature1, msg.bitcoinKey1) &&
+      crypto.verifySig(hash, msg.bitcoinSignature2, msg.bitcoinKey2) &&
+      crypto.verifySig(hash, msg.nodeSignature1, msg.nodeId1) &&
+      crypto.verifySig(hash, msg.nodeSignature2, msg.nodeId2)
+    );
   }
 }
 
