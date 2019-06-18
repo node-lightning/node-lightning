@@ -1,6 +1,6 @@
 {
   "name": "@lntools/crypto",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Crypto suite for LN Tools",
   "author": "Brian Mancini <bmancini@gmail.com>",
   "homepage": "https://github.com/altangent/lntools#readme",
