@@ -67,4 +67,6 @@ class PongMessage {
   }
 }
 
-module.exports = PongMessage;
+module.exports = {
+  PongMessage,
+};

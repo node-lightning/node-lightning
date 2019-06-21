@@ -1,5 +1,5 @@
-const PingMessage = require('./messages/ping-message');
-const PongMessage = require('./messages/pong-message');
+const { PingMessage } = require('./messages/ping-message');
+const { PongMessage } = require('./messages/pong-message');
 
 class PingPongState {
   /**
@@ -126,4 +126,6 @@ class PingPongState {
   }
 }
 
-module.exports = PingPongState;
+module.exports = {
+  PingPongState,
+};

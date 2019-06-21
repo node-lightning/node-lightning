@@ -1,18 +1,10 @@
 module.exports = {
-  /** @type InitMessage */
-  InitMessage: require('./init-message'),
+  ...require('./init-message'),
+  ...require('./error-message'),
+  ...require('./ping-message'),
+  ...require('./pong-message'),
 
-  /** @type ErrorMessage */
-  ErrorMessage: require('./error-message'),
-
-  /** @type PingMessage */
-  PingMessage: require('./ping-message'),
-
-  /** @type PongMessage */
-  PongMessage: require('./pong-message'),
-
-  // AnnouncementSignaturesMessage: require('./announcement-signatures-message'),
-  ChannelAnnouncementMessage: require('./channel-announcement-message'),
-  ChannelUpdateMessage: require('./channel-update-message'),
-  NodeAnnouncementMessage: require('./node-announcement-message'),
+  ...require('./channel-announcement-message'),
+  ...require('./channel-update-message'),
+  ...require('./node-announcement-message'),
 };

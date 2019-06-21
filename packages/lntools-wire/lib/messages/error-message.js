@@ -82,4 +82,6 @@ class ErrorMessage {
   }
 }
 
-module.exports = ErrorMessage;
+module.exports = {
+  ErrorMessage,
+};

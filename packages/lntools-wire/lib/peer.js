@@ -3,8 +3,8 @@ const { EventEmitter } = require('events');
 const winston = require('winston');
 const noise = require('@lntools/noise');
 const MessageFactory = require('./message-factory');
-const InitMessage = require('./messages/init-message');
-const PingPongState = require('./pingpong-state');
+const { InitMessage } = require('./messages/init-message');
+const { PingPongState } = require('./pingpong-state');
 
 const PeerStates = {
   pending: 0,
@@ -231,4 +231,6 @@ class Peer extends EventEmitter {
 
 Peer.states = PeerStates;
 
-module.exports = Peer;
+module.exports = {
+  Peer,
+};

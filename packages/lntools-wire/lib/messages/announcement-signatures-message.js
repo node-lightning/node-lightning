@@ -96,4 +96,6 @@ class AnnouncementSignaturesMessage {
   }
 }
 
-module.exports = AnnouncementSignaturesMessage;
+module.exports = {
+  AnnouncementSignaturesMessage,
+};

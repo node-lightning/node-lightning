@@ -1,6 +1,6 @@
 const { expect } = require('chai');
 const sinon = require('sinon');
-const PingPongState = require('../lib/pingpong-state');
+const { PingPongState } = require('../lib/pingpong-state');
 
 function createAndStart({ PING_INTERVAL_MS, PONG_TIMEOUT_MS, PING_FLOOD_THRESHOLD }) {
   let peerClient = {

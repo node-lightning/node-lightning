@@ -19,6 +19,11 @@ function shortChannelIdNumber(buf) {
   Returns the shortChannelId as an object containing
   the block number, transaction index and vout index.
   @param {Buffer} buf
+  @returns {{
+    block: number
+    txIdx: number
+    voutIdx: number
+  }}
  */
 function shortChannelIdObj(buf) {
   return {

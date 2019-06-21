@@ -1,5 +1,5 @@
 const { expect } = require('chai');
-const ChannelUpdateMessage = require('../../lib/messages/channel-update-message');
+const { ChannelUpdateMessage } = require('../../lib/messages/channel-update-message');
 
 describe('ChannelUpdateMessage', () => {
   let input;

@@ -2,10 +2,10 @@ const { EventEmitter } = require('events');
 const winston = require('winston');
 const { expect } = require('chai');
 const sinon = require('sinon');
-const Peer = require('../lib/peer');
-const PingPongState = require('../lib/pingpong-state');
-const InitMessage = require('../lib/messages/init-message');
 const noise = require('@lntools/noise');
+const { Peer } = require('../lib/peer');
+const { PingPongState } = require('../lib/pingpong-state');
+const { InitMessage } = require('../lib/messages/init-message');
 
 class FakeSocket extends EventEmitter {
   constructor() {

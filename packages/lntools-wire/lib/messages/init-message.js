@@ -204,4 +204,6 @@ class InitMessage {
   }
 }
 
-module.exports = InitMessage;
+module.exports = {
+  InitMessage,
+};

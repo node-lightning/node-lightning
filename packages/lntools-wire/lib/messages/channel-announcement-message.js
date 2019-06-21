@@ -3,7 +3,7 @@ const { MESSAGE_TYPE } = require('../constants');
 const BN = require('bn.js');
 const crypto = require('@lntools/crypto');
 
-class ChannelAnnouncement {
+class ChannelAnnouncementMessage {
   /**
     Messagee contains ownership information regarding a channel.
     It ties each on-chain Bitcoin key to the associated Lightning
@@ -126,13 +126,13 @@ class ChannelAnnouncement {
   }
 
   /**
-    Deserializes the Buffer into a ChannelAnnouncement message.
+    Deserializes the Buffer into a ChannelAnnouncementMessage.
 
     @param {Buffer} payload
-    @returns {ChannelAnnouncement}
+    @returns {ChannelAnnouncementMessage}
    */
   static deserialize(payload) {
-    let instance = new ChannelAnnouncement();
+    let instance = new ChannelAnnouncementMessage();
     let reader = BufferCursor.from(payload);
     reader.readUInt16BE(); // read off type
 
@@ -197,7 +197,7 @@ class ChannelAnnouncement {
     Message hashing is after the first 258 bytes of the message
     and excludes the type and signatures. It performs a double
     sha-256 hash of the remaining bytes.
-    @param {ChannelAnnouncement} msg
+    @param {ChannelAnnouncementMessage} msg
     @returns {boolean}
    */
   static hash(msg) {
@@ -207,11 +207,11 @@ class ChannelAnnouncement {
 
   /**
 
-    @param {ChannelAnnouncement} msg
+    @param {ChannelAnnouncementMessage} msg
     @returns {boolean}
    */
   static verifySignatures(msg) {
-    let hash = ChannelAnnouncement.hash(msg);
+    let hash = ChannelAnnouncementMessage.hash(msg);
     return (
       crypto.verifySig(hash, msg.bitcoinSignature1, msg.bitcoinKey1) &&
       crypto.verifySig(hash, msg.bitcoinSignature2, msg.bitcoinKey2) &&
@@ -221,4 +221,6 @@ class ChannelAnnouncement {
   }
 }
 
-module.exports = ChannelAnnouncement;
+module.exports = {
+  ChannelAnnouncementMessage,
+};

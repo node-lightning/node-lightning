@@ -1,6 +1,6 @@
 const { expect } = require('chai');
 const BN = require('bn.js');
-const ChannelAnnouncementMessage = require('../../lib/messages/channel-announcement-message');
+const { ChannelAnnouncementMessage } = require('../../lib/messages/channel-announcement-message');
 
 describe('ChannelAnnouncementMessage', () => {
   describe('.deserialize', () => {

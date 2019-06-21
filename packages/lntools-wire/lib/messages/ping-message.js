@@ -90,4 +90,6 @@ class PingMessage {
   }
 }
 
-module.exports = PingMessage;
+module.exports = {
+  PingMessage,
+};
