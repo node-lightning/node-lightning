@@ -1,19 +1,25 @@
 const winston = require('winston');
 const { MESSAGE_TYPE } = require('./constants');
-const messages = require('./messages');
+const { InitMessage } = require('./messages/init-message');
+const { ErrorMessage } = require('./messages/error-message');
+const { PingMessage } = require('./messages/ping-message');
+const { PongMessage } = require('./messages/pong-message');
+const { NodeAnnouncementMessage } = require('./messages/node-announcement-message');
+const { ChannelAnnouncementMessage } = require('./messages/channel-announcement-message');
+const { ChannelUpdateMessage } = require('./messages/channel-update-message');
 
 const typeMap = {
   // control messages
-  [MESSAGE_TYPE.INIT]: messages.InitMessage,
-  [MESSAGE_TYPE.ERROR]: messages.ErrorMessage,
-  [MESSAGE_TYPE.PING]: messages.PingMessage,
-  [MESSAGE_TYPE.PONG]: messages.PongMessage,
+  [MESSAGE_TYPE.INIT]: InitMessage,
+  [MESSAGE_TYPE.ERROR]: ErrorMessage,
+  [MESSAGE_TYPE.PING]: PingMessage,
+  [MESSAGE_TYPE.PONG]: PongMessage,
 
   // channel messages
   // [MESSAGE_TYPE.ANNOUNCEMENT_SIGNATURES]: messages.AnnouncementSignaturesMessage,
-  [MESSAGE_TYPE.NODE_ANNOUNCEMENT]: messages.NodeAnnouncementMessage,
-  [MESSAGE_TYPE.CHANNEL_ANNOUNCEMENT]: messages.ChannelAnnouncementMessage,
-  [MESSAGE_TYPE.CHANNEL_UPDATE]: messages.ChannelUpdateMessage,
+  [MESSAGE_TYPE.NODE_ANNOUNCEMENT]: NodeAnnouncementMessage,
+  [MESSAGE_TYPE.CHANNEL_ANNOUNCEMENT]: ChannelAnnouncementMessage,
+  [MESSAGE_TYPE.CHANNEL_UPDATE]: ChannelUpdateMessage,
 };
 
 function constructType(type) {

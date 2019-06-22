@@ -231,6 +231,4 @@ class Peer extends EventEmitter {
 
 Peer.states = PeerStates;
 
-module.exports = {
-  Peer,
-};
+module.exports.Peer = Peer;

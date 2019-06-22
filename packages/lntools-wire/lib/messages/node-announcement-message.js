@@ -2,7 +2,7 @@ const BufferCursor = require('simple-buffer-cursor');
 const BN = require('bn.js');
 const { MESSAGE_TYPE } = require('../constants');
 
-class NodeAnnouncementMessage {
+exports.NodeAnnouncementMessage = class NodeAnnouncementMessage {
   /**
     This gossip message allows a node to indicate extra data associated with it,
     in addition to its public key. To avoid trivial denial of service attacks,
@@ -81,8 +81,4 @@ class NodeAnnouncementMessage {
   serialize() {
     // TODO
   }
-}
-
-module.exports = {
-  NodeAnnouncementMessage,
 };

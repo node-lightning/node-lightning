@@ -3,7 +3,7 @@ const { MESSAGE_TYPE } = require('../constants');
 const BN = require('bn.js');
 const crypto = require('@lntools/crypto');
 
-class ChannelAnnouncementMessage {
+exports.ChannelAnnouncementMessage = class ChannelAnnouncementMessage {
   /**
     Messagee contains ownership information regarding a channel.
     It ties each on-chain Bitcoin key to the associated Lightning
@@ -219,8 +219,4 @@ class ChannelAnnouncementMessage {
       crypto.verifySig(hash, msg.nodeSignature2, msg.nodeId2)
     );
   }
-}
-
-module.exports = {
-  ChannelAnnouncementMessage,
 };

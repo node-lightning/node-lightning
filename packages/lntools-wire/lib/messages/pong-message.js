@@ -1,7 +1,7 @@
 const BufferCursor = require('simple-buffer-cursor');
 const { MESSAGE_TYPE } = require('../constants');
 
-class PongMessage {
+exports.PongMessage = class PongMessage {
   /**
     In order to allow for the existence of long-lived TCP
     connections, at times it may be required that both ends keep
@@ -65,8 +65,4 @@ class PongMessage {
     writer.writeBytes(this.ignored);
     return buffer;
   }
-}
-
-module.exports = {
-  PongMessage,
 };

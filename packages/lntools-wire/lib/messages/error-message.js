@@ -1,7 +1,7 @@
 const BufferCursor = require('simple-buffer-cursor');
 const { MESSAGE_TYPE } = require('../constants');
 
-class ErrorMessage {
+exports.ErrorMessage = class ErrorMessage {
   /**
     This message is defined in BOLT #1 and is used for telling
     a peer that something is incorrect. The message can indicate
@@ -80,8 +80,4 @@ class ErrorMessage {
     writer.writeBytes(this.data);
     return buffer;
   }
-}
-
-module.exports = {
-  ErrorMessage,
 };

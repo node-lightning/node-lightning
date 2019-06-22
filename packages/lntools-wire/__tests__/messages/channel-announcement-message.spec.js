@@ -9,7 +9,7 @@ describe('ChannelAnnouncementMessage', () => {
       'hex'
     );
 
-    /** @type {ChannelAnnouncement} */
+    /** @type {ChannelAnnouncementMessage} */
     let result;
 
     before(() => {

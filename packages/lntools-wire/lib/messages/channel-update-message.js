@@ -2,7 +2,7 @@ const BufferCursor = require('simple-buffer-cursor');
 const BN = require('bn.js');
 // const crypto = require('@lntools/crypto');
 
-class ChannelUpdateMessage {
+exports.ChannelUpdateMessage = class ChannelUpdateMessage {
   /**
     After a channel has been announced, each side independently announces the fees
     and minimum expiry delta it requires to relay HTLCs through this channel. A
@@ -197,8 +197,4 @@ class ChannelUpdateMessage {
     // writer.writeUInt32BE(this.feeProportionalMillionths);
     // return result;
   }
-}
-
-module.exports = {
-  ChannelUpdateMessage,
 };

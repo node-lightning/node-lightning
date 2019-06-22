@@ -1,7 +1,7 @@
 const BufferCursor = require('simple-buffer-cursor');
 const { MESSAGE_TYPE } = require('../constants');
 
-class AnnouncementSignaturesMessage {
+module.exports.AnnouncementSignaturesMessage = class AnnouncementSignaturesMessage {
   /**
     This is a direct messagee between two endpoints of a channel
     and serves as an opt-in mechanism to allow the
@@ -94,8 +94,4 @@ class AnnouncementSignaturesMessage {
     writer.writeBytes(this.bitcoinSignature);
     return writer;
   }
-}
-
-module.exports = {
-  AnnouncementSignaturesMessage,
 };

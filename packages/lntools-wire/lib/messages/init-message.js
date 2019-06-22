@@ -3,7 +3,7 @@ const BN = require('bn.js');
 const bitwise = require('../bitwise');
 const { MESSAGE_TYPE } = require('../constants');
 
-class InitMessage {
+exports.InitMessage = class InitMessage {
   /**
     InitMessage is defined in BOLT #1. Once authentication is complete,
     the first message reveals the features supported or required by
@@ -202,8 +202,4 @@ class InitMessage {
     else this.unsetLocalBit(7);
     this.unsetLocalBit(6);
   }
-}
-
-module.exports = {
-  InitMessage,
 };

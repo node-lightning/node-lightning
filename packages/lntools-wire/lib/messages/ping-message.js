@@ -1,7 +1,7 @@
 const BufferCursor = require('simple-buffer-cursor');
 const { MESSAGE_TYPE, PONG_BYTE_THRESHOLD } = require('../constants');
 
-class PingMessage {
+exports.PingMessage = class PingMessage {
   /**
     In order to allow for the existence of long-lived TCP
     connections,  at times it may be required that both ends keep
@@ -88,8 +88,4 @@ class PingMessage {
   get triggersReply() {
     return this.numPongBytes < PONG_BYTE_THRESHOLD;
   }
-}
-
-module.exports = {
-  PingMessage,
 };
