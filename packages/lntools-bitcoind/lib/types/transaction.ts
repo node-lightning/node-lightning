@@ -40,3 +40,11 @@ export interface ScriptPubKey {
   reqSigs?: number;
   addresses?: Array<string>;
 }
+
+export interface Utxo {
+  bestblock: string;
+  confirmations: string;
+  value: number;
+  scriptPubKey: ScriptPubKey;
+  coinbase: boolean;
+}

@@ -3,6 +3,7 @@ import * as http from 'http';
 import * as zmq from 'zeromq';
 import { BlockSummary } from './types/blocksummary';
 import { Transaction } from './types/transaction';
+import { Utxo } from './types/transaction';
 import { Socket } from 'net';
 
 export interface BitcoindOptions {
@@ -83,6 +84,11 @@ export class BitcoindClient extends EventEmitter {
   async getRawTransaction(txid: string): Promise<Buffer> {
     let result = await this._request('getrawtransaction', [txid, false]);
     return Buffer.from(result as string, 'hex');
+  }
+
+  async getUtxo(txid: string, n: number): Promise<Utxo> {
+    let result = await this._request('gettxout', [txid, n]);
+    return result as Utxo;
   }
 
   _request(method: string, params: any = []) {
