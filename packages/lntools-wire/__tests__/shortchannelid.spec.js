@@ -1,27 +1,20 @@
 const { expect } = require('chai');
 const sut = require('../lib/shortchanid');
-// const BN = require('bn.js');
 
-// let b = Buffer.alloc(8);
-// b.writeUIntBE(539268, 0, 3);
-// b.writeUIntBE(845, 3, 3);
-// b.writeUIntBE(1, 6, 2);
-// console.log(b.toString('hex'));
-
-// 582766451563888641
-// block 530023
-// txIdx 1147
-// voutIdx 1
-// ae99a7038460ac5fad42fa2ace52a1d461a266eb2a23263b98031d39ab7bdeed
-
-// let s = new BN('582766451563888641', 10).toBuffer();
-// console.log(sut.shortChannelIdObj(s));
+describe('shortChannelIdBuffer', () => {
+  it('should conver the object to a buffer', () => {
+    let input = { block: 1288457, txIdx: 3, voutIdx: 0 };
+    let expected = Buffer.from('13a9090000030000', 'hex');
+    let result = sut.shortChannelIdBuffer(input);
+    expect(result).to.deep.equal(expected);
+  });
+});
 
 describe('shortChannelIdNumber', () => {
   it('should convert the buffer to a string', () => {
-    let input = Buffer.from('083a8400034d0001', 'hex');
+    let input = Buffer.from('13a9090000030000', 'hex');
     let result = sut.shortChannelIdNumber(input);
-    expect(result).to.equal('592931436542885889');
+    expect(result).to.equal('1416673453389578240');
   });
 });
 

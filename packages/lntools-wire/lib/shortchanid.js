@@ -1,10 +1,29 @@
 const BN = require('bn.js');
 
 module.exports = {
+  shortChannelIdBuffer,
   shortChannelIdNumber,
   shortChannelIdObj,
   shortChannelIdString,
 };
+
+/**
+  Converts the shortChannelId object into a buffer
+  @param {{
+    block: number
+    txIdx: number
+    voutIdx: number
+  }}
+  @returns {string}
+ */
+function shortChannelIdBuffer(obj) {
+  if (!obj) return Buffer.alloc(8);
+  let buf = Buffer.alloc(8);
+  buf.writeUIntBE(obj.block, 0, 3);
+  buf.writeUIntBE(obj.txIdx, 3, 3);
+  buf.writeUIntBE(obj.voutIdx, 6, 2);
+  return buf;
+}
 
 /**
   Returns the shortChannelId as a base 10 number string.
