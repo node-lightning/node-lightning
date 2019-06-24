@@ -26,8 +26,11 @@
     "test": "echo \"Error: run tests from root\""
   },
   "dependencies": {
-    "@lntools/wire": "^0.1.0",
-    "@lntools/crypto": "^0.3.0"
+    "@lntools/bitcoin": "^0.1.0",
+    "@lntools/bitcoind": "^0.1.0",
+    "@lntools/crypto": "^0.3.0",
+    "@lntools/wire": "^0.1.1",
+    "bn.js": "^4.11.8"
   },
   "devDependencies": {
     "mocha": "^6.1.3",

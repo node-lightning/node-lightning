@@ -1,70 +1,95 @@
+// @ts-check
+
+const { shortChannelIdNumber } = require('@lntools/wire');
+
 /**
-  Channel Announcment:
-
-64 : node_signature_1 ]
-64 : node_signature_2 ]
-64 : bitcoin_signature_1 ]
-64 : bitcoin_signature_2 ]
-2 : len ]
-len : features ]
-32 : chain_hash ]
-8 : short_channel_id ]
-33 : node_id_1 ]
-33 : node_id_2 ]
-33 : bitcoin_key_1 ]
-33 : bitcoin_key_2 ]
-
+ @typedef {import("@lntools/wire").ChannelAnnouncementMessage} ChannelAnnouncementMessage
+ @typedef {import("./channel-settings").ChannelSettings} ChannelSettings
+ @typedef {import("bn.js")} BN
 */
 
-/**
-  Channel Update
-
-64 : signature ]
-32 : chain_hash ]
-8 : short_channel_id ]
-4 : timestamp ]
-1 : message_flags ]
-1 : channel_flags ]
-2 : cltv_expiry_delta ]
-8 : htlc_minimum_msat ]
-4 : fee_base_msat ]
-4 : fee_proportional_millionths ]
-8 : htlc_maximum_msat ]
- */
-
-class Channel {
+exports.Channel = class Channel {
   constructor() {
-    // this.nodeSignature1;
-    // this.nodeSignature2;
-    // this.bitcoinSignature1;
-    // this.bitcoinSignature2;
-    // this.features;
-    // this.chainHash;
+    /**
+      @type {Buffer}
+     */
+    this.chainHash;
 
-    /** @type {string} */
+    /**
+      @type {Buffer}
+     */
     this.shortChannelId;
 
-    /** @type {string} */
+    /**
+      @type {ChannelAnnouncementMessage}
+     */
+    this.channelAnnouncmentMessage;
+
+    /** @type {{ txId: string, output: number}} */
     this.channelPoint; // obtained after verifying the tx
 
-    /** @type {string} */
-    this.capacity; // obtained after verifying the tx
-
-    /** @type {string} */
-    this.nodeId1;
-
-    /** @type {string} */
-    this.nodeId2;
-    /** @type {number} */
-    this.lastUpdate;
-    // this.bitcoinKey1;
-    // this.bitcoinKey2;
-
+    /**
+      @type {ChannelSettings}
+    */
     this.node1Settings;
+
+    /**
+     @type {ChannelSettings}
+   */
     this.node2Settings;
 
-    this.updates = [];
-  }
-}
+    /** @type {Buffer} */
+    this.nodeId1;
 
-module.exports = Channel;
+    /** @type {Buffer} */
+    this.nodeId2;
+
+    /** @type {number} */
+    this.lastUpdate;
+
+    /** @type {BN} */
+    this.capacity;
+  }
+
+  /**
+    Routable when nodes are known and validated and at least one
+    node has broadcast its relay fees
+    @type {boolean}
+   */
+  get isRoutable() {
+    return this.nodeId1 && this.nodeId2 && (this.node1Settings || this.node2Settings) && true;
+  }
+
+  /**
+    Update channel settings
+    @param {ChannelSettings} settings
+    @returns {boolean}
+   */
+  updateSettings(settings) {
+    if (settings.direction === 0) {
+      if (this.node1Settings && this.node1Settings.timestamp > settings.timestamp) {
+        return false;
+      }
+      this.node1Settings = settings;
+      return true;
+    } else {
+      if (this.node2Settings && this.node2Settings.timestamp > settings.timestamp) {
+        return false;
+      }
+      this.node2Settings = settings;
+      return true;
+    }
+  }
+
+  toJSON() {
+    return {
+      shortChannelId: shortChannelIdNumber(this.shortChannelId),
+      channelPoint: `${this.channelPoint.txId}:${this.channelPoint.output}`,
+      node1PubKey: this.nodeId1.toString('hex'),
+      node2PubKey: this.nodeId2.toString('hex'),
+      capacity: this.capacity.toString(10),
+      node1Settings: this.node1Settings,
+      node2Settings: this.node2Settings,
+    };
+  }
+};
