@@ -1,4 +1,6 @@
-const BufferCursor = require('simple-buffer-cursor');
+// @ts-check
+
+const BufferCursor = require('@lntools/buffer-cursor');
 const BN = require('bn.js');
 // const crypto = require('@lntools/crypto');
 
@@ -149,7 +151,7 @@ exports.ChannelUpdateMessage = class ChannelUpdateMessage {
    */
   static deserialize(payload) {
     let instance = new ChannelUpdateMessage();
-    let reader = BufferCursor.from(payload);
+    let reader = new BufferCursor(payload);
     reader.readUInt16BE(); // read off type
 
     instance.signature = reader.readBytes(64);

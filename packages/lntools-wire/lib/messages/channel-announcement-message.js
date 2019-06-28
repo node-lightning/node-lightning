@@ -1,4 +1,6 @@
-const BufferCursor = require('simple-buffer-cursor');
+// @ts-check
+
+const BufferCursor = require('@lntools/buffer-cursor');
 const { MESSAGE_TYPE } = require('../constants');
 const BN = require('bn.js');
 const crypto = require('@lntools/crypto');
@@ -133,7 +135,7 @@ exports.ChannelAnnouncementMessage = class ChannelAnnouncementMessage {
    */
   static deserialize(payload) {
     let instance = new ChannelAnnouncementMessage();
-    let reader = BufferCursor.from(payload);
+    let reader = new BufferCursor(payload);
     reader.readUInt16BE(); // read off type
 
     instance.nodeSignature1 = reader.readBytes(64);
@@ -176,7 +178,7 @@ exports.ChannelAnnouncementMessage = class ChannelAnnouncementMessage {
       33 +  // bitcoin_key_1
       33    // bitcion_key_2
     ); // prettier-ignore
-    let writer = BufferCursor.from(result);
+    let writer = new BufferCursor(result);
     writer.writeUInt16BE(this.type);
     writer.writeBytes(this.nodeSignature1);
     writer.writeBytes(this.nodeSignature2);
@@ -198,7 +200,7 @@ exports.ChannelAnnouncementMessage = class ChannelAnnouncementMessage {
     and excludes the type and signatures. It performs a double
     sha-256 hash of the remaining bytes.
     @param {ChannelAnnouncementMessage} msg
-    @returns {boolean}
+    @returns {Buffer}
    */
   static hash(msg) {
     let bytes = msg.serialize().slice(258);
@@ -206,6 +208,14 @@ exports.ChannelAnnouncementMessage = class ChannelAnnouncementMessage {
   }
 
   /**
+    Performs validation the message was signed by each node and the
+    the corresponding bitcoin key is owned by the owner of the node.
+
+    This is accomplished by:
+    1. verifying the bitcoinSignatures1/2 are validate signatures
+       from bitcoinKey1/2
+    2. verifying the nodeSignature1/2 are validate signatures
+        from nodeId1/2
 
     @param {ChannelAnnouncementMessage} msg
     @returns {boolean}

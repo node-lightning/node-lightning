@@ -1,4 +1,6 @@
-const BufferCursor = require('simple-buffer-cursor');
+// @ts-check
+
+const BufferCursor = require('@lntools/buffer-cursor');
 const { MESSAGE_TYPE } = require('../constants');
 
 module.exports.AnnouncementSignaturesMessage = class AnnouncementSignaturesMessage {
@@ -61,7 +63,7 @@ module.exports.AnnouncementSignaturesMessage = class AnnouncementSignaturesMessa
     @return {AnnouncementSignaturesMessage}
    */
   static deserialize(payload) {
-    let reader = BufferCursor.from(payload);
+    let reader = new BufferCursor(payload);
     reader.readUInt16BE(); // read off type
 
     let instance = new AnnouncementSignaturesMessage();
@@ -86,12 +88,12 @@ module.exports.AnnouncementSignaturesMessage = class AnnouncementSignaturesMessa
       64 + // node_signature
         64 // bitcoin_signaturee
     );
-    let writer = BufferCursor.from(buffer);
+    let writer = new BufferCursor(buffer);
     writer.writeUInt16BE(this.type);
     writer.writeBytes(this.channelId);
     writer.writeBytes(this.shortChannelId);
     writer.writeBytes(this.nodeSignature);
     writer.writeBytes(this.bitcoinSignature);
-    return writer;
+    return buffer;
   }
 };

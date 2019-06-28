@@ -1,4 +1,6 @@
-const BufferCursor = require('simple-buffer-cursor');
+// @ts-check
+
+const BufferCursor = require('@lntools/buffer-cursor');
 const { MESSAGE_TYPE } = require('../constants');
 
 exports.ErrorMessage = class ErrorMessage {
@@ -48,7 +50,7 @@ exports.ErrorMessage = class ErrorMessage {
     @return ErrorMessage
    */
   static deserialize(payload) {
-    let reader = BufferCursor.from(payload);
+    let reader = new BufferCursor(payload);
     reader.readUInt16BE(); // read type
 
     let instance = new ErrorMessage();
@@ -73,7 +75,7 @@ exports.ErrorMessage = class ErrorMessage {
       2 + // len
         this.data.length
     );
-    let writer = BufferCursor.from(buffer);
+    let writer = new BufferCursor(buffer);
     writer.writeUInt16BE(this.type);
     writer.writeUInt32BE(this.channelId);
     writer.writeUInt16BE(this.data.length);
