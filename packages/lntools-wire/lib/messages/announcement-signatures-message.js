@@ -1,3 +1,5 @@
+// @ts-check
+
 const BufferCursor = require('simple-buffer-cursor');
 const { MESSAGE_TYPE } = require('../constants');
 
@@ -92,6 +94,6 @@ module.exports.AnnouncementSignaturesMessage = class AnnouncementSignaturesMessa
     writer.writeBytes(this.shortChannelId);
     writer.writeBytes(this.nodeSignature);
     writer.writeBytes(this.bitcoinSignature);
-    return writer;
+    return buffer;
   }
 };

@@ -1,6 +1,13 @@
+// @ts-check
+
 const BufferCursor = require('simple-buffer-cursor');
 const BN = require('bn.js');
 const { MESSAGE_TYPE } = require('../constants');
+const { deserializeAddress } = require('../deserialize/address/deserialize-address');
+
+/**
+  @typedef {import("../domain/address").Address} Address
+ */
 
 exports.NodeAnnouncementMessage = class NodeAnnouncementMessage {
   /**
@@ -54,7 +61,14 @@ exports.NodeAnnouncementMessage = class NodeAnnouncementMessage {
      */
     this.alias;
 
-    this.addresses;
+    /**
+      Addresses that the node allow public network connections
+      on. The type indicates how the address is encoded. Addresses
+      are in order of connectivity preference. Currently
+      supported addresses formats are IPv4, IPv6, Tor2 and Tor3
+      @type {Array<Address>}
+     */
+    this.addresses = [];
   }
 
   static deserialize(payload) {
@@ -71,9 +85,15 @@ exports.NodeAnnouncementMessage = class NodeAnnouncementMessage {
     instance.nodeId = reader.readBytes(33);
     instance.rgbColor = reader.readBytes(3);
     instance.alias = reader.readBytes(32);
+    instance.addresses = [];
 
-    let addrlen = reader.readUInt16BE();
-    instance.addresses = reader.readBytes(addrlen);
+    let addrlen = reader.readUInt16BE(); // number of bytes
+    let startPos = reader.position;
+    while (reader.position < startPos + addrlen) {
+      let type = reader.readUInt8();
+      let address = deserializeAddress(type, reader);
+      instance.addresses.push(address);
+    }
 
     return instance;
   }

@@ -25,6 +25,7 @@
     "@lntools/crypto": "^0.4.0",
     "@lntools/noise": "^0.1.0",
     "bn.js": "^4.11.8",
+    "rfc4648": "^1.2.1",
     "simple-buffer-cursor": "^1.0.3",
     "winston": "^3.2.1"
   },
