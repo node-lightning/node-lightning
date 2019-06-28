@@ -1,4 +1,6 @@
-const BufferCursor = require('simple-buffer-cursor');
+// @ts-check
+
+const BufferCursor = require('@lntools/buffer-cursor');
 const { MESSAGE_TYPE, PONG_BYTE_THRESHOLD } = require('../constants');
 
 exports.PingMessage = class PingMessage {
@@ -48,7 +50,7 @@ exports.PingMessage = class PingMessage {
     @return PingMessage
    */
   static deserialize(payload) {
-    let cursor = BufferCursor.from(payload);
+    let cursor = new BufferCursor(payload);
     cursor.readUInt16BE();
 
     let instance = new PingMessage();
@@ -71,7 +73,7 @@ exports.PingMessage = class PingMessage {
       2 + // byteslen
         this.ignored.length
     );
-    let cursor = BufferCursor.from(buffer);
+    let cursor = new BufferCursor(buffer);
     cursor.writeUInt16BE(this.type);
     cursor.writeUInt16BE(this.numPongBytes);
     cursor.writeUInt16BE(this.ignored.length);

@@ -1,6 +1,6 @@
 // @ts-check
 
-const BufferCursor = require('simple-buffer-cursor');
+const BufferCursor = require('@lntools/buffer-cursor');
 const crypto = require('@lntools/crypto');
 const BN = require('bn.js');
 const { MESSAGE_TYPE } = require('../constants');
@@ -75,7 +75,7 @@ exports.NodeAnnouncementMessage = class NodeAnnouncementMessage {
 
   static deserialize(payload) {
     let instance = new NodeAnnouncementMessage();
-    let reader = BufferCursor.from(payload);
+    let reader = new BufferCursor(payload);
     reader.readUInt16BE(); // read off type
 
     instance.signature = reader.readBytes(64);
@@ -125,7 +125,7 @@ exports.NodeAnnouncementMessage = class NodeAnnouncementMessage {
       2 +   // addresses
       addressBytes // cumulative addr bytes
     ); // prettier-ignore
-    let writer = BufferCursor.from(result);
+    let writer = new BufferCursor(result);
     writer.writeUInt16BE(this.type);
     writer.writeBytes(this.signature);
     writer.writeUInt16BE(featuresLen);

@@ -1,5 +1,5 @@
 // @ts-check
-const BufferCursor = require('simple-buffer-cursor');
+const BufferCursor = require('@lntools/buffer-cursor');
 const { torStringToBuffer } = require('./tor-string-to-buffer');
 
 /**
@@ -17,7 +17,7 @@ exports.serializeTor2 = serializeTor2;
  */
 function serializeTor2(address) {
   let result = Buffer.alloc(13);
-  let writer = BufferCursor.from(result);
+  let writer = new BufferCursor(result);
 
   let hostBytes = torStringToBuffer(address.host);
 

@@ -4,7 +4,7 @@ const { AddressIPv6 } = require('../../domain/address-ipv6');
 const { ipv6StringFromBuffer } = require('./ipv6-string-from-buffer');
 
 /**
-  @typedef {import("simple-buffer-cursor/src/buffer-cursor")} BufferCursor
+  @typedef {import("@lntools/buffer-cursor")} BufferCursor
  */
 
 exports.deserializeIPv6 = deserializeIPv6;

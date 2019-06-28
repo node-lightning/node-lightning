@@ -4,7 +4,7 @@ const { torStringFromBuffer } = require('./tor-string-from-buffer');
 const { AddressTor3 } = require('../../domain/address-tor3');
 
 /**
-  @typedef {import("simple-buffer-cursor/src/buffer-cursor")} BufferCursor
+  @typedef {import("@lntools/buffer-cursor")} BufferCursor
  */
 
 exports.deserializeTor3 = deserializeTor3;

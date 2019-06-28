@@ -1,5 +1,5 @@
 // @ts-check
-const BufferCursor = require('simple-buffer-cursor');
+const BufferCursor = require('@lntools/buffer-cursor');
 const { ipv4StringToBuffer } = require('./ipv4-string-to-buffer');
 
 /**
@@ -17,7 +17,7 @@ exports.serializeIPv4 = serializeIPv4;
  */
 function serializeIPv4(address) {
   let result = Buffer.alloc(7); // 8 bytes total
-  let writer = BufferCursor.from(result);
+  let writer = new BufferCursor(result);
 
   let hostBytes = ipv4StringToBuffer(address.host);
 

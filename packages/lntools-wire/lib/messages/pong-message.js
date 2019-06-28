@@ -1,4 +1,6 @@
-const BufferCursor = require('simple-buffer-cursor');
+// @ts-check
+
+const BufferCursor = require('@lntools/buffer-cursor');
 const { MESSAGE_TYPE } = require('../constants');
 
 exports.PongMessage = class PongMessage {
@@ -39,7 +41,7 @@ exports.PongMessage = class PongMessage {
   static deserialize(payload) {
     let instance = new PongMessage();
 
-    let reader = BufferCursor.from(payload);
+    let reader = new BufferCursor(payload);
     reader.readUInt16BE(); // read off type
 
     let byteslen = reader.readUInt16BE();
@@ -59,7 +61,7 @@ exports.PongMessage = class PongMessage {
       2 + // byteslen
         +this.ignored.length
     );
-    let writer = BufferCursor.from(buffer);
+    let writer = new BufferCursor(buffer);
     writer.writeUInt16BE(this.type);
     writer.writeUInt16BE(this.ignored.length);
     writer.writeBytes(this.ignored);

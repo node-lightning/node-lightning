@@ -1,4 +1,6 @@
-const BufferCursor = require('simple-buffer-cursor');
+// @ts-check
+
+const BufferCursor = require('@lntools/buffer-cursor');
 const BN = require('bn.js');
 const bitwise = require('../bitwise');
 const { MESSAGE_TYPE } = require('../constants');
@@ -31,8 +33,8 @@ exports.InitMessage = class InitMessage {
     @return {InitMessage}
    */
   static deserialize(payload) {
-    payload = BufferCursor.from(payload);
-    payload.readUInt16BE(); // read off type
+    let reader = new BufferCursor(payload);
+    reader.readUInt16BE(); // read off type
 
     let instance = new InitMessage();
 
@@ -47,12 +49,12 @@ exports.InitMessage = class InitMessage {
     // feature.
 
     // Read the global length and parse into a BN value.
-    let gflen = payload.readUInt16BE();
-    instance.globalFeatures = new BN(payload.readBytes(gflen));
+    let gflen = reader.readUInt16BE();
+    instance.globalFeatures = new BN(reader.readBytes(gflen));
 
     // Read the local length and parse into a BN value.
-    let lflen = payload.readUInt16BE();
-    instance.localFeatures = new BN(payload.readBytes(lflen));
+    let lflen = reader.readUInt16BE();
+    instance.localFeatures = new BN(reader.readBytes(lflen));
 
     return instance;
   }
@@ -76,7 +78,7 @@ exports.InitMessage = class InitMessage {
     );
 
     // use BufferCursor to make writing easier
-    let cursor = BufferCursor.from(buffer);
+    let cursor = new BufferCursor(buffer);
 
     // write the type
     cursor.writeUInt16BE(this.type);

@@ -1,6 +1,6 @@
 // @ts-check
 
-const BufferCursor = require('simple-buffer-cursor');
+const BufferCursor = require('@lntools/buffer-cursor');
 
 exports.ipv6StringToBuffer = ipv6StringToBuffer;
 
@@ -22,7 +22,7 @@ function ipv6StringToBuffer(host) {
   let parts = host.split(':');
 
   let result = Buffer.alloc(16);
-  let writer = BufferCursor.from(result);
+  let writer = new BufferCursor(result);
 
   let expandBy = 8 - parts.length;
   let needsExpansion = expandBy > 0;

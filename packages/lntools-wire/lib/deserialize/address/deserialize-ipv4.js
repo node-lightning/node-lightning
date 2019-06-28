@@ -4,7 +4,7 @@ const { ipv4StringFromBuffer } = require('./ipv4-string-from-buffer');
 const { AddressIPv4 } = require('../../domain/address-ipv4');
 
 /**
-  @typedef {import("simple-buffer-cursor/src/buffer-cursor")} BufferCursor
+  @typedef {import("@lntools/buffer-cursor")} BufferCursor
 */
 
 exports.deserializeIPv4 = deserializeIPv4;
