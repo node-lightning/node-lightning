@@ -1,8 +1,11 @@
 // @ts-check
 
 const BufferCursor = require('@lntools/buffer-cursor');
-const BN = require('bn.js');
-// const crypto = require('@lntools/crypto');
+const crypto = require('@lntools/crypto');
+
+/**
+  @typedef {import("bn.js")} BN
+ */
 
 exports.ChannelUpdateMessage = class ChannelUpdateMessage {
   /**
@@ -122,6 +125,15 @@ exports.ChannelUpdateMessage = class ChannelUpdateMessage {
   }
 
   /**
+    Returns true when message flags have the optional
+    maximum HTLC msat value available
+    @type {boolean}
+   */
+  get hasHtlcMaximumMsatFlag() {
+    return (this.messageFlags & 0x1) === 1;
+  }
+
+  /**
     Direction is determined by channel_flags bit 0.
     When set to 0, node_1 is the sender. When set to 1
     node_2 is the sender
@@ -161,42 +173,81 @@ exports.ChannelUpdateMessage = class ChannelUpdateMessage {
     instance.messageFlags = reader.readUInt8();
     instance.channelFlags = reader.readUInt8();
     instance.cltvExpiryDelta = reader.readUInt16BE();
-    instance.htlcMinimumMsat = new BN(reader.readBytes(8));
+    instance.htlcMinimumMsat = reader.readUInt64BE();
     instance.feeBaseMsat = reader.readUInt32BE();
     instance.feeProportionalMillionths = reader.readUInt32BE();
 
     // has optional_channel_htlc_max
-    if ((instance.messageFlags & 0x1) === 1) {
-      instance.htlcMaximumMsat = new BN(reader.readBytes(8));
+    if (instance.hasHtlcMaximumMsatFlag) {
+      instance.htlcMaximumMsat = reader.readUInt64BE();
     }
-
-    // verify signature
-    // let sigHash = this.hashForSignature();
-    // secp256k1.verify(sigHash, instance.signature, )
 
     return instance;
   }
 
-  // hashForSignature() {
-  //   let raw = this.serialize();
-  //   raw = raw.slice(2 + 64); // after signature
-  //   return crypto.sha256(raw);
-  // }
-
+  /**
+    Serializes the instance into a Buffer that can be
+    transmitted over the wire
+   */
   serialize() {
-    // TODO
-    // let result = Buffer.alloc(123);
-    // let writer = BufferCursor.from(result);
-    // writer.writeUInt16BE(this.type);
-    // writer.writeBytes(this.signature);
-    // writer.writeBytes(this.chainHash);
-    // writer.writeUInt8(this.shortChannelId);
-    // writer.writeUInt32BE(this.timestamp);
-    // writer.writeUInt16BE(this.flags);
-    // writer.writeUInt16BE(this.cltvExpiryDelta);
-    // writer.writeBytes(this.htlcMinimumMsat);
-    // writer.writeUInt32BE(this.feeBaseMsat);
-    // writer.writeUInt32BE(this.feeProportionalMillionths);
-    // return result;
+    let result = Buffer.alloc(
+      2 + // type
+      64 + // signature
+      32 + // chain_hash
+      8 + // short_channel_id
+      4 + // timestamp
+      1 + // message_flags
+      1 + // channel_flags
+      2 + // cltv_expiry_delta
+      8 + // htlc_minimum_msat
+      4 + // fee_base_msat
+      4 + // fee_proportional_millionths
+        (this.hasHtlcMaximumMsatFlag ? 8 : 0)
+    );
+
+    let writer = new BufferCursor(result);
+    writer.writeUInt16BE(this.type);
+    writer.writeBytes(this.signature);
+    writer.writeBytes(this.chainHash);
+    writer.writeBytes(this.shortChannelId);
+    writer.writeUInt32BE(this.timestamp);
+    writer.writeUInt8(this.messageFlags);
+    writer.writeUInt8(this.channelFlags);
+    writer.writeUInt16BE(this.cltvExpiryDelta);
+    writer.writeBytes(this.htlcMinimumMsat.toBuffer('be', 8));
+    writer.writeUInt32BE(this.feeBaseMsat);
+    writer.writeUInt32BE(this.feeProportionalMillionths);
+    if (this.hasHtlcMaximumMsatFlag) {
+      writer.writeBytes(this.htlcMaximumMsat.toBuffer('be', 8));
+    }
+    return result;
+  }
+
+  /**
+    Performs a double SHA-256 hash of the message with all
+    data excluding the signature data
+
+    @param {ChannelUpdateMessage} message
+    @return {Buffer}
+   */
+  static hashForSignature(message) {
+    let raw = message.serialize().slice(66);
+    return crypto.hash256(raw);
+  }
+
+  /**
+    Performs signature validation for the message by
+    hashing the data post signature. A passing signature
+    indicates that the message was submitted by the node
+    that owns the channel. Becuase the nodeId is not included
+    in the message, we need to obtain the nodeId by accessing
+    the ChannelAnnouncementMessage and determining the public key
+
+    @param {ChannelUpdateMessage} message
+    @param {Buffer} pubkey 33-byte ECDSA public key
+   */
+  static validateSignature(message, pubkey) {
+    let sigmsg = ChannelUpdateMessage.hashForSignature(message);
+    return crypto.verifySig(sigmsg, message.signature, pubkey);
   }
 };
