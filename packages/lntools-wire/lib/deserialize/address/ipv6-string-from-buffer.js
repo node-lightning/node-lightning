@@ -66,9 +66,10 @@ function sectionsToString(sections) {
     if (result.endsWith('::') && s === '') continue;
 
     // collapse zero section
-    if (result.endsWith(':') && s === '' && !hasCollapsed) {
+    if (s === '' && !hasCollapsed) {
       hasCollapsed = true;
-      result += ':';
+      if (result === '') result += '::';
+      else result += ':';
       continue;
     }
 
