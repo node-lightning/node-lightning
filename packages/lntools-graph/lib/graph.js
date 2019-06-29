@@ -3,6 +3,8 @@ const { Channel } = require('./channel');
 const { ChannelSettings } = require('./channel-settings');
 const { Node } = require('./node');
 const { ChannelAnnouncementMessage } = require('@lntools/wire');
+const { NodeAnnouncementMessage } = require('@lntools/wire');
+const { ChannelUpdateMessage } = require('@lntools/wire');
 const { shortChannelIdObj } = require('@lntools/wire');
 const BN = require('bn.js');
 const { fundingScript } = require('./tx');
@@ -154,7 +156,7 @@ exports.Graph = class Graph {
   /**
     Process a node announcement message according to BOLT #7 rules
 
-    @param {import('@lntools/wire').NodeAnnouncementMessage} msg
+    @param {NodeAnnouncementMessage} msg
    */
   async processNodeAnnouncement(msg) {
     // get or construct a node
@@ -169,7 +171,12 @@ exports.Graph = class Graph {
       return;
     }
 
-    // TODO: validate signature
+    // validate message signature
+    if (!NodeAnnouncementMessage.verifySignatures(msg)) {
+      // eslint-disable-next-line no-console
+      console.warn('signature validation failed');
+      return;
+    }
 
     // update the node's information
     node.lastUpdate = msg.timestamp;
@@ -185,7 +192,7 @@ exports.Graph = class Graph {
     Processes a ChannelAnnouncementMessage by verifying the signatures
     and validating the transaction on chain work. This message will
 
-    @param {import("@lntools/wire").ChannelAnnouncementMessage } msg
+    @param {ChannelAnnouncementMessage } msg
    */
   async processChannelAnnouncement(msg) {
     let id = uniqueChannelId(msg);
@@ -198,6 +205,8 @@ exports.Graph = class Graph {
 
     // validate signatures for message
     if (!ChannelAnnouncementMessage.verifySignatures(msg)) {
+      // eslint-disable-next-line no-console
+      console.warn('signature validation failed', msg.shortChannelId.toString('hex'));
       return false;
     }
 
@@ -277,7 +286,7 @@ exports.Graph = class Graph {
     Updates the channel settings for a specific node
     in the channel announcment
 
-    @param {import("@lntools/wire").ChannelUpdateMessage} msg
+    @param {ChannelUpdateMessage} msg
    */
   async processChannelUpdate(msg) {
     let id = uniqueChannelId(msg);
@@ -289,6 +298,14 @@ exports.Graph = class Graph {
     // validation later
     if (!channel) {
       this._queueChanneldUpdate(id, msg);
+      return;
+    }
+
+    // validate message
+    let nodeId = msg.direction === 0 ? channel.nodeId1 : channel.nodeId2;
+    if (!ChannelUpdateMessage.validateSignature(msg, nodeId)) {
+      // eslint-disable-next-line no-console
+      console.warn('signature validation failed', msg.shortChannelId.toString('hex'));
       return;
     }
 
