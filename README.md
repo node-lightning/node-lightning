@@ -9,7 +9,7 @@ This module is not intended to be an alternative to LND, c-lightning, or Acinq.
 
 ## Structure and Modules
 
-LNTools is structured as a monorepo with individual packages existing inside of `packages`. Binaries will live inside `src`.
+LNTools is structured as a monorepo with individual packages existing inside of `packages`.
 
 - [@lntools/invoice](packages/lntools-invoice) - encoding/decoding LN invoices
 - [@lntools/noise](packages/lntools-noise) - Noise Protocol socket/server
