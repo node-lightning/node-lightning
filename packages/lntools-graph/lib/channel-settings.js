@@ -10,7 +10,7 @@ exports.ChannelSettings = class ChannelSettings {
     /**
       @type {ChannelUpdateMessage}
      */
-    this.channelUpdateMessage;
+    this._channelUpdateMessage;
 
     /**
       @type {number}
@@ -51,7 +51,7 @@ exports.ChannelSettings = class ChannelSettings {
    */
   static fromMsg(msg) {
     let instance = new ChannelSettings();
-    instance.channelUpdateMessage = msg;
+    instance._channelUpdateMessage = msg;
     instance.direction = msg.direction;
     instance.timestamp = msg.timestamp;
     instance.cltvExpiryDelta = msg.cltvExpiryDelta;
@@ -65,6 +65,7 @@ exports.ChannelSettings = class ChannelSettings {
 
   toJSON() {
     return {
+      timestamp: this.timestamp,
       cltvExpiryDelta: this.cltvExpiryDelta,
       htlcMinimumMsat: this.htlcMinimumMsat.toString(10),
       htlcMaximumMsat: this.htlcMaximumMsat ? this.htlcMaximumMsat.toString(10) : undefined,

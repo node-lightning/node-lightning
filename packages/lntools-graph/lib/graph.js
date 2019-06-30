@@ -17,7 +17,7 @@ const { fundingScript } = require('./tx');
   @return {string}
  */
 function uniqueChannelId({ chainHash, shortChannelId }) {
-  return Buffer.concat([chainHash.slice(0, 6), shortChannelId]).toString('hex');
+  return chainHash.slice(0, 4).toString('hex') + '_' + shortChannelId.toString('hex');
 }
 
 exports.Graph = class Graph {
@@ -86,71 +86,16 @@ exports.Graph = class Graph {
     /**
       List of pending nodes.
 
-      @type {Map<string, Array<import('@lntools/wire').NodeAnnouncementMessage>>}
+      @type {Map<string, import('@lntools/wire').NodeAnnouncementMessage>}
      */
-    this.pendingNodeAnnouncements = new Map();
+    this._pendingNodeAnnouncements = new Map();
 
     /**
       List of pending channeld updates
 
       @type {Map<string, Array<import('@lntools/wire').ChannelUpdateMessage>>}
      */
-    this.pendingChannelUpdates = new Map();
-  }
-
-  /**
-
-    @param {Buffer} nodeId
-    @returns {boolean}
-   */
-  _hasActiveChannel(nodeId) {
-    for (let c of this.channels.values()) {
-      if ((c.nodeId1.equals(nodeId) || c.nodeId2.equals(nodeId)) && c.isRoutable) return true;
-    }
-    return false;
-  }
-
-  /**
-
-    @param {import('@lntools/wire').NodeAnnouncementMessage} msg
-   */
-  _queueNodeAnnouncment(msg) {
-    let msgs = this.pendingNodeAnnouncements.get(msg.nodeId.toString('hex')) || [];
-    msgs.push(msg);
-    this.pendingNodeAnnouncements.set(msg.nodeId.toString('hex'), msgs);
-  }
-
-  /**
-
-    @param {string} id
-    @param {import('@lntools/wire').ChannelUpdateMessage} msg
-   */
-  _queueChanneldUpdate(id, msg) {
-    let msgs = this.pendingChannelUpdates.get(id) || [];
-    msgs.push(msg);
-    this.pendingChannelUpdates.set(id, msgs);
-  }
-
-  /**
-
-    @param {string} id
-   */
-  async _applyPendingChannelUpdates(id) {
-    let msgs = this.pendingChannelUpdates.get(id);
-    if (!msgs) return;
-    for (let msg of msgs) {
-      await this.processChannelUpdate(msg);
-    }
-    this.pendingChannelUpdates.delete(id);
-  }
-
-  async _applyPendingNodeAnnouncements(id) {
-    let msgs = this.pendingNodeAnnouncements.get(id);
-    if (!msgs) return;
-    for (let msg of msgs) {
-      await this.processNodeAnnouncement(msg);
-    }
-    this.pendingNodeAnnouncements.delete(id);
+    this._pendingChannelUpdates = new Map();
   }
 
   /**
@@ -166,7 +111,7 @@ exports.Graph = class Graph {
     if (msg.timestamp < node.lastUpdate) return;
 
     // queue node if we don't have any channels
-    if (!this._hasActiveChannel(msg.nodeId)) {
+    if (!this._hasChannel(msg.nodeId)) {
       this._queueNodeAnnouncment(msg);
       return;
     }
@@ -179,10 +124,12 @@ exports.Graph = class Graph {
     }
 
     // update the node's information
+    node._nodeAnnouncementMessage = msg;
     node.lastUpdate = msg.timestamp;
-    node.nodeAnnouncementMessage = msg;
     node.nodeId = msg.nodeId;
     node.alias = msg.alias;
+    node.rgbColor = msg.rgbColor;
+    node.addresses = msg.addresses;
 
     // update the node reference
     this.nodes.set(node.nodeId.toString('hex'), node);
@@ -201,7 +148,7 @@ exports.Graph = class Graph {
     let channel = this.channels.get(id) || new Channel();
 
     // check if an announcement message has already been attached
-    if (channel.channelAnnouncmentMessage) return;
+    if (channel._channelAnnouncmentMessage) return;
 
     // validate signatures for message
     if (!ChannelAnnouncementMessage.verifySignatures(msg)) {
@@ -245,14 +192,13 @@ exports.Graph = class Graph {
       return;
     }
 
-    // attach outpoint
+    // attach properties
+    channel._channelAnnouncmentMessage = msg;
+    channel.chainHash = msg.chainHash;
     channel.channelPoint = { txId, output: shortChannelID.voutIdx };
-
-    // calculate channel capacity as output value
     channel.capacity = new BN(utxo.value * 10 ** 8);
-
-    // update node1
     channel.nodeId1 = msg.nodeId1;
+    channel.nodeId2 = msg.nodeId2;
 
     // add node1 if necessary
     if (!this.nodes.get(msg.nodeId1.toString('hex'))) {
@@ -261,9 +207,6 @@ exports.Graph = class Graph {
       this.nodes.set(node.nodeId.toString('hex'), node);
     }
 
-    // update node2
-    channel.nodeId2 = msg.nodeId2;
-
     // add node2 if necessary
     if (!this.nodes.get(msg.nodeId2.toString('hex'))) {
       let node = new Node();
@@ -271,15 +214,13 @@ exports.Graph = class Graph {
       this.nodes.set(node.nodeId.toString('hex'), node);
     }
 
-    // attach announcment message
-    channel.channelAnnouncmentMessage = msg;
-
     // save the channel
     this.channels.set(id, channel);
 
     // process outstanding update messages
     await this._applyPendingChannelUpdates(id);
-    await this._applyPendingNodeAnnouncements(id);
+    await this._applyPendingNodeAnnouncements(channel.nodeId1);
+    await this._applyPendingNodeAnnouncements(channel.nodeId2);
   }
 
   /**
@@ -317,5 +258,72 @@ exports.Graph = class Graph {
 
     // update the channel
     this.channels.set(id, channel);
+  }
+
+  /**
+
+    @param {Buffer} nodeId
+    @returns {boolean}
+   */
+  _hasChannel(nodeId) {
+    for (let c of this.channels.values()) {
+      if (c.nodeId1.equals(nodeId) || c.nodeId2.equals(nodeId)) return true;
+    }
+    return false;
+  }
+
+  /**
+    We will store a single NodeAnnouncmentMessage for later replay
+    if there is a valid ChannelAnnouncementMessage.
+
+    @remarks
+
+    The spec specifically points out that this creates an attack
+    vector. We should leverage a FIFO cache to limit the attack
+    space.
+
+    @param {import('@lntools/wire').NodeAnnouncementMessage} msg
+   */
+  _queueNodeAnnouncment(msg) {
+    let key = msg.nodeId.toString('hex');
+    let existing = this._pendingNodeAnnouncements.get(key);
+    if (!existing || existing.timestamp < msg.timestamp) {
+      this._pendingNodeAnnouncements.set(key, msg);
+    }
+  }
+
+  /**
+
+    @param {string} id
+    @param {import('@lntools/wire').ChannelUpdateMessage} msg
+   */
+  _queueChanneldUpdate(id, msg) {
+    let msgs = this._pendingChannelUpdates.get(id) || [];
+    msgs.push(msg);
+    this._pendingChannelUpdates.set(id, msgs);
+  }
+
+  /**
+    @param {string} id
+   */
+  async _applyPendingChannelUpdates(id) {
+    let msgs = this._pendingChannelUpdates.get(id);
+    if (!msgs) return;
+    for (let msg of msgs) {
+      await this.processChannelUpdate(msg);
+    }
+    this._pendingChannelUpdates.delete(id);
+  }
+
+  /**
+    @param {Buffer} nodeId
+   */
+  async _applyPendingNodeAnnouncements(nodeId) {
+    let key = nodeId.toString('hex');
+    let msg = this._pendingNodeAnnouncements.get(key);
+    if (msg) {
+      await this.processNodeAnnouncement(msg);
+      this._pendingNodeAnnouncements.delete(key);
+    }
   }
 };

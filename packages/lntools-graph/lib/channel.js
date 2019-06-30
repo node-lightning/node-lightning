@@ -11,6 +11,11 @@ const { shortChannelIdNumber } = require('@lntools/wire');
 exports.Channel = class Channel {
   constructor() {
     /**
+      @type {ChannelAnnouncementMessage}
+     */
+    this._channelAnnouncmentMessage;
+
+    /**
       @type {Buffer}
      */
     this.chainHash;
@@ -19,11 +24,6 @@ exports.Channel = class Channel {
       @type {Buffer}
      */
     this.shortChannelId;
-
-    /**
-      @type {ChannelAnnouncementMessage}
-     */
-    this.channelAnnouncmentMessage;
 
     /** @type {{ txId: string, output: number}} */
     this.channelPoint; // obtained after verifying the tx
@@ -57,7 +57,7 @@ exports.Channel = class Channel {
     @type {boolean}
    */
   get isRoutable() {
-    return this.nodeId1 && this.nodeId2 && (this.node1Settings || this.node2Settings) && true;
+    return !!this.nodeId1 && !!this.nodeId2 && !!(this.node1Settings || this.node2Settings);
   }
 
   /**
@@ -85,11 +85,11 @@ exports.Channel = class Channel {
     return {
       shortChannelId: shortChannelIdNumber(this.shortChannelId),
       channelPoint: `${this.channelPoint.txId}:${this.channelPoint.output}`,
-      node1PubKey: this.nodeId1.toString('hex'),
-      node2PubKey: this.nodeId2.toString('hex'),
+      nodeId1: this.nodeId1.toString('hex'),
+      nodeId2: this.nodeId2.toString('hex'),
       capacity: this.capacity.toString(10),
-      node1Settings: this.node1Settings,
-      node2Settings: this.node2Settings,
+      node1Settings: this.node1Settings.toJSON(),
+      node2Settings: this.node2Settings.toJSON(),
     };
   }
 };
