@@ -1,7 +1,36 @@
 const { expect } = require('chai');
 const { Node } = require('../lib/node');
+const { Channel } = require('../lib/channel');
 
 describe('Node class', () => {
+  describe('.linkChannel', () => {
+    it('should add the channel to list of channels', () => {
+      let node = new Node();
+      let c = new Channel();
+      c.shortChannelId = Buffer.from('1234567890', 'hex');
+      node.linkChannel(c);
+      expect(node.channels.size).to.equal(1);
+      expect(node.channels.get('1234567890')).to.equal(c);
+    });
+  });
+
+  describe('.unlinkChannel', () => {
+    it('should remove the channel from the list of channels', () => {
+      let c1 = new Channel();
+      c1.shortChannelId = Buffer.from('1234567890', 'hex');
+
+      let c2 = new Channel();
+      c2.shortChannelId = Buffer.from('0987654321', 'hex');
+
+      let node = new Node();
+      node.channels = new Map([['1234567890', c1], ['0987654321', c2]]);
+
+      node.unlinkChannel(c2);
+      expect(node.channels.size).to.equal(1);
+      expect(node.channels.get('1234567890')).to.equal(c1);
+    });
+  });
+
   describe('.toJSON()', () => {
     let result;
     before(() => {

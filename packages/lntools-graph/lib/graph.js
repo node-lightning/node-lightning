@@ -115,7 +115,7 @@ exports.Graph = class Graph extends EventEmitter {
     let node = this.nodes.get(msg.nodeId.toString('hex')) || new Node();
 
     // check if the message is newer than the last update
-    if (msg.timestamp < node.lastUpdate) return;
+    if (node.lastUpdate && msg.timestamp < node.lastUpdate) return;
 
     // queue node if we don't have any channels
     if (!this._hasChannel(msg.nodeId)) {
@@ -237,6 +237,14 @@ exports.Graph = class Graph extends EventEmitter {
       this.nodes.set(node.nodeId.toString('hex'), node);
       this.emit('node', node);
     }
+
+    // attach channel to node 1
+    let node1 = this.nodes.get(msg.nodeId1.toString('hex'));
+    node1.linkChannel(channel);
+
+    // attach channel to node 2
+    let node2 = this.nodes.get(msg.nodeId2.toString('hex'));
+    node2.linkChannel(channel);
 
     // process outstanding update messages
     await this._applyPendingChannelUpdates(id);

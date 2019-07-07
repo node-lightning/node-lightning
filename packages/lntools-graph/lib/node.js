@@ -1,7 +1,9 @@
 // @ts-check
 
 /**
-  @typedef {import("@lntools/wire/lib/domain/address").Address} Address
+ * @typedef {import("./channel").Channel} Channel
+ * @typedef {import("@lntools/wire").NodeAnnouncementMessage} NodeAnnouncementMessage
+ * @typedef {import("@lntools/wire/lib/domain/address").Address} Address
  */
 
 exports.Node = class Node {
@@ -10,7 +12,7 @@ exports.Node = class Node {
    */
   constructor() {
     /**
-      @type {import("@lntools/wire").NodeAnnouncementMessage}
+      @type {NodeAnnouncementMessage}
      */
     this._nodeAnnouncementMessage;
 
@@ -38,6 +40,12 @@ exports.Node = class Node {
       @type {Buffer}
      */
     this.rgbColor;
+
+    /**
+     * List of channels the node belongs to
+     * @type {Map<string, Channel>}
+     */
+    this.channels = new Map();
   }
 
   /**
@@ -54,6 +62,24 @@ exports.Node = class Node {
    */
   get rgbColorString() {
     return this.rgbColor ? '#' + this.rgbColor.toString('hex') : '';
+  }
+
+  /**
+   * Adds a channel to the node's channel list
+   * @param {Channel} channel
+   */
+  linkChannel(channel) {
+    let id = channel.shortChannelId.toString('hex');
+    this.channels.set(id, channel);
+  }
+
+  /**
+   * Remove a channel from the node's channel list
+   * @param {Channel} channel
+   */
+  unlinkChannel(channel) {
+    let id = channel.shortChannelId.toString('hex');
+    this.channels.delete(id);
   }
 
   /**
