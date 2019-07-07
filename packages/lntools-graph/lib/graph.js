@@ -1,4 +1,5 @@
 // @ts-check
+const { EventEmitter } = require('events');
 const { Channel } = require('./channel');
 const { ChannelSettings } = require('./channel-settings');
 const { Node } = require('./node');
@@ -8,6 +9,8 @@ const { ChannelUpdateMessage } = require('@lntools/wire');
 const { shortChannelIdObj } = require('@lntools/wire');
 const BN = require('bn.js');
 const { fundingScript } = require('./tx');
+const { GraphError } = require('./graph-error');
+const { ErrorCodes } = require('./graph-error');
 
 /**
   Construct a unique Id from the chainHash and shortChannelID
@@ -20,8 +23,10 @@ function uniqueChannelId({ chainHash, shortChannelId }) {
   return chainHash.slice(0, 4).toString('hex') + '_' + shortChannelId.toString('hex');
 }
 
-exports.Graph = class Graph {
+exports.Graph = class Graph extends EventEmitter {
   /**
+   * Graph maintains the current peer-to-peer graph state. It is an
+   * EventEmitter that emits changes to the graph state.
 
     @param {import("@lntools/bitcoind").BitcoindClient} chainClient
 
@@ -66,6 +71,8 @@ exports.Graph = class Graph {
 
    */
   constructor(chainClient) {
+    super();
+
     /**
       @type {import("@lntools/bitcoind").BitcoindClient}
      */
@@ -118,8 +125,7 @@ exports.Graph = class Graph {
 
     // validate message signature
     if (!NodeAnnouncementMessage.verifySignatures(msg)) {
-      // eslint-disable-next-line no-console
-      console.warn('signature validation failed');
+      this.emit('error', new GraphError(ErrorCodes.nodeAnnSigFailed, [msg]));
       return;
     }
 
@@ -133,6 +139,9 @@ exports.Graph = class Graph {
 
     // update the node reference
     this.nodes.set(node.nodeId.toString('hex'), node);
+
+    // emit node update event
+    this.emit('node', node);
   }
 
   /**
@@ -152,8 +161,7 @@ exports.Graph = class Graph {
 
     // validate signatures for message
     if (!ChannelAnnouncementMessage.verifySignatures(msg)) {
-      // eslint-disable-next-line no-console
-      console.warn('signature validation failed', msg.shortChannelId.toString('hex'));
+      this.emit('error', new GraphError(ErrorCodes.chanAnnSigFailed, [msg]));
       return false;
     }
 
@@ -165,21 +173,29 @@ exports.Graph = class Graph {
 
     // load the block hash for the block height
     let blockHash = await this.chainClient.getBlockHash(shortChannelID.block);
-    if (!blockHash) return false;
+    if (!blockHash) {
+      this.emit('error', new GraphError(ErrorCodes.chanBadBlockHash, [msg, shortChannelID]));
+      return;
+    }
 
     // load the block details so we can find the tx
     let block = await this.chainClient.getBlock(blockHash);
-    if (!block) return false;
+    if (!block) {
+      this.emit('error', new GraphError(ErrorCodes.chanBadBlock, [msg, shortChannelID, blockHash]));
+      return;
+    }
 
     // load the txid from the block details
     let txId = block.tx[shortChannelID.txIdx];
-    if (!txId) return false;
+    if (!txId) {
+      this.emit('error', new GraphError(ErrorCodes.chanAnnBadTx, [msg, shortChannelID]));
+      return;
+    }
 
     // obtain a UTXO to verify the tx hasn't been spent yet
     let utxo = await this.chainClient.getUtxo(txId, shortChannelID.voutIdx);
     if (!utxo) {
-      // eslint-disable-next-line no-console
-      console.warn(msg.shortChannelId.toString('hex'), 'has closed');
+      this.emit('error', new GraphError(ErrorCodes.chanUtxoSpent, [msg, shortChannelID]));
       return false;
     }
 
@@ -187,8 +203,7 @@ exports.Graph = class Graph {
     let expectedScript = fundingScript([msg.bitcoinKey1, msg.bitcoinKey2]);
     let actualScript = Buffer.from(utxo.scriptPubKey.hex, 'hex');
     if (!expectedScript.equals(actualScript)) {
-      // eslint-disable-next-line no-console
-      console.warn('script mismatch expected', expectedScript, 'received', actualScript);
+      this.emit('error',new GraphError(ErrorCodes.chanBadScript, [msg, expectedScript, actualScript])); // prettier-ignore
       return;
     }
 
@@ -200,11 +215,19 @@ exports.Graph = class Graph {
     channel.nodeId1 = msg.nodeId1;
     channel.nodeId2 = msg.nodeId2;
 
+    // save the channel
+    this.channels.set(id, channel);
+
+    // process outstanding node messages
+    await this._applyPendingNodeAnnouncements(channel.nodeId1);
+    await this._applyPendingNodeAnnouncements(channel.nodeId2);
+
     // add node1 if necessary
     if (!this.nodes.get(msg.nodeId1.toString('hex'))) {
       let node = new Node();
       node.nodeId = msg.nodeId1;
       this.nodes.set(node.nodeId.toString('hex'), node);
+      this.emit('node', node);
     }
 
     // add node2 if necessary
@@ -212,15 +235,11 @@ exports.Graph = class Graph {
       let node = new Node();
       node.nodeId = msg.nodeId2;
       this.nodes.set(node.nodeId.toString('hex'), node);
+      this.emit('node', node);
     }
-
-    // save the channel
-    this.channels.set(id, channel);
 
     // process outstanding update messages
     await this._applyPendingChannelUpdates(id);
-    await this._applyPendingNodeAnnouncements(channel.nodeId1);
-    await this._applyPendingNodeAnnouncements(channel.nodeId2);
   }
 
   /**
@@ -245,8 +264,7 @@ exports.Graph = class Graph {
     // validate message
     let nodeId = msg.direction === 0 ? channel.nodeId1 : channel.nodeId2;
     if (!ChannelUpdateMessage.validateSignature(msg, nodeId)) {
-      // eslint-disable-next-line no-console
-      console.warn('signature validation failed', msg.shortChannelId.toString('hex'));
+      this.emit('error', new GraphError(ErrorCodes.chanUpdSigFailed, [msg, nodeId]));
       return;
     }
 
@@ -258,6 +276,9 @@ exports.Graph = class Graph {
 
     // update the channel
     this.channels.set(id, channel);
+
+    // emit channel updated
+    this.emit('channel', channel);
   }
 
   /**
