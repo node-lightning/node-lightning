@@ -1,21 +1,16 @@
 {
   "name": "@lntools/buffer-cursor",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Buffer reader/writer utility ",
   "keywords": [],
   "author": "Brian Mancini <bmancini@gmail.com>",
   "license": "MIT",
   "main": "lib/index.js",
   "scripts": {
-    "test": "nyc --reporter=lcov --reporter=text mocha --recursive \"__tests__/**/*.spec.js\"",
+    "test": "../../node_modules/.bin/nyc --reporter=lcov --reporter=text ../../node_modules/.bin/mocha --recursive \"__tests__/**/*.spec.js\"",
     "tsc": "tsc"
   },
   "dependencies": {
     "bn.js": "^4.11.8"
-  },
-  "devDependencies": {
-    "@types/bn.js": "^4.11.5",
-    "mocha": "^6.0.2",
-    "nyc": "^13.3.0"
   }
 }
