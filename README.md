@@ -11,12 +11,12 @@ This module is not intended to be an alternative to LND, c-lightning, or Acinq.
 
 LNTools is structured as a monorepo with individual packages existing inside of `packages`.
 
-- [@lntools/invoice](packages/lntools-bitcoin) - tools for building and parsing Bitcoin blocks and transactions
-- [@lntools/invoice](packages/lntools-bitcoind) - bitcoind RPC and zeromq client
-- [@lntools/invoice](packages/lntools-buffer-cursor) - utility for reading and writing Buffers
-- [@lntools/invoice](packages/lntools-crypto) - common cryptography utilities
+- [@lntools/bitcoin](packages/lntools-bitcoin) - tools for building and parsing Bitcoin blocks and transactions
+- [@lntools/bitcoind](packages/lntools-bitcoind) - bitcoind RPC and zeromq client
+- [@lntools/buffer-cursor](packages/lntools-buffer-cursor) - utility for reading and writing Buffers
+- [@lntools/crypto](packages/lntools-crypto) - common cryptography utilities
 - [@lntools/invoice](packages/lntools-invoice) - encoding/decoding Lightning Network invoices
-- [@lntools/invoice](packages/lntools-graph) - maintains a Lightning Network P2P graph
+- [@lntools/graph](packages/lntools-graph) - maintains a Lightning Network P2P graph
 - [@lntools/noise](packages/lntools-noise) - Noise Protocol socket/server
 - [@lntools/wire](packages/lntools-wire) - wire protocol for the Lightning Network
 
