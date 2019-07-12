@@ -1,6 +1,6 @@
 {
   "name": "@lntools/invoice",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "description": "BOLT 11 Lightning Network invoice encoding/decoding library",
   "main": "lib/index.js",
   "scripts": {
