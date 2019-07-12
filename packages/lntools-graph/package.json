@@ -23,19 +23,13 @@
     "url": "git+https://github.com/altangent/lightnode.git"
   },
   "scripts": {
-    "test": "nyc --reporter=lcov --reporter=text mocha --recursive \"__tests__/**/*.spec.js\""
+    "test": "../../node_modules/.bin/nyc --reporter=lcov --reporter=text ../../node_modules/.bin/mocha --recursive \"__tests__/**/*.spec.js\""
   },
   "dependencies": {
     "@lntools/bitcoin": "^0.1.0",
     "@lntools/bitcoind": "^0.1.0",
     "@lntools/crypto": "^0.3.0",
     "@lntools/wire": "^0.1.1",
-    "bn.js": "^4.11.8",
-    "chai": "^4.2.0",
-    "sinon": "^7.3.2"
-  },
-  "devDependencies": {
-    "mocha": "^6.1.3",
-    "nyc": "^13.3.0"
+    "bn.js": "^4.11.8"
   }
 }

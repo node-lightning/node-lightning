@@ -7,19 +7,14 @@
   "license": "MIT",
   "main": "lib/index.js",
   "scripts": {
-    "test": "nyc --reporter=lcov --reporter=text mocha --recursive \"__tests__/**/*.spec.js\"",
+    "test": "../../node_modules/.bin/nyc --reporter=lcov --reporter=text ../../node_modules/.bin/mocha --recursive \"__tests__/**/*.spec.js\"",
     "tsc": "tsc"
   },
   "dependencies": {
-    "@lntools/buffer-cursor": "^0.1.4",
-    "@lntools/crypto": "^0.3.0",
+    "@lntools/buffer-cursor": "^0.1.5",
+    "@lntools/crypto": "^0.4.0",
     "bitcoin-ops": "^1.4.1",
     "bn.js": "^4.11.8",
     "pushdata-bitcoin": "^1.0.1"
-  },
-  "devDependencies": {
-    "@types/bn.js": "^4.11.5",
-    "mocha": "^6.0.2",
-    "nyc": "^13.3.0"
   }
 }

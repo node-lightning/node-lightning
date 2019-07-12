@@ -3,7 +3,7 @@
   "version": "0.1.1",
   "description": "Lightning Network Wire Protocol",
   "scripts": {
-    "test": "nyc --reporter=lcov --reporter=text mocha --recursive \"__tests__/**/*.spec.js\""
+    "test": "../../node_modules/.bin/nyc --reporter=lcov --reporter=text ../../node_modules/.bin/mocha --recursive \"__tests__/**/*.spec.js\""
   },
   "keywords": [
     "lightning",
@@ -28,9 +28,5 @@
     "bn.js": "^4.11.8",
     "rfc4648": "^1.2.1",
     "winston": "^3.2.1"
-  },
-  "devDependencies": {
-    "mocha": "^6.0.2",
-    "nyc": "^13.3.0"
   }
 }

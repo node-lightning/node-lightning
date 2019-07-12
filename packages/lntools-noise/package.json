@@ -3,7 +3,7 @@
   "version": "0.1.2",
   "description": "BOLT 8 Lightning Network Noise Protocol Socket",
   "scripts": {
-    "test": "nyc --reporter=lcov --reporter=text --exclude \"__integration__\" --exclude \"__tests__\" mocha --exit --recursive \"__tests__/**/*.spec.js\" --recursive \"__integration__/**/*.spec.js\""
+    "test": "../../node_modules/.bin/nyc --reporter=lcov --reporter=text --exclude \"__integration__\" --exclude \"__tests__\" ../../node_modules/.bin/mocha --exit --recursive \"__tests__/**/*.spec.js\" --recursive \"__integration__/**/*.spec.js\""
   },
   "keywords": [
     "lightning network",
@@ -24,9 +24,5 @@
   "dependencies": {
     "@lntools/crypto": "^0.3.0",
     "winston": "^3.2.1"
-  },
-  "devDependencies": {
-    "mocha": "^6.0.2",
-    "nyc": "^13.3.0"
   }
 }

@@ -4,7 +4,7 @@
   "description": "BOLT 11 Lightning Network invoice encoding/decoding library",
   "main": "lib/index.js",
   "scripts": {
-    "test": "nyc --reporter=lcov --reporter=text mocha --recursive \"__tests__/**/*.spec.js\"",
+    "test": "../../node_modules/.bin/nyc --reporter=lcov --reporter=text ../../node_modules/.bin/mocha --recursive \"__tests__/**/*.spec.js\"",
     "tsc": "tsc"
   },
   "homepage": "https://github.com/altangent/lntools/tree/master/packages/lntools-invoice",
@@ -29,9 +29,5 @@
     "bs58check": "^2.1.2",
     "secp256k1": "^3.5.0",
     "simple-buffer-cursor": "^1.0.2"
-  },
-  "devDependencies": {
-    "mocha": "^6.0.2",
-    "nyc": "^13.3.0"
   }
 }
