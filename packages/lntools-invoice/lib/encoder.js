@@ -7,10 +7,21 @@ const crypto = require('./crypto');
 const encodePico = require('./encode-pico');
 const { FIELD_TYPE } = require('./constants');
 
+/**
+ * @typedef {import('./invoice')} Invoice
+ */
+
 module.exports = {
   encode,
 };
 
+/**
+ * Encodes an invoice object into the bech32 invoice and digitally
+ * signs the invoice using ECDSA.
+ * @param {Invoice} invoice
+ * @param {Buffer} privKey 33-byte secp256k1 private key
+ * @returns {string} bech32 encoded invoice
+ */
 function encode(invoice, privKey) {
   let writer = new WordCursor();
 

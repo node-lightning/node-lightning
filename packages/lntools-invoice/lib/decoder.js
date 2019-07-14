@@ -1,6 +1,6 @@
 // @ts-check
 
-const BufferCursor = require('simple-buffer-cursor');
+const BufferCursor = require('@lntools/buffer-cursor');
 const bech32 = require('bech32');
 const BN = require('bn.js');
 const crypto = require('./crypto');
@@ -56,7 +56,7 @@ function decode(invoice) {
         {
           value = [];
           let bytes = wordcursor.readBytes(len);
-          let bytecursor = BufferCursor.from(bytes);
+          let bytecursor = new BufferCursor(bytes);
           while (!bytecursor.eof) {
             value.push({
               pubkey: bytecursor.readBytes(33),
@@ -168,17 +168,13 @@ function decode(invoice) {
   Value is returned as pico bitcoin.
 
   @param {string} prefix
-
-  @return {object}
-  {
-    network: <string>
-    value: <BN>
-  }
- */
+  @return {{network: string, value: BN}}
+*/
 function parsePrefix(prefix) {
   if (!prefix.startsWith('ln')) throw new Error('Invalid prefix');
   let network = '';
-  let value = '';
+  let tempValue = '';
+  let value;
   let multiplier;
   let hasNetwork = false;
   let hasAmount = false;
@@ -192,8 +188,8 @@ function parsePrefix(prefix) {
     }
 
     if (hasNetwork && !hasAmount) {
-      if (charCode >= 48 && charCode <= 57) value += prefix[i];
-      else if (value) hasAmount = true;
+      if (charCode >= 48 && charCode <= 57) tempValue += prefix[i];
+      else if (tempValue) hasAmount = true;
       else throw new Error('Invalid amount');
     }
 
@@ -204,17 +200,17 @@ function parsePrefix(prefix) {
   }
 
   // returns null if we do not have a value
-  if (value === '') value = null;
+  if (tempValue === '') value = null;
   // otherwise we multiply by the value by the pico amount to obtain
   // the actual pico value of the
-  else value = new BN(value).mul(hrpToPico(multiplier));
+  else value = new BN(tempValue).mul(hrpToPico(multiplier));
 
   if (!isValidNetwork(network)) throw new Error('Invalid network');
   if (!isValidValue(value)) throw new Error('Invalid amount');
 
   return {
     network,
-    value,
+    value: value,
   };
 }
 
