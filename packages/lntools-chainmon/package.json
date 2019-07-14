@@ -1,10 +1,10 @@
 {
   "name": "@lntools/chainmon",
   "version": "0.1.0",
-  "description": "Bitcoin chain monitioring",
-  "main": "index.js",
+  "description": "Bitcoin on-chain transaction monitoring tool",
+  "main": "lib/index.js",
   "directories": {
-    "lib": "dist"
+    "lib": "lib"
   },
   "scripts": {
     "tsc": "tsc",
@@ -15,6 +15,6 @@
   "license": "MIT",
   "dependencies": {
     "@lntools/bitcoind": "^0.1.0",
-    "@lntools/bitcoin": "^0.1.0"
+    "@lntools/bitcoin": "^0.1.1"
   }
 }
