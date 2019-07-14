@@ -1,7 +1,9 @@
+// @ts-check
+
 const BufferCursor = require('@lntools/buffer-cursor');
 const { isSegWitTx } = require('./is-segwit-tx');
 
-module.exports = { decodeTxSize };
+exports.decodeTxSize = decodeTxSize;
 
 /**
   Decodes the size, virtual size, and weight properties from the raw
@@ -13,11 +15,7 @@ module.exports = { decodeTxSize };
   `vsize` is the weight divided by four.
 
   @param {Buffer} raw
-  @returns {{
-    size: Number,
-    vsize: Number,
-    weight: Number
-  }}
+  @returns {{ size: Number, vsize: Number, weight: Number }}
  */
 function decodeTxSize(raw) {
   let cursor = new BufferCursor(raw);

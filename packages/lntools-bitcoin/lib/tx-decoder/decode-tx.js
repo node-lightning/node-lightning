@@ -1,9 +1,17 @@
+// @ts-check
+
 const BufferCursor = require('@lntools/buffer-cursor');
 const { isSegWitTx } = require('./is-segwit-tx');
 const { decodeTxId } = require('./decode-tx-id');
 const { decodeTxSize } = require('./decode-tx-size');
 
-module.exports = { decodeTx };
+/**
+ * @typedef {import("../tx").Tx} Tx
+ * @typedef {import("../tx").TxIn} TxIn
+ * @typedef {import("../tx").TxOut} TxOut
+ */
+
+exports.decodeTx = decodeTx;
 
 /**
   Decodes a raw transaction from a buffer into a Tx object.
@@ -13,15 +21,15 @@ module.exports = { decodeTx };
   Refer to: https://en.bitcoin.it/wiki/Protocol_documentation#tx
 
   @param {Buffer} raw raw transaction data
-  @returns {import("./tx").Tx}
+  @returns {Tx}
  */
 function decodeTx(raw) {
   let cursor = new BufferCursor(raw);
 
-  /**  @type {Array<import("./tx").TxIn>} */
+  /**  @type {TxIn[]} */
   let vins = [];
 
-  /**  @type {Array<import("./tx").TxOut>} */
+  /**  @type {TxOut[]} */
   let vouts = [];
 
   // read version

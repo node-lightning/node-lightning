@@ -1,8 +1,10 @@
+// @ts-check
+
 const { sha256 } = require('@lntools/crypto');
 const { isSegWitTx } = require('./is-segwit-tx');
 const { indexOfWitness } = require('./index-of-witness');
 
-module.exports = { decodeTxId };
+exports.decodeTxId = decodeTxId;
 
 /**
   Decodes the txId and hash from the Buffer.
@@ -17,10 +19,7 @@ module.exports = { decodeTxId };
   sha256 hash of the data minus segwit data and markers.
 
   @param {Buffer} raw
-  @returns {{
-    txId: Buffer
-    hash: Buffer
-  }}
+  @returns {{ txId: Buffer, hash: Buffer }}
  */
 function decodeTxId(raw) {
   let hash;

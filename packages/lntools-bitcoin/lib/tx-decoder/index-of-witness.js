@@ -1,7 +1,9 @@
+// @ts-check
+
 const BufferCursor = require('@lntools/buffer-cursor');
 const { isSegWitTx } = require('./is-segwit-tx');
 
-module.exports = { indexOfWitness };
+exports.indexOfWitness = indexOfWitness;
 
 /**
   Finds the index of the witness data in the raw Buffer.

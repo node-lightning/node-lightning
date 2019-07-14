@@ -1,4 +1,6 @@
-module.exports = { isSegWitTx };
+// @ts-check
+
+exports.isSegWitTx = isSegWitTx;
 
 /**
   Returns true is the raw transaction is a SegWit transition.
