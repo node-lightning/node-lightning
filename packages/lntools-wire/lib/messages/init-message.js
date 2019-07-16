@@ -204,4 +204,21 @@ exports.InitMessage = class InitMessage {
     else this.unsetLocalBit(7);
     this.unsetLocalBit(6);
   }
+
+  toJSON() {
+    return {
+      globalFeatures: this.globalFeatures.toString(),
+      localFeatures: {
+        raw: this.localFeatures.toString(),
+        dataLossProtect: this.localDataLossProtect,
+        initialRoutingSync: this.localInitialRoutingSync,
+        upfrontShutdownScript: this.localUpfrontShutdownScript,
+        gossipQueries: this.localGossipQueries,
+      },
+    };
+  }
+
+  toString() {
+    return this.serialize().toString('hex');
+  }
 };
