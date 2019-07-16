@@ -1,3 +1,3 @@
-const { TxWatcher } = require('./txwatcher');
+const { TxWatcher } = require('./tx-watcher');
 
 exports.TxWatcher = TxWatcher;
