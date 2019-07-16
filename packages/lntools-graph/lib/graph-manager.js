@@ -31,7 +31,9 @@ class GraphManager {
    */
   enqueue(msg) {
     // ignore messages that do not contain p2p graph data
-    if (msg.type !== 256 && msg.type !== 257 && msg.type !== 258) return;
+    if (msg.type !== 256 && msg.type !== 257 && msg.type !== 258) {
+      return;
+    }
 
     // defer processing until there is capacity
     this._processor.enqueue(msg);
@@ -43,6 +45,14 @@ class GraphManager {
    */
   get unprocessed() {
     return this._processor.size;
+  }
+
+  /**
+   * Returns the number of pending updates the graph has queued
+   * @type {number}
+   */
+  get pending() {
+    return this.graph.pendingUpdates;
   }
 
   async _processUpdate(msg) {

@@ -106,6 +106,14 @@ exports.Graph = class Graph extends EventEmitter {
   }
 
   /**
+   * Returns the pending updates waiting for messaging
+   * @type {number}
+   */
+  get pendingUpdates() {
+    return this._pendingChannelUpdates.size + this._pendingNodeAnnouncements.size;
+  }
+
+  /**
     Process a node announcement message according to BOLT #7 rules
 
     @param {NodeAnnouncementMessage} msg
