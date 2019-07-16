@@ -174,6 +174,7 @@ class Peer extends EventEmitter {
 
     // set initialization messages
     initMessage.localInitialRoutingSync = this.initRoutingSync;
+    initMessage.localDataLossProtect = true;
 
     // fire off the init message
     let m = initMessage.serialize();
