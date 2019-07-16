@@ -111,7 +111,7 @@ describe('Peer', () => {
 
     it('should send the init message to the peer', () => {
       sut._onSocketReady();
-      expect(socket.write.args[0][0]).to.deep.equal(Buffer.from('001000000000', 'hex'));
+      expect(socket.write.args[0][0]).to.deep.equal(Buffer.from('00100000000102', 'hex'));
     });
   });
 
@@ -180,7 +180,7 @@ describe('Peer', () => {
   describe('_sendInitMessage', () => {
     it('should send the initialization message', () => {
       sut._sendInitMessage();
-      expect(socket.write.args[0][0]).to.deep.equal(Buffer.from('001000000000', 'hex'));
+      expect(socket.write.args[0][0]).to.deep.equal(Buffer.from('00100000000102', 'hex'));
     });
   });
 
