@@ -35,23 +35,24 @@ class Logger {
   /**
    * Creates a sub logger for an area an instance
    * @param {string} name
-   * @param {any} [instance]
+   * @param {string} [instance]
    */
   create(name, instance) {
-    this._log('DBG', 'LOG', `instance ${this.id} creating sub logger ${name}`);
+    this._log('DBG', 'LOG', this.id, `new sub logger for ${name} ${instance}`);
     return new SubWriter(name, instance, this._log.bind(this));
   }
 
-  _log(level, area, msg) {
+  _log(level, area, instance, msg) {
     if (!shouldLog(this.level, level)) return;
     let formattedArea = area.toUpperCase();
-    let formattedMsg = this._format(level, formattedArea, msg);
+    let formattedMsg = this._format(level, formattedArea, instance, msg);
     this._write(formattedMsg);
   }
 
-  _format(level, area, msg) {
+  _format(level, area, instance, msg) {
     let date = new Date().toISOString();
-    return `${date} [${level}] ${area}: ${msg}`;
+    let instanceFmt = instance ? ' ' + instance : '';
+    return `${date} [${level}] ${area}${instanceFmt}: ${msg}`;
   }
 
   _write(msg) {

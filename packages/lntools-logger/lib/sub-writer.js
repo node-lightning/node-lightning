@@ -7,11 +7,11 @@ class SubWriter {
    *
    * @param {string} name
    * @param {string} [instance]
-   * @param {(level: string, area: string, msg: string) => void} writer
+   * @param {(level: string, area: string, instance: string, msg: string) => void} writer
    */
   constructor(name, instance, writer) {
     /**
-     * @type {(level: string, area: string, msg: string) => void}
+     * @type {(level: string, area: string, instance:string, msg: string) => void}
      */
     this.writer = writer;
 
@@ -39,7 +39,7 @@ class SubWriter {
    */
   debug() {
     let msg = util.format.apply(null, arguments);
-    this.writer('DBG', this.name, msg);
+    this.writer('DBG', this.name, this.instance, msg);
   }
 
   /**
@@ -49,7 +49,7 @@ class SubWriter {
    */
   info() {
     let msg = util.format.apply(null, arguments);
-    this.writer('INF', this.name, msg);
+    this.writer('INF', this.name, this.instance, msg);
   }
 
   /**
@@ -59,7 +59,7 @@ class SubWriter {
    */
   warn() {
     let msg = util.format.apply(null, arguments);
-    this.writer('WRN', this.name, msg);
+    this.writer('WRN', this.name, this.instance, msg);
   }
 
   /**
@@ -69,7 +69,7 @@ class SubWriter {
    */
   error() {
     let msg = util.format.apply(null, arguments);
-    this.writer('ERR', this.name, msg);
+    this.writer('ERR', this.name, this.instance, msg);
   }
 }
 
