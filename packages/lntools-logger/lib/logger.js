@@ -1,6 +1,6 @@
 // @ts-check
 
-const { AreaWriter } = require('./area-writer');
+const { SubWriter } = require('./sub-writer');
 
 /**
  * @typedef {import('./transport').ITransport} ITransport
@@ -32,14 +32,20 @@ class Logger {
     this.transports = [];
   }
 
-  area(name) {
-    this._log('INF', 'LOG', `instance ${this.id} creating area logger for ${name}`);
-    return new AreaWriter(name, this._log.bind(this));
+  /**
+   * Creates a sub logger for an area an instance
+   * @param {string} name
+   * @param {any} [instance]
+   */
+  create(name, instance) {
+    this._log('DBG', 'LOG', `instance ${this.id} creating sub logger ${name}`);
+    return new SubWriter(name, instance, this._log.bind(this));
   }
 
   _log(level, area, msg) {
     if (!shouldLog(this.level, level)) return;
-    let formattedMsg = this._format(level, area, msg);
+    let formattedArea = area.toUpperCase();
+    let formattedMsg = this._format(level, formattedArea, msg);
     this._write(formattedMsg);
   }
 
