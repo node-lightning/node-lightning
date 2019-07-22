@@ -1,6 +1,6 @@
 const assert = require('assert');
 const { EventEmitter } = require('events');
-const winston = require('winston');
+const { manager } = require('@lntools/logger');
 const noise = require('@lntools/noise');
 const MessageFactory = require('./message-factory');
 const { InitMessage } = require('./messages/init-message');
@@ -96,6 +96,9 @@ class Peer extends EventEmitter {
     @param {number} [opts.port]
    */
   connect({ ls, rpk, host, port = 9735 }) {
+    // construct a logger before connecting
+    this.logger = manager.create('PEER', rpk.toString('hex'));
+
     this.socket = noise.connect({ ls, rpk, host, port });
     this.socket.on('ready', this._onSocketReady.bind(this));
     this.socket.on('end', this._onSocketEnd.bind(this));
@@ -191,7 +194,7 @@ class Peer extends EventEmitter {
   _processPeerInitMessage(raw) {
     // deserialize message
     let m = MessageFactory.deserialize(raw);
-    winston.info('peer initialized ' + JSON.stringify(m));
+    this.logger.info('peer initialized ' + JSON.stringify(m));
 
     // ensure we got an InitMessagee
     assert.ok(m instanceof InitMessage, new Error('Expecting InitMessage'));

@@ -1,8 +1,11 @@
 // @ts-check
 
-const winston = require('winston');
 const { sha256, ecdh, hkdf, ccpEncrypt, ccpDecrypt } = require('@lntools/crypto');
 const { getPublicKey } = require('@lntools/crypto');
+
+/**
+ * @typedef {import("@lntools/logger").Logger} Logger
+ */
 
 class NoiseState {
   /**
@@ -12,9 +15,15 @@ class NoiseState {
     @param {Object} opts
     @param {Buffer} opts.ls local private key as a 32-byte buffer
     @param {Buffer} [opts.es] ephemeral private key as a 32-byte
+    @param {Logger} [opts.logger] logger
     buffer
   */
-  constructor({ ls, es }) {
+  constructor({ ls, es, logger }) {
+    /**
+     * @type {Logger}
+     */
+    this.logger = logger;
+
     /**
       The official protocol name for the Lightning variant of Noise. This
       value is mixed into the iniitialiization function to start the
@@ -142,7 +151,7 @@ class NoiseState {
     @param {Buffer} pubkey
    */
   _initialize(pubkey) {
-    winston.debug('initialize noise state');
+    this.logger.debug('initialize noise state');
 
     // 1. h = SHA-256(protocolName)
     this.h = sha256(Buffer.from(this.protocolName));
@@ -166,7 +175,7 @@ class NoiseState {
     @return {Buffer} 50 bytes
    */
   initiatorAct1(rpk) {
-    winston.debug('initiator act1');
+    this.logger.debug('initiator act1');
     this.rpk = rpk;
     this._initialize(this.rpk);
 
@@ -199,7 +208,7 @@ class NoiseState {
     @param {Buffer} m 50-byte message from responder's act1
    */
   initiatorAct2(m) {
-    winston.debug('initiator act2');
+    this.logger.debug('initiator act2');
 
     // 1. read exactly 50 bytes off the stream
     if (m.length !== 50) throw new Error('ACT2_READ_FAILED');
@@ -240,7 +249,7 @@ class NoiseState {
     to the responder.
    */
   initiatorAct3() {
-    winston.debug('initiator act3');
+    this.logger.debug('initiator act3');
 
     // 1. c = encryptWithAD(temp_k2, 1, h, lpk)
     let c = ccpEncrypt(
@@ -286,7 +295,7 @@ class NoiseState {
   receiveAct1(m) {
     this._initialize(this.lpk);
 
-    winston.debug('receive act1');
+    this.logger.debug('receive act1');
 
     // 1. read exactly 50 bytes off the stream
     if (m.length !== 50) throw new Error('ACT1_READ_FAILED');
@@ -462,7 +471,7 @@ class NoiseState {
   }
 
   _rotateSendingKeys() {
-    winston.debug('rotating sending key');
+    this.logger.debug('rotating sending key');
     let result = hkdf(this.ck, this.sk);
     this.sk = result.slice(32);
     this.ck = result.slice(0, 32);
@@ -470,7 +479,7 @@ class NoiseState {
   }
 
   _rotateRecievingKeys() {
-    winston.debug('rotating receiving key');
+    this.logger.debug('rotating receiving key');
     let result = hkdf(this.ck, this.rk);
     this.rk = result.slice(32);
     this.ck = result.slice(0, 32);

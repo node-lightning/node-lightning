@@ -1,7 +1,7 @@
 // @ts-check
 
 const assert = require('assert');
-const winston = require('winston');
+const { manager } = require('@lntools/logger');
 const { Duplex } = require('stream');
 const { Socket } = require('net');
 const NoiseError = require('./noise-error');
@@ -159,6 +159,9 @@ class NoiseSocket extends Duplex {
     this._socket.on('lookup', (e, a, f, h) => this.emit('lookup', e, a, f, h));
     this._socket.on('readable', this._onData.bind(this));
     this._socket.on('timeout', () => this.emit('timeout'));
+
+    // create a logger for the socket
+    this.logger = manager.create('NOISE', this.rpk.toString('hex'));
   }
 
   /**
@@ -387,7 +390,7 @@ class NoiseSocket extends Duplex {
       this._readState = READ_STATE.READY_FOR_LEN;
       return true;
     } else {
-      winston.debug('socket read is blocked');
+      this.logger.debug('socket read is blocked');
       this._readState = READ_STATE.BLOCKED;
       return false;
     }
@@ -399,7 +402,7 @@ class NoiseSocket extends Duplex {
     }
 
     if (this._readState === READ_STATE.BLOCKED) {
-      winston.debug('socket read is unblocked');
+      this.logger.debug('socket read is unblocked');
       this._readState = READ_STATE.READY_FOR_LEN;
     }
     // Trigger a read but wait until the end of the event loop.
@@ -411,7 +414,7 @@ class NoiseSocket extends Duplex {
   }
 
   _write(data, encoding, cb) {
-    winston.debug('sending ' + data.toString('hex'));
+    this.logger.debug('sending ' + data.toString('hex'));
     let c = this._noiseState.encryptMessage(data);
     this._socket.write(c, cb);
   }
