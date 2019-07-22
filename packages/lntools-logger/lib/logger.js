@@ -1,64 +1,75 @@
 // @ts-check
 
-const { SubWriter } = require('./sub-writer');
-
-/**
- * @typedef {import('./transport').ITransport} ITransport
- */
-
-const levelMap = new Map([['DBG', 0], ['INF', 1], ['WRN', 2], ['ERR', 3]]);
-
-/**
- *
- * @param {string} myLevel
- * @param {string} msgLevel
- */
-function shouldLog(myLevel, msgLevel) {
-  return levelMap.get(myLevel) <= levelMap.get(msgLevel);
-}
+const util = require('util');
 
 class Logger {
-  constructor() {
-    this.level = 'INF';
-
-    this.id = Math.random()
-      .toString()
-      .substr(2);
+  /**
+   *
+   * @param {string} name
+   * @param {string} [instance]
+   * @param {(level: string, area: string, instance: string, msg: string) => void} writer
+   */
+  constructor(name, instance, writer) {
+    /**
+     * @type {(level: string, area: string, instance:string, msg: string) => void}
+     */
+    this.writer = writer;
 
     /**
-     * List of transports
-     * @type {ITransport[]}
+     * @type {string}
      */
-    this.transports = [];
+    this.name = name;
+
+    /**
+     * @type {string}
+     */
+    this.instance = instance;
+
+    // create bound methods so consumer doesnt lose context
+    this.debug = this.debug.bind(this);
+    this.info = this.info.bind(this);
+    this.warn = this.warn.bind(this);
+    this.error = this.error.bind(this);
   }
 
   /**
-   * Creates a sub logger for an area an instance
-   * @param {string} name
-   * @param {string} [instance]
+   * Write a debug message
+   * @param {string} format format
+   * @param {...any} args variadic arguments
    */
-  create(name, instance) {
-    this._log('DBG', 'LOG', this.id, `new sub logger for ${name} ${instance}`);
-    return new SubWriter(name, instance, this._log.bind(this));
+  debug() {
+    let msg = util.format.apply(null, arguments);
+    this.writer('DBG', this.name, this.instance, msg);
   }
 
-  _log(level, area, instance, msg) {
-    if (!shouldLog(this.level, level)) return;
-    let formattedArea = area.toUpperCase();
-    let formattedMsg = this._format(level, formattedArea, instance, msg);
-    this._write(formattedMsg);
+  /**
+   * Write an info message
+   * @param {string} format format
+   * @param {...any} args variadic arguments
+   */
+  info() {
+    let msg = util.format.apply(null, arguments);
+    this.writer('INF', this.name, this.instance, msg);
   }
 
-  _format(level, area, instance, msg) {
-    let date = new Date().toISOString();
-    let instanceFmt = instance ? ' ' + instance : '';
-    return `${date} [${level}] ${area}${instanceFmt}: ${msg}`;
+  /**
+   * Write a warning message
+   * @param {string} format format
+   * @param {...any} args variadic arguments
+   */
+  warn() {
+    let msg = util.format.apply(null, arguments);
+    this.writer('WRN', this.name, this.instance, msg);
   }
 
-  _write(msg) {
-    for (let transport of this.transports) {
-      transport.write(msg);
-    }
+  /**
+   * Write an error message
+   * @param {string} format format
+   * @param {...any} args variadic arguments
+   */
+  error() {
+    let msg = util.format.apply(null, arguments);
+    this.writer('ERR', this.name, this.instance, msg);
   }
 }
 
