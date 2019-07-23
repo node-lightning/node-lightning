@@ -1,6 +1,6 @@
-# @lntools/logger
+# LNTools Logger
 
-Logger for LNTools modules that supports multi-transport, multi-area and instance based logging using starndard `util.format` sprintf value formatting.
+Logger for LNTools modules that supports multi-transport, multi-area+instance logging using standard `util.format` sprintf value formatting.
 
 ### Getting Started
 
@@ -8,7 +8,7 @@ Logger for LNTools modules that supports multi-transport, multi-area and instanc
 npm install @lntools/logger
 ```
 
-To use the module you will need to create an area logger:
+To use the module you will need to create an area logger and include an optional instance identifier:
 
 ```javascript
 const { manager } = require('@lntools/logger');
@@ -31,7 +31,7 @@ log.info('some values', 1, 2, 3, 4);
 log.info('using %s formatting', 'sprintf');
 ```
 
-The above message swould wlook similar to:
+The above message should look similar to:
 
 ```
 2019-07-22T13:28:37.854Z [DBG] TEST 12345678: test
@@ -39,7 +39,7 @@ The above message swould wlook similar to:
 2019-07-22T13:28:37.855Z [WRN] TEST 12345678: i'm warning you
 2019-07-22T13:28:37.855Z [ERR] TEST 12345678: something went bad
 2019-07-22T13:28:37.856Z [ERR] TEST 12345678: Error: booooom
-    at Object.<anonymous> (/Users/bmancini/code/go/src/github.com/altangent/lntools/packages/lntools-logger/test.js:9:11)
+    at Object.<anonymous> (/code/go/src/github.com/altangent/lntools/packages/lntools-logger/test.js:9:11)
     at Module._compile (internal/modules/cjs/loader.js:776:30)
     at Object.Module._extensions..js (internal/modules/cjs/loader.js:787:10)
     at Module.load (internal/modules/cjs/loader.js:653:32)

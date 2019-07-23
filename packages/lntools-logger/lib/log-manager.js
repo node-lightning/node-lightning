@@ -17,7 +17,7 @@ class LogManager {
      * Current log level setting.
      * @type {string}
      */
-    this.level = 'DBG';
+    this.level = 'INF';
 
     /**
      * Unique identifier for the log manager
