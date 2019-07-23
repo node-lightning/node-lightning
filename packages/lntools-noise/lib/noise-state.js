@@ -151,7 +151,7 @@ class NoiseState {
     @param {Buffer} pubkey
    */
   _initialize(pubkey) {
-    this.logger.debug('initialize noise state');
+    if (this.logger) this.logger.debug('initialize noise state');
 
     // 1. h = SHA-256(protocolName)
     this.h = sha256(Buffer.from(this.protocolName));
@@ -175,7 +175,7 @@ class NoiseState {
     @return {Buffer} 50 bytes
    */
   initiatorAct1(rpk) {
-    this.logger.debug('initiator act1');
+    if (this.logger) this.logger.debug('initiator act1');
     this.rpk = rpk;
     this._initialize(this.rpk);
 
@@ -208,7 +208,7 @@ class NoiseState {
     @param {Buffer} m 50-byte message from responder's act1
    */
   initiatorAct2(m) {
-    this.logger.debug('initiator act2');
+    if (this.logger) this.logger.debug('initiator act2');
 
     // 1. read exactly 50 bytes off the stream
     if (m.length !== 50) throw new Error('ACT2_READ_FAILED');
@@ -249,7 +249,7 @@ class NoiseState {
     to the responder.
    */
   initiatorAct3() {
-    this.logger.debug('initiator act3');
+    if (this.logger) this.logger.debug('initiator act3');
 
     // 1. c = encryptWithAD(temp_k2, 1, h, lpk)
     let c = ccpEncrypt(
@@ -295,7 +295,7 @@ class NoiseState {
   receiveAct1(m) {
     this._initialize(this.lpk);
 
-    this.logger.debug('receive act1');
+    if (this.logger) this.logger.debug('receive act1');
 
     // 1. read exactly 50 bytes off the stream
     if (m.length !== 50) throw new Error('ACT1_READ_FAILED');
@@ -471,7 +471,7 @@ class NoiseState {
   }
 
   _rotateSendingKeys() {
-    this.logger.debug('rotating sending key');
+    if (this.logger) this.logger.debug('rotating sending key');
     let result = hkdf(this.ck, this.sk);
     this.sk = result.slice(32);
     this.ck = result.slice(0, 32);
@@ -479,7 +479,7 @@ class NoiseState {
   }
 
   _rotateRecievingKeys() {
-    this.logger.debug('rotating receiving key');
+    if (this.logger) this.logger.debug('rotating receiving key');
     let result = hkdf(this.ck, this.rk);
     this.rk = result.slice(32);
     this.ck = result.slice(0, 32);

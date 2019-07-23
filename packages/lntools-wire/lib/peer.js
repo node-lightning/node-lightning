@@ -67,20 +67,23 @@ class Peer extends EventEmitter {
   constructor({ initRoutingSync = false } = {}) {
     super();
 
-    /** @type PeerState */
+    /** @type {PeerState} */
     this.state = Peer.states.pending;
 
-    /** @type NoiseSocket */
+    /** @type {NoiseSocket} */
     this.socket;
 
-    /** @type number */
+    /** @type {number} */
     this.messageCounter = 0;
 
-    /** @type boolean */
+    /** @type {boolean} */
     this.initRoutingSync = initRoutingSync;
 
-    /** @type PingPongState */
+    /** @type {PingPongState} */
     this.pingPongState = new PingPongState(this);
+
+    /** @type {Logger} */
+    this.logger;
   }
 
   /**
@@ -97,7 +100,7 @@ class Peer extends EventEmitter {
    */
   connect({ ls, rpk, host, port = 9735 }) {
     // construct a logger before connecting
-    this.logger = manager.create('PEER', rpk.toString('hex'));
+    this.logger = manager.create('PEER', rpk && rpk.toString('hex'));
 
     this.socket = noise.connect({ ls, rpk, host, port });
     this.socket.on('ready', this._onSocketReady.bind(this));
@@ -194,7 +197,7 @@ class Peer extends EventEmitter {
   _processPeerInitMessage(raw) {
     // deserialize message
     let m = MessageFactory.deserialize(raw);
-    this.logger.info('peer initialized ' + JSON.stringify(m));
+    if (this.logger) this.logger.info('peer initialized', m);
 
     // ensure we got an InitMessagee
     assert.ok(m instanceof InitMessage, new Error('Expecting InitMessage'));

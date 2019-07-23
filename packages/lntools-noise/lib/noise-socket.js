@@ -161,7 +161,7 @@ class NoiseSocket extends Duplex {
     this._socket.on('timeout', () => this.emit('timeout'));
 
     // create a logger for the socket
-    this.logger = manager.create('NOISE', this.rpk.toString('hex'));
+    this.logger = manager.create('NOISE');
   }
 
   /**
