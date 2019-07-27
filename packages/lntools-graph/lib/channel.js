@@ -55,6 +55,9 @@ exports.Channel = class Channel {
     /** @type {Buffer} */
     this.bitcoinSignature2;
 
+    /** @type {BN} */
+    this.features;
+
     /** @type {number} */
     this.lastUpdate;
 
@@ -121,6 +124,7 @@ exports.Channel = class Channel {
     let c = new Channel();
     c.shortChannelId = msg.shortChannelId;
     c.chainHash = msg.chainHash;
+    c.features = msg.features;
     c.nodeId1 = msg.nodeId1;
     c.nodeId2 = msg.nodeId2;
     c.bitcoinKey1 = msg.bitcoinKey1;

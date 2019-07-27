@@ -1,6 +1,7 @@
 // @ts-check
 
 /**
+ * @typedef {import("bn.js")} BN
  * @typedef {import("./channel").Channel} Channel
  * @typedef {import("@lntools/wire").NodeAnnouncementMessage} NodeAnnouncementMessage
  * @typedef {import("@lntools/wire/lib/domain/address").Address} Address
@@ -11,11 +12,6 @@ exports.Node = class Node {
     Reperesents a node in the p2p network.
    */
   constructor() {
-    /**
-      @type {NodeAnnouncementMessage}
-     */
-    this._nodeAnnouncementMessage;
-
     /**
       @type {Buffer}
      */
@@ -40,6 +36,16 @@ exports.Node = class Node {
       @type {Buffer}
      */
     this.rgbColor;
+
+    /**
+     * @type {Buffer}
+     */
+    this.nodeSignature;
+
+    /**
+     * @type {BN}
+     */
+    this.features;
 
     /**
      * List of channels the node belongs to

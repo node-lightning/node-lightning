@@ -138,9 +138,10 @@ exports.Graph = class Graph extends EventEmitter {
     }
 
     // update the node's information
-    node._nodeAnnouncementMessage = msg;
-    node.lastUpdate = msg.timestamp;
+    node.nodeSignature = msg.signature;
     node.nodeId = msg.nodeId;
+    node.features = msg.features;
+    node.lastUpdate = msg.timestamp;
     node.alias = msg.alias;
     node.rgbColor = msg.rgbColor;
     node.addresses = msg.addresses;
