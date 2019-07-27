@@ -7,13 +7,14 @@ class LinkedListNode {
    */
   constructor(value) {
     this.value = value;
+    this.prev = null;
     this.next = null;
   }
 }
 
 class LinkedList {
   /**
-   * Implementation of a singly linked-list that maintains both head and tail.
+   * Implementation of a doubly linked-list that maintains both head and tail.
    * Tail maintenance allows for O(1) insertions at tail
    */
   constructor() {
@@ -44,6 +45,7 @@ class LinkedList {
     }
 
     // non-empty, append to tail
+    node.prev = this.tail;
     this.tail.next = node;
     this.tail = node;
     this.length++;
@@ -56,9 +58,19 @@ class LinkedList {
    * @returns {any}
    */
   valueAt(index) {
+    let node = this.nodeAt(index);
+    return node.value;
+  }
+
+  /**
+   * Finds the node for the index or throws an out of range exception
+   * @param {number} index
+   * @returns {LinkedListNode}
+   */
+  nodeAt(index) {
     // error when index out of range
     if (index < 0 || index > this.length) {
-      throw new Error('Index out of range');
+      throw new RangeError('Index out of range');
     }
 
     // seek until index is found
@@ -69,52 +81,57 @@ class LinkedList {
       count++;
     }
 
-    return currentNode.value;
+    return currentNode;
   }
 
   /**
    * Removes the node at the index and returns its value.
-   * Head removal is an O(1) operation. For removal of other indexes
+   * Head or tail removal is an O(1) operation. For removal of other indexes
    * is at worst O(N).
    * @param {number} index
-   * @returns {any}
+   * @returns {any} value of the node
    */
   remove(index) {
     // error when index out of range
     if (index < 0 || index > this.length) {
-      throw new Error('Index out of range');
+      throw new RangeError('Index out of range');
     }
+
+    let removeNode;
+    let prevNode = null;
+    let nextNode = null;
 
     // first node simply removes the node at the tip
     if (index === 0) {
-      let node = this.head;
-      let nextNode = node.next;
+      removeNode = this.head;
+      nextNode = this.head.next;
 
+      // adjust head
       this.head = nextNode;
-      this.length--;
-      return node.value;
     }
 
-    // seek till we find the prior node
-    let count = 0;
-    let priorNode = this.head;
-    while (count < index - 1) {
-      priorNode = priorNode.next;
-      count++;
+    // last node, update the tail and mark next as null
+    if (index === this.length - 1) {
+      removeNode = this.tail;
+      prevNode = this.tail.prev;
+
+      // adjust tail
+      this.tail = prevNode;
     }
 
-    // slice out our node,
-    let node = priorNode.next;
-    let nextNode = node.next;
-    priorNode.next = nextNode;
+    // middle node
+    if (!removeNode) {
+      removeNode = this.nodeAt(index);
+      prevNode = removeNode.prev;
+      nextNode = removeNode.next;
+    }
+
+    // splice out the node afer null checking
+    if (prevNode) prevNode.next = nextNode;
+    if (nextNode) nextNode.prev = prevNode;
     this.length--;
 
-    // update tail
-    if (priorNode.next === null) {
-      this.tail = priorNode;
-    }
-
-    return node.value;
+    return removeNode.value;
   }
 }
 

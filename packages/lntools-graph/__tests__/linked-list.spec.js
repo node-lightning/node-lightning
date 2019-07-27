@@ -37,6 +37,16 @@ describe('LinkedList', () => {
         sut.add(1);
         expect(sut.tail.value).to.equal(1);
       });
+
+      it('should not have prev value', () => {
+        sut.add(1);
+        expect(sut.head.prev).to.be.null;
+      });
+
+      it('should not have next value', () => {
+        sut.add(1);
+        expect(sut.head.next).to.be.null;
+      });
     });
 
     describe('subsequent adds', () => {
@@ -46,17 +56,40 @@ describe('LinkedList', () => {
         expect(sut.length).to.equal(2);
       });
 
-      it('should attach next value', () => {
+      it('shoudl not adjust head value', () => {
         sut.add(1);
         sut.add(2);
         expect(sut.head.value).to.equal(1);
-        expect(sut.head.next.value).to.equal(2);
       });
 
       it('should adjust tail value', () => {
         sut.add(1);
         sut.add(2);
         expect(sut.tail.value).to.equal(2);
+      });
+
+      it('should attach next value to head', () => {
+        sut.add(1);
+        sut.add(2);
+        expect(sut.head.next.value).to.equal(2);
+      });
+
+      it('should not adjust prev value of head', () => {
+        sut.add(1);
+        sut.add(2);
+        expect(sut.head.prev).to.be.null;
+      });
+
+      it('should attach prev value to tail ', () => {
+        sut.add(1);
+        sut.add(2);
+        expect(sut.tail.prev.value).to.equal(1);
+      });
+
+      it('should not have next value for tail', () => {
+        sut.add(1);
+        sut.add(2);
+        expect(sut.tail.next).to.be.null;
       });
     });
   });
@@ -94,9 +127,9 @@ describe('LinkedList', () => {
 
   describe('.remove', () => {
     beforeEach(() => {
+      sut.add(0);
       sut.add(1);
       sut.add(2);
-      sut.add(3);
     });
 
     it('should throw on negative index argument', () => {
@@ -110,7 +143,12 @@ describe('LinkedList', () => {
     describe('first position', () => {
       it('head should be second node', () => {
         sut.remove(0);
-        expect(sut.head.value).to.equal(2);
+        expect(sut.head.value).to.equal(1);
+      });
+
+      it('should set heads prev to null', () => {
+        sut.remove(0);
+        expect(sut.head.prev).to.be.null;
       });
 
       it('should have reduced length by 1', () => {
@@ -122,8 +160,13 @@ describe('LinkedList', () => {
     describe('middle position', () => {
       it('should link over to next position', () => {
         sut.remove(1);
-        expect(sut.head.value).to.equal(1);
-        expect(sut.head.next.value).to.equal(3);
+        expect(sut.head.value).to.equal(0);
+        expect(sut.head.next.value).to.equal(2);
+      });
+
+      it('should link back to prev position', () => {
+        sut.remove(1);
+        expect(sut.head.next.prev.value).to.equal(0);
       });
 
       it('should have reduced length by 1', () => {
@@ -133,21 +176,69 @@ describe('LinkedList', () => {
     });
 
     describe('end position', () => {
-      it('prior node should have null next', () => {
-        sut.remove(2);
-        expect(sut.head.value).to.equal(1);
-        expect(sut.head.next.value).to.equal(2);
-        expect(sut.head.next.next).to.be.null;
-      });
-
       it('should adjust tail', () => {
         sut.remove(2);
-        expect(sut.tail.value).to.equal(2);
+        expect(sut.tail.value).to.equal(1);
+      });
+
+      it("should have tail's next set to null", () => {
+        sut.remove(2);
+        expect(sut.tail.next).to.be.null;
+      });
+
+      it("should have tail's prev link to previous", () => {
+        sut.remove(2);
+        expect(sut.tail.prev.value).to.equal(0);
+      });
+
+      it("should have tail's previous's next link to tail", () => {
+        sut.remove(2);
+        expect(sut.tail.prev.next.value).to.equal(1);
       });
 
       it('should have reduced length by 1', () => {
         sut.remove(2);
         expect(sut.length).to.equal(2);
+      });
+    });
+
+    describe('all from head', () => {
+      beforeEach(() => {
+        sut.remove(0);
+        sut.remove(0);
+        sut.remove(0);
+      });
+
+      it('should have null head', () => {
+        expect(sut.head).to.be.null;
+      });
+
+      it('should have null tail', () => {
+        expect(sut.tail).to.be.null;
+      });
+
+      it('should have length of 0', () => {
+        expect(sut.length).to.equal(0);
+      });
+    });
+
+    describe('all from tail', () => {
+      beforeEach(() => {
+        sut.remove(2);
+        sut.remove(1);
+        sut.remove(0);
+      });
+
+      it('should have null head', () => {
+        expect(sut.head).to.be.null;
+      });
+
+      it('should have null tail', () => {
+        expect(sut.tail).to.be.null;
+      });
+
+      it('should have length of 0', () => {
+        expect(sut.length).to.equal(0);
       });
     });
   });
