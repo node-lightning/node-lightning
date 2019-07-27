@@ -161,20 +161,14 @@ exports.Graph = class Graph extends EventEmitter {
   async processChannelAnnouncement(msg) {
     let id = uniqueChannelId(msg);
 
-    // either get the existing channel or create a new one
-    let channel = this.channels.get(id) || new Channel();
-
-    // check if an announcement message has already been attached
-    if (channel._channelAnnouncmentMessage) return;
+    // abort if we've already processed this channel before...
+    if (this.channels.get(id)) return;
 
     // validate signatures for message
     if (!ChannelAnnouncementMessage.verifySignatures(msg)) {
       this.emit('error', new GraphError(ErrorCodes.chanAnnSigFailed, [msg]));
       return false;
     }
-
-    // attach shortChannelId
-    channel.shortChannelId = msg.shortChannelId;
 
     // validate UTXO for message
     let shortChannelID = shortChannelIdObj(msg.shortChannelId);
@@ -215,13 +209,10 @@ exports.Graph = class Graph extends EventEmitter {
       return;
     }
 
-    // attach properties
-    channel._channelAnnouncmentMessage = msg;
-    channel.chainHash = msg.chainHash;
+    // construct new channel message
+    let channel = Channel.fromMessage(msg);
     channel.channelPoint = { txId, output: shortChannelID.voutIdx };
     channel.capacity = new BN(utxo.value * 10 ** 8);
-    channel.nodeId1 = msg.nodeId1;
-    channel.nodeId2 = msg.nodeId2;
 
     // save the channel
     this.channels.set(id, channel);
