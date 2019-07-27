@@ -91,6 +91,12 @@ exports.Graph = class Graph extends EventEmitter {
     this.channels = new Map();
 
     /**
+     * The height the graph has been synced through
+     * @type {number}
+     */
+    this.syncHeight = 0;
+
+    /**
       List of pending nodes.
 
       @type {Map<string, import('@lntools/wire').NodeAnnouncementMessage>}
@@ -210,6 +216,11 @@ exports.Graph = class Graph extends EventEmitter {
       return;
     }
 
+    // update sync height of the graph
+    if (this.syncHeight < block.height) {
+      this.syncHeight = block.height;
+    }
+
     // construct new channel message
     let channel = Channel.fromMessage(msg);
     channel.channelPoint = { txId, output: shortChannelID.voutIdx };
@@ -287,6 +298,55 @@ exports.Graph = class Graph extends EventEmitter {
 
     // emit channel updated
     this.emit('channel', channel);
+  }
+
+  /**
+   * Closes the channel based on the activity of a channel point
+   * and emits a channel_close event
+   * @param {{ txId: string, output: number}} chanPoint
+   */
+  async closeChannel(chanPoint) {
+    // find channel
+    let channel = this.findChanByChanPoint(chanPoint);
+
+    // remove the channel from the graph and nodes
+    this.removeChannel(channel);
+
+    // this emit channel close
+    this.emit('channel_close', { channel });
+  }
+
+  /**
+   * Removes the node from the graph
+   * @param {Channel} channel
+   */
+  removeChannel(channel) {
+    let key = uniqueChannelId(channel);
+
+    // remove from channels list
+    this.channels.delete(key);
+
+    // detach from each node
+    this.nodes.get(channel.nodeId1.toString('hex')).unlinkChannel(channel);
+    this.nodes.get(channel.nodeId2.toString('hex')).unlinkChannel(channel);
+  }
+
+  /**
+   * Performs a linear search of channels by lookup against
+   * the chanPoint. Returns the channel if found, otherwise
+   * returns undefined.
+   * @param {{ txId: string, output: number}} chanPoint
+   * @returns {Channel}
+   */
+  findChanByChanPoint(chanPoint) {
+    for (let chan of this.channels.values()) {
+      if (
+        chan.channelPoint.txId === chanPoint.txId &&
+        chan.channelPoint.output === chanPoint.output
+      ) {
+        return chan;
+      }
+    }
   }
 
   /**

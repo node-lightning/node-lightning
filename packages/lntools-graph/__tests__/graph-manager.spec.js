@@ -18,14 +18,14 @@ describe('GraphManager', () => {
   it('should ignore non-p2p messages', () => {
     let sut = new GraphManager(graph);
     sut.enqueue(new ErrorMessage());
-    expect(sut.unprocessed).to.equal(0);
+    expect(sut.queued).to.equal(0);
   });
 
   describe('ChannelAnnouncementMessage', () => {
     it('should enqueue message', () => {
       let sut = new GraphManager(graph);
       sut.enqueue(new ChannelAnnouncementMessage());
-      expect(sut.unprocessed).to.equal(1);
+      expect(sut.queued).to.equal(1);
     });
 
     it('should process message', done => {
@@ -42,7 +42,7 @@ describe('GraphManager', () => {
     it('should enqueue message', () => {
       let sut = new GraphManager(graph);
       sut.enqueue(new ChannelUpdateMessage());
-      expect(sut.unprocessed).to.equal(1);
+      expect(sut.queued).to.equal(1);
     });
 
     it('should process message', done => {
@@ -59,7 +59,7 @@ describe('GraphManager', () => {
     it('should enqueue message', () => {
       let sut = new GraphManager(graph);
       sut.enqueue(new NodeAnnouncementMessage());
-      expect(sut.unprocessed).to.equal(1);
+      expect(sut.queued).to.equal(1);
     });
 
     it('should process message', done => {

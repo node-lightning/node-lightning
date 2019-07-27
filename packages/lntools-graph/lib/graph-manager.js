@@ -40,10 +40,10 @@ class GraphManager {
   }
 
   /**
-   * Returns the number of unprocessed messages waiting to be processed
+   * Returns the number of queued messages waiting to be processed
    * @type {number}
    */
-  get unprocessed() {
+  get queued() {
     return this._processor.size;
   }
 
