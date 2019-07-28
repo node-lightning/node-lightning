@@ -1,6 +1,6 @@
 {
   "name": "@lntools/wire",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Lightning Network Wire Protocol",
   "scripts": {
     "test": "../../node_modules/.bin/nyc --reporter=lcov --reporter=text ../../node_modules/.bin/mocha --recursive \"__tests__/**/*.spec.js\"",
