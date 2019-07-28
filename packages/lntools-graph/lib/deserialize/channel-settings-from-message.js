@@ -15,7 +15,7 @@ exports.channelSettingsFromMessage = channelSettingsFromMessage;
  */
 function channelSettingsFromMessage(msg) {
   let instance = new ChannelSettings();
-  instance._channelUpdateMessage = msg;
+  instance.signature = msg.signature;
   instance.direction = msg.direction;
   instance.timestamp = msg.timestamp;
   instance.cltvExpiryDelta = msg.cltvExpiryDelta;

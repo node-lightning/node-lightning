@@ -7,6 +7,11 @@
 exports.ChannelSettings = class ChannelSettings {
   constructor() {
     /**
+     * @type {Buffer}
+     */
+    this.signature;
+
+    /**
       @type {number}
      */
     this.direction;
@@ -41,6 +46,7 @@ exports.ChannelSettings = class ChannelSettings {
 
   toJSON() {
     return {
+      signature: this.signature,
       timestamp: this.timestamp,
       cltvExpiryDelta: this.cltvExpiryDelta,
       htlcMinimumMsat: this.htlcMinimumMsat.toString(10),
