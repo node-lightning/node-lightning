@@ -1,27 +1,22 @@
 // @ts-check
+
 const { EventEmitter } = require('events');
-const { Channel } = require('./channel');
-const { ChannelSettings } = require('./channel-settings');
 const { Node } = require('./node');
+const { OutPoint } = require('./outpoint');
 const { ChannelAnnouncementMessage } = require('@lntools/wire');
 const { NodeAnnouncementMessage } = require('@lntools/wire');
 const { ChannelUpdateMessage } = require('@lntools/wire');
-const { shortChannelIdObj } = require('@lntools/wire');
 const BN = require('bn.js');
 const { fundingScript } = require('./tx');
 const { GraphError } = require('./graph-error');
 const { ErrorCodes } = require('./graph-error');
+const { channelFromMessage } = require('./deserialize/channel-from-message');
+const { channelSettingsFromMessage } = require('./deserialize/channel-settings-from-message');
 
 /**
-  Construct a unique Id from the chainHash and shortChannelID
-  @param {object} param
-  @param {Buffer} param.chainHash
-  @param {Buffer} param.shortChannelId
-  @return {string}
+ * @typedef {import("./channel").Channel} Channel
+ * @typedef {import("./channel-settings").ChannelSettings} ChannelSettings
  */
-function uniqueChannelId({ chainHash, shortChannelId }) {
-  return chainHash.slice(0, 4).toString('hex') + '_' + shortChannelId.toString('hex');
-}
 
 exports.Graph = class Graph extends EventEmitter {
   /**
@@ -166,10 +161,10 @@ exports.Graph = class Graph extends EventEmitter {
     @param {ChannelAnnouncementMessage } msg
    */
   async processChannelAnnouncement(msg) {
-    let id = uniqueChannelId(msg);
+    let key = msg.shortChannelId.toString();
 
     // abort if we've already processed this channel before...
-    if (this.channels.get(id)) return;
+    if (this.channels.get(key)) return;
 
     // validate signatures for message
     if (!ChannelAnnouncementMessage.verifySignatures(msg)) {
@@ -177,34 +172,31 @@ exports.Graph = class Graph extends EventEmitter {
       return false;
     }
 
-    // validate UTXO for message
-    let shortChannelID = shortChannelIdObj(msg.shortChannelId);
-
     // load the block hash for the block height
-    let blockHash = await this.chainClient.getBlockHash(shortChannelID.block);
+    let blockHash = await this.chainClient.getBlockHash(msg.shortChannelId.block);
     if (!blockHash) {
-      this.emit('error', new GraphError(ErrorCodes.chanBadBlockHash, [msg, shortChannelID]));
+      this.emit('error', new GraphError(ErrorCodes.chanBadBlockHash, [msg]));
       return;
     }
 
     // load the block details so we can find the tx
     let block = await this.chainClient.getBlock(blockHash);
     if (!block) {
-      this.emit('error', new GraphError(ErrorCodes.chanBadBlock, [msg, shortChannelID, blockHash]));
+      this.emit('error', new GraphError(ErrorCodes.chanBadBlock, [msg, blockHash]));
       return;
     }
 
     // load the txid from the block details
-    let txId = block.tx[shortChannelID.txIdx];
+    let txId = block.tx[msg.shortChannelId.txIdx];
     if (!txId) {
-      this.emit('error', new GraphError(ErrorCodes.chanAnnBadTx, [msg, shortChannelID]));
+      this.emit('error', new GraphError(ErrorCodes.chanAnnBadTx, [msg]));
       return;
     }
 
     // obtain a UTXO to verify the tx hasn't been spent yet
-    let utxo = await this.chainClient.getUtxo(txId, shortChannelID.voutIdx);
+    let utxo = await this.chainClient.getUtxo(txId, msg.shortChannelId.voutIdx);
     if (!utxo) {
-      this.emit('error', new GraphError(ErrorCodes.chanUtxoSpent, [msg, shortChannelID]));
+      this.emit('error', new GraphError(ErrorCodes.chanUtxoSpent, [msg]));
       return false;
     }
 
@@ -222,12 +214,12 @@ exports.Graph = class Graph extends EventEmitter {
     }
 
     // construct new channel message
-    let channel = Channel.fromMessage(msg);
-    channel.channelPoint = { txId, output: shortChannelID.voutIdx };
+    let channel = channelFromMessage(msg);
+    channel.channelPoint = new OutPoint(txId, msg.shortChannelId.voutIdx);
     channel.capacity = new BN(utxo.value * 10 ** 8);
 
     // save the channel
-    this.channels.set(id, channel);
+    this.channels.set(key, channel);
 
     // process outstanding node messages
     await this._applyPendingNodeAnnouncements(channel.nodeId1);
@@ -258,7 +250,7 @@ exports.Graph = class Graph extends EventEmitter {
     node2.linkChannel(channel);
 
     // process outstanding update messages
-    await this._applyPendingChannelUpdates(id);
+    await this._applyPendingChannelUpdates(key);
   }
 
   /**
@@ -268,15 +260,15 @@ exports.Graph = class Graph extends EventEmitter {
     @param {ChannelUpdateMessage} msg
    */
   async processChannelUpdate(msg) {
-    let id = uniqueChannelId(msg);
+    let key = msg.shortChannelId.toString();
 
     // get the channel
-    let channel = this.channels.get(id);
+    let channel = this.channels.get(key);
 
     // if this doesn't exist we need to enqueue it for processing and
     // validation later
     if (!channel) {
-      this._queueChanneldUpdate(id, msg);
+      this._queueChanneldUpdate(key, msg);
       return;
     }
 
@@ -288,13 +280,13 @@ exports.Graph = class Graph extends EventEmitter {
     }
 
     // construct settings from the message
-    let settings = ChannelSettings.fromMsg(msg);
+    let settings = channelSettingsFromMessage(msg);
 
     // update the channel settings
     channel.updateSettings(settings);
 
     // update the channel
-    this.channels.set(id, channel);
+    this.channels.set(key, channel);
 
     // emit channel updated
     this.emit('channel', channel);
@@ -303,7 +295,7 @@ exports.Graph = class Graph extends EventEmitter {
   /**
    * Closes the channel based on the activity of a channel point
    * and emits a channel_close event
-   * @param {{ txId: string, output: number}} chanPoint
+   * @param {OutPoint} chanPoint
    */
   async closeChannel(chanPoint) {
     // find channel
@@ -321,7 +313,7 @@ exports.Graph = class Graph extends EventEmitter {
    * @param {Channel} channel
    */
   removeChannel(channel) {
-    let key = uniqueChannelId(channel);
+    let key = channel.shortChannelId.toString();
 
     // remove from channels list
     this.channels.delete(key);
@@ -335,14 +327,14 @@ exports.Graph = class Graph extends EventEmitter {
    * Performs a linear search of channels by lookup against
    * the chanPoint. Returns the channel if found, otherwise
    * returns undefined.
-   * @param {{ txId: string, output: number}} chanPoint
+   * @param {OutPoint} chanPoint
    * @returns {Channel}
    */
   findChanByChanPoint(chanPoint) {
     for (let chan of this.channels.values()) {
       if (
         chan.channelPoint.txId === chanPoint.txId &&
-        chan.channelPoint.output === chanPoint.output
+        chan.channelPoint.voutIdx === chanPoint.voutIdx
       ) {
         return chan;
       }
@@ -415,4 +407,16 @@ exports.Graph = class Graph extends EventEmitter {
       this._pendingNodeAnnouncements.delete(key);
     }
   }
+
+  toJSON() {
+    let channels = Array.from(this.channels.values());
+    let nodes = Array.from(this.nodes.values());
+    return {
+      syncHeight: this.syncHeight,
+      channels: channels.map(c => c.toJSON()),
+      nodes: nodes.map(n => n.toJSON()),
+    };
+  }
+
+  fromJSON() {}
 };

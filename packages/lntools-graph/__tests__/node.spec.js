@@ -1,4 +1,5 @@
 const { expect } = require('chai');
+const { ShortChannelId } = require('@lntools/wire');
 const { Node } = require('../lib/node');
 const { Channel } = require('../lib/channel');
 
@@ -7,27 +8,27 @@ describe('Node class', () => {
     it('should add the channel to list of channels', () => {
       let node = new Node();
       let c = new Channel();
-      c.shortChannelId = Buffer.from('1234567890', 'hex');
+      c.shortChannelId = new ShortChannelId(1288457, 3, 0);
       node.linkChannel(c);
       expect(node.channels.size).to.equal(1);
-      expect(node.channels.get('1234567890')).to.equal(c);
+      expect(node.channels.get('1288457x3x0')).to.equal(c);
     });
   });
 
   describe('.unlinkChannel', () => {
     it('should remove the channel from the list of channels', () => {
       let c1 = new Channel();
-      c1.shortChannelId = Buffer.from('1234567890', 'hex');
+      c1.shortChannelId = new ShortChannelId(1288457, 3, 0);
 
       let c2 = new Channel();
-      c2.shortChannelId = Buffer.from('0987654321', 'hex');
+      c2.shortChannelId = new ShortChannelId(1288457, 4, 0);
 
       let node = new Node();
-      node.channels = new Map([['1234567890', c1], ['0987654321', c2]]);
+      node.channels = new Map([['1288457x3x0', c1], ['1288457x4x0', c2]]);
 
       node.unlinkChannel(c2);
       expect(node.channels.size).to.equal(1);
-      expect(node.channels.get('1234567890')).to.equal(c1);
+      expect(node.channels.get('1288457x3x0')).to.equal(c1);
     });
   });
 

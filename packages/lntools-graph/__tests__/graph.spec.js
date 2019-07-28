@@ -5,6 +5,8 @@ const { expect } = require('chai');
 const { BitcoindClient } = require('@lntools/bitcoind');
 const { MessageFactory } = require('@lntools/wire');
 const { Graph } = require('../lib/graph');
+const { Channel } = require('../lib/channel');
+const { OutPoint } = require('../lib/outpoint');
 const { ErrorCodes } = require('../lib/graph-error');
 
 /**
@@ -106,28 +108,14 @@ describe('graph', () => {
       expect(g.nodes.size).to.equal(4);
     });
 
-    it('ChannelAnnouncmentMessage should attach all properties', async () => {
+    it('ChannelAnnouncmentMessage should construct object', async () => {
       let g = new Graph(bitcoind);
       let rawMsgs = [
         '0100ce1d69dbb62e86ad28157f4c24705e325f069d5158b91b28bdf55e508afcc1b554a498f4bda8a3d34a206ddb617ad0e945ecadc9a61086bac5afae3e19976242d464e8d305772f29021a4d07617c4159e7e0634bd53991c0e0577c0e9c3d3ee61d7311e6773275335c12f17e573e2813391a71050ab58c03c17d06c0d841db2ec6c6514c2156713651dfbee13d491559764c95343386218ab904173742dde6ca3118d303967e073a44e94f16eef4d878d4d74f1ff1f6924109421cf9c41e8e5c961cf1c7e2316e61a952c7caad056fea1d13d2f4bf855bd3f06d019a33814bc70ea99fa79f026c791b87040e781e8493f5165dafbfc23fabe2912c3ed0ab7e0f000043497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea33090000000013a9090000030000036b96e4713c5f84dcb8030592e1bd42a2d9a43d91fa2e535b9bfd05f2c5def9b9039cc950286a8fa99218283d1adc2456e0d5e81be558da77dd6e85ba9a1fff5ad303ca63b9acbadf5b644c11d0a9dd65b82b14e0d26fc5e0bcf071a90879f603d46203a0ee0a716f4a436864fe53bb788a003321aee63150bf63fd5529e4e1da93481d',
       ];
       await replayMessages(g, rawMsgs);
-      let c = g.channels.get('43497fd7_13a9090000030000');
-      expect(c.chainHash.toString('hex')).to.equal(
-        '43497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea330900000000'
-      );
-      expect(c.shortChannelId.toString('hex')).to.equal('13a9090000030000');
-      expect(c.channelPoint.txId).to.equal(
-        'dafb459ccece105609ed7fd63a515ce9df0d3c02fb05ebeffe28c2899b60a5fd'
-      );
-      expect(c.channelPoint.output).to.equal(0);
-      expect(c.nodeId1.toString('hex')).to.equal(
-        '036b96e4713c5f84dcb8030592e1bd42a2d9a43d91fa2e535b9bfd05f2c5def9b9'
-      );
-      expect(c.nodeId2.toString('hex')).to.equal(
-        '039cc950286a8fa99218283d1adc2456e0d5e81be558da77dd6e85ba9a1fff5ad3'
-      );
-      expect(c.capacity.toNumber()).to.equal(16777216);
+      let c = g.channels.get('1288457x3x0');
+      expect(c).to.be.instanceOf(Channel);
     });
 
     it('should enqueue nodes until channel announcement and update', async () => {
@@ -170,7 +158,7 @@ describe('graph', () => {
         '0100ce1d69dbb62e86ad28157f4c24705e325f069d5158b91b28bdf55e508afcc1b554a498f4bda8a3d34a206ddb617ad0e945ecadc9a61086bac5afae3e19976242d464e8d305772f29021a4d07617c4159e7e0634bd53991c0e0577c0e9c3d3ee61d7311e6773275335c12f17e573e2813391a71050ab58c03c17d06c0d841db2ec6c6514c2156713651dfbee13d491559764c95343386218ab904173742dde6ca3118d303967e073a44e94f16eef4d878d4d74f1ff1f6924109421cf9c41e8e5c961cf1c7e2316e61a952c7caad056fea1d13d2f4bf855bd3f06d019a33814bc70ea99fa79f026c791b87040e781e8493f5165dafbfc23fabe2912c3ed0ab7e0f000043497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea33090000000013a9090000030000036b96e4713c5f84dcb8030592e1bd42a2d9a43d91fa2e535b9bfd05f2c5def9b9039cc950286a8fa99218283d1adc2456e0d5e81be558da77dd6e85ba9a1fff5ad303ca63b9acbadf5b644c11d0a9dd65b82b14e0d26fc5e0bcf071a90879f603d46203a0ee0a716f4a436864fe53bb788a003321aee63150bf63fd5529e4e1da93481d',
       ];
       await replayMessages(g, rawMsgs);
-      let c = g.channels.get('43497fd7_13a9090000030000');
+      let c = g.channels.get('1288457x3x0');
       let s = c.node2Settings;
       expect(s.timestamp).to.equal(1525140553);
       expect(s.cltvExpiryDelta).to.equal(144);
@@ -274,7 +262,7 @@ describe('graph', () => {
         '0102fcd0d7af22e815879e2ba0c2422bc812d04f8b286fd53e631fe18bb6ed5aecc06a0b96fceb352509656f2b121b76cc808fe02e62ff42edc600bd6e196fe2af9b43497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea33090000000013a90900000300005ae7cc490001009000000000000003e8000003e800000001',
       ];
       await replayMessages(g, rawMsgs);
-      expect(channel.shortChannelId.toString('hex')).to.equal('13a9090000030000');
+      expect(channel.shortChannelId.toString()).to.equal('1288457x3x0');
     });
 
     it('should emit node message when node is auto created', async () => {
@@ -479,10 +467,10 @@ describe('graph', () => {
   describe('.closeChannel', () => {
     /** @type {Graph} */
     let g;
-    let chanPoint = {
-      txId: 'dafb459ccece105609ed7fd63a515ce9df0d3c02fb05ebeffe28c2899b60a5fd',
-      output: 0,
-    };
+    let chanPoint = new OutPoint(
+      'dafb459ccece105609ed7fd63a515ce9df0d3c02fb05ebeffe28c2899b60a5fd',
+      0
+    );
 
     beforeEach(async () => {
       g = new Graph(bitcoind);

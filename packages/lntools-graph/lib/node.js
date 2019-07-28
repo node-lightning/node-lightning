@@ -75,8 +75,8 @@ exports.Node = class Node {
    * @param {Channel} channel
    */
   linkChannel(channel) {
-    let id = channel.shortChannelId.toString('hex');
-    this.channels.set(id, channel);
+    let key = channel.shortChannelId.toString();
+    this.channels.set(key, channel);
   }
 
   /**
@@ -84,8 +84,8 @@ exports.Node = class Node {
    * @param {Channel} channel
    */
   unlinkChannel(channel) {
-    let id = channel.shortChannelId.toString('hex');
-    this.channels.delete(id);
+    let key = channel.shortChannelId.toString();
+    this.channels.delete(key);
   }
 
   /**

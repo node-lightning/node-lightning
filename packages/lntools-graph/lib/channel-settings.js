@@ -1,17 +1,11 @@
 // @ts-check
 
 /**
- @typedef {import("@lntools/wire").ChannelUpdateMessage} ChannelUpdateMessage
- @typedef {import("bn.js")} BN
-*/
+ * @typedef {import("bn.js")} BN
+ */
 
 exports.ChannelSettings = class ChannelSettings {
   constructor() {
-    /**
-      @type {ChannelUpdateMessage}
-     */
-    this._channelUpdateMessage;
-
     /**
       @type {number}
      */
@@ -43,24 +37,6 @@ exports.ChannelSettings = class ChannelSettings {
 
     /** @type {boolean} */
     this.disabled;
-  }
-
-  /**
-    @param {ChannelUpdateMessage} msg
-    @returns {ChannelSettings}
-   */
-  static fromMsg(msg) {
-    let instance = new ChannelSettings();
-    instance._channelUpdateMessage = msg;
-    instance.direction = msg.direction;
-    instance.timestamp = msg.timestamp;
-    instance.cltvExpiryDelta = msg.cltvExpiryDelta;
-    instance.htlcMinimumMsat = msg.htlcMinimumMsat;
-    instance.htlcMaximumMsat = msg.htlcMaximumMsat;
-    instance.feeBaseMsat = msg.feeBaseMsat;
-    instance.feeProportionalMillionths = msg.feeProportionalMillionths;
-    instance.disabled = msg.disabled;
-    return instance;
   }
 
   toJSON() {

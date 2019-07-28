@@ -1,12 +1,14 @@
 // @ts-check
 
 /**
- @typedef {import("@lntools/wire").ChannelAnnouncementMessage} ChannelAnnouncementMessage
- @typedef {import("./channel-settings").ChannelSettings} ChannelSettings
- @typedef {import("bn.js")} BN
-*/
+ * @typedef {import("@lntools/wire").ShortChannelId} ShortChannelId
+ * @typedef {import("@lntools/wire").ChannelAnnouncementMessage} ChannelAnnouncementMessage
+ * @typedef {import("./channel-settings").ChannelSettings} ChannelSettings
+ * @typedef {import("./outpoint").OutPoint} OutPoint
+ * @typedef {import("bn.js")} BN
+ */
 
-exports.Channel = class Channel {
+class Channel {
   constructor() {
     /**
       @type {Buffer}
@@ -14,12 +16,16 @@ exports.Channel = class Channel {
     this.chainHash;
 
     /**
-      @type {Buffer}
+      @type {ShortChannelId}
      */
     this.shortChannelId;
 
-    /** @type {{ txId: string, output: number}} */
-    this.channelPoint; // obtained after verifying the tx
+    /**
+     * Obtained after verifying the transaction is a valid
+     * channel funding transaction and is still a UTXO
+     * @type {OutPoint}
+     */
+    this.channelPoint;
 
     /**
       @type {ChannelSettings}
@@ -95,44 +101,25 @@ exports.Channel = class Channel {
     }
   }
 
-  // toJSON() {
-  //   return {
-  //     shortChannelId: shortChannelIdString(this.shortChannelId),
-  //     channelPoint: `${this.channelPoint.txId}:${this.channelPoint.output}`,
-  //     nodeId1: this.nodeId1.toString('hex'),
-  //     nodeId2: this.nodeId2.toString('hex'),
-  //     bitcoinKey1: this.bitcoinKey1.toString('hex'),
-  //     bitcoinKey2: this.bitcoinKey2.toString('hex'),
-  //     nodeSignature1: this.nodeSignature1.toString('hex'),
-  //     nodeSignature2: this.nodeSignature2.toString('hex'),
-  //     bitcoinSignature1: this.bitcoinSignature1.toString('hex'),
-  //     bitcoinSignature2: this.bitcoinSignature2.toString('hex'),
-  //     capacity: this.capacity.toString(10),
-  //     node1Settings: this.node1Settings.toJSON(),
-  //     node2Settings: this.node2Settings.toJSON(),
-  //   };
-  // }
-
-  /**
-   * Constructs a channel from a node announcement message. The channel does
-   * not include outpoint, capacity, or per node settings found in channel_update
-   * messages. These values need to be set elsewhere.
-   * @param {ChannelAnnouncementMessage} msg
-   * @returns {Channel}
-   */
-  static fromMessage(msg) {
-    let c = new Channel();
-    c.shortChannelId = msg.shortChannelId;
-    c.chainHash = msg.chainHash;
-    c.features = msg.features;
-    c.nodeId1 = msg.nodeId1;
-    c.nodeId2 = msg.nodeId2;
-    c.bitcoinKey1 = msg.bitcoinKey1;
-    c.bitcoinKey2 = msg.bitcoinKey2;
-    c.nodeSignature1 = msg.nodeSignature1;
-    c.nodeSignature2 = msg.nodeSignature2;
-    c.bitcoinSignature1 = msg.bitcoinSignature1;
-    c.bitcoinSignature2 = msg.bitcoinSignature2;
-    return c;
+  toJSON() {
+    let c = this;
+    return {
+      shortChannelId: c.shortChannelId.toString(),
+      channelPoint: c.channelPoint.toString(),
+      nodeId1: c.nodeId1.toString('hex'),
+      nodeId2: c.nodeId2.toString('hex'),
+      bitcoinKey1: c.bitcoinKey1.toString('hex'),
+      bitcoinKey2: c.bitcoinKey2.toString('hex'),
+      nodeSignature1: c.nodeSignature1.toString('hex'),
+      nodeSignature2: c.nodeSignature2.toString('hex'),
+      bitcoinSignature1: c.bitcoinSignature1.toString('hex'),
+      bitcoinSignature2: c.bitcoinSignature2.toString('hex'),
+      features: c.features.toString(10),
+      capacity: c.capacity.toString(10),
+      node1Settings: c.node1Settings.toJSON(),
+      node2Settings: c.node2Settings.toJSON(),
+    };
   }
-};
+}
+
+exports.Channel = Channel;
