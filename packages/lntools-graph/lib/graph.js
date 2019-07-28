@@ -417,6 +417,4 @@ exports.Graph = class Graph extends EventEmitter {
       nodes: nodes.map(n => n.toJSON()),
     };
   }
-
-  fromJSON() {}
 };

@@ -98,6 +98,7 @@ exports.Node = class Node {
       alias: this.aliasString,
       addresses: this.addresses,
       rgbColor: this.rgbColorString,
+      nodeSignature: this.nodeSignature
     };
   }
 };

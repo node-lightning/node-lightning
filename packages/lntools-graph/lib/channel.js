@@ -116,8 +116,8 @@ class Channel {
       bitcoinSignature2: c.bitcoinSignature2.toString('hex'),
       features: c.features.toString(10),
       capacity: c.capacity.toString(10),
-      node1Settings: c.node1Settings.toJSON(),
-      node2Settings: c.node2Settings.toJSON(),
+      node1Settings: c.node1Settings,
+      node2Settings: c.node2Settings,
     };
   }
 }

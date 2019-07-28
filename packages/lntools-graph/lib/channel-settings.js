@@ -46,7 +46,7 @@ exports.ChannelSettings = class ChannelSettings {
 
   toJSON() {
     return {
-      signature: this.signature,
+      signature: this.signature.toString('hex'),
       timestamp: this.timestamp,
       cltvExpiryDelta: this.cltvExpiryDelta,
       htlcMinimumMsat: this.htlcMinimumMsat.toString(10),
