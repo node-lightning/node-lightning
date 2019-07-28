@@ -29,7 +29,7 @@
     "@lntools/bitcoin": "^0.1.0",
     "@lntools/bitcoind": "^0.1.0",
     "@lntools/crypto": "^0.3.0",
-    "@lntools/wire": "^0.1.1",
+    "@lntools/wire": "^0.3.0",
     "bn.js": "^4.11.8"
   }
 }
