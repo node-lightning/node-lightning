@@ -3,8 +3,9 @@
   "version": "0.2.0",
   "description": "Lightning Network Wire Protocol",
   "scripts": {
-    "test": "../../node_modules/.bin/nyc --reporter=lcov --reporter=text ../../node_modules/.bin/mocha --recursive \"__tests__/**/*.spec.js\""
-  },
+    "test": "../../node_modules/.bin/nyc --reporter=lcov --reporter=text ../../node_modules/.bin/mocha --recursive \"__tests__/**/*.spec.js\"",
+    "testfile": "../../node_modules/.bin/mocha"
+    },
   "keywords": [
     "lightning",
     "network",

@@ -27,13 +27,30 @@ describe('shortChannelIdString', () => {
 });
 
 describe('shortChannelIdObj', () => {
-  it('should convert the buffer to an object with parts', () => {
-    let input = Buffer.from('083a8400034d0001', 'hex');
-    let result = sut.shortChannelIdObj(input);
-    expect(result).to.deep.equal({
-      block: 539268,
-      txIdx: 845,
-      voutIdx: 1,
+  let expected1 = {
+    block: 539268,
+    txIdx: 845,
+    voutIdx: 1,
+  };
+
+  describe('buffer input', () => {
+    it('should convert a buffer to an object with parts', () => {
+      let input = Buffer.from('083a8400034d0001', 'hex');
+      let result = sut.shortChannelIdObj(input);
+      expect(result).to.deep.equal(expected1);
+    });
+  });
+
+  describe('string input', () => {
+    it('should return the object', () => {
+      let input = '539268x845x1';
+      let result = sut.shortChannelIdObj(input);
+      expect(result).to.deep.equal(expected1);
+    });
+
+    it('should throw when not a pattern match', () => {
+      let input = '1ax2bx3c';
+      expect(() => sut.shortChannelIdObj(input)).to.throw();
     });
   });
 });

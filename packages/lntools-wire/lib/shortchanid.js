@@ -1,3 +1,5 @@
+// @ts-check
+
 const BN = require('bn.js');
 
 module.exports = {
@@ -8,13 +10,9 @@ module.exports = {
 };
 
 /**
-  Converts the shortChannelId object into a buffer
-  @param {{
-    block: number
-    txIdx: number
-    voutIdx: number
-  }}
-  @returns {string}
+ * Converts the shortChannelId object into a buffer
+ * @param {{ block: number, txIdx: number, voutIdx: number }} obj
+ * @returns {Buffer}
  */
 function shortChannelIdBuffer(obj) {
   if (!obj) return Buffer.alloc(8);
@@ -35,21 +33,20 @@ function shortChannelIdNumber(buf) {
 }
 
 /**
-  Returns the shortChannelId as an object containing
-  the block number, transaction index and vout index.
-  @param {Buffer} buf
-  @returns {{
-    block: number
-    txIdx: number
-    voutIdx: number
-  }}
+ * Returns the shortChannelId as an object containing
+ * the block number, transaction index and vout index. The string
+ * input should be the shortChannelId string format.
+ * @param {Buffer|string} arg
+ * @returns {{ block: number, txIdx: number, voutIdx: number }}
  */
-function shortChannelIdObj(buf) {
-  return {
-    block: buf.readUIntBE(0, 3),
-    txIdx: buf.readUIntBE(3, 3),
-    voutIdx: buf.readUIntBE(6, 2),
-  };
+function shortChannelIdObj(arg) {
+  if (Buffer.isBuffer(arg)) {
+    return _objectFromBuffer(arg);
+  } else if (typeof arg === 'string') {
+    return _objectFromString(arg);
+  } else {
+    throw new Error('Invalid argument type');
+  }
 }
 
 /**
@@ -61,4 +58,39 @@ function shortChannelIdObj(buf) {
 function shortChannelIdString(buf) {
   let { block, txIdx, voutIdx } = shortChannelIdObj(buf);
   return `${block}x${txIdx}x${voutIdx}`;
+}
+
+///////////////////////////////////////////////////////////////
+
+/**
+ * @private
+ * @param {Buffer} buf
+ * @returns {{ block: number, txIdx: number, voutIdx: number }}
+ */
+function _objectFromBuffer(buf) {
+  return {
+    block: buf.readUIntBE(0, 3),
+    txIdx: buf.readUIntBE(3, 3),
+    voutIdx: buf.readUIntBE(6, 2),
+  };
+}
+
+/**
+ * @private
+ * @param {string} text
+ * @returns {{ block:number, txIdx:number, voutIdx: number }}
+ */
+function _objectFromString(text) {
+  let match = text.match(/(\d+?)x(\d+?)x(\d+?)/);
+  if (!match) {
+    throw new Error('invalid shortChannelId string');
+  }
+  let block = parseInt(match[1]);
+  let txIdx = parseInt(match[2]);
+  let voutIdx = parseInt(match[3]);
+  return {
+    block,
+    txIdx,
+    voutIdx,
+  };
 }
