@@ -1,5 +1,6 @@
 const { expect } = require('chai');
 const BN = require('bn.js');
+const { ShortChannelId } = require('../../lib/shortchanid');
 const { ChannelUpdateMessage } = require('../../lib/messages/channel-update-message');
 
 describe('ChannelUpdateMessage', () => {
@@ -19,7 +20,7 @@ describe('ChannelUpdateMessage', () => {
       expect(result.chainHash).to.deep.equal(
         Buffer.from('43497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea330900000000', 'hex')
       );
-      expect(result.shortChannelId).to.deep.equal(Buffer.from('13a8b30001130000', 'hex'));
+      expect(result.shortChannelId).to.deep.equal(new ShortChannelId(1288371, 275, 0));
       expect(result.timestamp).to.equal(1554581498);
       expect(result.messageFlags).to.equal(1);
       expect(result.channelFlags).to.equal(0);
@@ -38,7 +39,7 @@ describe('ChannelUpdateMessage', () => {
       let instance = new ChannelUpdateMessage();
       instance.signature = Buffer.from('60957fec5b79b49303c1abe01b188842512c91ff465bdde51e255416e63bb293124a8dfea82644ee554ef8bd13d6ffbd20b6e297a1eae3c46ba1b188fd1d86c5', 'hex'); // prettier-ignore
       instance.chainHash = Buffer.from('43497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea330900000000', 'hex'); // prettier-ignore
-      instance.shortChannelId = Buffer.from('13a8b30001130000', 'hex');
+      instance.shortChannelId = new ShortChannelId(1288371, 275, 0);
       instance.timestamp = 1554581498;
       instance.messageFlags = 1;
       instance.channelFlags = 0;

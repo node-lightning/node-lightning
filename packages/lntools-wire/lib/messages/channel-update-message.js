@@ -2,9 +2,11 @@
 
 const BufferCursor = require('@lntools/buffer-cursor');
 const crypto = require('@lntools/crypto');
+const { shortChannelIdFromBuffer } = require('../shortchanid');
 
 /**
-  @typedef {import("bn.js")} BN
+ * @typedef {import("bn.js")} BN
+ * @typedef {import("../shortchanid").ShortChannelId} ShortChannelId
  */
 
 exports.ChannelUpdateMessage = class ChannelUpdateMessage {
@@ -37,18 +39,9 @@ exports.ChannelUpdateMessage = class ChannelUpdateMessage {
     this.chainHash;
 
     /**
-      8-byte Buffer that refers to the funding transaction used to
-      create the channel.
-
-      The format of the shortChannelId Buffer is:
-        - blockheight: 3 bytes
-        - txId: 3 bytes
-        - output index: 2 bytes
-
-      This property gets and sets a raw Buffer containing all
-      parts.
-
-      @type {Buffer}
+      ShortChannelId is a unique reference to the funding output of the
+      channel.
+      @type {ShortChannelId}
      */
     this.shortChannelId;
 
@@ -168,7 +161,7 @@ exports.ChannelUpdateMessage = class ChannelUpdateMessage {
 
     instance.signature = reader.readBytes(64);
     instance.chainHash = reader.readBytes(32);
-    instance.shortChannelId = reader.readBytes(8);
+    instance.shortChannelId = shortChannelIdFromBuffer(reader.readBytes(8));
     instance.timestamp = reader.readUInt32BE();
     instance.messageFlags = reader.readUInt8();
     instance.channelFlags = reader.readUInt8();
@@ -209,7 +202,7 @@ exports.ChannelUpdateMessage = class ChannelUpdateMessage {
     writer.writeUInt16BE(this.type);
     writer.writeBytes(this.signature);
     writer.writeBytes(this.chainHash);
-    writer.writeBytes(this.shortChannelId);
+    writer.writeBytes(this.shortChannelId.toBuffer());
     writer.writeUInt32BE(this.timestamp);
     writer.writeUInt8(this.messageFlags);
     writer.writeUInt8(this.channelFlags);

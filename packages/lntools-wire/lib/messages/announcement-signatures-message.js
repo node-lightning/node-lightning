@@ -2,6 +2,11 @@
 
 const BufferCursor = require('@lntools/buffer-cursor');
 const { MESSAGE_TYPE } = require('../constants');
+const { shortChannelIdFromBuffer } = require('../shortchanid');
+
+/**
+ * @typedef {import("../shortchanid").ShortChannelId} ShortChannelId
+ */
 
 module.exports.AnnouncementSignaturesMessage = class AnnouncementSignaturesMessage {
   /**
@@ -32,12 +37,11 @@ module.exports.AnnouncementSignaturesMessage = class AnnouncementSignaturesMessa
     this.channelId = Buffer.alloc(0);
 
     /**
-      Buffer containing the short_channel_id that represents
-      the unique description of the funding transaction.
-
-      @type {Buffer}
+      ShortChannelId is a unique reference to the funding output of the
+      channel.
+      @type {ShortChannelId}
      */
-    this.shortChannelId = Buffer.alloc(0);
+    this.shortChannelId;
 
     /**
       Buffer containing the signature of the channel_announcement
@@ -68,7 +72,7 @@ module.exports.AnnouncementSignaturesMessage = class AnnouncementSignaturesMessa
 
     let instance = new AnnouncementSignaturesMessage();
     instance.channelId = reader.readBytes(32);
-    instance.shortChannelId = reader.readBytes(8);
+    instance.shortChannelId = shortChannelIdFromBuffer(reader.readBytes(8));
     instance.nodeSignature = reader.readBytes(64);
     instance.bitcoinSignature = reader.readBytes(64);
     return instance;
@@ -91,7 +95,7 @@ module.exports.AnnouncementSignaturesMessage = class AnnouncementSignaturesMessa
     let writer = new BufferCursor(buffer);
     writer.writeUInt16BE(this.type);
     writer.writeBytes(this.channelId);
-    writer.writeBytes(this.shortChannelId);
+    writer.writeBytes(this.shortChannelId.toBuffer());
     writer.writeBytes(this.nodeSignature);
     writer.writeBytes(this.bitcoinSignature);
     return buffer;
