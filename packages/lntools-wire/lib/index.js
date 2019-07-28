@@ -8,18 +8,22 @@ let { ErrorMessage } = require('./messages/error-message');
 let { InitMessage } = require('./messages/init-message');
 let { NodeAnnouncementMessage } = require('./messages/node-announcement-message');
 
-let { shortChannelIdBuffer } = require('./shortchanid');
-let { shortChannelIdNumber } = require('./shortchanid');
-let { shortChannelIdObj } = require('./shortchanid');
-let { shortChannelIdString } = require('./shortchanid');
+let { ShortChannelId } = require('./shortchanid');
+let { shortChannelIdToBuffer } = require('./shortchanid');
+let { shortChannelIdToNumber } = require('./shortchanid');
+let { shortChannelIdToString } = require('./shortchanid');
+let { shortChannelIdFromBuffer } = require('./shortchanid');
+let { shortChannelIdFromString } = require('./shortchanid');
 
 exports.MessageFactory = MessageFactory;
 exports.Peer = Peer;
 
-exports.shortChannelIdBuffer = shortChannelIdBuffer;
-exports.shortChannelIdNumber = shortChannelIdNumber;
-exports.shortChannelIdObj = shortChannelIdObj;
-exports.shortChannelIdString = shortChannelIdString;
+exports.ShortChannelId = ShortChannelId;
+exports.shortChannelIdToBuffer = shortChannelIdToBuffer;
+exports.shortChannelIdToNumber = shortChannelIdToNumber;
+exports.shortChannelIdToString = shortChannelIdToString;
+exports.shortChannelIdFromBuffer = shortChannelIdFromBuffer;
+exports.shortChannelIdFromString = shortChannelIdFromString;
 
 exports.AnnouncementSignaturesMessage = AnnouncementSignaturesMessage;
 exports.ChannelAnnouncementMessage = ChannelAnnouncementMessage;
