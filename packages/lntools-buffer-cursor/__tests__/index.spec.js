@@ -120,7 +120,7 @@ describe('readBytes', () => {
   });
 });
 
-describe('lastVarUint', () => {
+describe('readVarUint', () => {
   it('should return 1 byte numbers', () => {
     let result = new BufferCursor(Buffer.from('01', 'hex')).readVarUint();
     expect(result.toString('hex')).to.equal('1');
@@ -157,6 +157,123 @@ describe('lastVarUint', () => {
     sut.readVarUint();
     expect(sut.lastReadBytes).to.equal(8);
   });
+});
+
+describe('readBigSize', () => {
+  const tests = [
+    {
+      name: 'zero',
+      value: '0',
+      bytes: '00',
+    },
+    {
+      name: 'one byte high',
+      value: '252',
+      bytes: 'fc',
+    },
+    {
+      name: 'two byte low',
+      value: '253',
+      bytes: 'fd00fd',
+    },
+    {
+      name: 'two byte high',
+      value: '65535',
+      bytes: 'fdffff',
+    },
+    {
+      name: 'four byte low',
+      value: '65536',
+      bytes: 'fe00010000',
+    },
+    {
+      name: 'four byte high',
+      value: '4294967295',
+      bytes: 'feffffffff',
+    },
+    {
+      name: 'eight byte low',
+      value: '4294967296',
+      bytes: 'ff0000000100000000',
+    },
+    {
+      name: 'eight byte high',
+      value: '18446744073709551615',
+      bytes: 'ffffffffffffffffff',
+    },
+    {
+      name: 'two byte not canonical',
+      value: 0,
+      bytes: 'fd00fc',
+      exp_error: 'decoded varint is not canonical',
+    },
+    {
+      name: 'four byte not canonical',
+      value: 0,
+      bytes: 'fe0000ffff',
+      exp_error: 'decoded varint is not canonical',
+    },
+    {
+      name: 'eight byte not canonical',
+      value: 0,
+      bytes: 'ff00000000ffffffff',
+      exp_error: 'decoded varint is not canonical',
+    },
+    {
+      name: 'two byte short read',
+      value: 0,
+      bytes: 'fd00',
+      exp_error: 'Index out of range',
+    },
+    {
+      name: 'four byte short read',
+      value: 0,
+      bytes: 'feffff',
+      exp_error: 'Index out of range',
+    },
+    {
+      name: 'eight byte short read',
+      value: 0,
+      bytes: 'ffffffffff',
+      exp_error: 'Index out of range',
+    },
+    {
+      name: 'one byte no read',
+      value: 0,
+      bytes: '',
+      exp_error: 'Index out of range',
+    },
+    {
+      name: 'two byte no read',
+      value: 0,
+      bytes: 'fd',
+      exp_error: 'Index out of range',
+    },
+    {
+      name: 'four byte no read',
+      value: 0,
+      bytes: 'fe',
+      exp_error: 'Index out of range',
+    },
+    {
+      name: 'eight byte no read',
+      value: 0,
+      bytes: 'ff',
+      exp_error: 'Index out of range',
+    },
+  ];
+  for (const test of tests) {
+    it(test.name, () => {
+      const sut = new BufferCursor(Buffer.from(test.bytes, 'hex'));
+      try {
+        const result = sut.readBigSize();
+        expect(result.toString()).to.equal(test.value);
+      } catch (ex) {
+        if (test.exp_error) expect(ex.message).to.equal(test.exp_error);
+        else throw ex;
+      }
+    });
+  }
 });
 
 describe('peakBytes', () => {

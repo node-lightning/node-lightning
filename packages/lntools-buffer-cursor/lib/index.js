@@ -153,6 +153,50 @@ class BufferCursor {
   }
 
   /**
+   * Reads a variable length unsigned integer as specified in the Lightning Network
+   * protocol documentation and always returns a BN to maintain a consistent
+   * call signature.
+   *
+   * @remarks
+   * Specified in:
+   * https://github.com/lightningnetwork/lightning-rfc/blob/master/01-messaging.md#appendix-a-bigsize-test-vectors
+   *
+   * < 0xfd = 1 byte number
+   *   0xfd = 2 byte number (3 bytes total)
+   *   0xfe = 4 byte number (5 bytes total)
+   *   0xff = 8 byte number (9 bytes total)
+   *
+   * @returns {BN}
+   */
+  readBigSize() {
+    let size = this.readUInt8();
+    if (size < 0xfd) {
+      this._lastReadBytes = 1;
+      return new BN(size);
+    }
+    switch (size) {
+      case 0xfd: {
+        this._lastReadBytes = 3;
+        let val = this.readUInt16BE();
+        if (val < 0xfd) throw new Error('decoded varint is not canonical');
+        return new BN(val);
+      }
+      case 0xfe: {
+        this._lastReadBytes = 5;
+        let val = this.readUInt32BE();
+        if (val < 0x10000) throw new Error('decoded varint is not canonical');
+        return new BN(val);
+      }
+      case 0xff: {
+        this._lastReadBytes = 9;
+        let val = this.readUInt64BE();
+        if (val.lt(new BN(0x100000000))) throw new Error('decoded varint is not canonical');
+        return val;
+      }
+    }
+  }
+
+  /**
     Read bytes from the buffer into a new Buffer. Unlike the default
     slice method, the values do not point to the same memory location
     as the source buffer. The values are copied to a new buffer.
