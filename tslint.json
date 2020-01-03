@@ -5,6 +5,7 @@
     "curly": [true, "ignore-same-line"],
     "interface-over-type-literal": false,
     "max-line-length": false,
+    "no-bitwise": false,
     "variable-name": {
       "options": [
         "allow-leading-underscore"
