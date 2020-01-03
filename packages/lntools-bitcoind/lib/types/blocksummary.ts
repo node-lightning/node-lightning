@@ -1,4 +1,4 @@
-export interface BlockSummary {
+export type BlockSummary = {
   hash: string;
   confirmations: number;
   size: number;
@@ -17,4 +17,4 @@ export interface BlockSummary {
   nTx: number;
   previousblockhash: string;
   nextblockhash: string;
-}
+};

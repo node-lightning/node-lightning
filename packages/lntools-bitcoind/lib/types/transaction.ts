@@ -1,4 +1,4 @@
-export interface Transaction {
+export type Transaction = {
   txid: string;
   hash: string;
   version: number;
@@ -6,45 +6,45 @@ export interface Transaction {
   vsize: number;
   weight: number;
   locktime: number;
-  vin: Array<Input>;
-  vout: Array<Output>;
+  vin: Input[];
+  vout: Output[];
   hex: string;
   blockhash: string;
   confirmations: number;
   time: number;
   blocktime: number;
-}
+};
 
-export interface Input {
+export type Input = {
   txid: string;
   vout: number;
   scriptSig: ScriptSig;
   sequence: number;
-}
+};
 
-export interface Output {
+export type Output = {
   value: number;
   n: number;
   scriptPubKey: ScriptPubKey;
-}
+};
 
-export interface ScriptSig {
+export type ScriptSig = {
   asm: string;
   hex: string;
-}
+};
 
-export interface ScriptPubKey {
+export type ScriptPubKey = {
   asm: string;
   hex: string;
   type: string;
   reqSigs?: number;
-  addresses?: Array<string>;
-}
+  addresses?: string[];
+};
 
-export interface Utxo {
+export type Utxo = {
   bestblock: string;
   confirmations: string;
   value: number;
   scriptPubKey: ScriptPubKey;
   coinbase: boolean;
-}
+};
