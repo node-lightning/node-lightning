@@ -1,6 +1,6 @@
-import { Tx } from './tx';
+import { Tx } from "./tx";
 
-export interface Block {
+export type Block = {
   hash: string;
   strippedsize: number;
   size: number;
@@ -16,5 +16,5 @@ export interface Block {
   nextblockhash: string;
   bits: string;
   difficulty: string;
-  txs: Array<Tx>;
-}
+  txs: Tx[];
+};

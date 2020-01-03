@@ -1,25 +1,19 @@
-// @ts-check
-
-const BufferCursor = require('@lntools/buffer-cursor');
-const { isSegWitTx } = require('./is-segwit-tx');
-
-exports.decodeTxSize = decodeTxSize;
+import BufferCursor from "@lntools/buffer-cursor";
+import { SizeResult } from "../size-result";
+import { isSegWitTx } from "./is-segwit-tx";
 
 /**
-  Decodes the size, virtual size, and weight properties from the raw
-  transaction buffer.
-
-  `size` is the number of raw bytes.
-  `weight` is the number of witness bytes + the number of non-witness
-    bytes multiplied by four.
-  `vsize` is the weight divided by four.
-
-  @param {Buffer} raw
-  @returns {{ size: Number, vsize: Number, weight: Number }}
+ * Decodes the size, virtual size, and weight properties from the raw
+ * transaction buffer.
+ *
+ * `size` is the number of raw bytes.
+ * `weight` is the number of witness bytes + the number of non-witness
+ *   bytes multiplied by four.
+ * `vsize` is the weight divided by four.
  */
-function decodeTxSize(raw) {
-  let cursor = new BufferCursor(raw);
-  let hasWitness = isSegWitTx(raw);
+export function decodeTxSize(raw: Buffer): SizeResult {
+  const cursor = new BufferCursor(raw);
+  const hasWitness = isSegWitTx(raw);
 
   let nwBytes = 0;
   let wBytes = 0;
@@ -35,7 +29,7 @@ function decodeTxSize(raw) {
   }
 
   // number of inputs
-  let vinLen = cursor.readVarUint().toNumber();
+  const vinLen = cursor.readVarUint().toNumber();
   nwBytes += cursor.lastReadBytes;
 
   for (let idx = 0; idx < vinLen; idx++) {
@@ -48,7 +42,7 @@ function decodeTxSize(raw) {
     nwBytes += 4;
 
     // script sig length
-    let scriptSigLen = cursor.readVarUint().toNumber(); // safe to convert
+    const scriptSigLen = cursor.readVarUint().toNumber(); // safe to convert
     nwBytes += cursor.lastReadBytes;
 
     // script sig
@@ -61,7 +55,7 @@ function decodeTxSize(raw) {
   }
 
   // number of outputs
-  let voutLen = cursor.readVarUint().toNumber(); // safe to convert
+  const voutLen = cursor.readVarUint().toNumber(); // safe to convert
   nwBytes += cursor.lastReadBytes;
 
   // process each output
@@ -71,7 +65,7 @@ function decodeTxSize(raw) {
     nwBytes += 8;
 
     // pubkey/redeem script len
-    let pubKeyScriptLen = cursor.readVarUint().toNumber(); // safe to convert
+    const pubKeyScriptLen = cursor.readVarUint().toNumber(); // safe to convert
     nwBytes += cursor.lastReadBytes;
 
     // pubkeyScript/redeemScript
@@ -84,13 +78,13 @@ function decodeTxSize(raw) {
     // for each input
     for (let i = 0; i < vinLen; i++) {
       // find how many witness components there are
-      let witnessItems = cursor.readVarUint().toNumber(); // safe to convert
+      const witnessItems = cursor.readVarUint().toNumber(); // safe to convert
       wBytes += cursor.lastReadBytes;
 
       // read each witness component
       for (let w = 0; w < witnessItems; w++) {
         // read the item length
-        let itemLen = cursor.readVarUint().toNumber(); // safe to convert
+        const itemLen = cursor.readVarUint().toNumber(); // safe to convert
         wBytes += cursor.lastReadBytes;
 
         // read the item data
@@ -105,14 +99,14 @@ function decodeTxSize(raw) {
   nwBytes += 4;
 
   // size will be the raw length of bytes
-  let size = raw.length;
+  const size = raw.length;
 
   // weight is non-witness bytes * 4 + witness bytes
-  let weight = nwBytes * 4 + wBytes;
+  const weight = nwBytes * 4 + wBytes;
 
   // virtual size is weight / 4
   // this is equivalent for non-segwit transactions
-  let vsize = Math.ceil(weight / 4);
+  const vsize = Math.ceil(weight / 4);
 
   return {
     size,

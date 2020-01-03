@@ -1,24 +1,19 @@
-// @ts-check
-
-const OPS = require('bitcoin-ops');
-const pushdata = require('pushdata-bitcoin');
-
-module.exports = { compileScript };
+// tslint:disable-next-line: no-var-requires
+const OPS = require("bitcoin-ops");
+import pushdata from "pushdata-bitcoin";
 
 /**
-  Compiles the array of chunks into a valid script
-
-  @remarks
-
-  Heavily influenced by bitcoinjs-lib:
-  https://github.com/bitcoinjs/bitcoinjs-lib/blob/master/src/script.js#L35
-
-
-  @param {Array<Buffer|Number|*>} chunks
-  @returns {Buffer}
+ * Compiles the array of chunks into a valid script
+ *
+ * @remarks
+ *
+ * Heavily influenced by bitcoinjs-lib:
+ * https://github.com/bitcoinjs/bitcoinjs-lib/blob/master/src/script.js#L35
+ *
+ * @param chunks
  */
-function compileScript(chunks) {
-  let bufferSize = chunks.reduce((accum, chunk) => {
+export function compileScript(chunks: Buffer | number | any): Buffer {
+  const bufferSize = chunks.reduce((accum, chunk) => {
     // data chunk
     if (Buffer.isBuffer(chunk)) {
       if (chunk.length === 1 && asMinimalOP(chunk) !== undefined) {
@@ -30,7 +25,7 @@ function compileScript(chunks) {
     return accum + 1;
   }, 0);
 
-  let buffer = Buffer.alloc(bufferSize);
+  const buffer = Buffer.alloc(bufferSize);
   let offset = 0;
 
   chunks.forEach(chunk => {
@@ -53,26 +48,24 @@ function compileScript(chunks) {
       offset += 1;
     }
   });
-  if (offset !== buffer.length) throw new Error('Could not decode chunks');
+  if (offset !== buffer.length) throw new Error("Could not decode chunks");
   return buffer;
 }
 
 ///////////////////////////////
 
 /**
-  Helper function that converts an opcode buffer into a single
-  numeric opcode that adheres to the BIP62.3 minimal push policy.
-
-  @remarks
-  Heavily influenced by bitcoinjs-lib:
-  https://github.com/bitcoinjs/bitcoinjs-lib/blob/master/src/script.js#L35
-
-  @private
-  @param {Buffer} buffer
-  @returns {Number} opcode value
+ * Helper function that converts an opcode buffer into a single
+ * numeric opcode that adheres to the BIP62.3 minimal push policy.
+ *
+ * @remarks
+ * Heavily influenced by bitcoinjs-lib:
+ * https://github.com/bitcoinjs/bitcoinjs-lib/blob/master/src/script.js#L35
+ *
+ * @param buffer
+ * @returns opcode value
  */
-
-function asMinimalOP(buffer) {
+function asMinimalOP(buffer: Buffer) {
   if (buffer.length === 0) return OPS.OP_0;
   if (buffer.length !== 1) return;
   if (buffer[0] >= 1 && buffer[0] <= 16) return OPS.OP_RESERVED + buffer[0];

@@ -1,26 +1,26 @@
-import BN = require('bn.js');
+import BN = require("bn.js");
 
-export interface Tx {
+export type Tx = {
   txId: Buffer;
   hash: Buffer;
   version: number;
   size: number;
   vsize: number;
   weight: number;
-  vin: Array<TxIn>;
-  vout: Array<TxOut>;
+  vin: TxIn[];
+  vout: TxOut[];
   locktime: number;
-}
+};
 
-export interface TxIn {
+export type TxIn = {
   txId: Buffer;
   vout: number;
   scriptSig?: Buffer;
-  witness?: Array<Buffer>;
+  witness?: Buffer[];
   sequence: number;
-}
+};
 
-export interface TxOut {
+export type TxOut = {
   value: BN;
   pubKeyScript: Buffer;
-}
+};
