@@ -2,13 +2,12 @@
   "name": "@lntools/chainmon",
   "version": "0.1.0",
   "description": "Bitcoin on-chain transaction monitoring tool",
-  "main": "lib/index.js",
-  "directories": {
-    "lib": "lib"
-  },
+  "main": "dist/index.js",
   "scripts": {
-    "tsc": "tsc",
-    "test": "echo \"Error: no test specified\""
+    "test": "../../node_modules/.bin/nyc --reporter=lcov --reporter=text --extension=.ts ../../node_modules/.bin/mocha --require ts-node/register --recursive \"__tests__/**/*.spec.js\"",
+    "lint": "../../node_modules/.bin/tslint --project tsconfig.json --config ../../tslint.json",
+    "build": "../../node_modules/.bin/tsc --project tsconfig.json",
+    "prepublish": "npm run build"
   },
   "keywords": [],
   "author": "Brian Mancini <bmancini@gmail.com>",
