@@ -1,13 +1,11 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
-    "declaration": true,
-    "noImplicitAny": false,
+    "target": "ES2020",
+    "module": "CommonJS",
+    "esModuleInterop": true,
     "removeComments": false,
-    "noLib": false,
-    "target": "es6",
-    "sourceMap": true,
-    "lib": ["es6"]
+    "preserveConstEnums": true,
+    "sourceMap": true
   },
   "exclude": ["node_modules", "**/*.spec.ts"]
 }
