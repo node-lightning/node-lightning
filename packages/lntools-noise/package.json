@@ -3,7 +3,10 @@
   "version": "0.2.0",
   "description": "BOLT 8 Lightning Network Noise Protocol Socket",
   "scripts": {
-    "test": "../../node_modules/.bin/nyc --reporter=lcov --reporter=text --exclude \"__integration__\" --exclude \"__tests__\" ../../node_modules/.bin/mocha --exit --recursive \"__tests__/**/*.spec.js\" --recursive \"__integration__/**/*.spec.js\""
+    "test": "../../node_modules/.bin/nyc --reporter=lcov --reporter=text --extension=.ts --exclude \"__integration__\" --exclude \"__tests__\" ../../node_modules/.bin/mocha --require ts-node/register --recursive \"__tests__/**/*.spec.js\" --recursive \"__integration__/**/*.spec.js\"",
+    "lint": "../../node_modules/.bin/tslint --project tsconfig.json --config ../../tslint.json",
+    "build": "../../node_modules/.bin/tsc --project tsconfig.json",
+    "prepublish": "npm run build"
   },
   "keywords": [
     "lightning network",
@@ -22,8 +25,8 @@
     "url": "git+https://github.com/altangent/lntools.git"
   },
   "dependencies": {
-    "@lntools/crypto": "^0.3.0",
-    "@lntools/logger": "^0.1.0",
+    "@lntools/crypto": "^0.4.0",
+    "@lntools/logger": "^0.2.0",
     "winston": "^3.2.1"
   }
 }
