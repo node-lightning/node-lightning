@@ -20,13 +20,12 @@
   "author": "Brian Mancini <bmancini@gmail.com>",
   "homepage": "https://github.com/altangent/lntools/tree/master/packages/lntools-noise",
   "license": "MIT",
-
   "repository": {
     "type": "git",
     "url": "git+https://github.com/altangent/lntools.git"
   },
   "dependencies": {
-    "@lntools/crypto": "^0.5.0",
+    "@lntools/crypto": "^0.5.1",
     "@lntools/logger": "^0.2.0",
     "winston": "^3.2.1"
   }
