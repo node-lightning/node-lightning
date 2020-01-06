@@ -6,6 +6,8 @@
     "interface-over-type-literal": false,
     "max-line-length": false,
     "no-bitwise": false,
+    "object-literal-sort-keys": false,
+    "radix": false,
     "variable-name": {
       "options": [
         "allow-leading-underscore"

@@ -1,11 +1,11 @@
-const { expect } = require('chai');
-const BufferCursor = require('@lntools/buffer-cursor');
-const { deserializeAddress: sut } = require('../../../lib/deserialize/address/deserialize-address');
+const { expect } = require("chai");
+const { BufferCursor } = require("@lntools/buffer-cursor");
+const { deserializeAddress: sut } = require("../../../lib/deserialize/address/deserialize-address");
 
-const { AddressIPv4 } = require('../../../lib/domain/address-ipv4');
-const { AddressIPv6 } = require('../../../lib/domain/address-ipv6');
-const { AddressTor2 } = require('../../../lib/domain/address-tor2');
-const { AddressTor3 } = require('../../../lib/domain/address-tor3');
+const { AddressIPv4 } = require("../../../lib/domain/address-ipv4");
+const { AddressIPv6 } = require("../../../lib/domain/address-ipv6");
+const { AddressTor2 } = require("../../../lib/domain/address-tor2");
+const { AddressTor3 } = require("../../../lib/domain/address-tor3");
 
 let tests = [
   [
@@ -40,7 +40,7 @@ let tests = [
   ],
 ]; // prettier-ignore
 
-describe('deserializeAddress', () => {
+describe("deserializeAddress", () => {
   for (let [title, input, expected] of tests) {
     it(title, () => {
       let actual = sut.apply(this, input);
