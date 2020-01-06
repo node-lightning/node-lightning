@@ -1,22 +1,13 @@
-// @ts-check
-
-const { Channel } = require('../channel');
-
-/**
- * @typedef {import("@lntools/wire").ChannelAnnouncementMessage} ChannelAnnouncementMessage
- */
-
-exports.channelFromMessage = channelFromMessage;
+import { ChannelAnnouncementMessage } from "@lntools/wire";
+import { Channel } from "../channel";
 
 /**
  * Constructs an incomplete channel from a node announcement message. The channel does
  * not include outpoint, capacity, or per node settings found in channel_update
  * messages. These values need to be set elsewhere.
- * @param {ChannelAnnouncementMessage} msg
- * @returns {Channel}
  */
-function channelFromMessage(msg) {
-  let c = new Channel();
+export function channelFromMessage(msg: ChannelAnnouncementMessage): Channel {
+  const c = new Channel();
   c.shortChannelId = msg.shortChannelId;
   c.chainHash = msg.chainHash;
   c.features = msg.features;

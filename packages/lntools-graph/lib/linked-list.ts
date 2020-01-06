@@ -1,40 +1,21 @@
-// @ts-check
+import { LinkedListNode } from "./linked-list-node";
 
-class LinkedListNode {
-  /**
-   * Creates a linked list node with the specified data
-   * @param {any} value
-   */
-  constructor(value) {
-    this.value = value;
-    this.prev = null;
-    this.next = null;
-  }
-}
-
-class LinkedList {
-  /**
-   * Implementation of a doubly linked-list that maintains both head and tail.
-   * Tail maintenance allows for O(1) insertions at tail
-   */
-  constructor() {
-    /** @type {number} */
-    this.length = 0;
-
-    /** @type {LinkedListNode} */
-    this.head = null;
-
-    /** @type {LinkedListNode} */
-    this.tail = null;
-  }
+/**
+ * Implementation of a doubly linked-list that maintains both head and tail.
+ * Tail maintenance allows for O(1) insertions at tail
+ */
+export class LinkedList<T> {
+  public length: number = 0;
+  public head: LinkedListNode<T> = null;
+  public tail: LinkedListNode<T> = null;
 
   /**
    * Adds a node to the end of a linked List
-   * @param {any} value
+   * @param T value
    * @returns {LinkedListNode}
    */
-  add(value) {
-    let node = new LinkedListNode(value);
+  public add(value: T) {
+    const node = new LinkedListNode(value);
 
     // when empty list
     if (!this.head) {
@@ -54,23 +35,19 @@ class LinkedList {
 
   /**
    * Finds the node at a specific position
-   * @param {number} index
-   * @returns {any}
    */
-  valueAt(index) {
-    let node = this.nodeAt(index);
-    return node.value;
+  public valueAt(index: number): T {
+    const node = this.nodeAt(index);
+    if (node) return node.value;
   }
 
   /**
    * Finds the node for the index or throws an out of range exception
-   * @param {number} index
-   * @returns {LinkedListNode}
    */
-  nodeAt(index) {
+  public nodeAt(index: number): LinkedListNode<T> {
     // error when index out of range
     if (index < 0 || index > this.length) {
-      throw new RangeError('Index out of range');
+      throw new RangeError("Index out of range");
     }
 
     // seek until index is found
@@ -88,13 +65,11 @@ class LinkedList {
    * Removes the node at the index and returns its value.
    * Head or tail removal is an O(1) operation. For removal of other indexes
    * is at worst O(N).
-   * @param {number} index
-   * @returns {any} value of the node
    */
-  remove(index) {
+  public remove(index: number): T {
     // error when index out of range
     if (index < 0 || index > this.length) {
-      throw new RangeError('Index out of range');
+      throw new RangeError("Index out of range");
     }
 
     let removeNode;
@@ -134,6 +109,3 @@ class LinkedList {
     return removeNode.value;
   }
 }
-
-module.exports.ListNode = LinkedListNode;
-module.exports.LinkedList = LinkedList;

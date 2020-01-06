@@ -1,18 +1,12 @@
-// @ts-check
-
-const BN = require('bn.js');
-const { ChannelSettings } = require('../channel-settings');
-
-exports.channelSettingsFromJson = channelSettingsFromJson;
+import BN from "bn.js";
+import { ChannelSettings } from "../channel-settings";
 
 /**
  * Parses ChannelSettings from JSON serialization.
- * @param {string} text
- * @returns {ChannelSettings}
  */
-function channelSettingsFromJson(text) {
-  let t = JSON.parse(text);
-  let s = new ChannelSettings();
+export function channelSettingsFromJson(text: string): ChannelSettings {
+  const t = JSON.parse(text);
+  const s = new ChannelSettings();
   s.timestamp = t.timestamp;
   s.htlcMinimumMsat = new BN(s.htlcMinimumMsat);
   s.htlcMaximumMsat = s.htlcMaximumMsat ? new BN(s.htlcMaximumMsat) : undefined;

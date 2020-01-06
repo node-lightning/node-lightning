@@ -10,26 +10,22 @@
   "author": "Brian Mancini <bmancini@gmail.com>",
   "homepage": "https://github.com/altangent/lightnode#readme",
   "license": "MIT",
-  "main": "lib/index.js",
-  "directories": {
-    "lib": "lib",
-    "test": "__tests__"
-  },
-  "files": [
-    "lib"
-  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/altangent/lightnode.git"
   },
+  "main": "dist/index.js",
   "scripts": {
-    "test": "../../node_modules/.bin/nyc --reporter=lcov --reporter=text ../../node_modules/.bin/mocha --recursive \"__tests__/**/*.spec.js\""
+    "test": "../../node_modules/.bin/nyc --reporter=lcov --reporter=text --extension=.ts ../../node_modules/.bin/mocha --require ts-node/register --recursive \"__tests__/**/*.spec.js\"",
+    "lint": "../../node_modules/.bin/tslint --project tsconfig.json --config ../../tslint.json",
+    "build": "../../node_modules/.bin/tsc --project tsconfig.json",
+    "prepublish": "npm run build"
   },
   "dependencies": {
-    "@lntools/bitcoin": "^0.1.0",
+    "@lntools/bitcoin": "^0.2.0",
     "@lntools/bitcoind": "^0.1.0",
-    "@lntools/crypto": "^0.3.0",
-    "@lntools/wire": "^0.3.0",
+    "@lntools/crypto": "^0.5.0",
+    "@lntools/wire": "^0.5.0",
     "bn.js": "^4.11.8"
   }
 }

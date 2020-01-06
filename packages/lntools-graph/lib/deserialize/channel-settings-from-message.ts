@@ -1,20 +1,13 @@
-// @ts-check
-
-const { ChannelSettings } = require('../channel-settings');
-
-/**
- * @typedef {import("@lntools/wire").ChannelUpdateMessage} ChannelUpdateMessage
- * @typedef {import("bn.js")} BN
- */
-
-exports.channelSettingsFromMessage = channelSettingsFromMessage;
+import { ChannelUpdateMessage } from "@lntools/wire";
+import BN from "bn.js";
+import { ChannelSettings } from "../channel-settings";
 
 /**
- * @param {ChannelUpdateMessage} msg
- * @returns {ChannelSettings}
+ * Creates channels settings from an update message
+ * @param msg
  */
-function channelSettingsFromMessage(msg) {
-  let instance = new ChannelSettings();
+export function channelSettingsFromMessage(msg: ChannelUpdateMessage): ChannelSettings {
+  const instance = new ChannelSettings();
   instance.signature = msg.signature;
   instance.direction = msg.direction;
   instance.timestamp = msg.timestamp;
