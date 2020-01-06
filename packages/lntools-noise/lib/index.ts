@@ -8,7 +8,7 @@ import { NoiseState } from "./noise-state";
 export { NoiseState } from "./noise-state";
 export { NoiseSocket } from "./noise-socket";
 
-export type ConnectOptions = {
+export type NoiseConnectOptions = {
   /**
    * Local secret as a 32-byte secp256k1 private key
    */
@@ -27,7 +27,7 @@ export type ConnectOptions = {
   /**
    * Optional host. Defaults to localhost.
    */
-  host?: Buffer;
+  host?: string;
 
   /**
    * Optional port. Defaults to 9735.
@@ -38,7 +38,7 @@ export type ConnectOptions = {
 /**
  * Connect to a remote noise socket server.
  */
-export function connect({ ls, es, rpk, host, port = 9735 }) {
+export function connect({ ls, es, rpk, host, port = 9735 }: NoiseConnectOptions) {
   if (!es) {
     es = crypto.createPrivateKey();
   }
