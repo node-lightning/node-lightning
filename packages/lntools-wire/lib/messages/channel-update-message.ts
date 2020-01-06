@@ -1,5 +1,5 @@
 import { BufferCursor } from "@lntools/buffer-cursor";
-import crypto from "@lntools/crypto";
+import * as crypto from "@lntools/crypto";
 import BN from "bn.js";
 import { MESSAGE_TYPE } from "../message-type";
 import { shortChannelIdFromBuffer } from "../shortchanid";
