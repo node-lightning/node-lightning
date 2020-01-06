@@ -1,4 +1,4 @@
-import BufferCursor from "@lntools/buffer-cursor";
+import { BufferCursor } from "@lntools/buffer-cursor";
 import { SizeResult } from "../size-result";
 import { isSegWitTx } from "./is-segwit-tx";
 

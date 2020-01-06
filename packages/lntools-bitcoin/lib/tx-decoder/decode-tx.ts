@@ -1,4 +1,4 @@
-import BufferCursor from "@lntools/buffer-cursor";
+import { BufferCursor } from "@lntools/buffer-cursor";
 import { Tx } from "../tx";
 import { TxIn } from "../tx";
 import { TxOut } from "../tx";

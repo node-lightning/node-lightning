@@ -1,6 +1,6 @@
 // @ts-check
 
-import BufferCursor from "@lntools/buffer-cursor";
+import { BufferCursor } from "@lntools/buffer-cursor";
 import { isSegWitTx } from "./is-segwit-tx";
 
 /**
