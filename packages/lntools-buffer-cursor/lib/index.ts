@@ -333,5 +333,3 @@ export class BufferCursor {
     this._position += len;
   }
 }
-
-module.exports = BufferCursor;

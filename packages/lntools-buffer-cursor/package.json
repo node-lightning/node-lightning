@@ -1,6 +1,6 @@
 {
   "name": "@lntools/buffer-cursor",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Buffer reader/writer utility ",
   "keywords": [],
   "author": "Brian Mancini <bmancini@gmail.com>",
