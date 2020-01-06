@@ -1,9 +1,7 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "allowJs": true,
-    "maxNodeModuleJsDepth": 2,
-    "noEmit": true
+    "outDir": "./dist"
   },
   "include": ["./lib"]
 }

@@ -1,46 +1,37 @@
-// @ts-check
-
-const bech32 = require('bech32');
-const bech32Util = require('./bech32-util');
-const WordCursor = require('./word-cursor');
-const crypto = require('./crypto');
-const encodePico = require('./encode-pico');
-const { FIELD_TYPE } = require('./constants');
-
-/**
- * @typedef {import('./invoice')} Invoice
- */
-
-module.exports = {
-  encode,
-};
+import bech32 from "bech32";
+import * as bech32Util from "./bech32-util";
+import * as crypto from "./crypto";
+import { encodePico } from "./encode-pico";
+import { FIELD_TYPE } from "./field-type";
+import { Invoice } from "./invoice";
+import { WordCursor } from "./word-cursor";
 
 /**
  * Encodes an invoice object into the bech32 invoice and digitally
  * signs the invoice using ECDSA.
- * @param {Invoice} invoice
- * @param {Buffer} privKey 33-byte secp256k1 private key
+ * @param invoice
+ * @param privKey 33-byte secp256k1 private key
  * @returns {string} bech32 encoded invoice
  */
-function encode(invoice, privKey) {
-  let writer = new WordCursor();
+export function encode(invoice: Invoice, privKey: Buffer) {
+  const writer = new WordCursor();
 
-  let encodedAmount = encodePico(invoice._value ? invoice._value.toString() : null) || '';
-  let prefix = `ln${invoice.network}${encodedAmount}`;
+  const encodedAmount = encodePico(invoice._value ? invoice._value.toString() : null) || "";
+  const prefix = `ln${invoice.network}${encodedAmount}`;
 
   writer.writeUIntBE(invoice.timestamp, 7);
 
   _encodeData(invoice, writer);
 
   // generate sig data
-  let bytes = bech32Util.convertWords(writer.words, 5, 8, true);
-  let sigData = Buffer.concat([Buffer.from(prefix, 'utf8'), Buffer.from(bytes)]);
+  const bytes = bech32Util.convertWords(writer.words, 5, 8, true);
+  const sigData = Buffer.concat([Buffer.from(prefix, "utf8"), Buffer.from(bytes)]);
 
   // generate sig hash
-  let sigHash = crypto.sha256(sigData);
+  const sigHash = crypto.sha256(sigData);
 
   // sign
-  let { signature, recovery } = crypto.ecdsaSign(sigHash, privKey);
+  const { signature, recovery } = crypto.ecdsaSign(sigHash, privKey);
 
   writer.writeBytes(signature);
   writer.writeUIntBE(recovery, 1);
@@ -50,14 +41,14 @@ function encode(invoice, privKey) {
   return bech32.encode(prefix, writer.words, Number.MAX_SAFE_INTEGER);
 }
 
-function _encodeData(invoice, writer) {
-  for (let datum of invoice.fields) {
+function _encodeData(invoice: Invoice, writer: WordCursor) {
+  for (const datum of invoice.fields) {
     switch (datum.type) {
       case FIELD_TYPE.PAYMENT_HASH:
         {
           // should be 52, but allow for creation of variable length
           // values so we can construct non-valid invoices for testing
-          let dataLen = bech32Util.sizeofBytes(datum.value.byteLength);
+          const dataLen = bech32Util.sizeofBytes(datum.value.byteLength);
           writer.writeUIntBE(datum.type, 1);
           writer.writeUIntBE(dataLen, 2);
           writer.writeBytes(datum.value);
@@ -65,13 +56,13 @@ function _encodeData(invoice, writer) {
         break;
       case FIELD_TYPE.ROUTE:
         {
-          let bits = datum.value.length * (264 + 64 + 32 + 32 + 16);
+          const bits = datum.value.length * (264 + 64 + 32 + 32 + 16);
           writer.writeUIntBE(datum.type, 1);
-          let dataLen = bech32Util.sizeofBits(bits);
+          const dataLen = bech32Util.sizeofBits(bits);
           writer.writeUIntBE(dataLen, 2);
-          let buffer = Buffer.alloc(bits / 8);
+          const buffer = Buffer.alloc(bits / 8);
           let position = 0;
-          for (let route of datum.value) {
+          for (const route of datum.value) {
             route.pubkey.copy(buffer, position);
             position += 264 / 8;
             route.short_channel_id.copy(buffer, position);
@@ -88,7 +79,7 @@ function _encodeData(invoice, writer) {
         break;
       case FIELD_TYPE.EXPIRY:
         {
-          let dataLen = bech32Util.sizeofNum(datum.value);
+          const dataLen = bech32Util.sizeofNum(datum.value);
           writer.writeUIntBE(datum.type, 1);
           writer.writeUIntBE(dataLen, 2);
           writer.writeUIntBE(datum.value, dataLen);
@@ -96,7 +87,7 @@ function _encodeData(invoice, writer) {
         break;
       case FIELD_TYPE.FALLBACK_ADDRESS:
         {
-          let dataLen = bech32Util.sizeofBytes(datum.value.address.byteLength) + 1;
+          const dataLen = bech32Util.sizeofBytes(datum.value.address.byteLength) + 1;
           writer.writeUIntBE(datum.type, 1);
           writer.writeUIntBE(dataLen, 2);
           writer.writeUIntBE(datum.value.version, 1);
@@ -105,8 +96,8 @@ function _encodeData(invoice, writer) {
         break;
       case FIELD_TYPE.SHORT_DESC:
         {
-          let buf = Buffer.from(datum.value, 'utf8');
-          let dataLen = bech32Util.sizeofBytes(buf.byteLength);
+          const buf = Buffer.from(datum.value, "utf8");
+          const dataLen = bech32Util.sizeofBytes(buf.byteLength);
           writer.writeUIntBE(datum.type, 1);
           writer.writeUIntBE(dataLen, 2);
           writer.writeBytes(buf);
@@ -116,7 +107,7 @@ function _encodeData(invoice, writer) {
         {
           // should be 53, but allow for creation of variable length
           // values so we can construct non-valid invoices for testing
-          let dataLen = bech32Util.sizeofBytes(datum.value.byteLength);
+          const dataLen = bech32Util.sizeofBytes(datum.value.byteLength);
           writer.writeUIntBE(datum.type, 1);
           writer.writeUIntBE(dataLen, 2);
           writer.writeBytes(datum.value);
@@ -124,7 +115,7 @@ function _encodeData(invoice, writer) {
         break;
       case FIELD_TYPE.HASH_DESC:
         {
-          let dataLen = bech32Util.sizeofBytes(datum.value.byteLength);
+          const dataLen = bech32Util.sizeofBytes(datum.value.byteLength);
           writer.writeUIntBE(datum.type, 1);
           writer.writeUIntBE(dataLen, 2);
           writer.writeBytes(datum.value);
@@ -132,15 +123,15 @@ function _encodeData(invoice, writer) {
         break;
       case FIELD_TYPE.MIN_FINAL_CLTV_EXPIRY:
         {
-          let dataLen = bech32Util.sizeofNum(datum.value);
+          const dataLen = bech32Util.sizeofNum(datum.value);
           writer.writeUIntBE(datum.type, 1);
           writer.writeUIntBE(dataLen, 2);
           writer.writeUIntBE(datum.value, dataLen);
         }
         break;
       default: {
-        if (!(datum.value instanceof Buffer)) throw new Error('Cannot process unknown field');
-        let dataLen = bech32Util.sizeofBytes(datum.value.byteLength);
+        if (!(datum.value instanceof Buffer)) throw new Error("Cannot process unknown field");
+        const dataLen = bech32Util.sizeofBytes(datum.value.byteLength);
         writer.writeUIntBE(datum.type, 1);
         writer.writeUIntBE(dataLen, 2);
         writer.writeBytes(datum.value);

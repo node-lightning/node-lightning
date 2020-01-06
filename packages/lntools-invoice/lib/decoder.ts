@@ -1,43 +1,38 @@
-// @ts-check
-
-const BufferCursor = require('@lntools/buffer-cursor');
-const bech32 = require('bech32');
-const BN = require('bn.js');
-const crypto = require('./crypto');
-const WordCursor = require('./word-cursor');
-const Invoice = require('./invoice');
-const hrpToPico = require('./hrp-pico');
-const { FIELD_TYPE, ADDRESS_VERSION } = require('./constants');
-
-module.exports = {
-  decode,
-};
+import { BufferCursor } from "@lntools/buffer-cursor";
+import bech32 from "bech32";
+import BN from "bn.js";
+import { ADDRESS_VERSION } from "./address-version";
+import * as crypto from "./crypto";
+import { FIELD_TYPE } from "./field-type";
+import { hrpToPico } from "./hrp-pico";
+import { Invoice } from "./invoice";
+import { WordCursor } from "./word-cursor";
 
 /**
- Decodes an invoice into an Invoice object
- @param {String} invoice
- @return {Invoice}
+ * Decodes an invoice into an Invoice object
+ * @param invoice
+ * @return
  */
-function decode(invoice) {
+export function decode(invoice: string): Invoice {
   // Decode the invoice into prefix and words.
   // The words will be interated over to decode the rest of thee invoice
-  let { prefix, words } = bech32.decode(invoice, Number.MAX_SAFE_INTEGER);
+  const { prefix, words } = bech32.decode(invoice, Number.MAX_SAFE_INTEGER);
 
   // Parse the prefix into the network and the value in pico bitcoin.
-  let { network, value } = parsePrefix(prefix);
+  const { network, picoBtc } = parsePrefix(prefix);
 
   // Construct a word cursor to read from the remaining data
-  let wordcursor = new WordCursor(words);
+  const wordcursor = new WordCursor(words);
 
-  let timestamp = wordcursor.readUIntBE(7); // read 7 words / 35 bits
+  const timestamp = wordcursor.readUIntBE(7); // read 7 words / 35 bits
 
-  let fields = [];
-  let unknownFields = [];
+  const fields = [];
+  const unknownFields = [];
 
   // read fields until at signature
   while (wordcursor.wordsRemaining > 104) {
-    let type = wordcursor.readUIntBE(1); // read 1 word / 5 bits
-    let len = wordcursor.readUIntBE(2); // read 2 words / 10 bits
+    const type = wordcursor.readUIntBE(1); // read 1 word / 5 bits
+    const len = wordcursor.readUIntBE(2); // read 2 words / 10 bits
 
     let value;
 
@@ -55,8 +50,8 @@ function decode(invoice) {
       case FIELD_TYPE.ROUTE: // r - variable, one or more entries containing extra routing info
         {
           value = [];
-          let bytes = wordcursor.readBytes(len);
-          let bytecursor = new BufferCursor(bytes);
+          const bytes = wordcursor.readBytes(len);
+          const bytecursor = new BufferCursor(bytes);
           while (!bytecursor.eof) {
             value.push({
               pubkey: bytecursor.readBytes(33),
@@ -73,8 +68,8 @@ function decode(invoice) {
         break;
       case FIELD_TYPE.FALLBACK_ADDRESS: // f - variable depending on version
         {
-          let version = wordcursor.readUIntBE(1);
-          let address = wordcursor.readBytes(len - 1);
+          const version = wordcursor.readUIntBE(1);
+          const address = wordcursor.readBytes(len - 1);
           value = {
             version,
             address,
@@ -90,7 +85,7 @@ function decode(invoice) {
         }
         break;
       case FIELD_TYPE.SHORT_DESC: // d - short description of purpose of payment utf-8
-        value = wordcursor.readBytes(len).toString('utf8');
+        value = wordcursor.readBytes(len).toString("utf8");
         break;
       case FIELD_TYPE.PAYEE_NODE: // n - 33-byte public key of the payee node
         value = wordcursor.readBytes(len);
@@ -118,32 +113,32 @@ function decode(invoice) {
     fields.push({ type, value });
   }
 
-  let sigBytes = wordcursor.readBytes(103); // read 512-bit sig
-  let r = sigBytes.slice(0, 32);
-  let s = sigBytes.slice(32);
-  let recoveryFlag = wordcursor.readUIntBE(1);
+  const sigBytes = wordcursor.readBytes(103); // read 512-bit sig
+  const r = sigBytes.slice(0, 32);
+  const s = sigBytes.slice(32);
+  const recoveryFlag = wordcursor.readUIntBE(1);
 
   wordcursor.position = 0;
   let preHashData = wordcursor.readBytes(words.length - 104, true);
   preHashData = Buffer.concat([Buffer.from(prefix), preHashData]);
-  let hashData = crypto.sha256(preHashData);
+  const hashData = crypto.sha256(preHashData);
 
   // extract the pubkey for verifying the signature by either:
   // 1: using the payee field value (n)
   // 2: performing signature recovery
-  let payeeNodeField = fields.find(p => p.type === FIELD_TYPE.PAYEE_NODE);
-  let pubkey = payeeNodeField
+  const payeeNodeField = fields.find(p => p.type === FIELD_TYPE.PAYEE_NODE);
+  const pubkey = payeeNodeField
     ? payeeNodeField.value // use payee node provided
     : crypto.ecdsaRecovery(hashData, sigBytes, recoveryFlag); // recovery pubkey from ecdsa sig
 
   // validate signature
   // note if we performed signature recovery this will always match
   // so we may want to just skip this if we had signature recovery
-  if (!crypto.ecdsaVerify(pubkey, hashData, sigBytes)) throw new Error('Signature invalid');
+  if (!crypto.ecdsaVerify(pubkey, hashData, sigBytes)) throw new Error("Signature invalid");
 
   // constuct the invoice
-  let result = new Invoice();
-  result._value = value; // directly assign pico value since there is not setter
+  const result = new Invoice();
+  result._value = picoBtc; // directly assign pico value since there is not setter
   result.network = network;
   result.timestamp = timestamp;
   result.fields = fields;
@@ -158,29 +153,26 @@ function decode(invoice) {
 //////////////
 
 /**
-  Parses the prefix into network and value and then performs
-  validations on the values.
-
-  This code is rough. Should refactor into two steps:
-  1) tokenize
-  2) parse tokens
-
-  Value is returned as pico bitcoin.
-
-  @param {string} prefix
-  @return {{network: string, value: BN}}
-*/
-function parsePrefix(prefix) {
-  if (!prefix.startsWith('ln')) throw new Error('Invalid prefix');
-  let network = '';
-  let tempValue = '';
+ * Parses the prefix into network and value and then performs
+ * validations on the values.
+ *
+ * This code is rough. Should refactor into two steps:
+ * 1) tokenize
+ * 2) parse tokens
+ *
+ * Value is returned as pico bitcoin.
+ */
+function parsePrefix(prefix: string): { network: string; picoBtc: BN } {
+  if (!prefix.startsWith("ln")) throw new Error("Invalid prefix");
+  let network = "";
+  let tempValue = "";
   let value;
   let multiplier;
   let hasNetwork = false;
   let hasAmount = false;
 
   for (let i = 2; i < prefix.length; i++) {
-    let charCode = prefix.charCodeAt(i);
+    const charCode = prefix.charCodeAt(i);
 
     if (!hasNetwork) {
       if (charCode >= 97 && charCode <= 122) network += prefix[i];
@@ -190,32 +182,32 @@ function parsePrefix(prefix) {
     if (hasNetwork && !hasAmount) {
       if (charCode >= 48 && charCode <= 57) tempValue += prefix[i];
       else if (tempValue) hasAmount = true;
-      else throw new Error('Invalid amount');
+      else throw new Error("Invalid amount");
     }
 
     if (hasAmount) {
       if (charCode >= 97 && charCode <= 122) multiplier = prefix[i];
-      else throw new Error('Invalid character');
+      else throw new Error("Invalid character");
     }
   }
 
   // returns null if we do not have a value
-  if (tempValue === '') value = null;
+  if (tempValue === "") value = null;
   // otherwise we multiply by the value by the pico amount to obtain
   // the actual pico value of the
   else value = new BN(tempValue).mul(hrpToPico(multiplier));
 
-  if (!isValidNetwork(network)) throw new Error('Invalid network');
-  if (!isValidValue(value)) throw new Error('Invalid amount');
+  if (!isValidNetwork(network)) throw new Error("Invalid network");
+  if (!isValidValue(value)) throw new Error("Invalid amount");
 
   return {
     network,
-    value: value,
+    picoBtc: value,
   };
 }
 
 function isValidNetwork(network) {
-  return network === 'bc' || network === 'tb' || network === 'bcrt' || network === 'sb';
+  return network === "bc" || network === "tb" || network === "bcrt" || network === "sb";
 }
 
 function isValidValue(value) {
