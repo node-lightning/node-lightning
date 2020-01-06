@@ -1,4 +1,7 @@
-export * from "./message-factory";
+import * as MF from "./message-factory";
+
+// tslint:disable-next-line: variable-name
+export const MessageFactory = MF;
 export * from "./peer";
 export * from "./messages/announcement-signatures-message";
 export * from "./messages/channel-announcement-message";
