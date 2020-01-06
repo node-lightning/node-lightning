@@ -1,7 +1,8 @@
 {
   "name": "@lntools/noise",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "BOLT 8 Lightning Network Noise Protocol Socket",
+  "main": "dist/index.js",
   "scripts": {
     "test": "../../node_modules/.bin/nyc --reporter=lcov --reporter=text --extension=.ts --exclude \"__integration__\" --exclude \"__tests__\" ../../node_modules/.bin/mocha --require ts-node/register --recursive \"__tests__/**/*.spec.js\" --recursive \"__integration__/**/*.spec.js\"",
     "lint": "../../node_modules/.bin/tslint --project tsconfig.json --config ../../tslint.json",
@@ -19,7 +20,7 @@
   "author": "Brian Mancini <bmancini@gmail.com>",
   "homepage": "https://github.com/altangent/lntools/tree/master/packages/lntools-noise",
   "license": "MIT",
-  "main": "lib/index.js",
+
   "repository": {
     "type": "git",
     "url": "git+https://github.com/altangent/lntools.git"
