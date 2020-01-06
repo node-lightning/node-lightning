@@ -14,7 +14,7 @@ const maxPrivateKey = new BN(Buffer.from("fffffffffffffffffffffffffffffffebaaedc
  *
  * @param privKey 32-byte/256-bit buffer
  */
-function validPrivateKey(privKey: Buffer): boolean {
+export function validPrivateKey(privKey: Buffer): boolean {
   if (!Buffer.isBuffer(privKey)) return false;
   if (privKey.length !== 32) return false;
 
@@ -32,7 +32,7 @@ function validPrivateKey(privKey: Buffer): boolean {
  *
  * @returns the 32-byte/256-bit private key
  */
-function createPrivateKey(): Buffer {
+export function createPrivateKey(): Buffer {
   let result;
   do {
     result = crypto.randomBytes(32);
@@ -48,6 +48,6 @@ function createPrivateKey(): Buffer {
  * @returns 33-byte buffer for compressed,
  * 65-byte buffer for uncompressed
  */
-function getPublicKey(privKey: Buffer, compressed = true): Buffer {
+export function getPublicKey(privKey: Buffer, compressed = true): Buffer {
   return secp256k1.publicKeyCreate(privKey, compressed);
 }
