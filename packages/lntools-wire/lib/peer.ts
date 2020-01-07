@@ -155,8 +155,9 @@ export class Peer extends EventEmitter {
     const initMessage = new InitMessage();
 
     // set initialization messages
-    initMessage.localInitialRoutingSync = this.initRoutingSync;
+    // initMessage.localInitialRoutingSync = this.initRoutingSync;
     initMessage.localDataLossProtect = true;
+    initMessage.localGossipQueries = true;
 
     // fire off the init message
     const m = initMessage.serialize();
@@ -170,8 +171,16 @@ export class Peer extends EventEmitter {
    */
   private _processPeerInitMessage(raw: Buffer) {
     // deserialize message
-    const m = MessageFactory.deserialize(raw);
-    if (this.logger) this.logger.info("peer initialized", m);
+    const m = MessageFactory.deserialize(raw) as InitMessage;
+    if (this.logger) {
+      this.logger.info(
+        "peer initialized",
+        `init_routing_sync: ${m.localInitialRoutingSync}`,
+        `data_loss_protection: ${m.localDataLossProtect}`,
+        `gossip_queries: ${m.localGossipQueries}`,
+        `upfront_shutdown_script: ${m.localUpfrontShutdownScript}`,
+      );
+    }
 
     // ensure we got an InitMessagee
     assert.ok(m instanceof InitMessage, new Error("Expecting InitMessage"));

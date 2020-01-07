@@ -7,6 +7,8 @@ import { InitMessage } from "./messages/init-message";
 import { NodeAnnouncementMessage } from "./messages/node-announcement-message";
 import { PingMessage } from "./messages/ping-message";
 import { PongMessage } from "./messages/pong-message";
+import { QueryChannelRangeMessage } from "./messages/query-channel-range-message";
+import { ReplyChannelRangeMessage } from "./messages/reply-channel-range-message";
 
 const typeMap = {
   // control messages
@@ -20,6 +22,8 @@ const typeMap = {
   [MESSAGE_TYPE.NODE_ANNOUNCEMENT]: NodeAnnouncementMessage,
   [MESSAGE_TYPE.CHANNEL_ANNOUNCEMENT]: ChannelAnnouncementMessage,
   [MESSAGE_TYPE.CHANNEL_UPDATE]: ChannelUpdateMessage,
+  [MESSAGE_TYPE.QUERY_CHANNEL_RANGE]: QueryChannelRangeMessage,
+  [MESSAGE_TYPE.REPLY_CHANNEL_RANGE]: ReplyChannelRangeMessage,
 };
 
 function constructType(type: MESSAGE_TYPE): any {

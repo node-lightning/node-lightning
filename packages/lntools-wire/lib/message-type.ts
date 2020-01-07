@@ -7,13 +7,19 @@ export enum MESSAGE_TYPE {
   ERROR = 17,
   PING = 18,
   PONG = 19,
+
   // Channel (32-127)
   //
+
   // Commitment (128-255)
   //
+
   // Routing (256-511)
   CHANNEL_ANNOUNCEMENT = 256,
   NODE_ANNOUNCEMENT = 257,
   CHANNEL_UPDATE = 258,
   ANNOUNCEMENT_SIGNATURES = 259,
-}
+  QUERY_CHANNEL_RANGE = 263,
+  REPLY_CHANNEL_RANGE = 264,
+
+} // prettier-ignore
