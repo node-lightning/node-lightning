@@ -8,7 +8,9 @@ import { NodeAnnouncementMessage } from "./messages/node-announcement-message";
 import { PingMessage } from "./messages/ping-message";
 import { PongMessage } from "./messages/pong-message";
 import { QueryChannelRangeMessage } from "./messages/query-channel-range-message";
+import { QueryShortChannelIdsMessage } from "./messages/query-short-channel-ids-message";
 import { ReplyChannelRangeMessage } from "./messages/reply-channel-range-message";
+import { ReplyShortChannelIdsEndMessage } from "./messages/reply-short-channel-ids-end-message";
 
 const typeMap = {
   // control messages
@@ -22,6 +24,10 @@ const typeMap = {
   [MESSAGE_TYPE.NODE_ANNOUNCEMENT]: NodeAnnouncementMessage,
   [MESSAGE_TYPE.CHANNEL_ANNOUNCEMENT]: ChannelAnnouncementMessage,
   [MESSAGE_TYPE.CHANNEL_UPDATE]: ChannelUpdateMessage,
+
+  [MESSAGE_TYPE.QUERY_SHORT_CHANNEL_IDS]: QueryShortChannelIdsMessage,
+  [MESSAGE_TYPE.REPLY_SHORT_CHANNEL_IDS_END]: ReplyShortChannelIdsEndMessage,
+
   [MESSAGE_TYPE.QUERY_CHANNEL_RANGE]: QueryChannelRangeMessage,
   [MESSAGE_TYPE.REPLY_CHANNEL_RANGE]: ReplyChannelRangeMessage,
 };

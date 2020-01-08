@@ -96,6 +96,8 @@ export class Peer extends EventEmitter {
   public sendMessage(m: any): boolean {
     assert.ok(this.state === PeerState.ready, new Error("Peer is not ready"));
     m = m.serialize();
+
+    // console.log("send", m.toString("hex"));
     return this.socket.write(m);
   }
 
@@ -114,6 +116,7 @@ export class Peer extends EventEmitter {
     this.state = PeerState.awaiting_peer_init;
 
     // blast off our init message
+    this.emit("open");
     this._sendInitMessage();
   }
 
@@ -155,9 +158,10 @@ export class Peer extends EventEmitter {
     const initMessage = new InitMessage();
 
     // set initialization messages
-    // initMessage.localInitialRoutingSync = this.initRoutingSync;
+    initMessage.localInitialRoutingSync = this.initRoutingSync;
     initMessage.localDataLossProtect = true;
-    initMessage.localGossipQueries = true;
+    // initMessage.localGossipQueries = true;
+    // initMessage.localGossipQueriesEx = true;
 
     // fire off the init message
     const m = initMessage.serialize();
@@ -178,6 +182,7 @@ export class Peer extends EventEmitter {
         `init_routing_sync: ${m.localInitialRoutingSync}`,
         `data_loss_protection: ${m.localDataLossProtect}`,
         `gossip_queries: ${m.localGossipQueries}`,
+        `gossip_queries_ex: ${m.localGossipQueriesEx}`,
         `upfront_shutdown_script: ${m.localUpfrontShutdownScript}`,
       );
     }

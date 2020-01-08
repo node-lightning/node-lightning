@@ -188,6 +188,16 @@ export class InitMessage {
     this.unsetLocalBit(6);
   }
 
+  get localGossipQueriesEx(): boolean {
+    return this.localFeatures.testn(10) || this.localFeatures.testn(11);
+  }
+
+  set localGossipQueriesEx(val: boolean) {
+    if (val) this.setLocalBit(11);
+    else this.unsetLocalBit(11);
+    this.unsetLocalBit(10);
+  }
+
   public toJSON() {
     return {
       globalFeatures: this.globalFeatures.toString(),

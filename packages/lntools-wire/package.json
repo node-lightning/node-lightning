@@ -25,7 +25,7 @@
     "url": "git+https://github.com/altangent/lntools.git"
   },
   "dependencies": {
-    "@lntools/buffer-cursor": "^0.3.0",
+    "@lntools/buffer-cursor": "^0.4.0",
     "@lntools/crypto": "^0.5.1",
     "@lntools/logger": "^0.2.0",
     "@lntools/noise": "^0.5.0",
