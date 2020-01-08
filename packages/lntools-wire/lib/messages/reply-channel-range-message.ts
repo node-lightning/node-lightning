@@ -16,13 +16,12 @@ export class ReplyChannelRangeMessage {
     instance.numberOfBlocks = reader.readUInt32BE();
     instance.complete = reader.readUInt8() === 1;
 
-    // encoded_short_channel_id bytes
-    const len = reader.readUInt16BE();
+    const len = reader.readUInt16BE(); // encoded_short_channel_id bytes
     if (len) {
       const encoded = reader.readUInt8() === 1;
       let esciBuffer: Buffer;
       if (encoded) {
-        // TODO zlib decompress values
+        throw new Error("Zlib not yet supported");
       } else {
         esciBuffer = reader.readBytes(len - 1);
       }
@@ -43,19 +42,28 @@ export class ReplyChannelRangeMessage {
   public complete: boolean;
   public shortChannelIds: ShortChannelId[] = [];
 
-  // public serialize(): Buffer {
-  //   const buffer = Buffer.alloc(
-  //     2 + // type
-  //     32 + // chain_hash
-  //     4 + // first_blocknum
-  //     4 + // number_of_blocks
-  //     0, // tlvs go here...
-  //   ); // prettier-ignore
-  //   const writer = new BufferCursor(buffer);
-  //   writer.writeUInt16BE(MESSAGE_TYPE.QUERY_CHANNEL_RANGE);
-  //   writer.writeBytes(this.chainHash);
-  //   writer.writeUInt32BE(this.firstBlocknum);
-  //   writer.writeUInt32BE(this.numberOfBlocks);
-  //   return buffer;
-  // }
+  public serialize(): Buffer {
+    const len = this.shortChannelIds.length * 8 + 1;
+    const buffer = Buffer.alloc(
+      2 + // type
+      32 + // chain_hash
+      4 + // first_blocknum
+      4 + // number_of_blocks
+      1 + // complete
+      2 + // len encoded_channel_ids
+      len, // encoded_channel_ids
+    ); // prettier-ignore
+    const writer = new BufferCursor(buffer);
+    writer.writeUInt16BE(this.type);
+    writer.writeBytes(this.chainHash);
+    writer.writeUInt32BE(this.firstBlocknum);
+    writer.writeUInt32BE(this.numberOfBlocks);
+    writer.writeUInt8(this.complete ? 1 : 0);
+    writer.writeUInt16BE(len);
+    writer.writeUInt8(0);
+    for (const scid of this.shortChannelIds) {
+      writer.writeBytes(scid.toBuffer());
+    }
+    return buffer;
+  }
 }

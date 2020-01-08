@@ -1,11 +1,12 @@
 import { expect } from "chai";
 import { ReplyChannelRangeMessage } from "../../lib/messages/reply-channel-range-message";
+import { ShortChannelId } from "../../lib/shortchanid";
 
 describe("ReplyChannelRangeMessage", () => {
   describe(".deserialize", () => {
-    describe("complete values", () => {
+    describe("non-TLV", () => {
       const input = Buffer.from(
-        "0108a48effd2c7415a1066b566f3f5e231d356e9b73cec19f9ec1b020000000000000018df30000007d00100a90018e05c000001000018e33a000002000018e33a000003000018e33a000004000018e33a000005000018e3ec000001000018e514000003000018e514000004000018e514000005000018e514000006000018e514000007000018e516000001000018e516000002000018e516000003000018e516000004000018e517000006000018e518000003000018e518000004000018e519000001000018e519000002000018e51d0000040000",
+        "010843497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea3309000000000018df30000007d00100a90018e05c000001000018e33a000002000018e33a000003000018e33a000004000018e33a000005000018e3ec000001000018e514000003000018e514000004000018e514000005000018e514000006000018e514000007000018e516000001000018e516000002000018e516000003000018e516000004000018e517000006000018e518000003000018e518000004000018e519000001000018e519000002000018e51d0000040000",
         "hex",
       );
       let message: ReplyChannelRangeMessage;
@@ -16,7 +17,7 @@ describe("ReplyChannelRangeMessage", () => {
 
       it("should include chainHash", () => {
         expect(message.chainHash.toString("hex")).to.equal(
-          "a48effd2c7415a1066b566f3f5e231d356e9b73cec19f9ec1b02000000000000",
+          "43497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea330900000000",
         );
       });
 
@@ -46,6 +47,24 @@ describe("ReplyChannelRangeMessage", () => {
         expect(message.shortChannelIds[20].txIdx).to.equal(4);
         expect(message.shortChannelIds[20].voutIdx).to.equal(0);
       });
+    });
+  });
+
+  describe(".serialize", () => {
+    it("should serialize", () => {
+      const message = new ReplyChannelRangeMessage();
+      message.chainHash = Buffer.from(
+        "43497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea330900000000",
+        "hex",
+      );
+      message.firstBlocknum = 1630000;
+      message.numberOfBlocks = 2000;
+      message.complete = true;
+      message.shortChannelIds.push(new ShortChannelId(1630300, 1, 0)); // 18e05c0000010000
+      message.shortChannelIds.push(new ShortChannelId(1631517, 4, 0)); // 18e51d0000040000
+      expect(message.serialize().toString("hex")).to.equal(
+        "010843497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea3309000000000018df30000007d00100110018e05c000001000018e51d0000040000",
+      );
     });
   });
 });
