@@ -304,6 +304,35 @@ export class BufferCursor {
   }
 
   /**
+   * Reads a variable length unsigned integer as specified in the Lightning Network
+   * protocol documentation and always returns a BN to maintain a consistent
+   * call signature.
+   *
+   * @remarks
+   * Specified in:
+   * https://github.com/lightningnetwork/lightning-rfc/blob/master/01-messaging.md#appendix-a-bigsize-test-vectors
+   *
+   * < 0xfd = 1 byte number
+   *   0xfd = 2 byte number (3 bytes total)
+   *   0xfe = 4 byte number (5 bytes total)
+   *   0xff = 8 byte number (9 bytes total)
+   */
+  public writeBigSize(num: BN) {
+    if (num.lt(new BN("fd", "hex"))) {
+      this.writeUInt8(num.toNumber());
+    } else if (num.lt(new BN("10000", "hex"))) {
+      this.writeUInt8(0xfd);
+      this.writeUInt16BE(num.toNumber());
+    } else if (num.lt(new BN("100000000", "hex"))) {
+      this.writeUInt8(0xfe);
+      this.writeUInt32BE(num.toNumber());
+    } else {
+      this.writeUInt8(0xff);
+      this.writeBytes(num.toBuffer("be", 8));
+    }
+  }
+
+  /**
    * Helper for reading off buffer using built-in read functions
    * @param fn name of function
    * @param len length to read

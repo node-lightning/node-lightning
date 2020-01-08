@@ -276,6 +276,60 @@ describe("readBigSize", () => {
   }
 });
 
+describe("writeBigSize", () => {
+  const tests = [
+    {
+      name: "zero",
+      value: "0",
+      bytes: "00",
+    },
+    {
+      name: "one byte high",
+      value: "252",
+      bytes: "fc",
+    },
+    {
+      name: "two byte low",
+      value: "253",
+      bytes: "fd00fd",
+    },
+    {
+      name: "two byte high",
+      value: "65535",
+      bytes: "fdffff",
+    },
+    {
+      name: "four byte low",
+      value: "65536",
+      bytes: "fe00010000",
+    },
+    {
+      name: "four byte high",
+      value: "4294967295",
+      bytes: "feffffffff",
+    },
+    {
+      name: "eight byte low",
+      value: "4294967296",
+      bytes: "ff0000000100000000",
+    },
+    {
+      name: "eight byte high",
+      value: "18446744073709551615",
+      bytes: "ffffffffffffffffff",
+    },
+  ];
+  for (const test of tests) {
+    it(test.name, () => {
+      const expected = Buffer.from(test.bytes, "hex");
+      const buffer = Buffer.alloc(expected.length);
+      const sut = new BufferCursor(buffer);
+      sut.writeBigSize(new BN(test.value));
+      expect(buffer).to.deep.equal(expected);
+    });
+  }
+});
+
 describe("peakBytes", () => {
   it("should return empty buffer when 0", () => {
     let sut = new BufferCursor(Buffer.from([1]));
