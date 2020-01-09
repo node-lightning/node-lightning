@@ -1,4 +1,4 @@
-import { LogManager, manager } from "@lntools/logger";
+import { Logger, manager } from "@lntools/logger";
 import * as noise from "@lntools/noise";
 import assert from "assert";
 import { EventEmitter } from "events";
@@ -67,7 +67,7 @@ export class Peer extends EventEmitter {
   public messageCounter: number = 0;
   public initRoutingSync: boolean = false;
   public pingPongState: PingPongState;
-  public logger: LogManager;
+  public logger: Logger;
   public remoteInit: any;
 
   constructor() {
@@ -97,7 +97,7 @@ export class Peer extends EventEmitter {
     assert.ok(this.state === PeerState.ready, new Error("Peer is not ready"));
     m = m.serialize();
 
-    console.log("send", m.toString("hex"));
+    // console.log("send", m.toString("hex"));
     return this.socket.write(m);
   }
 
@@ -160,7 +160,7 @@ export class Peer extends EventEmitter {
     // set initialization messages
     initMessage.localInitialRoutingSync = this.initRoutingSync;
     initMessage.localDataLossProtect = true;
-    initMessage.localGossipQueries = true;
+    // initMessage.localGossipQueries = true;
     // initMessage.localGossipQueriesEx = true;
 
     // fire off the init message
