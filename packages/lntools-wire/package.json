@@ -27,8 +27,8 @@
   "dependencies": {
     "@lntools/buffer-cursor": "^0.4.0",
     "@lntools/crypto": "^0.5.1",
-    "@lntools/logger": "^0.2.0",
-    "@lntools/noise": "^0.5.0",
+    "@lntools/logger": "^0.3.0",
+    "@lntools/noise": "^0.6.0",
     "bn.js": "^4.11.8",
     "rfc4648": "^1.2.1",
     "winston": "^3.2.1"
