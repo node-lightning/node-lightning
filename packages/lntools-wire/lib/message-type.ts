@@ -26,4 +26,6 @@ export enum MESSAGE_TYPE {
   QUERY_CHANNEL_RANGE = 263,
   REPLY_CHANNEL_RANGE = 264,
 
+  GOSSIP_TIMESTAMP_FILTER = 265,
+
 } // prettier-ignore

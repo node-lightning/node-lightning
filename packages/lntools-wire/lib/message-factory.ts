@@ -3,6 +3,7 @@ import { MESSAGE_TYPE } from "./message-type";
 import { ChannelAnnouncementMessage } from "./messages/channel-announcement-message";
 import { ChannelUpdateMessage } from "./messages/channel-update-message";
 import { ErrorMessage } from "./messages/error-message";
+import { GossipTimestampFilterMessage } from "./messages/gossip-timestamp-filter-message";
 import { InitMessage } from "./messages/init-message";
 import { NodeAnnouncementMessage } from "./messages/node-announcement-message";
 import { PingMessage } from "./messages/ping-message";
@@ -30,6 +31,8 @@ const typeMap = {
 
   [MESSAGE_TYPE.QUERY_CHANNEL_RANGE]: QueryChannelRangeMessage,
   [MESSAGE_TYPE.REPLY_CHANNEL_RANGE]: ReplyChannelRangeMessage,
+
+  [MESSAGE_TYPE.GOSSIP_TIMESTAMP_FILTER]: GossipTimestampFilterMessage,
 };
 
 function constructType(type: MESSAGE_TYPE): any {
