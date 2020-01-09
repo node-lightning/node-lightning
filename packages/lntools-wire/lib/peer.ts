@@ -97,7 +97,7 @@ export class Peer extends EventEmitter {
     assert.ok(this.state === PeerState.ready, new Error("Peer is not ready"));
     m = m.serialize();
 
-    // console.log("send", m.toString("hex"));
+    console.log("send", m.toString("hex"));
     return this.socket.write(m);
   }
 
@@ -160,7 +160,7 @@ export class Peer extends EventEmitter {
     // set initialization messages
     initMessage.localInitialRoutingSync = this.initRoutingSync;
     initMessage.localDataLossProtect = true;
-    // initMessage.localGossipQueries = true;
+    initMessage.localGossipQueries = true;
     // initMessage.localGossipQueriesEx = true;
 
     // fire off the init message
@@ -216,6 +216,7 @@ export class Peer extends EventEmitter {
       this.pingPongState.onMessage(m);
 
       // emit the message
+      this.messageCounter += 1;
       this.emit("rawmessage", raw);
       this.emit("message", m);
     }

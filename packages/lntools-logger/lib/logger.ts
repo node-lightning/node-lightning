@@ -21,35 +21,41 @@ export class Logger {
 
   /**
    * Write a debug message
-   * @param {string} format format
-   * @param {...any} args variadic arguments
+   * @param format format
+   * @param args variadic arguments
    */
-  public debug() {
-    const msg = util.format.apply(null, arguments);
+  public debug(format: string, ...args: any[]) {
+    const msg = util.format(format, ...args);
     this.writer(LogLevel.Debug, this.name, this.instance, msg);
   }
 
   /**
    * Write an info message
+   * @param format format
+   * @param args variadic arguments
    */
-  public info() {
-    const msg = util.format.apply(null, arguments);
+  public info(format: string, ...args: any[]) {
+    const msg = util.format(format, ...args);
     this.writer(LogLevel.Info, this.name, this.instance, msg);
   }
 
   /**
    * Write a warning message
+   * @param format format
+   * @param args variadic arguments
    */
-  public warn() {
-    const msg = util.format.apply(null, arguments);
+  public warn(format: string, ...args: any[]) {
+    const msg = util.format(format, ...args);
     this.writer(LogLevel.Warn, this.name, this.instance, msg);
   }
 
   /**
    * Write an error message
+   * @param format format
+   * @param args variadic arguments
    */
-  public error() {
-    const msg = util.format.apply(null, arguments);
+  public error(format: string, ...args: any[]) {
+    const msg = util.format(format, ...args);
     this.writer(LogLevel.Error, this.name, this.instance, msg);
   }
 }
