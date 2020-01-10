@@ -1,8 +1,9 @@
 import { BufferCursor } from "@lntools/buffer-cursor";
-import { ZlibDecoder } from "../deserialize/zlib-decoder";
 import { MESSAGE_TYPE } from "../message-type";
 import { IBufferSerializable } from "../serialize/buffer-serializable";
+import { EncodedBufferDeserializer } from "../serialize/encoded-buffer-deserializer";
 import { RawEncodedShortIdsSerializer } from "../serialize/raw-encoded-short-ids-serializer";
+import { ZlibEncodedShortIdsSerializer } from "../serialize/zlib-encoded-short-ids-serializer";
 import { ShortChannelId, shortChannelIdFromBuffer } from "../shortchanid";
 import { IWireMessage } from "./wire-message";
 
@@ -21,20 +22,11 @@ export class ReplyChannelRangeMessage implements IWireMessage {
     instance.complete = reader.readUInt8() === 1;
 
     const len = reader.readUInt16BE(); // encoded_short_channel_id bytes
-    if (len) {
-      const encoded = reader.readUInt8() === 1;
-      let esciBuffer: Buffer;
-      if (encoded) {
-        esciBuffer = new ZlibDecoder().decode(reader.readBytes(len - 1));
-      } else {
-        esciBuffer = reader.readBytes(len - 1);
-      }
-
-      const esciReader = new BufferCursor(esciBuffer);
-      while (!esciReader.eof) {
-        instance.shortChannelIds.push(shortChannelIdFromBuffer(esciReader.readBytes(8)));
-      }
-    }
+    const esidsBuffer = reader.readBytes(len);
+    instance.shortChannelIds = new EncodedBufferDeserializer(
+      new RawEncodedShortIdsSerializer(),
+      new ZlibEncodedShortIdsSerializer(),
+    ).deserialize(esidsBuffer);
 
     return instance;
   }
