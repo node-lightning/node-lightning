@@ -1,8 +1,9 @@
 import { BufferCursor } from "@lntools/buffer-cursor";
 import { MESSAGE_TYPE } from "../message-type";
 import { ShortChannelId, shortChannelIdFromBuffer } from "../shortchanid";
+import { IWireMessage } from "./wire-message";
 
-export class ReplyShortChannelIdsEndMessage {
+export class ReplyShortChannelIdsEndMessage implements IWireMessage {
   public static deserialize(payload: Buffer): ReplyShortChannelIdsEndMessage {
     const instance = new ReplyShortChannelIdsEndMessage();
     const reader = new BufferCursor(payload);

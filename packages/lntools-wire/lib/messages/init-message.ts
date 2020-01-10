@@ -2,6 +2,7 @@ import { BufferCursor } from "@lntools/buffer-cursor";
 import BN from "bn.js";
 import * as bitwise from "../bitwise";
 import { MESSAGE_TYPE } from "../message-type";
+import { IWireMessage } from "./wire-message";
 
 /**
  * InitMessage is defined in BOLT #1. Once authentication is complete,
@@ -13,7 +14,7 @@ import { MESSAGE_TYPE } from "../message-type";
  * that are used to signal how the message should operate. The values
  * of are defined in the BOLT #9.
  */
-export class InitMessage {
+export class InitMessage implements IWireMessage {
   /**
    * Deserializes a Buffer containing the message information. This
    * method will capture the arbitrary length global and local
@@ -102,7 +103,6 @@ export class InitMessage {
    * local features.
    */
   public setLocalBit(bit: number) {
-    console.log("setting", bit);
     bitwise.isetn(this.localFeatures, bit);
   }
 

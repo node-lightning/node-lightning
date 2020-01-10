@@ -4,6 +4,7 @@ import assert from "assert";
 import { EventEmitter } from "events";
 import * as MessageFactory from "./message-factory";
 import { InitMessage } from "./messages/init-message";
+import { IWireMessage } from "./messages/wire-message";
 import { PeerConnectOptions } from "./peer-connect-options";
 import { PeerState } from "./peer-state";
 import { PingPongState } from "./pingpong-state";
@@ -25,7 +26,7 @@ export declare interface Peer {
   off(event: "close", listener: () => void): this;
   off(event: "end", listener: () => void): this;
   off(event: "error", listener: (err: Error) => void): this;
-  off(event: "message", listener: (msg: any) => void): this;
+  off(event: "message", listener: (msg: IWireMessage) => void): this;
   off(event: "open", listener: () => void): this;
   off(event: "rawmessage", listener: (msg: Buffer) => void): this;
   off(event: "ready", listener: () => void): this;
@@ -33,7 +34,7 @@ export declare interface Peer {
   on(event: "close", listener: () => void): this;
   on(event: "end", listener: () => void): this;
   on(event: "error", listener: (err: Error) => void): this;
-  on(event: "message", listener: (msg: any) => void): this;
+  on(event: "message", listener: (msg: IWireMessage) => void): this;
   on(event: "open", listener: () => void): this;
   on(event: "rawmessage", listener: (msg: Buffer) => void): this;
   on(event: "ready", listener: () => void): this;
@@ -41,7 +42,7 @@ export declare interface Peer {
   once(event: "close", listener: () => void): this;
   once(event: "end", listener: () => void): this;
   once(event: "error", listener: (err: Error) => void): this;
-  once(event: "message", listener: (msg: any) => void): this;
+  once(event: "message", listener: (msg: IWireMessage) => void): this;
   once(event: "open", listener: () => void): this;
   once(event: "rawmessage", listener: (msg: Buffer) => void): this;
   once(event: "ready", listener: () => void): this;
@@ -49,7 +50,7 @@ export declare interface Peer {
   prependListener(event: "close", listener: () => void): this;
   prependListener(event: "end", listener: () => void): this;
   prependListener(event: "error", listener: (err: Error) => void): this;
-  prependListener(event: "message", listener: (msg: any) => void): this;
+  prependListener(event: "message", listener: (msg: IWireMessage) => void): this;
   prependListener(event: "open", listener: () => void): this;
   prependListener(event: "rawmessage", listener: (msg: Buffer) => void): this;
   prependListener(event: "ready", listener: () => void): this;
@@ -57,7 +58,7 @@ export declare interface Peer {
   prependOnceListener(event: "close", listener: () => void): this;
   prependOnceListener(event: "end", listener: () => void): this;
   prependOnceListener(event: "error", listener: (err: Error) => void): this;
-  prependOnceListener(event: "message", listener: (msg: any) => void): this;
+  prependOnceListener(event: "message", listener: (msg: IWireMessage) => void): this;
   prependOnceListener(event: "open", listener: () => void): this;
   prependOnceListener(event: "rawmessage", listener: (msg: Buffer) => void): this;
   prependOnceListener(event: "ready", listener: () => void): this;
@@ -69,7 +70,7 @@ export declare interface Peer {
   removeListener(event: "close", listener: () => void): this;
   removeListener(event: "end", listener: () => void): this;
   removeListener(event: "error", listener: (err: Error) => void): this;
-  removeListener(event: "message", listener: (msg: any) => void): this;
+  removeListener(event: "message", listener: (msg: IWireMessage) => void): this;
   removeListener(event: "open", listener: () => void): this;
   removeListener(event: "rawmessage", listener: (msg: Buffer) => void): this;
   removeListener(event: "ready", listener: () => void): this;
@@ -77,7 +78,7 @@ export declare interface Peer {
   rawListeners(event: "close"): Array<() => void>;
   rawListeners(event: "end"): Array<() => void>;
   rawListeners(event: "error"): Array<(err: Error) => void>;
-  rawListeners(event: "message"): Array<(msg: any) => void>;
+  rawListeners(event: "message"): Array<(msg: IWireMessage) => void>;
   rawListeners(event: "open"): Array<() => void>;
   rawListeners(event: "rawmessage"): Array<(msg: Buffer) => void>;
   rawListeners(event: "ready"): Array<() => void>;
@@ -131,6 +132,9 @@ export declare interface Peer {
  *
  * @emits close emitted when the connection to the peer has completedly
  * closed.
+ *
+ * @emits open emmited when the connection to the peer has been established
+ * after the handshake has been performed
  *
  * @emits end emitted when the connection to the peer is ending.
  */

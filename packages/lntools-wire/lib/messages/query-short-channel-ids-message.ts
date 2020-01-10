@@ -1,8 +1,9 @@
 import { BufferCursor } from "@lntools/buffer-cursor";
 import { MESSAGE_TYPE } from "../message-type";
 import { ShortChannelId, shortChannelIdFromBuffer } from "../shortchanid";
+import { IWireMessage } from "./wire-message";
 
-export class QueryShortChannelIdsMessage {
+export class QueryShortChannelIdsMessage implements IWireMessage {
   public static deserialize(payload: Buffer): QueryShortChannelIdsMessage {
     const reader = new BufferCursor(payload);
     reader.readUInt16BE(); // read off type

@@ -1,6 +1,7 @@
 import { BufferCursor } from "@lntools/buffer-cursor";
 import { PONG_BYTE_THRESHOLD } from "../constants";
 import { MESSAGE_TYPE } from "../message-type";
+import { IWireMessage } from "./wire-message";
 
 /**
  * In order to allow for the existence of long-lived TCP
@@ -11,7 +12,7 @@ import { MESSAGE_TYPE } from "../message-type";
  * for the number of pong bytes it expects to receive as
  * a reply. The ignored bits should be set to 0.
  */
-export class PingMessage {
+export class PingMessage implements IWireMessage {
   /**
    * Deserialize a message and return a new instance of the
    * PingMessage type.

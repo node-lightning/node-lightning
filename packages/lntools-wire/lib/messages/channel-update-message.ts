@@ -4,13 +4,14 @@ import BN from "bn.js";
 import { MESSAGE_TYPE } from "../message-type";
 import { shortChannelIdFromBuffer } from "../shortchanid";
 import { ShortChannelId } from "../shortchanid";
+import { IWireMessage } from "./wire-message";
 
 /**
  * After a channel has been announced, each side independently announces the fees
  * and minimum expiry delta it requires to relay HTLCs through this channel. A
  * node can broadcast this message multiple times in order to change fees.
  */
-export class ChannelUpdateMessage {
+export class ChannelUpdateMessage implements IWireMessage {
   /**
    * Deserializes the message from a Buffer. The message
    * is not validated in this function.

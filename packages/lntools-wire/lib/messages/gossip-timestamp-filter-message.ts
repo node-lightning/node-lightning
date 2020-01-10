@@ -1,7 +1,8 @@
 import { BufferCursor } from "@lntools/buffer-cursor";
 import { MESSAGE_TYPE } from "../message-type";
+import { IWireMessage } from "./wire-message";
 
-export class GossipTimestampFilterMessage {
+export class GossipTimestampFilterMessage implements IWireMessage {
   public static deserialize(payload: Buffer): GossipTimestampFilterMessage {
     const instance = new GossipTimestampFilterMessage();
     const reader = new BufferCursor(payload);

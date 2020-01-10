@@ -1,5 +1,6 @@
 import { BufferCursor } from "@lntools/buffer-cursor";
 import { MESSAGE_TYPE } from "../message-type";
+import { IWireMessage } from "./wire-message";
 
 /**
  * This message is defined in BOLT #1 and is used for telling
@@ -11,7 +12,7 @@ import { MESSAGE_TYPE } from "../message-type";
  * errors that make channels unusable or that make further
  * communication unusable.
  */
-export class ErrorMessage {
+export class ErrorMessage implements IWireMessage {
   /**
    * Deserializes an error message into an ErrorMessage
    * instance.

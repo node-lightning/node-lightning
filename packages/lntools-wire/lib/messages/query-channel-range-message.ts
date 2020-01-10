@@ -1,7 +1,8 @@
 import { BufferCursor } from "@lntools/buffer-cursor";
 import { MESSAGE_TYPE } from "../message-type";
+import { IWireMessage } from "./wire-message";
 
-export class QueryChannelRangeMessage {
+export class QueryChannelRangeMessage implements IWireMessage {
   public static deserialize(payload: Buffer): QueryChannelRangeMessage {
     const instance = new QueryChannelRangeMessage();
     const reader = new BufferCursor(payload);
