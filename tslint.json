@@ -9,6 +9,7 @@
     "object-literal-sort-keys": false,
     "prefer-for-of": false,
     "radix": false,
+    "unified-signatures":false,
     "variable-name": {
       "options": [
         "allow-leading-underscore"

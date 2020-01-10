@@ -102,6 +102,7 @@ export class InitMessage {
    * local features.
    */
   public setLocalBit(bit: number) {
+    console.log("setting", bit);
     bitwise.isetn(this.localFeatures, bit);
   }
 

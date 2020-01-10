@@ -8,6 +8,81 @@ import { PeerConnectOptions } from "./peer-connect-options";
 import { PeerState } from "./peer-state";
 import { PingPongState } from "./pingpong-state";
 
+// tslint:disable-next-line: interface-name
+export declare interface Peer {
+  addListener(event: "close", listener: () => void): this;
+  addListener(event: "end", listener: () => void): this;
+  addListener(event: "error", listener: (err: Error) => void): this;
+  addListener(event: "message", listener: (msg: any) => void): this;
+  addListener(event: "open", listener: () => void): this;
+  addListener(event: "rawmessage", listener: (msg: Buffer) => void): this;
+  addListener(event: "ready", listener: () => void): this;
+
+  listenerCount(
+    event: "close" | "end" | "error" | "message" | "open" | "rawmessage" | "ready",
+  ): number;
+
+  off(event: "close", listener: () => void): this;
+  off(event: "end", listener: () => void): this;
+  off(event: "error", listener: (err: Error) => void): this;
+  off(event: "message", listener: (msg: any) => void): this;
+  off(event: "open", listener: () => void): this;
+  off(event: "rawmessage", listener: (msg: Buffer) => void): this;
+  off(event: "ready", listener: () => void): this;
+
+  on(event: "close", listener: () => void): this;
+  on(event: "end", listener: () => void): this;
+  on(event: "error", listener: (err: Error) => void): this;
+  on(event: "message", listener: (msg: any) => void): this;
+  on(event: "open", listener: () => void): this;
+  on(event: "rawmessage", listener: (msg: Buffer) => void): this;
+  on(event: "ready", listener: () => void): this;
+
+  once(event: "close", listener: () => void): this;
+  once(event: "end", listener: () => void): this;
+  once(event: "error", listener: (err: Error) => void): this;
+  once(event: "message", listener: (msg: any) => void): this;
+  once(event: "open", listener: () => void): this;
+  once(event: "rawmessage", listener: (msg: Buffer) => void): this;
+  once(event: "ready", listener: () => void): this;
+
+  prependListener(event: "close", listener: () => void): this;
+  prependListener(event: "end", listener: () => void): this;
+  prependListener(event: "error", listener: (err: Error) => void): this;
+  prependListener(event: "message", listener: (msg: any) => void): this;
+  prependListener(event: "open", listener: () => void): this;
+  prependListener(event: "rawmessage", listener: (msg: Buffer) => void): this;
+  prependListener(event: "ready", listener: () => void): this;
+
+  prependOnceListener(event: "close", listener: () => void): this;
+  prependOnceListener(event: "end", listener: () => void): this;
+  prependOnceListener(event: "error", listener: (err: Error) => void): this;
+  prependOnceListener(event: "message", listener: (msg: any) => void): this;
+  prependOnceListener(event: "open", listener: () => void): this;
+  prependOnceListener(event: "rawmessage", listener: (msg: Buffer) => void): this;
+  prependOnceListener(event: "ready", listener: () => void): this;
+
+  removeAllListeners(
+    event?: "close" | "end" | "error" | "message" | "open" | "rawmessage" | "ready",
+  ): this;
+
+  removeListener(event: "close", listener: () => void): this;
+  removeListener(event: "end", listener: () => void): this;
+  removeListener(event: "error", listener: (err: Error) => void): this;
+  removeListener(event: "message", listener: (msg: any) => void): this;
+  removeListener(event: "open", listener: () => void): this;
+  removeListener(event: "rawmessage", listener: (msg: Buffer) => void): this;
+  removeListener(event: "ready", listener: () => void): this;
+
+  rawListeners(event: "close"): Array<() => void>;
+  rawListeners(event: "end"): Array<() => void>;
+  rawListeners(event: "error"): Array<(err: Error) => void>;
+  rawListeners(event: "message"): Array<(msg: any) => void>;
+  rawListeners(event: "open"): Array<() => void>;
+  rawListeners(event: "rawmessage"): Array<(msg: Buffer) => void>;
+  rawListeners(event: "ready"): Array<() => void>;
+}
+
 /**
  * Peer is an EventEmitter that layers the Lightning Network wire
  * protocol ontop of an @lntools/noise NoiseSocket.
@@ -65,14 +140,16 @@ export class Peer extends EventEmitter {
   public state: PeerState = PeerState.pending;
   public socket: any;
   public messageCounter: number = 0;
-  public initRoutingSync: boolean = false;
   public pingPongState: PingPongState;
   public logger: Logger;
-  public remoteInit: any;
+  public remoteInit: InitMessage;
+  public localInit: InitMessage;
+  public initMessageFactory: () => InitMessage;
 
-  constructor() {
+  constructor(initMessageFactory: () => InitMessage) {
     super();
     this.pingPongState = new PingPongState(this);
+    this.initMessageFactory = initMessageFactory;
   }
 
   /**
@@ -151,21 +228,20 @@ export class Peer extends EventEmitter {
   }
 
   /**
-   * Sends the initialization message to the peer.
+   * Sends the initialization message to the peer. This message
+   * does not matter if it is sent before or after the peer sends
+   * there message.
    */
   private _sendInitMessage() {
     // construct the init message
-    const initMessage = new InitMessage();
+    const msg = this.initMessageFactory();
 
-    // set initialization messages
-    initMessage.localInitialRoutingSync = this.initRoutingSync;
-    initMessage.localDataLossProtect = true;
-    // initMessage.localGossipQueries = true;
-    // initMessage.localGossipQueriesEx = true;
+    // capture local init message for future use
+    this.localInit = msg;
 
-    // fire off the init message
-    const m = initMessage.serialize();
-    this.socket.write(m);
+    // fire off the init message to the peer
+    const payload = msg.serialize();
+    this.socket.write(payload);
   }
 
   /**
