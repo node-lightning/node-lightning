@@ -1,5 +1,6 @@
 import { expect } from "chai";
 import { ReplyChannelRangeMessage } from "../../lib/messages/reply-channel-range-message";
+import { RawEncodedShortIdsSerializer } from "../../lib/serialize/raw-encoded-short-ids-serializer";
 import { ZlibEncodedShortIdsSerializer } from "../../lib/serialize/zlib-encoded-short-ids-serializer";
 import { ShortChannelId } from "../../lib/shortchanid";
 
@@ -114,7 +115,7 @@ describe("ReplyChannelRangeMessage", () => {
       message.complete = true;
       message.shortChannelIds.push(new ShortChannelId(1630300, 1, 0)); // 18e05c0000010000
       message.shortChannelIds.push(new ShortChannelId(1631517, 4, 0)); // 18e51d0000040000
-      expect(message.serialize().toString("hex")).to.equal(
+      expect(message.serialize(new RawEncodedShortIdsSerializer()).toString("hex")).to.equal(
         "010843497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea3309000000000018df30000007d00100110018e05c000001000018e51d0000040000",
       );
     });

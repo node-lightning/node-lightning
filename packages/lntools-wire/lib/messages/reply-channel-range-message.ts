@@ -39,7 +39,7 @@ export class ReplyChannelRangeMessage implements IWireMessage {
   public shortChannelIds: ShortChannelId[] = [];
 
   public serialize(esidSerializer?: IBufferSerializable<ShortChannelId[]>): Buffer {
-    if (!esidSerializer) esidSerializer = new RawEncodedShortIdsSerializer();
+    if (!esidSerializer) esidSerializer = new ZlibEncodedShortIdsSerializer();
     const esids = esidSerializer.serialize(this.shortChannelIds);
 
     const buffer = Buffer.alloc(

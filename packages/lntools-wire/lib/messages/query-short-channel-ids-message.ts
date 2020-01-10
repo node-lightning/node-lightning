@@ -1,7 +1,9 @@
 import { BufferCursor } from "@lntools/buffer-cursor";
 import { MESSAGE_TYPE } from "../message-type";
 import { IBufferSerializable } from "../serialize/buffer-serializable";
+import { EncodedBufferDeserializer } from "../serialize/encoded-buffer-deserializer";
 import { RawEncodedShortIdsSerializer } from "../serialize/raw-encoded-short-ids-serializer";
+import { ZlibEncodedShortIdsSerializer } from "../serialize/zlib-encoded-short-ids-serializer";
 import { ShortChannelId, shortChannelIdFromBuffer } from "../shortchanid";
 import { IWireMessage } from "./wire-message";
 
@@ -14,20 +16,11 @@ export class QueryShortChannelIdsMessage implements IWireMessage {
     instance.chainHash = reader.readBytes(32);
 
     const len = reader.readUInt16BE();
-    if (len) {
-      const encoded = reader.readUInt8() === 1;
-      let esciBuffer: Buffer;
-      if (encoded) {
-        throw new Error("Zlib not yet supported");
-      } else {
-        esciBuffer = reader.readBytes(len - 1);
-      }
-
-      const esciReader = new BufferCursor(esciBuffer);
-      while (!esciReader.eof) {
-        instance.shortChannelIds.push(shortChannelIdFromBuffer(esciReader.readBytes(8)));
-      }
-    }
+    const esidBuffer = reader.readBytes(len);
+    instance.shortChannelIds = new EncodedBufferDeserializer(
+      new RawEncodedShortIdsSerializer(),
+      new ZlibEncodedShortIdsSerializer(),
+    ).deserialize(esidBuffer);
 
     return instance;
   }
@@ -48,7 +41,7 @@ export class QueryShortChannelIdsMessage implements IWireMessage {
   public shortChannelIds: ShortChannelId[] = [];
 
   public serialize(esidSerializer?: IBufferSerializable<ShortChannelId[]>): Buffer {
-    if (!esidSerializer) esidSerializer = new RawEncodedShortIdsSerializer();
+    if (!esidSerializer) esidSerializer = new ZlibEncodedShortIdsSerializer();
     const esids = esidSerializer.serialize(this.shortChannelIds);
     const buffer = Buffer.alloc(
       2 + // type
