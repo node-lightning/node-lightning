@@ -1,5 +1,6 @@
 import { expect } from "chai";
 import { ReplyChannelRangeMessage } from "../../lib/messages/reply-channel-range-message";
+import { ZlibEncodedShortIdsSerializer } from "../../lib/serialize/zlib-encoded-short-ids-serializer";
 import { ShortChannelId } from "../../lib/shortchanid";
 
 describe("ReplyChannelRangeMessage", () => {
@@ -77,10 +78,48 @@ describe("ReplyChannelRangeMessage", () => {
         expect(message.shortChannelIds[20].voutIdx).to.equal(0);
       });
     });
+
+    it("non-TLV with ZLIB encoded short_channel_id", () => {
+      const payload = Buffer.from(
+        "010843497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea3309000000000018e05c000004c201004f01789c2dccc10d80300c4351435b580095f4d0453a0bc323216e0c81d2fcd3931c3b765fd222d933a41513662cee17bdf788bb9bb1e086bb5be9d7f8eb269cbb93be911b7963d7d8f599ff9faf187c",
+        "hex",
+      );
+      // 0108 - type 264
+      // 43497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea330900000000 -- chain_hash
+      // 0018e05c - first blocknum 1630300
+      // 000004c2 - number_of_blocks 1218
+      // 01 - complete true
+      // 004f - length 79
+      // 01 - zlib encoding
+      // 789c2dccc10d80300c4351435b580095f4d0453a0bc323216e0c81d2fcd3931c3b765fd222d933a41513662cee17bdf788bb9bb1e086bb5be9d7f8eb269cbb93be911b7963d7d8f599ff9faf187c
+
+      const msg = ReplyChannelRangeMessage.deserialize(payload);
+
+      expect(msg.type).to.equal(264);
+      expect(msg.chainHash.toString("hex")).to.equal(
+        "43497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea330900000000",
+      );
+      expect(msg.firstBlocknum).to.equal(1630300);
+      expect(msg.numberOfBlocks).to.equal(1218);
+      // tslint:disable-next-line: no-unused-expression
+      expect(msg.complete).to.be.true;
+
+      expect(msg.shortChannelIds.length).to.equal(21);
+
+      // first 18e05c0000010000
+      expect(msg.shortChannelIds[0].block).to.equal(1630300);
+      expect(msg.shortChannelIds[0].txIdx).to.equal(1);
+      expect(msg.shortChannelIds[0].voutIdx).to.equal(0);
+
+      // last 18e51d0000040000
+      expect(msg.shortChannelIds[20].block).to.equal(1631517);
+      expect(msg.shortChannelIds[20].txIdx).to.equal(4);
+      expect(msg.shortChannelIds[20].voutIdx).to.equal(0);
+    });
   });
 
   describe(".serialize", () => {
-    it("should serialize", () => {
+    it("standard encoded message", () => {
       const message = new ReplyChannelRangeMessage();
       message.chainHash = Buffer.from(
         "43497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea330900000000",
@@ -93,6 +132,42 @@ describe("ReplyChannelRangeMessage", () => {
       message.shortChannelIds.push(new ShortChannelId(1631517, 4, 0)); // 18e51d0000040000
       expect(message.serialize().toString("hex")).to.equal(
         "010843497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea3309000000000018df30000007d00100110018e05c000001000018e51d0000040000",
+      );
+    });
+
+    it("zlib encoded message", () => {
+      const message = new ReplyChannelRangeMessage();
+      message.chainHash = Buffer.from(
+        "43497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea330900000000",
+        "hex",
+      );
+      message.firstBlocknum = 1630300;
+      message.numberOfBlocks = 1218;
+      message.complete = true;
+      message.shortChannelIds.push(new ShortChannelId(1630300, 1, 0));
+      message.shortChannelIds.push(new ShortChannelId(1631034, 2, 0));
+      message.shortChannelIds.push(new ShortChannelId(1631034, 3, 0));
+      message.shortChannelIds.push(new ShortChannelId(1631034, 4, 0));
+      message.shortChannelIds.push(new ShortChannelId(1631034, 5, 0));
+      message.shortChannelIds.push(new ShortChannelId(1631212, 1, 0));
+      message.shortChannelIds.push(new ShortChannelId(1631508, 3, 0));
+      message.shortChannelIds.push(new ShortChannelId(1631508, 4, 0));
+      message.shortChannelIds.push(new ShortChannelId(1631508, 5, 0));
+      message.shortChannelIds.push(new ShortChannelId(1631508, 6, 0));
+      message.shortChannelIds.push(new ShortChannelId(1631508, 7, 0));
+      message.shortChannelIds.push(new ShortChannelId(1631510, 1, 0));
+      message.shortChannelIds.push(new ShortChannelId(1631510, 2, 0));
+      message.shortChannelIds.push(new ShortChannelId(1631510, 3, 0));
+      message.shortChannelIds.push(new ShortChannelId(1631510, 4, 0));
+      message.shortChannelIds.push(new ShortChannelId(1631511, 6, 0));
+      message.shortChannelIds.push(new ShortChannelId(1631512, 3, 0));
+      message.shortChannelIds.push(new ShortChannelId(1631512, 4, 0));
+      message.shortChannelIds.push(new ShortChannelId(1631513, 1, 0));
+      message.shortChannelIds.push(new ShortChannelId(1631513, 2, 0));
+      message.shortChannelIds.push(new ShortChannelId(1631517, 4, 0));
+
+      expect(message.serialize(new ZlibEncodedShortIdsSerializer()).toString("hex")).to.equal(
+        "010843497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea3309000000000018e05c000004c201004f01789c2dccc10d80300c4351435b580095f4d0453a0bc323216e0c81d2fcd3931c3b765fd222d933a41513662cee17bdf788bb9bb1e086bb5be9d7f8eb269cbb93be911b7963d7d8f599ff9faf187c",
       );
     });
   });

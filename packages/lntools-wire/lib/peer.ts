@@ -288,6 +288,16 @@ export class Peer extends EventEmitter {
    * processed after the initialization message has been received.
    */
   private _processMessage(raw: Buffer) {
+    // increment counter first so we know exactly how many messages
+    // have been received by the peer regardless of whether they
+    // could be processed
+    this.messageCounter += 1;
+
+    // emit the rawmessage event first so that if there is a
+    // deserialization problem there is a chance that we were
+    // able to capture the raw message for further testing
+    this.emit("rawmessage", raw);
+
     // deserialize the message
     const m = MessageFactory.deserialize(raw);
 
@@ -296,8 +306,6 @@ export class Peer extends EventEmitter {
       this.pingPongState.onMessage(m);
 
       // emit the message
-      this.messageCounter += 1;
-      this.emit("rawmessage", raw);
       this.emit("message", m);
     }
   }

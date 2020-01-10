@@ -1,5 +1,8 @@
 import { BufferCursor } from "@lntools/buffer-cursor";
+import { ZlibDecoder } from "../deserialize/zlib-decoder";
 import { MESSAGE_TYPE } from "../message-type";
+import { IBufferSerializable } from "../serialize/buffer-serializable";
+import { RawEncodedShortIdsSerializer } from "../serialize/raw-encoded-short-ids-serializer";
 import { ShortChannelId, shortChannelIdFromBuffer } from "../shortchanid";
 import { IWireMessage } from "./wire-message";
 
@@ -22,7 +25,7 @@ export class ReplyChannelRangeMessage implements IWireMessage {
       const encoded = reader.readUInt8() === 1;
       let esciBuffer: Buffer;
       if (encoded) {
-        throw new Error("Zlib not yet supported");
+        esciBuffer = new ZlibDecoder().decode(reader.readBytes(len - 1));
       } else {
         esciBuffer = reader.readBytes(len - 1);
       }
@@ -43,28 +46,28 @@ export class ReplyChannelRangeMessage implements IWireMessage {
   public complete: boolean;
   public shortChannelIds: ShortChannelId[] = [];
 
-  public serialize(): Buffer {
-    const len = this.shortChannelIds.length * 8 + 1;
+  public serialize(esidSerializer?: IBufferSerializable<ShortChannelId[]>): Buffer {
+    if (!esidSerializer) esidSerializer = new RawEncodedShortIdsSerializer();
+    const esids = esidSerializer.serialize(this.shortChannelIds);
+
     const buffer = Buffer.alloc(
       2 + // type
       32 + // chain_hash
       4 + // first_blocknum
       4 + // number_of_blocks
       1 + // complete
-      2 + // len encoded_channel_ids
-      len, // encoded_channel_ids
+      2 + // len encoded_short_ids
+      esids.length, // encoded_short_ids
     ); // prettier-ignore
+
     const writer = new BufferCursor(buffer);
     writer.writeUInt16BE(this.type);
     writer.writeBytes(this.chainHash);
     writer.writeUInt32BE(this.firstBlocknum);
     writer.writeUInt32BE(this.numberOfBlocks);
     writer.writeUInt8(this.complete ? 1 : 0);
-    writer.writeUInt16BE(len);
-    writer.writeUInt8(0);
-    for (const scid of this.shortChannelIds) {
-      writer.writeBytes(scid.toBuffer());
-    }
+    writer.writeUInt16BE(esids.length);
+    writer.writeBytes(esids);
     return buffer;
   }
 }
