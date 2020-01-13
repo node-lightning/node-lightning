@@ -1,3 +1,5 @@
+/* eslint-disable no-undef */
+
 const { expect } = require("chai");
 const BN = require("bn.js");
 const { BufferCursor } = require("../lib");
@@ -324,7 +326,8 @@ describe("writeBigSize", () => {
       const expected = Buffer.from(test.bytes, "hex");
       const buffer = Buffer.alloc(expected.length);
       const sut = new BufferCursor(buffer);
-      sut.writeBigSize(new BN(test.value));
+      // eslint-disable-next-line no-undef
+      sut.writeBigSize(BigInt(test.value));
       expect(buffer).to.deep.equal(expected);
     });
   }
@@ -562,5 +565,39 @@ describe("eof", () => {
   it("should be true when all bytes read", () => {
     buffer.readBytes(1);
     expect(buffer.eof).to.be.true;
+  });
+});
+
+describe("bigSizeBytes", () => {
+  it("should return 1 for 0x00", () => {
+    expect(BufferCursor.bigSizeBytes(BigInt(0))).to.equal(1);
+  });
+
+  it("should return 1 for 0xfc", () => {
+    expect(BufferCursor.bigSizeBytes(BigInt("0xfc"))).to.equal(1);
+  });
+
+  it("should return 3 for 0xfd", () => {
+    expect(BufferCursor.bigSizeBytes(BigInt("0xfd"))).to.equal(3);
+  });
+
+  it("should return 3 for 0x0ffff", () => {
+    expect(BufferCursor.bigSizeBytes(BigInt("0x0ffff"))).to.equal(3);
+  });
+
+  it("should return 5 for 0x10000", () => {
+    expect(BufferCursor.bigSizeBytes(BigInt("0x10000"))).to.equal(5);
+  });
+
+  it("should return 5 for 0x0ffffffff", () => {
+    expect(BufferCursor.bigSizeBytes(BigInt("0x0ffffffff"))).to.equal(5);
+  });
+
+  it("should return 9 for 0x100000000", () => {
+    expect(BufferCursor.bigSizeBytes(BigInt("0x100000000"))).to.equal(9);
+  });
+
+  it("should return 9 for 0xffffffffffffffff", () => {
+    expect(BufferCursor.bigSizeBytes(BigInt("0xffffffffffffffff"))).to.equal(9);
   });
 });
