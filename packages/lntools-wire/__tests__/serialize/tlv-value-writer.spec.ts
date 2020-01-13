@@ -1,4 +1,3 @@
-import BN = require("bn.js");
 import { expect } from "chai";
 import { TlvValueWriter } from "../../lib/serialize/tlv-value-writer";
 import { ShortChannelId } from "../../lib/shortchanid";
@@ -41,7 +40,7 @@ describe("TlvValueWriter", () => {
   describe(".writeUInt64()", () => {
     it("should write value", () => {
       const sut = new TlvValueWriter();
-      sut.writeUInt64(new BN("23000000008123"));
+      sut.writeUInt64(BigInt("23000000008123"));
       const buffer = sut.toBuffer();
       expect(buffer.toString("hex")).to.equal("000014eb1ad48fbb");
       expect(buffer.length).to.equal(8);
@@ -119,7 +118,7 @@ describe("TlvValueWriter", () => {
   describe(".writeTUInt64()", () => {
     it("should write 0-byte value", () => {
       const sut = new TlvValueWriter();
-      sut.writeTUInt64(new BN("00", "hex"));
+      sut.writeTUInt64(BigInt("0x00"));
       const buffer = sut.toBuffer();
       expect(buffer.toString("hex")).to.equal("");
       expect(buffer.length).to.equal(0);
@@ -127,7 +126,7 @@ describe("TlvValueWriter", () => {
 
     it("should write 1-byte value", () => {
       const sut = new TlvValueWriter();
-      sut.writeTUInt64(new BN("ff", "hex"));
+      sut.writeTUInt64(BigInt("0xff"));
       const buffer = sut.toBuffer();
       expect(buffer.toString("hex")).to.equal("ff");
       expect(buffer.length).to.equal(1);
@@ -135,7 +134,7 @@ describe("TlvValueWriter", () => {
 
     it("should write 2-byte value", () => {
       const sut = new TlvValueWriter();
-      sut.writeTUInt64(new BN("ffff", "hex"));
+      sut.writeTUInt64(BigInt("0xffff"));
       const buffer = sut.toBuffer();
       expect(buffer.toString("hex")).to.equal("ffff");
       expect(buffer.length).to.equal(2);
@@ -143,7 +142,7 @@ describe("TlvValueWriter", () => {
 
     it("should write 3-byte value", () => {
       const sut = new TlvValueWriter();
-      sut.writeTUInt64(new BN("ffffff", "hex"));
+      sut.writeTUInt64(BigInt("0xffffff"));
       const buffer = sut.toBuffer();
       expect(buffer.toString("hex")).to.equal("ffffff");
       expect(buffer.length).to.equal(3);
@@ -151,7 +150,7 @@ describe("TlvValueWriter", () => {
 
     it("should write 4-byte value", () => {
       const sut = new TlvValueWriter();
-      sut.writeTUInt64(new BN("ffffffff", "hex"));
+      sut.writeTUInt64(BigInt("0xffffffff"));
       const buffer = sut.toBuffer();
       expect(buffer.toString("hex")).to.equal("ffffffff");
       expect(buffer.length).to.equal(4);
@@ -159,7 +158,7 @@ describe("TlvValueWriter", () => {
 
     it("should write 5-byte value", () => {
       const sut = new TlvValueWriter();
-      sut.writeTUInt64(new BN("ffffffffff", "hex"));
+      sut.writeTUInt64(BigInt("0xffffffffff"));
       const buffer = sut.toBuffer();
       expect(buffer.toString("hex")).to.equal("ffffffffff");
       expect(buffer.length).to.equal(5);
@@ -167,7 +166,7 @@ describe("TlvValueWriter", () => {
 
     it("should write 6-byte value", () => {
       const sut = new TlvValueWriter();
-      sut.writeTUInt64(new BN("ffffffffffff", "hex"));
+      sut.writeTUInt64(BigInt("0xffffffffffff"));
       const buffer = sut.toBuffer();
       expect(buffer.toString("hex")).to.equal("ffffffffffff");
       expect(buffer.length).to.equal(6);
@@ -175,7 +174,7 @@ describe("TlvValueWriter", () => {
 
     it("should write 7-byte value", () => {
       const sut = new TlvValueWriter();
-      sut.writeTUInt64(new BN("ffffffffffffff", "hex"));
+      sut.writeTUInt64(BigInt("0xffffffffffffff"));
       const buffer = sut.toBuffer();
       expect(buffer.toString("hex")).to.equal("ffffffffffffff");
       expect(buffer.length).to.equal(7);
@@ -183,10 +182,76 @@ describe("TlvValueWriter", () => {
 
     it("should write 8-byte value", () => {
       const sut = new TlvValueWriter();
-      sut.writeTUInt64(new BN("ffffffffffffffff", "hex"));
+      sut.writeTUInt64(BigInt("0xffffffffffffffff"));
       const buffer = sut.toBuffer();
       expect(buffer.toString("hex")).to.equal("ffffffffffffffff");
       expect(buffer.length).to.equal(8);
+    });
+  });
+
+  describe(".writeBigSize()", () => {
+    it("should write 0 value", () => {
+      const sut = new TlvValueWriter();
+      sut.writeBigSize(BigInt("0x00"));
+      const buffer = sut.toBuffer();
+      expect(buffer.toString("hex")).to.equal("00");
+      expect(buffer.length).to.equal(1);
+    });
+
+    it("should write below 0xfd", () => {
+      const sut = new TlvValueWriter();
+      sut.writeBigSize(BigInt("0xfc"));
+      const buffer = sut.toBuffer();
+      expect(buffer.toString("hex")).to.equal("fc");
+      expect(buffer.length).to.equal(1);
+    });
+
+    it("should write 0xfd", () => {
+      const sut = new TlvValueWriter();
+      sut.writeBigSize(BigInt("0xfd"));
+      const buffer = sut.toBuffer();
+      expect(buffer.toString("hex")).to.equal("fd00fd");
+      expect(buffer.length).to.equal(3);
+    });
+
+    it("should write below 0x10000", () => {
+      const sut = new TlvValueWriter();
+      sut.writeBigSize(BigInt("0x1000"));
+      const buffer = sut.toBuffer();
+      expect(buffer.toString("hex")).to.equal("fd1000");
+      expect(buffer.length).to.equal(3);
+    });
+
+    it("should write 0x10000", () => {
+      const sut = new TlvValueWriter();
+      sut.writeBigSize(BigInt("0x10000"));
+      const buffer = sut.toBuffer();
+      expect(buffer.toString("hex")).to.equal("fe00010000");
+      expect(buffer.length).to.equal(5);
+    });
+
+    it("should write below 0x100000000 value", () => {
+      const sut = new TlvValueWriter();
+      sut.writeBigSize(BigInt("0x10000000"));
+      const buffer = sut.toBuffer();
+      expect(buffer.toString("hex")).to.equal("fe10000000");
+      expect(buffer.length).to.equal(5);
+    });
+
+    it("should write 0x100000000 value", () => {
+      const sut = new TlvValueWriter();
+      sut.writeBigSize(BigInt("0x100000000"));
+      const buffer = sut.toBuffer();
+      expect(buffer.toString("hex")).to.equal("ff0000000100000000");
+      expect(buffer.length).to.equal(9);
+    });
+
+    it("should write max value", () => {
+      const sut = new TlvValueWriter();
+      sut.writeBigSize(BigInt("0xffffffffffffffff"));
+      const buffer = sut.toBuffer();
+      expect(buffer.toString("hex")).to.equal("ffffffffffffffffff");
+      expect(buffer.length).to.equal(9);
     });
   });
 

@@ -1,5 +1,4 @@
 import assert from "assert";
-import BN = require("bn.js");
 import { ShortChannelId, shortChannelIdFromBuffer } from "../shortchanid";
 
 export class TlvValueWriter {
@@ -35,11 +34,9 @@ export class TlvValueWriter {
     this._position += size;
   }
 
-  public writeUInt64(val: BN) {
-    const size = 8;
-    this.expand(size);
-    val.toBuffer("be", size).copy(this._buffer, this._position);
-    this._position += size;
+  public writeUInt64(val: bigint) {
+    const buf = Buffer.from(val.toString(16).padStart(16, "0"), "hex");
+    this.writeBytes(buf);
   }
 
   public writeTUInt16(val: number) {
@@ -58,11 +55,24 @@ export class TlvValueWriter {
     this._position += size;
   }
 
-  public writeTUInt64(val: BN) {
-    const size = val.byteLength();
-    this.expand(size);
-    val.toBuffer("be").copy(this._buffer, this._position);
-    this._position += size;
+  public writeTUInt64(val: bigint) {
+    const buf = Buffer.from(val.toString(16), "hex");
+    this.writeBytes(buf);
+  }
+
+  public writeBigSize(num: bigint) {
+    if (num < BigInt(0xfd)) {
+      this.writeUInt8(Number(num));
+    } else if (num < BigInt(0x10000)) {
+      this.writeUInt8(0xfd);
+      this.writeUInt16(Number(num));
+    } else if (num < BigInt(0x100000000)) {
+      this.writeUInt8(0xfe);
+      this.writeUInt32(Number(num));
+    } else {
+      this.writeUInt8(0xff);
+      this.writeUInt64(num);
+    }
   }
 
   public writeChainHash(val: Buffer) {
