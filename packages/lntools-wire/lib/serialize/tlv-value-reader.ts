@@ -1,4 +1,3 @@
-import BN = require("bn.js");
 import { ShortChannelId, shortChannelIdFromBuffer } from "../shortchanid";
 
 export class TlvValueReader {
@@ -31,8 +30,8 @@ export class TlvValueReader {
     return val;
   }
 
-  public readUInt64(): BN {
-    const val = new BN(this._buffer.slice(this._position, this._position + 8), "be");
+  public readUInt64(): BigInt {
+    const val = BigInt("0x" + this._buffer.slice(this._position, this._position + 8).toString("hex")); // prettier-ignore
     this._position += 8;
     return val;
   }
@@ -51,9 +50,10 @@ export class TlvValueReader {
     return val;
   }
 
-  public readTUInt64(): BN {
+  public readTUInt64(): BigInt {
     const size = this._buffer.length - this._position;
-    const val = new BN(this._buffer.slice(this._position, this._position + size), "be");
+    const hex = this._buffer.slice(this._position, this._position + size).toString("hex") || "0";
+    const val = BigInt("0x" + hex);
     this._position += size;
     return val;
   }

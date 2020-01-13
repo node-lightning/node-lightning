@@ -2,7 +2,82 @@ import { expect } from "chai";
 import { TlvValueReader } from "../../lib/serialize/tlv-value-reader";
 
 describe("TlvValueReader", () => {
-  describe("readBigSize", () => {
+  describe(".readUInt64()", () => {
+    it("should read 1", () => {
+      const sut = new TlvValueReader(Buffer.from("0000000000000001", "hex"));
+      const a = sut.readUInt64();
+      expect(a).to.equal(BigInt(1));
+    });
+    it("should read 0x1000000000000000 (1152921504606846976)", () => {
+      const sut = new TlvValueReader(Buffer.from("1000000000000000", "hex"));
+      const a = sut.readUInt64();
+      expect(a).to.equal(BigInt("0x1000000000000000"));
+    });
+  });
+
+  describe(".readTUInt64()", () => {
+    it("should read 0-byte", () => {
+      const sut = new TlvValueReader(Buffer.alloc(0));
+      const a = sut.readTUInt64();
+      expect(a).to.equal(BigInt(0));
+    });
+
+    it("should read 1-byte", () => {
+      const sut = new TlvValueReader(Buffer.from([1]));
+      const a = sut.readTUInt64();
+      expect(a).to.equal(BigInt(1));
+    });
+
+    it("should read 2-byte", () => {
+      const sut = new TlvValueReader(Buffer.from([1, 1]));
+      const a = sut.readTUInt64();
+      expect(a).to.equal(BigInt(257));
+    });
+
+    it("should read 3-byte", () => {
+      const sut = new TlvValueReader(Buffer.from([1, 0, 0]));
+      const a = sut.readTUInt64();
+      expect(a).to.equal(BigInt("0x010000"));
+    });
+
+    it("should read 4-byte", () => {
+      const sut = new TlvValueReader(Buffer.from([1, 0, 0, 0]));
+      const a = sut.readTUInt64();
+      expect(a).to.equal(BigInt("0x01000000"));
+    });
+
+    it("should read 5-byte", () => {
+      const sut = new TlvValueReader(Buffer.from([1, 0, 0, 0, 0]));
+      const a = sut.readTUInt64();
+      expect(a).to.equal(BigInt("0x0100000000"));
+    });
+
+    it("should read 6-byte", () => {
+      const sut = new TlvValueReader(Buffer.from([1, 0, 0, 0, 0, 0]));
+      const a = sut.readTUInt64();
+      expect(a).to.equal(BigInt("0x010000000000"));
+    });
+
+    it("should read 7-byte", () => {
+      const sut = new TlvValueReader(Buffer.from([1, 0, 0, 0, 0, 0, 0]));
+      const a = sut.readTUInt64();
+      expect(a).to.equal(BigInt("0x01000000000000"));
+    });
+
+    it("should read 8-byte", () => {
+      const sut = new TlvValueReader(Buffer.from([1, 0, 0, 0, 0, 0, 0, 0]));
+      const a = sut.readTUInt64();
+      expect(a).to.equal(BigInt("0x0100000000000000"));
+    });
+
+    it("should read max", () => {
+      const sut = new TlvValueReader(Buffer.from([255, 255, 255, 255, 255, 255, 255, 255]));
+      const a = sut.readTUInt64();
+      expect(a).to.equal(BigInt("0xffffffffffffffff"));
+    });
+  });
+
+  describe(".readBigSize()", () => {
     it("should read 0x0", () => {
       const sut = new TlvValueReader(Buffer.from("00", "hex"));
       const a = sut.readBigSize();
