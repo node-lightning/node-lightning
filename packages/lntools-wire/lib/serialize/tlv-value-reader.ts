@@ -13,7 +13,7 @@ export class TlvValueReader {
     return this._position === this._buffer.length;
   }
 
-  public readByte(): number {
+  public readUInt(): number {
     const val = this._buffer.readUInt8(this._position);
     this._position += 1;
     return val;
@@ -56,6 +56,14 @@ export class TlvValueReader {
     const val = new BN(this._buffer.slice(this._position, this._position + size), "be");
     this._position += size;
     return val;
+  }
+
+  public readBigSize(): bigint {
+    const first = this.readUInt();
+    if (first < 0xfd) return BigInt(first);
+    if (first === 0xfd) return BigInt(this.readUInt16());
+    if (first === 0xfe) return BigInt(this.readUInt32());
+    else return BigInt("0x" + this.readBytes(8).toString("hex"));
   }
 
   public readChainHash(): Buffer {
