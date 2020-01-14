@@ -1,3 +1,5 @@
+import { TlvValueReader } from "./tlv-value-reader";
+
 /**
  * Interface for a type that supports methods used
  * by the TlvStreamReader.  Objects that support this can
@@ -7,5 +9,5 @@
 export interface ITlvDeserializable<T> {
   type: bigint;
   new (): T;
-  deserialize(buf: Buffer): T;
+  deserialize(reader: TlvValueReader): T;
 }

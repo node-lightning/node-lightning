@@ -52,7 +52,7 @@ export class QueryChannelRangeMessage implements IWireMessage {
   public options: QueryChannelRangeOptions;
 
   public serialize(): Buffer {
-    const optionsBuffer = this.options ? this.options.serializeTlv() : Buffer.alloc(0);
+    const optionsBuffer = this.options ? this.options.serialize() : Buffer.alloc(0);
     const buffer = Buffer.alloc(
       2 + // type
       32 + // chain_hash

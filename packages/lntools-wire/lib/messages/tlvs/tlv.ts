@@ -1,8 +1,10 @@
 import { BufferCursor } from "@lntools/buffer-cursor";
-import { ITlvSerializable } from "./tlv-serializable";
 
-export class TlvRecordSerializer {
-  public serialize(tlv: ITlvSerializable): Buffer {
+export abstract class Tlv {
+  public type: bigint;
+
+  public serialize(): Buffer {
+    const tlv = this;
     const type = tlv.type;
     const value = tlv.serializeValue();
     const buf = Buffer.alloc(
@@ -16,4 +18,6 @@ export class TlvRecordSerializer {
     writer.writeBytes(value);
     return buf;
   }
+
+  public abstract serializeValue();
 }

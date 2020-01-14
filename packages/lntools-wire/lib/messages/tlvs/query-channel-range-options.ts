@@ -1,7 +1,7 @@
 import { BufferCursor } from "@lntools/buffer-cursor";
-import { TlvRecordSerializer } from "../../serialize/tlv-serializer";
 import { TlvValueReader } from "../../serialize/tlv-value-reader";
 import { TlvValueWriter } from "../../serialize/tlv-value-writer";
+import { Tlv } from "./tlv";
 
 /**
  * TLV used in query_channel_range message. These options control
@@ -16,15 +16,13 @@ import { TlvValueWriter } from "../../serialize/tlv-value-writer";
  * Typically message that include the gossip_query_ex data and use
  * this TLV will include both, or neither of the options.
  */
-export class QueryChannelRangeOptions {
+export class QueryChannelRangeOptions extends Tlv {
   public static type = BigInt(1);
 
   /**
    * Deserializes the value buffer for the TLV.
-   * @param buf
    */
-  public static deserialize(buf: Buffer): QueryChannelRangeOptions {
-    const reader = new TlvValueReader(buf);
+  public static deserialize(reader: TlvValueReader): QueryChannelRangeOptions {
     const options = reader.readBigSize();
     return new QueryChannelRangeOptions(options);
   }
@@ -35,6 +33,7 @@ export class QueryChannelRangeOptions {
   private _checksumMask = BigInt(1 << 1);
 
   constructor(options?: bigint) {
+    super();
     this._options = options || BigInt(0);
   }
 
@@ -70,21 +69,10 @@ export class QueryChannelRangeOptions {
     return this;
   }
 
-  /**
-   * Serializes the value for the TLV
-   */
   public serializeValue(): Buffer {
     const writer = new TlvValueWriter();
     writer.writeBigSize(BigInt(this._options));
     return writer.toBuffer();
-  }
-
-  /**
-   * Serializes the TLV
-   */
-  public serializeTlv(): Buffer {
-    const writer = new TlvRecordSerializer();
-    return writer.serialize(this);
   }
 
   private _enableOption(mask: bigint) {

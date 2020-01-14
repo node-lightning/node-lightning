@@ -1,5 +1,6 @@
 import { expect } from "chai";
 import { QueryChannelRangeOptions } from "../../../lib/messages/tlvs/query-channel-range-options";
+import { TlvValueReader } from "../../../lib/serialize/tlv-value-reader";
 
 describe("QueryChannelRangeOptions", () => {
   describe("no initial options", () => {
@@ -87,7 +88,8 @@ describe("QueryChannelRangeOptions", () => {
 
   describe(".deserialize()", () => {
     it("should deserialize", () => {
-      const sut = QueryChannelRangeOptions.deserialize(Buffer.from("03", "hex"));
+      const reader = new TlvValueReader(Buffer.from("03", "hex"));
+      const sut = QueryChannelRangeOptions.deserialize(reader);
       expect(sut.options.toString(16)).to.equal("3");
     });
   });

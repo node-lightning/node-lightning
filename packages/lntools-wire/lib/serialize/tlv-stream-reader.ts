@@ -1,5 +1,5 @@
 import { BufferCursor } from "@lntools/buffer-cursor";
-import { ITlvDeserializable } from "./tlv-deserializable";
+import { ITlvDeserializable } from "./tlv-value";
 import { TlvValueReader } from "./tlv-value-reader";
 
 export class TlvStreamReader {
