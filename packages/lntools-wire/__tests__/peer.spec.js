@@ -99,6 +99,13 @@ describe("Peer", () => {
       sut.sendMessage(input);
       expect(socket.write.args[0][0]).to.deep.equal(Buffer.from("test"));
     });
+
+    it("should emit a sending message", done => {
+      let input = new FakeMessage("test");
+      sut.state = Peer.states.ready;
+      sut.on("sending", () => done());
+      sut.sendMessage(input);
+    });
   });
 
   describe(".disconnect()", () => {

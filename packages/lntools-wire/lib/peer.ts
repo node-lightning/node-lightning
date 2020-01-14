@@ -1,5 +1,6 @@
 import { Logger, manager } from "@lntools/logger";
 import * as noise from "@lntools/noise";
+import { NoiseSocket } from "@lntools/noise";
 import assert from "assert";
 import { EventEmitter } from "events";
 import * as MessageFactory from "./message-factory";
@@ -18,9 +19,10 @@ export declare interface Peer {
   addListener(event: "open", listener: () => void): this;
   addListener(event: "rawmessage", listener: (msg: Buffer) => void): this;
   addListener(event: "ready", listener: () => void): this;
+  addListener(event: "sending", listener: (buf: Buffer) => void): this;
 
   listenerCount(
-    event: "close" | "end" | "error" | "message" | "open" | "rawmessage" | "ready",
+    event: "close" | "end" | "error" | "message" | "open" | "rawmessage" | "ready" | "sending",
   ): number;
 
   off(event: "close", listener: () => void): this;
@@ -30,6 +32,7 @@ export declare interface Peer {
   off(event: "open", listener: () => void): this;
   off(event: "rawmessage", listener: (msg: Buffer) => void): this;
   off(event: "ready", listener: () => void): this;
+  off(event: "sending", listener: (buf: Buffer) => void): this;
 
   on(event: "close", listener: () => void): this;
   on(event: "end", listener: () => void): this;
@@ -38,6 +41,7 @@ export declare interface Peer {
   on(event: "open", listener: () => void): this;
   on(event: "rawmessage", listener: (msg: Buffer) => void): this;
   on(event: "ready", listener: () => void): this;
+  on(event: "sending", listener: (buf: Buffer) => void): this;
 
   once(event: "close", listener: () => void): this;
   once(event: "end", listener: () => void): this;
@@ -46,6 +50,7 @@ export declare interface Peer {
   once(event: "open", listener: () => void): this;
   once(event: "rawmessage", listener: (msg: Buffer) => void): this;
   once(event: "ready", listener: () => void): this;
+  once(event: "sending", listener: (buf: Buffer) => void): this;
 
   prependListener(event: "close", listener: () => void): this;
   prependListener(event: "end", listener: () => void): this;
@@ -54,6 +59,7 @@ export declare interface Peer {
   prependListener(event: "open", listener: () => void): this;
   prependListener(event: "rawmessage", listener: (msg: Buffer) => void): this;
   prependListener(event: "ready", listener: () => void): this;
+  prependListener(event: "sending", listener: (buf: Buffer) => void): this;
 
   prependOnceListener(event: "close", listener: () => void): this;
   prependOnceListener(event: "end", listener: () => void): this;
@@ -62,9 +68,10 @@ export declare interface Peer {
   prependOnceListener(event: "open", listener: () => void): this;
   prependOnceListener(event: "rawmessage", listener: (msg: Buffer) => void): this;
   prependOnceListener(event: "ready", listener: () => void): this;
+  prependOnceListener(event: "sending", listener: (buf: Buffer) => void): this;
 
   removeAllListeners(
-    event?: "close" | "end" | "error" | "message" | "open" | "rawmessage" | "ready",
+    event?: "close" | "end" | "error" | "message" | "open" | "rawmessage" | "ready" | "sending",
   ): this;
 
   removeListener(event: "close", listener: () => void): this;
@@ -74,6 +81,7 @@ export declare interface Peer {
   removeListener(event: "open", listener: () => void): this;
   removeListener(event: "rawmessage", listener: (msg: Buffer) => void): this;
   removeListener(event: "ready", listener: () => void): this;
+  removeListener(event: "sending", listener: (buf: Buffer) => void): this;
 
   rawListeners(event: "close"): Array<() => void>;
   rawListeners(event: "end"): Array<() => void>;
@@ -82,6 +90,7 @@ export declare interface Peer {
   rawListeners(event: "open"): Array<() => void>;
   rawListeners(event: "rawmessage"): Array<(msg: Buffer) => void>;
   rawListeners(event: "ready"): Array<() => void>;
+  rawListeners(event: "sending"): Array<(buf: Buffer) => void>;
 }
 
 /**
@@ -142,7 +151,7 @@ export class Peer extends EventEmitter {
   public static states = PeerState;
 
   public state: PeerState = PeerState.pending;
-  public socket: any;
+  public socket: NoiseSocket;
   public messageCounter: number = 0;
   public pingPongState: PingPongState;
   public logger: Logger;
@@ -176,10 +185,9 @@ export class Peer extends EventEmitter {
    */
   public sendMessage(m: any): boolean {
     assert.ok(this.state === PeerState.ready, new Error("Peer is not ready"));
-    m = m.serialize();
-
-    // console.log("send", m.toString("hex"));
-    return this.socket.write(m);
+    const buf = m.serialize() as Buffer;
+    this.emit("sending", buf);
+    return this.socket.write(buf);
   }
 
   /**
@@ -245,6 +253,7 @@ export class Peer extends EventEmitter {
 
     // fire off the init message to the peer
     const payload = msg.serialize();
+    this.emit("sending", payload);
     this.socket.write(payload);
   }
 
