@@ -1,6 +1,7 @@
 import { BufferCursor } from "@lntools/buffer-cursor";
 import * as crypto from "@lntools/crypto";
 import BN from "bn.js";
+import { Checksum } from "../domain/checksum";
 import { MESSAGE_TYPE } from "../message-type";
 import { shortChannelIdFromBuffer } from "../shortchanid";
 import { ShortChannelId } from "../shortchanid";
@@ -204,5 +205,44 @@ export class ChannelUpdateMessage implements IWireMessage {
       writer.writeBytes(this.htlcMaximumMsat.toBuffer("be", 8));
     }
     return result;
+  }
+
+  /**
+   * CRC32C checksum is calculated from the raw channel_update
+   * message and excludes the signature and timestamp.
+   *
+   * @remarks
+   * Defined in BOLT 07 gossip queries section:
+   * https://github.com/lightningnetwork/lightning-rfc/blob/master/07-routing-gossip.md#query-messages
+   *
+   */
+  public checksum(): Checksum {
+    const buffer = Buffer.alloc(
+      2 + // type
+      32 + // chain_hash
+      8 + // short_channel_id
+      1 + // message_flags
+      1 + // channel_flags
+      2 + // cltv_expiry_delta
+      8 + // htlc_minimum_msat
+      4 + // fee_base_msat
+      4 + // fee_proportional_millionths
+        (this.hasHtlcMaximumMsatFlag ? 8 : 0),
+    );
+
+    const writer = new BufferCursor(buffer);
+    writer.writeUInt16BE(this.type);
+    writer.writeBytes(this.chainHash);
+    writer.writeBytes(this.shortChannelId.toBuffer());
+    writer.writeUInt8(this.messageFlags);
+    writer.writeUInt8(this.channelFlags);
+    writer.writeUInt16BE(this.cltvExpiryDelta);
+    writer.writeBytes(this.htlcMinimumMsat.toBuffer("be", 8));
+    writer.writeUInt32BE(this.feeBaseMsat);
+    writer.writeUInt32BE(this.feeProportionalMillionths);
+    if (this.hasHtlcMaximumMsatFlag) {
+      writer.writeBytes(this.htlcMaximumMsat.toBuffer("be", 8));
+    }
+    return Checksum.fromBuffer(buffer);
   }
 }

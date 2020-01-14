@@ -1,5 +1,7 @@
 import { BufferCursor } from "@lntools/buffer-cursor";
 import { MESSAGE_TYPE } from "../message-type";
+import { TlvStreamReader } from "../serialize/tlv-stream-reader";
+import { QueryChannelRangeOptions } from "./tlvs/query-channel-range-options";
 import { IWireMessage } from "./wire-message";
 
 export class QueryChannelRangeMessage implements IWireMessage {
@@ -11,6 +13,15 @@ export class QueryChannelRangeMessage implements IWireMessage {
     instance.chainHash = reader.readBytes(32);
     instance.firstBlocknum = reader.readUInt32BE();
     instance.numberOfBlocks = reader.readUInt32BE();
+
+    // try parse of tlvs
+    const tlvStreamReader = new TlvStreamReader();
+    tlvStreamReader.register(QueryChannelRangeOptions);
+    const tlvs = tlvStreamReader.read(reader);
+    if (tlvs.length) {
+      instance.options = tlvs.find(p => p.type === QueryChannelRangeOptions.type);
+    }
+
     return instance;
   }
 
@@ -35,20 +46,28 @@ export class QueryChannelRangeMessage implements IWireMessage {
    */
   public numberOfBlocks: number;
 
+  /**
+   * Optional options
+   */
+  public options: QueryChannelRangeOptions;
+
   public serialize(): Buffer {
+    const optionsBuffer = this.options ? this.options.serializeTlv() : Buffer.alloc(0);
     const buffer = Buffer.alloc(
       2 + // type
       32 + // chain_hash
       4 + // first_blocknum
       4 + // number_of_blocks
-      0, // tlvs
+      optionsBuffer.length, // options tlv
     ); // prettier-ignore
     const writer = new BufferCursor(buffer);
     writer.writeUInt16BE(MESSAGE_TYPE.QUERY_CHANNEL_RANGE);
     writer.writeBytes(this.chainHash);
     writer.writeUInt32BE(this.firstBlocknum);
     writer.writeUInt32BE(this.numberOfBlocks);
-    // TODO TLVS
+    if (this.options) {
+      writer.writeBytes(optionsBuffer);
+    }
     return buffer;
   }
 }

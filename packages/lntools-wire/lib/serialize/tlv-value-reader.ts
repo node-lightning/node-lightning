@@ -30,7 +30,7 @@ export class TlvValueReader {
     return val;
   }
 
-  public readUInt64(): BigInt {
+  public readUInt64(): bigint {
     const val = BigInt("0x" + this._buffer.slice(this._position, this._position + 8).toString("hex")); // prettier-ignore
     this._position += 8;
     return val;
@@ -50,7 +50,7 @@ export class TlvValueReader {
     return val;
   }
 
-  public readTUInt64(): BigInt {
+  public readTUInt64(): bigint {
     const size = this._buffer.length - this._position;
     const hex = this._buffer.slice(this._position, this._position + size).toString("hex") || "0";
     const val = BigInt("0x" + hex);
