@@ -4,10 +4,10 @@ import { ShortChannelId } from "../../lib/shortchanid";
 
 export class N1Type1 {
   public static type: bigint = BigInt(1);
-  public static deserialize(buf: Buffer): N1Type1 {
-    const reader = new TlvValueReader(buf);
+  public static deserialize(reader: TlvValueReader): N1Type1 {
     const instance = new N1Type1();
     instance.amountMsat = reader.readTUInt64();
+    reader.done();
     return instance;
   }
 
@@ -29,8 +29,7 @@ export class N1Type1 {
 // tslint:disable-next-line: max-classes-per-file
 export class N1Type2 {
   public static type: bigint = BigInt(2);
-  public static deserialize(buf: Buffer): N1Type2 {
-    const reader = new TlvValueReader(buf);
+  public static deserialize(reader: TlvValueReader): N1Type2 {
     const instance = new N1Type2();
     instance.scid = reader.readShortChannelId();
     return instance;
@@ -54,8 +53,7 @@ export class N1Type2 {
 // tslint:disable-next-line: max-classes-per-file
 export class N1Type3 {
   public static type: bigint = BigInt(3);
-  public static deserialize(buf: Buffer): N1Type3 {
-    const reader = new TlvValueReader(buf);
+  public static deserialize(reader: TlvValueReader): N1Type3 {
     const instance = new N1Type3();
     instance.nodeId = reader.readPoint();
     instance.amountMsat1 = reader.readUInt64();
@@ -87,8 +85,7 @@ export class N1Type3 {
 // tslint:disable-next-line: max-classes-per-file
 export class N1Type254 {
   public static type: bigint = BigInt(254);
-  public static deserialize(buf: Buffer): N1Type254 {
-    const reader = new TlvValueReader(buf);
+  public static deserialize(reader: TlvValueReader): N1Type254 {
     const instance = new N1Type254();
     instance.cltvDelta = reader.readUInt16();
     return instance;
@@ -112,8 +109,7 @@ export class N1Type254 {
 // tslint:disable-next-line: max-classes-per-file
 export class N2Type0 {
   public static type: bigint = BigInt(1);
-  public static deserialize(buf: Buffer): N2Type0 {
-    const reader = new TlvValueReader(buf);
+  public static deserialize(reader: TlvValueReader): N2Type0 {
     const instance = new N2Type0();
     instance.amountMsat = reader.readTUInt64();
     return instance;
@@ -137,8 +133,7 @@ export class N2Type0 {
 // tslint:disable-next-line: max-classes-per-file
 export class N2Type11 {
   public static type: bigint = BigInt(11);
-  public static deserialize(buf: Buffer): N2Type11 {
-    const reader = new TlvValueReader(buf);
+  public static deserialize(reader: TlvValueReader): N2Type11 {
     const instance = new N2Type11();
     instance.cltvExpiry = reader.readTUInt32();
     return instance;
