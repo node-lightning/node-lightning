@@ -1,8 +1,10 @@
 import { BufferCursor } from "@lntools/buffer-cursor";
 import { ITlvDeserializable } from "./tlv-deserializable";
+import { TlvValueReader } from "./tlv-value-reader";
 
 export class TlvStreamReader {
   private _deserializers: Map<bigint, ITlvDeserializable<any>> = new Map();
+  private _lastType: bigint;
 
   public register(type: ITlvDeserializable<any>) {
     this._deserializers.set(type.type, type);
@@ -21,15 +23,20 @@ export class TlvStreamReader {
     if (reader.eof) return;
 
     const type = reader.readBigSize();
-    if (type === BigInt(0)) return;
-
     const len = reader.readBigSize();
     const bytes = reader.readBytes(Number(len));
 
+    if (type <= this._lastType) {
+      throw new Error("Invalid TLV stream");
+    }
+    this._lastType = type;
+
     const deserType = this._deserializers.get(type);
     if (deserType) {
-      if (bytes.length) return deserType.deserialize(bytes);
-      else return new deserType();
+      const valueReader = new TlvValueReader(bytes);
+      const result = deserType.deserialize(valueReader);
+      valueReader.done();
+      return result;
     } else if (type % BigInt(2) === BigInt(0)) {
       throw new Error("Unknown even type");
     }

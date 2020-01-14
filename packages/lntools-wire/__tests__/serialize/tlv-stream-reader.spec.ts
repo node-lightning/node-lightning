@@ -3,10 +3,11 @@ import { expect } from "chai";
 import { TlvStreamReader } from "../../lib/serialize/tlv-stream-reader";
 import { N1Type1, N1Type2, N1Type254, N1Type3, N2Type0, N2Type11 } from "./_tlv-types.spec";
 
-function readRecord(streamReader: TlvStreamReader, tests: any[], title: string) {
+function readRecord(factory: () => TlvStreamReader, tests: any[], title: string) {
   for (const test of tests) {
     it(`${title} ${test.input}`, () => {
-      const input = Buffer.from(test.input, "hex");
+      const streamReader = factory();
+      const input = Buffer.from(test.input.replace(/ /g, ""), "hex");
       const reader = new BufferCursor(input);
       if (test.failure) {
         expect(() => streamReader.readRecord(reader)).to.throw();
@@ -18,15 +19,37 @@ function readRecord(streamReader: TlvStreamReader, tests: any[], title: string) 
   }
 }
 
-const n1 = new TlvStreamReader();
-n1.register(N1Type1);
-n1.register(N1Type2);
-n1.register(N1Type3);
-n1.register(N1Type254);
+function read(factory: () => TlvStreamReader, tests: any[]) {
+  for (const test of tests) {
+    it(`${test.input}`, () => {
+      const streamReader = factory();
+      const input = Buffer.from(test.input.replace(/ /g, ""), "hex");
+      const reader = new BufferCursor(input);
+      if (test.failure) {
+        expect(() => streamReader.read(reader)).to.throw();
+      } else {
+        const actual = streamReader.read(reader);
+        expect(actual.map(a => a.toJson())).to.deep.equal(test.output);
+      }
+    });
+  }
+}
 
-const n2 = new TlvStreamReader();
-n2.register(N2Type0);
-n2.register(N2Type11);
+function createN1() {
+  const n1 = new TlvStreamReader();
+  n1.register(N1Type1);
+  n1.register(N1Type2);
+  n1.register(N1Type3);
+  n1.register(N1Type254);
+  return n1;
+}
+
+function createN2() {
+  const n2 = new TlvStreamReader();
+  n2.register(N2Type0);
+  n2.register(N2Type11);
+  return n2;
+}
 
 describe("TlvStreamReader", () => {
   describe(".readRecord()", () => {
@@ -108,12 +131,13 @@ describe("TlvStreamReader", () => {
           { input: "0000", failure: "unknown even field for n1s namespace" },
         ]);
 
-        readRecord(n1, n1tests, "");
+        readRecord(createN1, n1tests, "");
       });
       describe("n2", () => {
-        readRecord(n2, tests, "");
+        readRecord(createN2, tests, "");
       });
     });
+
     describe("success vectors", () => {
       const tests = [
         { input: "", output: undefined },
@@ -134,6 +158,7 @@ describe("TlvStreamReader", () => {
         { input: "010701000000000000", output: { amount_msat: "281474976710656" } },
         { input: "01080100000000000000", output: { amount_msat: "72057594037927936" } },
       ] as any[];
+
       describe("n1", () => {
         const n1Tests = tests.concat([
           { input: "02080000000000000226", output: { scid: "0x0x550" } },
@@ -148,11 +173,46 @@ describe("TlvStreamReader", () => {
           },
           { input: "fd00fe020226", output: { cltv_delta: 550 } },
         ]);
-        readRecord(n1, n1Tests, "success test");
+        readRecord(createN1, n1Tests, "success test");
       });
 
       describe("n2", () => {
-        readRecord(n2, tests, "success test");
+        readRecord(createN2, tests, "success test");
+      });
+    });
+  });
+
+  describe(".read()", () => {
+    describe("success", () => {
+      const tests = [
+        {
+          input: "01030100000 2080000000000000226",
+          output: [{ amount_msat: "65536" }, { scid: "0x0x550" }],
+        },
+      ];
+      read(createN1, tests);
+    });
+    describe("failures", () => {
+      describe("n1", () => {
+        const tests = [
+          {
+            input: "02 08 0000000000000226 01 01 2a",
+            failure: "valid TLV records but invalid ordering",
+          },
+          { input: "02 08 0000000000000231 02 08 0000000000000451", failure: "duplicate TLV type" },
+          { input: "1f 00 0f 01 2a", failure: "valid (ignored) TLV records but invalid ordering" },
+          { input: "1f 00 1f 01 2a", failure: "duplicate TLV type (ignored)" },
+        ];
+        read(createN1, tests);
+      });
+      describe("n2", () => {
+        const tests = [
+          {
+            input: "ffffffffffffffffff 00 00 00",
+            failure: "valid TLV records but invalid ordering",
+          },
+        ];
+        read(createN2, tests);
       });
     });
   });
