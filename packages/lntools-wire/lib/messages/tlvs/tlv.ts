@@ -3,10 +3,10 @@ import { BufferCursor } from "@lntools/buffer-cursor";
 export abstract class Tlv {
   public type: bigint;
 
-  public serialize(): Buffer {
+  public serialize(encoding?: number): Buffer {
     const tlv = this;
     const type = tlv.type;
-    const value = tlv.serializeValue();
+    const value = tlv.serializeValue(encoding);
     const buf = Buffer.alloc(
       BufferCursor.bigSizeBytes(type) +
       BufferCursor.bigSizeBytes(BigInt(value.length)) +
@@ -19,5 +19,5 @@ export abstract class Tlv {
     return buf;
   }
 
-  public abstract serializeValue();
+  public abstract serializeValue(encoding?: number);
 }

@@ -18,9 +18,7 @@ export class QueryChannelRangeMessage implements IWireMessage {
     const tlvStreamReader = new TlvStreamReader();
     tlvStreamReader.register(QueryChannelRangeOptions);
     const tlvs = tlvStreamReader.read(reader);
-    if (tlvs.length) {
-      instance.options = tlvs.find(p => p.type === QueryChannelRangeOptions.type);
-    }
+    instance.options = tlvs.find(p => p.type === QueryChannelRangeOptions.type);
 
     return instance;
   }

@@ -79,11 +79,16 @@ describe("QueryChannelRangeOptions", () => {
     });
   });
 
-  describe(".serializeValuue()", () => {
+  describe(".serializeValue()", () => {
     it("should serialize", () => {
       const sut = new QueryChannelRangeOptions(BigInt(3));
       expect(sut.serializeValue().toString("hex")).to.equal("03");
     });
+  });
+
+  describe(".serialize()", () => {
+    const sut = new QueryChannelRangeOptions(BigInt(3));
+    expect(sut.serialize().toString("hex")).to.equal("010103");
   });
 
   describe(".deserialize()", () => {

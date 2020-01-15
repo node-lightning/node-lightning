@@ -64,6 +64,41 @@ describe("ReplyChannelRangeMessage", () => {
       expect(message.shortChannelIds[20].voutIdx).to.equal(0);
     });
 
+    it("raw encoded timestamp tlv message", () => {
+      const input = Buffer.from(
+        "010843497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea3309000000000018df30000007d00100a90018e05c000001000018e33a000002000018e33a000003000018e33a000004000018e33a000005000018e3ec000001000018e514000003000018e514000004000018e514000005000018e514000006000018e514000007000018e516000001000018e516000002000018e516000003000018e516000004000018e517000006000018e518000003000018e518000004000018e519000001000018e519000002000018e51d000004000001a9005dfc854d5e1de1bc5e1896e85e1dec6c5e1dfbbe5e1896e85e1df4c55e1896e85e1e01795e1896e85e1df0525e185afa5dfcb9195e1e0aa25dfcb9195e1de1835dfcb9195e1e1d995dfcb8bf5e1de8765e1de9305dfcb8bf5e1de330000000005e1de4065dfcb8dd5e1e35fb000000005e1de8ff5dfcb919000000005e1de8605e13c6f9000000005dfcb9735e1de2435dfcb9cd5e185df05e1de6615dfcb9cd5e1defc05dfcba45",
+        "hex",
+      );
+      const message = ReplyChannelRangeMessage.deserialize(input);
+
+      expect(message.chainHash.toString("hex")).to.equal(
+        "43497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea330900000000",
+      );
+
+      expect(message.firstBlocknum).to.equal(1630000);
+      expect(message.numberOfBlocks).to.equal(2000);
+      // tslint:disable-next-line: no-unused-expression
+      expect(message.complete).to.be.true;
+
+      expect(message.shortChannelIds.length).to.equal(21);
+
+      // first 18e05c0000010000
+      expect(message.shortChannelIds[0].block).to.equal(1630300);
+      expect(message.shortChannelIds[0].txIdx).to.equal(1);
+      expect(message.shortChannelIds[0].voutIdx).to.equal(0);
+
+      // last 18e51d0000040000
+      expect(message.shortChannelIds[20].block).to.equal(1631517);
+      expect(message.shortChannelIds[20].txIdx).to.equal(4);
+      expect(message.shortChannelIds[20].voutIdx).to.equal(0);
+
+      expect(message.timestamps.timestamps.length).to.equal(21);
+      expect(message.timestamps.timestamps[0][0]).to.equal(1576830285);
+      expect(message.timestamps.timestamps[0][1]).to.equal(1579016636);
+      expect(message.timestamps.timestamps[20][0]).to.equal(1579020224);
+      expect(message.timestamps.timestamps[20][1]).to.equal(1576843845);
+    });
+
     it("zlib encoded standard message", () => {
       const payload = Buffer.from(
         "010843497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea3309000000000018e05c000004c201004f01789c2dccc10d80300c4351435b580095f4d0453a0bc323216e0c81d2fcd3931c3b765fd222d933a41513662cee17bdf788bb9bb1e086bb5be9d7f8eb269cbb93be911b7963d7d8f599ff9faf187c",
@@ -100,6 +135,42 @@ describe("ReplyChannelRangeMessage", () => {
       expect(msg.shortChannelIds[20].block).to.equal(1631517);
       expect(msg.shortChannelIds[20].txIdx).to.equal(4);
       expect(msg.shortChannelIds[20].voutIdx).to.equal(0);
+    });
+
+    it("zlib encoded timestamp tlv message", () => {
+      const payload = Buffer.from(
+        "010843497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea3309000000000018e05c000004c201004f01789c2dccc10d80300c4351435b580095f4d0453a0bc323216e0c81d2fcd3931c3b765fd222d933a41513662cee17bdf788bb9bb1e086bb5be9d7f8eb269cbb93be911b7963d7d8f599ff9faf187c018701789c8bfdd3ea1b27fb704f9cc4b41771b26f72e2647fef83b0bf1c05d3728c9510fe87a03889a85fb17f764ac6c9712d02d3b20f9b217cd999b17f76ec8f937d511627fbd200c27e6cc0000471b24fd880fcbb7172a6bf21fc17ff417aa0ec8438e1633f416ca058719cec2367207d364e22f6439cecb344305bf6fd81d83fbb5c0152f04c8a",
+        "hex",
+      );
+
+      const msg = ReplyChannelRangeMessage.deserialize(payload);
+
+      expect(msg.type).to.equal(264);
+      expect(msg.chainHash.toString("hex")).to.equal(
+        "43497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea330900000000",
+      );
+      expect(msg.firstBlocknum).to.equal(1630300);
+      expect(msg.numberOfBlocks).to.equal(1218);
+      // tslint:disable-next-line: no-unused-expression
+      expect(msg.complete).to.be.true;
+
+      expect(msg.shortChannelIds.length).to.equal(21);
+
+      // first 18e05c0000010000
+      expect(msg.shortChannelIds[0].block).to.equal(1630300);
+      expect(msg.shortChannelIds[0].txIdx).to.equal(1);
+      expect(msg.shortChannelIds[0].voutIdx).to.equal(0);
+
+      // last 18e51d0000040000
+      expect(msg.shortChannelIds[20].block).to.equal(1631517);
+      expect(msg.shortChannelIds[20].txIdx).to.equal(4);
+      expect(msg.shortChannelIds[20].voutIdx).to.equal(0);
+
+      expect(msg.timestamps.timestamps.length).to.equal(21);
+      expect(msg.timestamps.timestamps[0][0]).to.equal(1576830285);
+      expect(msg.timestamps.timestamps[0][1]).to.equal(1579016636);
+      expect(msg.timestamps.timestamps[20][0]).to.equal(1579020224);
+      expect(msg.timestamps.timestamps[20][1]).to.equal(1576843845);
     });
   });
 

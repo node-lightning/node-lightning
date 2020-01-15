@@ -17,6 +17,10 @@ export class TlvValueReader {
     return this._position;
   }
 
+  get size(): number {
+    return this._buffer.length;
+  }
+
   /**
    * Done should be called after reading all value records. This
    * method will assert that all data from the buffer has been
@@ -26,7 +30,7 @@ export class TlvValueReader {
     if (!this.eof) throw new Error("Extraneous TLV data");
   }
 
-  public readUInt(): number {
+  public readUInt8(): number {
     const val = this._buffer.readUInt8(this._position);
     this._position += 1;
     return val;
@@ -76,7 +80,7 @@ export class TlvValueReader {
   }
 
   public readBigSize(): bigint {
-    const first = this.readUInt();
+    const first = this.readUInt8();
     if (first < 0xfd) return BigInt(first);
     if (first === 0xfd) return BigInt(this.readUInt16());
     if (first === 0xfe) return BigInt(this.readUInt32());
