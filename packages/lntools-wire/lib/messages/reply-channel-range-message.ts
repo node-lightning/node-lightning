@@ -1,11 +1,9 @@
 import { BufferCursor } from "@lntools/buffer-cursor";
 import { MESSAGE_TYPE } from "../message-type";
-import { IBufferSerializable } from "../serialize/buffer-serializable";
-import { EncodedBufferDeserializer } from "../serialize/encoded-buffer-deserializer";
-import { RawEncodedShortIdsSerializer } from "../serialize/raw-encoded-short-ids-serializer";
+import { Encoder } from "../serialize/encoder";
+import { EncodingType } from "../serialize/encoding-type";
 import { TlvStreamReader } from "../serialize/tlv-stream-reader";
-import { ZlibEncodedShortIdsSerializer } from "../serialize/zlib-encoded-short-ids-serializer";
-import { ShortChannelId } from "../shortchanid";
+import { ShortChannelId, shortChannelIdFromBuffer } from "../shortchanid";
 import { ReplyChannelRangeTimestamps } from "./tlvs/reply-channel-range-timestamps";
 import { IWireMessage } from "./wire-message";
 
@@ -23,12 +21,14 @@ export class ReplyChannelRangeMessage implements IWireMessage {
     instance.numberOfBlocks = reader.readUInt32BE();
     instance.complete = reader.readUInt8() === 1;
 
+    // read encoded_short_ids
     const len = reader.readUInt16BE(); // encoded_short_channel_id bytes
-    const esidsBuffer = reader.readBytes(len);
-    instance.shortChannelIds = new EncodedBufferDeserializer(
-      new RawEncodedShortIdsSerializer(),
-      new ZlibEncodedShortIdsSerializer(),
-    ).deserialize(esidsBuffer);
+    const encodedShortIds = reader.readBytes(len);
+    const rawShortIds = new Encoder().decode(encodedShortIds);
+    const reader2 = new BufferCursor(rawShortIds);
+    while (!reader2.eof) {
+      instance.shortChannelIds.push(shortChannelIdFromBuffer(reader2.readBytes(8)));
+    }
 
     // read tlvs
     const tlvReader = new TlvStreamReader();
@@ -48,9 +48,13 @@ export class ReplyChannelRangeMessage implements IWireMessage {
   public shortChannelIds: ShortChannelId[] = [];
   public timestamps: ReplyChannelRangeTimestamps;
 
-  public serialize(esidSerializer?: IBufferSerializable<ShortChannelId[]>): Buffer {
-    if (!esidSerializer) esidSerializer = new ZlibEncodedShortIdsSerializer();
-    const esids = esidSerializer.serialize(this.shortChannelIds);
+  public serialize(encoding: EncodingType = EncodingType.ZlibDeflate): Buffer {
+    // encode short channel ids
+    const rawSids = Buffer.concat(this.shortChannelIds.map(p => p.toBuffer()));
+    const esids = new Encoder().encode(encoding, rawSids);
+
+    // encode timestamps
+    const timestamps = this.timestamps ? this.timestamps.serialize(encoding) : Buffer.alloc(0);
 
     const buffer = Buffer.alloc(
       2 + // type
@@ -59,7 +63,8 @@ export class ReplyChannelRangeMessage implements IWireMessage {
       4 + // number_of_blocks
       1 + // complete
       2 + // len encoded_short_ids
-      esids.length, // encoded_short_ids
+      esids.length + // encoded_short_ids
+      timestamps.length, // timestamp tlv
     ); // prettier-ignore
 
     const writer = new BufferCursor(buffer);
@@ -73,7 +78,7 @@ export class ReplyChannelRangeMessage implements IWireMessage {
 
     // encode tlvs
     if (this.timestamps) {
-      writer.writeBytes(this.timestamps.serialize());
+      writer.writeBytes(timestamps);
     }
 
     return buffer;

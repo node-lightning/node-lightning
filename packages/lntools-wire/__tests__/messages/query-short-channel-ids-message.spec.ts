@@ -1,7 +1,5 @@
 import { expect } from "chai";
 import { QueryShortChannelIdsMessage } from "../../lib/messages/query-short-channel-ids-message";
-import { RawEncodedShortIdsSerializer } from "../../lib/serialize/raw-encoded-short-ids-serializer";
-import { ZlibEncodedShortIdsSerializer } from "../../lib/serialize/zlib-encoded-short-ids-serializer";
 import { ShortChannelId } from "../../lib/shortchanid";
 
 describe("QueryShortChannelIdsMessage", () => {
@@ -59,7 +57,7 @@ describe("QueryShortChannelIdsMessage", () => {
       );
       msg.shortChannelIds.push(new ShortChannelId(1630300, 1, 0));
       msg.shortChannelIds.push(new ShortChannelId(1631517, 4, 0));
-      expect(msg.serialize(new RawEncodedShortIdsSerializer()).toString("hex")).to.equal(
+      expect(msg.serialize(0).toString("hex")).to.equal(
         "010543497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea33090000000000110018e05c000001000018e51d0000040000",
       );
     });
@@ -91,7 +89,7 @@ describe("QueryShortChannelIdsMessage", () => {
       msg.shortChannelIds.push(new ShortChannelId(1631513, 1, 0));
       msg.shortChannelIds.push(new ShortChannelId(1631513, 2, 0));
       msg.shortChannelIds.push(new ShortChannelId(1631517, 4, 0));
-      expect(msg.serialize(new ZlibEncodedShortIdsSerializer()).toString("hex")).to.equal(
+      expect(msg.serialize(1).toString("hex")).to.equal(
         "010543497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea330900000000004f01789c2dccc10d80300c4351435b580095f4d0453a0bc323216e0c81d2fcd3931c3b765fd222d933a41513662cee17bdf788bb9bb1e086bb5be9d7f8eb269cbb93be911b7963d7d8f599ff9faf187c",
       );
     });

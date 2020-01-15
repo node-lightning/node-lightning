@@ -1,9 +1,7 @@
 import { BufferCursor } from "@lntools/buffer-cursor";
 import { MESSAGE_TYPE } from "../message-type";
-import { IBufferSerializable } from "../serialize/buffer-serializable";
-import { EncodedBufferDeserializer } from "../serialize/encoded-buffer-deserializer";
-import { RawEncodedShortIdsSerializer } from "../serialize/raw-encoded-short-ids-serializer";
-import { ZlibEncodedShortIdsSerializer } from "../serialize/zlib-encoded-short-ids-serializer";
+import { Encoder } from "../serialize/encoder";
+import { EncodingType } from "../serialize/encoding-type";
 import { ShortChannelId, shortChannelIdFromBuffer } from "../shortchanid";
 import { IWireMessage } from "./wire-message";
 
@@ -17,10 +15,12 @@ export class QueryShortChannelIdsMessage implements IWireMessage {
 
     const len = reader.readUInt16BE();
     const esidBuffer = reader.readBytes(len);
-    instance.shortChannelIds = new EncodedBufferDeserializer(
-      new RawEncodedShortIdsSerializer(),
-      new ZlibEncodedShortIdsSerializer(),
-    ).deserialize(esidBuffer);
+
+    const rawShortIdBuffer = new Encoder().decode(esidBuffer);
+    const reader2 = new BufferCursor(rawShortIdBuffer);
+    while (!reader2.eof) {
+      instance.shortChannelIds.push(shortChannelIdFromBuffer(reader2.readBytes(8)));
+    }
 
     return instance;
   }
@@ -40,9 +40,10 @@ export class QueryShortChannelIdsMessage implements IWireMessage {
    */
   public shortChannelIds: ShortChannelId[] = [];
 
-  public serialize(esidSerializer?: IBufferSerializable<ShortChannelId[]>): Buffer {
-    if (!esidSerializer) esidSerializer = new ZlibEncodedShortIdsSerializer();
-    const esids = esidSerializer.serialize(this.shortChannelIds);
+  public serialize(encoding: EncodingType = EncodingType.ZlibDeflate): Buffer {
+    const rawIdsBuffer = Buffer.concat(this.shortChannelIds.map(p => p.toBuffer()));
+    const esids = new Encoder().encode(encoding, rawIdsBuffer);
+
     const buffer = Buffer.alloc(
       2 + // type
       32 + // chain_hash

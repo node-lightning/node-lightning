@@ -111,7 +111,8 @@ export class TlvValueReader {
     return shortChannelIdFromBuffer(this.readBytes(8));
   }
 
-  public readBytes(size: number) {
+  public readBytes(size?: number) {
+    if (size === undefined) size = this._buffer.length - this._position;
     const val = Buffer.from(this._buffer.slice(this._position, this._position + size));
     this._position += size;
     return val;
