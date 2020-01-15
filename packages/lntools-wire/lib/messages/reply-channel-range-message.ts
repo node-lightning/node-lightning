@@ -4,6 +4,7 @@ import { Encoder } from "../serialize/encoder";
 import { EncodingType } from "../serialize/encoding-type";
 import { TlvStreamReader } from "../serialize/tlv-stream-reader";
 import { ShortChannelId, shortChannelIdFromBuffer } from "../shortchanid";
+import { ReplyChannelRangeChecksums } from "./tlvs/reply-channel-range-checksums";
 import { ReplyChannelRangeTimestamps } from "./tlvs/reply-channel-range-timestamps";
 import { IWireMessage } from "./wire-message";
 
@@ -33,9 +34,11 @@ export class ReplyChannelRangeMessage implements IWireMessage {
     // read tlvs
     const tlvReader = new TlvStreamReader();
     tlvReader.register(ReplyChannelRangeTimestamps);
+    tlvReader.register(ReplyChannelRangeChecksums);
     const tlvs = tlvReader.read(reader);
 
     instance.timestamps = tlvs.find(p => p.type === ReplyChannelRangeTimestamps.type);
+    instance.checksums = tlvs.find(p => p.type === ReplyChannelRangeChecksums.type);
 
     return instance;
   }
@@ -47,6 +50,7 @@ export class ReplyChannelRangeMessage implements IWireMessage {
   public complete: boolean;
   public shortChannelIds: ShortChannelId[] = [];
   public timestamps: ReplyChannelRangeTimestamps;
+  public checksums: ReplyChannelRangeChecksums;
 
   public serialize(encoding: EncodingType = EncodingType.ZlibDeflate): Buffer {
     // encode short channel ids
