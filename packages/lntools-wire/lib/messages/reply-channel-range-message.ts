@@ -57,9 +57,8 @@ export class ReplyChannelRangeMessage implements IWireMessage {
     const rawSids = Buffer.concat(this.shortChannelIds.map(p => p.toBuffer()));
     const esids = new Encoder().encode(encoding, rawSids);
 
-    // encode timestamps
-    const timestamps = this.timestamps ? this.timestamps.serialize(encoding) : Buffer.alloc(0);
-
+    const timestampsTlv = this.timestamps ? this.timestamps.serialize(encoding) : Buffer.alloc(0);
+    const checksumsTlv = this.checksums ? this.checksums.serialize() : Buffer.alloc(0);
     const buffer = Buffer.alloc(
       2 + // type
       32 + // chain_hash
@@ -68,7 +67,8 @@ export class ReplyChannelRangeMessage implements IWireMessage {
       1 + // complete
       2 + // len encoded_short_ids
       esids.length + // encoded_short_ids
-      timestamps.length, // timestamp tlv
+      timestampsTlv.length +
+      checksumsTlv.length,
     ); // prettier-ignore
 
     const writer = new BufferCursor(buffer);
@@ -80,9 +80,11 @@ export class ReplyChannelRangeMessage implements IWireMessage {
     writer.writeUInt16BE(esids.length);
     writer.writeBytes(esids);
 
-    // encode tlvs
-    if (this.timestamps) {
-      writer.writeBytes(timestamps);
+    if (timestampsTlv.length) {
+      writer.writeBytes(timestampsTlv);
+    }
+    if (checksumsTlv.length) {
+      writer.writeBytes(checksumsTlv);
     }
 
     return buffer;

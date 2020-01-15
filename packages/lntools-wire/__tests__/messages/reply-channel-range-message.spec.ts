@@ -1,5 +1,6 @@
 import { expect } from "chai";
 import { ReplyChannelRangeMessage } from "../../lib/messages/reply-channel-range-message";
+import { ReplyChannelRangeChecksums } from "../../lib/messages/tlvs/reply-channel-range-checksums";
 import { ReplyChannelRangeTimestamps } from "../../lib/messages/tlvs/reply-channel-range-timestamps";
 import { ShortChannelId } from "../../lib/shortchanid";
 
@@ -236,6 +237,79 @@ describe("ReplyChannelRangeMessage", () => {
       expect(msg.timestamps.timestamps[20][0]).to.equal(1579020224);
       expect(msg.timestamps.timestamps[20][1]).to.equal(1576843845);
     });
+
+    it("message with timestamps and checksums tlvs", () => {
+      const payload = Buffer.from(
+        "010843497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea3309000000000018df30000007d001004f01789c2dccc10d80300c4351435b580095f4d0453a0bc323216e0c81d2fcd3931c3b765fd222d933a41513662cee17bdf788bb9bb1e086bb5be9d7f8eb269cbb93be911b7963d7d8f599ff9faf187c018201789c8bfdd3ea1b276f6c132731ed459cbced9b38f9403b08db3d054247314268c74b711251bf62ffec948c938f5182d0c6cc10ba4c31f6cf8efd71f2362271f2561b206c930d0c400014eb03f2efc6c999fe86f0adea417a206ccb0771c2c77e82d840b162a0798781f4d93889d80f71f2e60fc16c794787d83fbb5c019eec42d803a843cf660e444c75687557813614898dff32107fd253ce731b5c882a803d562649242f4a0d45f146c41447f538f60442d805e346063b19348e63c85fedade928b006c91441b72e0d61bcd092df9e34893fb02f5fd0a8444b31bfebd06e0000000079ce4ae844013b97424cb326000000005114ef729478639700000000f428dd19671d27a900000000643769d1c6b7c9d70d96cb8ff4dfc3a0c05c8f134ba933dc3ee677e34242f2e0",
+        "hex",
+      );
+      // 0108 - type
+      // 43497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea330900000000 - chain_hash
+      // 0018df30 - first_blocknum
+      // 000007d0 - num_blocks
+      // 01 - complete
+      // 004f - encoded short_id length (169)
+      // 01 - encoding type (zlib)
+      // 789c2dccc10d80300c4351435b580095f4d0453a0bc323216e0c81d2fcd3931c3b765fd222d933a41513662cee17bdf788bb9bb1e086bb5be9d7f8eb269cbb93be911b7963d7d8f599ff9faf187c
+
+      // 01 - tlv type 1 (timestamps)
+      // 82 - tlv length 130
+      // 01 - encoding type (zlib)
+      // 789c8bfdd3ea1b276f6c132731ed459cbced9b38f9403b08db3d054247314268c74b711251bf62ffec948c938f5182d0c6cc10ba4c31f6cf8efd71f2362271f2561b206c930d0c400014eb03f2efc6c999fe86f0adea417a206ccb0771c2c77e82d840b162a0798781f4d93889d80f71f2e60fc16c794787d83fbb5c019eec42d8
+      //     decoded:
+      //     5dfc854d 5e1f333c
+      //     5e1896e8 5e1f3dec
+      //     5e1f513e 5e1896e8
+      //     5e1f4764 5e1896e8
+      //     5e1f5a01 5e1896e8
+      //     5e1f41d2 5e185afa
+      //     5dfcb919 5e1f5c22
+      //     5dfcb919 5e1f3303
+      //     5dfcb919 5e1f7621
+      //     5dfcb8bf 5e1f3c14
+      //     5e1f3ab0 5dfcb8bf
+      //     5e1f34b0 00000000
+      //     5e1f3c8e 5dfcb8dd
+      //     5e1e35fb 00000000
+      //     5e1f3a7f 5dfcb919
+      //     00000000 5e1f39e0
+      //     5e13c6f9 00000000
+      //     5dfcb973 5e1f33c3
+      //     5dfcb9cd 5e185df0
+      //     5e1f37e1 5dfcb9cd
+      //     5e1f4140 5dfcba45
+
+      // 03 - tlv type 3 (checksums)
+      // a8 - tlv length 168
+      // 43cf660e 444c7568
+      // 75578136 14898dff
+      // 32107fd2 53ce731b
+      // 5c882a80 3d562649
+      // 242f4a0d 45f146c4
+      // 1447f538 f60442d8
+      // 05e34606 3b19348e
+      // 63c85fed ade928b0
+      // 06c91441 b72e0d61
+      // bcd092df 9e34893f
+      // b02f5fd0 a8444b31
+      // bfebd06e 00000000
+      // 79ce4ae8 44013b97
+      // 424cb326 00000000
+      // 5114ef72 94786397
+      // 00000000 f428dd19
+      // 671d27a9 00000000
+      // 643769d1 c6b7c9d7
+      // 0d96cb8f f4dfc3a0
+      // c05c8f13 4ba933dc
+      // 3ee677e3 4242f2e0
+      const msg = ReplyChannelRangeMessage.deserialize(payload);
+
+      expect(msg.checksums.checksums.length).to.equal(21);
+      expect(msg.checksums.checksums[0][0]).to.equal(0x43cf660e);
+      expect(msg.checksums.checksums[0][1]).to.equal(0x444c7568);
+      expect(msg.checksums.checksums[20][0]).to.equal(0x3ee677e3);
+      expect(msg.checksums.checksums[20][1]).to.equal(0x4242f2e0);
+    });
   });
 
   describe(".serialize", () => {
@@ -406,6 +480,24 @@ describe("ReplyChannelRangeMessage", () => {
       ];
       expect(message.serialize(1).toString("hex")).to.equal(
         "010843497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea3309000000000018e05c000004c201004f01789c2dccc10d80300c4351435b580095f4d0453a0bc323216e0c81d2fcd3931c3b765fd222d933a41513662cee17bdf788bb9bb1e086bb5be9d7f8eb269cbb93be911b7963d7d8f599ff9faf187c018701789c8bfdd3ea1b27fb704f9cc4b41771b26f72e2647fef83b0bf1c05d3728c9510fe87a03889a85fb17f764ac6c9712d02d3b20f9b217cd999b17f76ec8f937d511627fbd200c27e6cc0000471b24fd880fcbb7172a6bf21fc17ff417aa0ec8438e1633f416ca058719cec2367207d364e22f6439cecb344305bf6fd81d83fbb5c0152f04c8a",
+      );
+    });
+
+    it("message with timestamp and checksum tlvs", () => {
+      const message = new ReplyChannelRangeMessage();
+      message.chainHash = Buffer.from(
+        "43497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea330900000000",
+        "hex",
+      );
+      message.firstBlocknum = 1630000;
+      message.numberOfBlocks = 2000;
+      message.complete = true;
+      message.shortChannelIds.push(new ShortChannelId(1630300, 1, 0)); // 18e05c0000010000
+      message.shortChannelIds.push(new ShortChannelId(1631517, 4, 0)); // 18e51d0000040000
+      message.checksums = new ReplyChannelRangeChecksums();
+      message.checksums.checksums.push([1, 2], [3, 4]);
+      expect(message.serialize(0).toString("hex")).to.equal(
+        "010843497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea3309000000000018df30000007d00100110018e05c000001000018e51d0000040000031000000001000000020000000300000004",
       );
     });
   });
