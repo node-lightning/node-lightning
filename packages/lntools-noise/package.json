@@ -1,6 +1,6 @@
 {
   "name": "@lntools/noise",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "BOLT 8 Lightning Network Noise Protocol Socket",
   "main": "dist/index.js",
   "scripts": {
@@ -26,7 +26,7 @@
   },
   "dependencies": {
     "@lntools/crypto": "^0.5.1",
-    "@lntools/logger": "^0.2.0",
+    "@lntools/logger": "^0.3.0",
     "winston": "^3.2.1"
   }
 }

@@ -1,12 +1,97 @@
-import { LogManager, manager } from "@lntools/logger";
+import { Logger, manager } from "@lntools/logger";
 import * as noise from "@lntools/noise";
+import { NoiseSocket } from "@lntools/noise";
 import assert from "assert";
 import { EventEmitter } from "events";
 import * as MessageFactory from "./message-factory";
 import { InitMessage } from "./messages/init-message";
+import { IWireMessage } from "./messages/wire-message";
 import { PeerConnectOptions } from "./peer-connect-options";
 import { PeerState } from "./peer-state";
 import { PingPongState } from "./pingpong-state";
+
+// tslint:disable-next-line: interface-name
+export declare interface Peer {
+  addListener(event: "close", listener: () => void): this;
+  addListener(event: "end", listener: () => void): this;
+  addListener(event: "error", listener: (err: Error) => void): this;
+  addListener(event: "message", listener: (msg: any) => void): this;
+  addListener(event: "open", listener: () => void): this;
+  addListener(event: "rawmessage", listener: (msg: Buffer) => void): this;
+  addListener(event: "ready", listener: () => void): this;
+  addListener(event: "sending", listener: (buf: Buffer) => void): this;
+
+  listenerCount(
+    event: "close" | "end" | "error" | "message" | "open" | "rawmessage" | "ready" | "sending",
+  ): number;
+
+  off(event: "close", listener: () => void): this;
+  off(event: "end", listener: () => void): this;
+  off(event: "error", listener: (err: Error) => void): this;
+  off(event: "message", listener: (msg: IWireMessage) => void): this;
+  off(event: "open", listener: () => void): this;
+  off(event: "rawmessage", listener: (msg: Buffer) => void): this;
+  off(event: "ready", listener: () => void): this;
+  off(event: "sending", listener: (buf: Buffer) => void): this;
+
+  on(event: "close", listener: () => void): this;
+  on(event: "end", listener: () => void): this;
+  on(event: "error", listener: (err: Error) => void): this;
+  on(event: "message", listener: (msg: IWireMessage) => void): this;
+  on(event: "open", listener: () => void): this;
+  on(event: "rawmessage", listener: (msg: Buffer) => void): this;
+  on(event: "ready", listener: () => void): this;
+  on(event: "sending", listener: (buf: Buffer) => void): this;
+
+  once(event: "close", listener: () => void): this;
+  once(event: "end", listener: () => void): this;
+  once(event: "error", listener: (err: Error) => void): this;
+  once(event: "message", listener: (msg: IWireMessage) => void): this;
+  once(event: "open", listener: () => void): this;
+  once(event: "rawmessage", listener: (msg: Buffer) => void): this;
+  once(event: "ready", listener: () => void): this;
+  once(event: "sending", listener: (buf: Buffer) => void): this;
+
+  prependListener(event: "close", listener: () => void): this;
+  prependListener(event: "end", listener: () => void): this;
+  prependListener(event: "error", listener: (err: Error) => void): this;
+  prependListener(event: "message", listener: (msg: IWireMessage) => void): this;
+  prependListener(event: "open", listener: () => void): this;
+  prependListener(event: "rawmessage", listener: (msg: Buffer) => void): this;
+  prependListener(event: "ready", listener: () => void): this;
+  prependListener(event: "sending", listener: (buf: Buffer) => void): this;
+
+  prependOnceListener(event: "close", listener: () => void): this;
+  prependOnceListener(event: "end", listener: () => void): this;
+  prependOnceListener(event: "error", listener: (err: Error) => void): this;
+  prependOnceListener(event: "message", listener: (msg: IWireMessage) => void): this;
+  prependOnceListener(event: "open", listener: () => void): this;
+  prependOnceListener(event: "rawmessage", listener: (msg: Buffer) => void): this;
+  prependOnceListener(event: "ready", listener: () => void): this;
+  prependOnceListener(event: "sending", listener: (buf: Buffer) => void): this;
+
+  removeAllListeners(
+    event?: "close" | "end" | "error" | "message" | "open" | "rawmessage" | "ready" | "sending",
+  ): this;
+
+  removeListener(event: "close", listener: () => void): this;
+  removeListener(event: "end", listener: () => void): this;
+  removeListener(event: "error", listener: (err: Error) => void): this;
+  removeListener(event: "message", listener: (msg: IWireMessage) => void): this;
+  removeListener(event: "open", listener: () => void): this;
+  removeListener(event: "rawmessage", listener: (msg: Buffer) => void): this;
+  removeListener(event: "ready", listener: () => void): this;
+  removeListener(event: "sending", listener: (buf: Buffer) => void): this;
+
+  rawListeners(event: "close"): Array<() => void>;
+  rawListeners(event: "end"): Array<() => void>;
+  rawListeners(event: "error"): Array<(err: Error) => void>;
+  rawListeners(event: "message"): Array<(msg: IWireMessage) => void>;
+  rawListeners(event: "open"): Array<() => void>;
+  rawListeners(event: "rawmessage"): Array<(msg: Buffer) => void>;
+  rawListeners(event: "ready"): Array<() => void>;
+  rawListeners(event: "sending"): Array<(buf: Buffer) => void>;
+}
 
 /**
  * Peer is an EventEmitter that layers the Lightning Network wire
@@ -57,22 +142,27 @@ import { PingPongState } from "./pingpong-state";
  * @emits close emitted when the connection to the peer has completedly
  * closed.
  *
+ * @emits open emmited when the connection to the peer has been established
+ * after the handshake has been performed
+ *
  * @emits end emitted when the connection to the peer is ending.
  */
 export class Peer extends EventEmitter {
   public static states = PeerState;
 
   public state: PeerState = PeerState.pending;
-  public socket: any;
+  public socket: NoiseSocket;
   public messageCounter: number = 0;
-  public initRoutingSync: boolean = false;
   public pingPongState: PingPongState;
-  public logger: LogManager;
-  public remoteInit: any;
+  public logger: Logger;
+  public remoteInit: InitMessage;
+  public localInit: InitMessage;
+  public initMessageFactory: () => InitMessage;
 
-  constructor() {
+  constructor(initMessageFactory: () => InitMessage) {
     super();
     this.pingPongState = new PingPongState(this);
+    this.initMessageFactory = initMessageFactory;
   }
 
   /**
@@ -95,8 +185,9 @@ export class Peer extends EventEmitter {
    */
   public sendMessage(m: any): boolean {
     assert.ok(this.state === PeerState.ready, new Error("Peer is not ready"));
-    m = m.serialize();
-    return this.socket.write(m);
+    const buf = m.serialize() as Buffer;
+    this.emit("sending", buf);
+    return this.socket.write(buf);
   }
 
   /**
@@ -114,6 +205,7 @@ export class Peer extends EventEmitter {
     this.state = PeerState.awaiting_peer_init;
 
     // blast off our init message
+    this.emit("open");
     this._sendInitMessage();
   }
 
@@ -148,19 +240,21 @@ export class Peer extends EventEmitter {
   }
 
   /**
-   * Sends the initialization message to the peer.
+   * Sends the initialization message to the peer. This message
+   * does not matter if it is sent before or after the peer sends
+   * there message.
    */
   private _sendInitMessage() {
     // construct the init message
-    const initMessage = new InitMessage();
+    const msg = this.initMessageFactory();
 
-    // set initialization messages
-    initMessage.localInitialRoutingSync = this.initRoutingSync;
-    initMessage.localDataLossProtect = true;
+    // capture local init message for future use
+    this.localInit = msg;
 
-    // fire off the init message
-    const m = initMessage.serialize();
-    this.socket.write(m);
+    // fire off the init message to the peer
+    const payload = msg.serialize();
+    this.emit("sending", payload);
+    this.socket.write(payload);
   }
 
   /**
@@ -170,8 +264,17 @@ export class Peer extends EventEmitter {
    */
   private _processPeerInitMessage(raw: Buffer) {
     // deserialize message
-    const m = MessageFactory.deserialize(raw);
-    if (this.logger) this.logger.info("peer initialized", m);
+    const m = MessageFactory.deserialize(raw) as InitMessage;
+    if (this.logger) {
+      this.logger.info(
+        "peer initialized",
+        `init_routing_sync: ${m.localInitialRoutingSync}`,
+        `data_loss_protection: ${m.localDataLossProtect}`,
+        `gossip_queries: ${m.localGossipQueries}`,
+        `gossip_queries_ex: ${m.localGossipQueriesEx}`,
+        `upfront_shutdown_script: ${m.localUpfrontShutdownScript}`,
+      );
+    }
 
     // ensure we got an InitMessagee
     assert.ok(m instanceof InitMessage, new Error("Expecting InitMessage"));
@@ -194,6 +297,16 @@ export class Peer extends EventEmitter {
    * processed after the initialization message has been received.
    */
   private _processMessage(raw: Buffer) {
+    // increment counter first so we know exactly how many messages
+    // have been received by the peer regardless of whether they
+    // could be processed
+    this.messageCounter += 1;
+
+    // emit the rawmessage event first so that if there is a
+    // deserialization problem there is a chance that we were
+    // able to capture the raw message for further testing
+    this.emit("rawmessage", raw);
+
     // deserialize the message
     const m = MessageFactory.deserialize(raw);
 
@@ -202,7 +315,6 @@ export class Peer extends EventEmitter {
       this.pingPongState.onMessage(m);
 
       // emit the message
-      this.emit("rawmessage", raw);
       this.emit("message", m);
     }
   }

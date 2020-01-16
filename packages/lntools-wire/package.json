@@ -3,7 +3,7 @@
   "version": "0.6.1",
   "description": "Lightning Network Wire Protocol",
   "scripts": {
-    "test": "../../node_modules/.bin/nyc --reporter=lcov --reporter=text --extension=.ts ../../node_modules/.bin/mocha --require ts-node/register --recursive \"__tests__/**/*.spec.js\"",
+    "test": "../../node_modules/.bin/nyc --reporter=lcov --reporter=text --extension=.ts ../../node_modules/.bin/mocha --require ts-node/register --recursive \"__tests__/**/*.spec.*\"",
     "lint": "../../node_modules/.bin/tslint --project tsconfig.json --config ../../tslint.json",
     "build": "../../node_modules/.bin/tsc --project tsconfig.json",
     "prepublish": "npm run build"
@@ -25,12 +25,13 @@
     "url": "git+https://github.com/altangent/lntools.git"
   },
   "dependencies": {
-    "@lntools/buffer-cursor": "^0.3.0",
+    "@lntools/buffer-cursor": "^0.5.0",
     "@lntools/crypto": "^0.5.1",
-    "@lntools/logger": "^0.2.0",
-    "@lntools/noise": "^0.5.0",
+    "@lntools/logger": "^0.3.0",
+    "@lntools/noise": "^0.6.0",
     "bn.js": "^4.11.8",
     "rfc4648": "^1.2.1",
+    "sse4_crc32": "^6.0.1",
     "winston": "^3.2.1"
   }
 }

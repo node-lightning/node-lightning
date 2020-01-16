@@ -1,7 +1,8 @@
 import { BufferCursor } from "@lntools/buffer-cursor";
 import { MESSAGE_TYPE } from "../message-type";
+import { IWireMessage } from "./wire-message";
 
-export class PongMessage {
+export class PongMessage implements IWireMessage {
   /**
    * Deserializes a pong message from a Buffer into a PongMessage
    * instance.

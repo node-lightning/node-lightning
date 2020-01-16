@@ -7,13 +7,14 @@ import { MESSAGE_TYPE } from "../message-type";
 import { serializeAddress } from "../serialize/address/serialize-address";
 import { shortChannelIdFromBuffer } from "../shortchanid";
 import { ShortChannelId } from "../shortchanid";
+import { IWireMessage } from "./wire-message";
 
 /**
  * This gossip message allows a node to indicate extra data associated with it,
  * in addition to its public key. To avoid trivial denial of service attacks,
  * nodes not associated with an already known channel are ignored.
  */
-export class NodeAnnouncementMessage {
+export class NodeAnnouncementMessage implements IWireMessage {
   public static deserialize(payload) {
     const instance = new NodeAnnouncementMessage();
     const reader = new BufferCursor(payload);

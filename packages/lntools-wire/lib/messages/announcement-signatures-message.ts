@@ -2,6 +2,7 @@ import { BufferCursor } from "@lntools/buffer-cursor";
 import { MESSAGE_TYPE } from "../message-type";
 import { shortChannelIdFromBuffer } from "../shortchanid";
 import { ShortChannelId } from "../shortchanid";
+import { IWireMessage } from "./wire-message";
 
 /**
  * This is a direct messagee between two endpoints of a channel
@@ -15,7 +16,7 @@ import { ShortChannelId } from "../shortchanid";
  * it with the secrets matching an endpoint's node_id and
  * bitcoin_key.
  */
-export class AnnouncementSignaturesMessage {
+export class AnnouncementSignaturesMessage implements IWireMessage {
   /**
    * Deserializes a Buffer into an AnnouncementSignaturesMessage.
    */

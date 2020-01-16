@@ -4,6 +4,7 @@ import BN from "bn.js";
 import { MESSAGE_TYPE } from "../message-type";
 import { shortChannelIdFromBuffer } from "../shortchanid";
 import { ShortChannelId } from "../shortchanid";
+import { IWireMessage } from "./wire-message";
 
 /**
  * Message contains ownership information regarding a channel.
@@ -18,7 +19,7 @@ import { ShortChannelId } from "../shortchanid";
  * The required data to perform all of these proofs is available
  * in this message.
  */
-export class ChannelAnnouncementMessage {
+export class ChannelAnnouncementMessage implements IWireMessage {
   /**
    * Deserializes the Buffer into a ChannelAnnouncementMessage.
    */

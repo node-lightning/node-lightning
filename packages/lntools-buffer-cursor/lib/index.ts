@@ -2,6 +2,17 @@ import assert from "assert";
 import BN from "bn.js";
 
 export class BufferCursor {
+  /**
+   * Returns the number of bytes that will be used to encode
+   * a BigSize number. BigSize is defined in Lightning Network BOLT 07
+   */
+  public static bigSizeBytes(num: bigint): number {
+    if (num < BigInt(0xfd)) return 1;
+    if (num < BigInt(0x10000)) return 3;
+    if (num < BigInt(0x100000000)) return 5;
+    else return 9;
+  }
+
   private _buffer: Buffer;
   private _position: number;
   private _lastReadBytes: number;
@@ -142,7 +153,7 @@ export class BufferCursor {
 
   /**
    * Reads a variable length unsigned integer as specified in the Lightning Network
-   * protocol documentation and always returns a BN to maintain a consistent
+   * protocol documentation and always returns a BigInt to maintain a consistent
    * call signature.
    *
    * @remarks
@@ -154,30 +165,30 @@ export class BufferCursor {
    *   0xfe = 4 byte number (5 bytes total)
    *   0xff = 8 byte number (9 bytes total)
    */
-  public readBigSize(): BN {
+  public readBigSize(): bigint {
     const size = this.readUInt8();
     if (size < 0xfd) {
       this._lastReadBytes = 1;
-      return new BN(size);
+      return BigInt(size);
     }
     switch (size) {
       case 0xfd: {
         this._lastReadBytes = 3;
         const val = this.readUInt16BE();
         if (val < 0xfd) throw new Error("decoded varint is not canonical");
-        return new BN(val);
+        return BigInt(val);
       }
       case 0xfe: {
         this._lastReadBytes = 5;
         const val = this.readUInt32BE();
         if (val < 0x10000) throw new Error("decoded varint is not canonical");
-        return new BN(val);
+        return BigInt(val);
       }
       case 0xff: {
         this._lastReadBytes = 9;
         const val = this.readUInt64BE();
         if (val.lt(new BN(0x100000000))) throw new Error("decoded varint is not canonical");
-        return val;
+        return BigInt("0x" + val.toString("hex"));
       }
     }
   }
@@ -301,6 +312,35 @@ export class BufferCursor {
     }
     buffer.copy(this._buffer, this._position);
     this._position += buffer.length;
+  }
+
+  /**
+   * Reads a variable length unsigned integer as specified in the Lightning Network
+   * protocol documentation and always returns a BigInt to maintain a consistent
+   * call signature.
+   *
+   * @remarks
+   * Specified in:
+   * https://github.com/lightningnetwork/lightning-rfc/blob/master/01-messaging.md#appendix-a-bigsize-test-vectors
+   *
+   * < 0xfd = 1 byte number
+   *   0xfd = 2 byte number (3 bytes total)
+   *   0xfe = 4 byte number (5 bytes total)
+   *   0xff = 8 byte number (9 bytes total)
+   */
+  public writeBigSize(num: bigint) {
+    if (num < BigInt(0xfd)) {
+      this.writeUInt8(Number(num));
+    } else if (num < BigInt(0x10000)) {
+      this.writeUInt8(0xfd);
+      this.writeUInt16BE(Number(num));
+    } else if (num < BigInt(0x100000000)) {
+      this.writeUInt8(0xfe);
+      this.writeUInt32BE(Number(num));
+    } else {
+      this.writeUInt8(0xff);
+      this.writeUInt64BE(new BN(num.toString(16), "hex"));
+    }
   }
 
   /**

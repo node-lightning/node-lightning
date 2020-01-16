@@ -265,13 +265,13 @@ export class GraphManager extends EventEmitter {
   ) {
     switch (msg.type) {
       case 256:
-        await this.processChannelAnnouncement(msg);
+        await this.processChannelAnnouncement(msg as ChannelAnnouncementMessage);
         break;
       case 257:
-        await this.processNodeAnnouncement(msg);
+        await this.processNodeAnnouncement(msg as NodeAnnouncementMessage);
         break;
       case 258:
-        await this.processChannelUpdate(msg);
+        await this.processChannelUpdate(msg as ChannelUpdateMessage);
         break;
     }
   }
