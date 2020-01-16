@@ -1,7 +1,7 @@
 import { expect } from "chai";
+import { QueryShortChannelIdsFlag } from "../../../lib/messages/tlvs/query-short-channel-ids-flag";
 import { QueryShortChannelIdsFlags } from "../../../lib/messages/tlvs/query-short-channel-ids-flags";
 import { TlvValueReader } from "../../../lib/serialize/tlv-value-reader";
-import { QueryShortChannelIdsFlag } from "../../../lib/messages/tlvs/query-short-channel-ids-flag";
 
 describe("QueryShortChannelIdsFlags", () => {
   describe(".serialize()", () => {
