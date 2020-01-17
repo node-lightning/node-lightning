@@ -1,16 +1,15 @@
 import { GossipTimestampFilterMessage } from "../../messages/gossip-timestamp-filter-message";
 import { ReplyShortChannelIdsEndMessage } from "../../messages/reply-short-channel-ids-end-message";
-import { GossipSyncedState } from "./gossip-synced-state";
-import { GossipSyncerStateBase } from "./gossip-syncer-state";
+import { GossipSyncer } from "../gossip-syncer";
+import { ActiveState } from "./active-state";
+import { GossipSyncStateBase } from "./gossip-sync-state-base";
 
-export class AwaitingShortIdsEndState extends GossipSyncerStateBase {
-  constructor(context) {
+export class AwaitingShortIdsEndState extends GossipSyncStateBase {
+  public readonly name = "awaiting_short_ids_end";
+
+  constructor(context: GossipSyncer) {
     super(context);
-    console.log(">>>>>>>>>>>>>>>>>>>>>", this.name);
-  }
-
-  get name() {
-    return "awaiting short ids end";
+    this._logger.debug("gossip sync state", this.name);
   }
 
   public onReplyShortIdsEnd(msg: ReplyShortChannelIdsEndMessage) {
@@ -26,8 +25,8 @@ export class AwaitingShortIdsEndState extends GossipSyncerStateBase {
       filterMsg.timestampRange = 4294967295;
       this._sendMessage(filterMsg);
 
-      // transition into the sync'd state
-      return new GossipSyncedState(this._context);
+      // transition into the sync complete state
+      return new ActiveState(this._context);
     }
   }
 }

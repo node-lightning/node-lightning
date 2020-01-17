@@ -1,23 +1,21 @@
 import { QueryShortChannelIdsMessage } from "../../messages/query-short-channel-ids-message";
 import { ReplyChannelRangeMessage } from "../../messages/reply-channel-range-message";
 import { ShortChannelId } from "../../shortchanid";
+import { GossipSyncer } from "../gossip-syncer";
 import { AwaitingShortIdsEndState } from "./awaiting-short-ids-end-state";
-import { GossipSyncerStateBase } from "./gossip-syncer-state";
-import { IGossipSyncerState } from "./gossip-syncer-state";
+import { GossipSyncStateBase } from "./gossip-sync-state-base";
+import { IGossipSyncState } from "./gossip-sync-state-base";
 
-export class AwaitingChannelRangeReplyState extends GossipSyncerStateBase {
+export class AwaitingChannelRangeReplyState extends GossipSyncStateBase {
+  public readonly name = "awaiting_channel_range_reply";
   private _shortChannelIds: ShortChannelId[] = [];
 
-  constructor(context) {
+  constructor(context: GossipSyncer) {
     super(context);
-    console.log(">>>>>>>>>>>>>>>>>>>>>", this.name);
+    this._logger.debug("gossip sync state", this.name);
   }
 
-  public get name() {
-    return "awaiting channel range reply";
-  }
-
-  public onReplyChannelRange(msg: ReplyChannelRangeMessage): IGossipSyncerState {
+  public onReplyChannelRange(msg: ReplyChannelRangeMessage): IGossipSyncState {
     // enqueue short_channel_ids until we get a complete signal
     this._shortChannelIds.push(...msg.shortChannelIds);
 

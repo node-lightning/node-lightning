@@ -1,8 +1,8 @@
 import { GossipSyncer } from "../gossip-syncer";
 import { GossipSyncStateBase } from "./gossip-sync-state-base";
 
-export class PendingState extends GossipSyncStateBase {
-  public readonly name = "pending";
+export class InactiveState extends GossipSyncStateBase {
+  public readonly name = "inactive";
 
   constructor(context: GossipSyncer) {
     super(context);

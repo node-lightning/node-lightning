@@ -170,7 +170,10 @@ export class Peer extends EventEmitter {
    */
   public connect({ ls, rpk, host, port = 9735 }: PeerConnectOptions) {
     // construct a logger before connecting
-    this.logger = manager.create("PEER", rpk && rpk.toString("hex"));
+    this.logger = manager.create(
+      "PEER",
+      rpk && rpk.toString("hex").substring(0, 4) + ".." + rpk.toString("hex").substring(60, 64),
+    );
 
     this.socket = noise.connect({ ls, rpk, host, port });
     this.socket.on("ready", this._onSocketReady.bind(this));

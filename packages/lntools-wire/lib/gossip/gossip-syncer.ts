@@ -7,28 +7,28 @@ import { ReplyShortChannelIdsEndMessage } from "../messages/reply-short-channel-
 import { IWireMessage } from "../messages/wire-message";
 import { Peer } from "../peer";
 import { AwaitingChannelRangeReplyState } from "./states/awaiting-channel-range-reply-state";
-import { IGossipSyncerState } from "./states/gossip-syncer-state";
+import { IGossipSyncState } from "./states/gossip-sync-state-base";
 import { PendingState } from "./states/pending-state";
 
 export type GossipContextOptions = {
   peer: Peer;
   chainHash: Buffer;
-  fullSync?: boolean;
 };
 
+/**
+ * Gossip synchronizer is a state machine (using the state pattern)
+ * that transitions through states as gossip_messages are received from the
+ * peer.
+ */
 export class GossipSyncer {
   public readonly peer: Peer;
   public readonly chainHash: Buffer;
-  private _state: IGossipSyncerState;
-  private _fullSync: boolean;
+  private _state: IGossipSyncState;
 
   constructor(options: GossipContextOptions) {
     this.peer = options.peer;
     this.chainHash = options.chainHash;
     this._state = new PendingState(this);
-    this._fullSync = options.fullSync || true;
-
-    this.peer.on("ready", this.start.bind(this));
     this.peer.on("message", this._handleMessage.bind(this));
   }
 
@@ -36,10 +36,10 @@ export class GossipSyncer {
     return this._state;
   }
 
-  public start() {
+  public start(full: boolean) {
     const firstBlocknum = 0;
     const numberOfBlocks = 4294967295;
-    if (!this._fullSync) {
+    if (!full) {
       // query the messageStore to see what message we need
     }
     const queryRangeMessage = new QueryChannelRangeMessage();
