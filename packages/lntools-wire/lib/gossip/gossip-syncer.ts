@@ -17,22 +17,22 @@ export type GossipContextOptions = {
 };
 
 export class GossipSyncer {
-  public peer: Peer;
-  private _fullSync: boolean;
-  private _chainHash: Buffer;
+  public readonly peer: Peer;
+  public readonly chainHash: Buffer;
   private _state: IGossipSyncerState;
+  private _fullSync: boolean;
 
   constructor(options: GossipContextOptions) {
     this.peer = options.peer;
-    this._chainHash = options.chainHash;
-    this._fullSync = options.fullSync || true;
+    this.chainHash = options.chainHash;
     this._state = new PendingState(this);
+    this._fullSync = options.fullSync || true;
 
     this.peer.on("ready", this.start.bind(this));
     this.peer.on("message", this._handleMessage.bind(this));
   }
 
-  get state() {
+  public get state() {
     return this._state;
   }
 
@@ -43,7 +43,7 @@ export class GossipSyncer {
       // query the messageStore to see what message we need
     }
     const queryRangeMessage = new QueryChannelRangeMessage();
-    queryRangeMessage.chainHash = this._chainHash;
+    queryRangeMessage.chainHash = this.chainHash;
     queryRangeMessage.firstBlocknum = firstBlocknum;
     queryRangeMessage.numberOfBlocks = numberOfBlocks;
     this.peer.sendMessage(queryRangeMessage);
