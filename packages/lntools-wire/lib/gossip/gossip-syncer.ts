@@ -6,7 +6,7 @@ import { ReplyChannelRangeMessage } from "../messages/reply-channel-range-messag
 import { ReplyShortChannelIdsEndMessage } from "../messages/reply-short-channel-ids-end-message";
 import { IWireMessage } from "../messages/wire-message";
 import { Peer } from "../peer";
-import { AwaitingChannelRangeReplyState } from "./states/awaiting-channel-range-reply-state";
+import { AwaitingChannelRangeCompleteState } from "./states/awaiting-channel-range-complete-state";
 import { IGossipSyncState } from "./states/gossip-sync-state-base";
 import { PendingState } from "./states/pending-state";
 
@@ -47,7 +47,7 @@ export class GossipSyncer {
     queryRangeMessage.firstBlocknum = firstBlocknum;
     queryRangeMessage.numberOfBlocks = numberOfBlocks;
     this.peer.sendMessage(queryRangeMessage);
-    this._state = new AwaitingChannelRangeReplyState(this);
+    this._state = new AwaitingChannelRangeCompleteState(this);
   }
 
   private _handleMessage(msg: IWireMessage) {
