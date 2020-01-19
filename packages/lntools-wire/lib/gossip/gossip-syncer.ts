@@ -8,7 +8,7 @@ import { IWireMessage } from "../messages/wire-message";
 import { Peer } from "../peer";
 import { AwaitingChannelRangeCompleteState } from "./states/awaiting-channel-range-complete-state";
 import { IGossipSyncState } from "./states/gossip-sync-state-base";
-import { PendingState } from "./states/pending-state";
+import { InactiveState } from "./states/inactive-state";
 
 export type GossipContextOptions = {
   peer: Peer;
@@ -28,7 +28,7 @@ export class GossipSyncer {
   constructor(options: GossipContextOptions) {
     this.peer = options.peer;
     this.chainHash = options.chainHash;
-    this._state = new PendingState(this);
+    this._state = new InactiveState(this);
     this.peer.on("message", this._handleMessage.bind(this));
   }
 
