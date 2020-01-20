@@ -1,51 +1,40 @@
+// tslint:disable: no-empty
+
 import { Logger } from "@lntools/logger";
 import { ChannelAnnouncementMessage } from "../../messages/channel-announcement-message";
 import { QueryChannelRangeMessage } from "../../messages/query-channel-range-message";
 import { QueryShortChannelIdsMessage } from "../../messages/query-short-channel-ids-message";
 import { ReplyChannelRangeMessage } from "../../messages/reply-channel-range-message";
 import { ReplyShortChannelIdsEndMessage } from "../../messages/reply-short-channel-ids-end-message";
-import { IWireMessage } from "../../messages/wire-message";
 import { GossipSyncer } from "../gossip-syncer";
 
 export interface IGossipSyncState {
   readonly name: string;
-  onQueryChannelRange(msg: QueryChannelRangeMessage): IGossipSyncState;
-  onReplyChannelRange(msg: ReplyChannelRangeMessage): IGossipSyncState;
-  onQueryShortIds(msg: QueryShortChannelIdsMessage): IGossipSyncState;
-  onReplyShortIdsEnd(msg: ReplyShortChannelIdsEndMessage): IGossipSyncState;
-  onChannelAnnouncement(msg: ChannelAnnouncementMessage): IGossipSyncState;
+  logger: Logger;
+  context: GossipSyncer;
+  onQueryChannelRange(msg: QueryChannelRangeMessage): void;
+  onReplyChannelRange(msg: ReplyChannelRangeMessage): void;
+  onQueryShortIds(msg: QueryShortChannelIdsMessage): void;
+  onReplyShortIdsEnd(msg: ReplyShortChannelIdsEndMessage): void;
+  onChannelAnnouncement(msg: ChannelAnnouncementMessage): void;
 }
 
 // tslint:disable-next-line: max-classes-per-file
 export abstract class GossipSyncStateBase implements IGossipSyncState {
   public readonly name: string;
-  protected _context: GossipSyncer;
-  protected _logger: Logger;
+  public logger: Logger;
+  public context: GossipSyncer;
 
-  constructor(context: GossipSyncer) {
-    this._context = context;
-    this._logger = context.peer.logger;
-  }
-
-  public onQueryChannelRange(msg: QueryChannelRangeMessage): IGossipSyncState {
-    return this;
+  public constructor({ context, logger }) {
+    this.context = context;
+    this.logger = logger;
   }
 
-  public onReplyChannelRange(msg: ReplyChannelRangeMessage): IGossipSyncState {
-    return this;
-  }
-  public onQueryShortIds(msg: QueryShortChannelIdsMessage): IGossipSyncState {
-    return this;
-  }
+  public onQueryChannelRange(msg: QueryChannelRangeMessage) {}
+  public onReplyChannelRange(msg: ReplyChannelRangeMessage) {}
+  public onQueryShortIds(msg: QueryShortChannelIdsMessage) {}
 
-  public onReplyShortIdsEnd(msg: ReplyShortChannelIdsEndMessage): IGossipSyncState {
-    return this;
-  }
-  public onChannelAnnouncement(msg: ChannelAnnouncementMessage): IGossipSyncState {
-    return this;
-  }
+  public onReplyShortIdsEnd(msg: ReplyShortChannelIdsEndMessage) {}
 
-  protected _sendMessage(msg: IWireMessage) {
-    this._context.peer.sendMessage(msg);
-  }
+  public onChannelAnnouncement(msg: ChannelAnnouncementMessage) {}
 }
