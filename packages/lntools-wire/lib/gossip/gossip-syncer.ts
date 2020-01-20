@@ -10,7 +10,7 @@ import { IWireMessage } from "../messages/wire-message";
 import { IPeerMessageReceiver, IPeerMessageSender } from "../peer";
 import { ShortChannelId } from "../shortchanid";
 import { AwaitingChannelRangeCompleteState } from "./states/awaiting-channel-range-complete-state";
-import { IGossipSyncState } from "./states/gossip-sync-state-base";
+import { IGossipSyncState } from "./states/gossip-sync-state";
 import { InactiveState } from "./states/inactive-state";
 
 export type GossipSyncerOptions = {
@@ -38,7 +38,7 @@ export class GossipSyncer {
     this.chainHash = chainHash;
     this.logger = logger;
     this.peer.on("message", this._handleMessage.bind(this));
-    this.state = new InactiveState({ context: this, logger });
+    this.state = new InactiveState();
   }
 
   public get state() {
@@ -46,6 +46,7 @@ export class GossipSyncer {
   }
 
   public set state(state: IGossipSyncState) {
+    this.logger.debug("transitioned to", state.name);
     this._state = state;
   }
 
@@ -64,7 +65,7 @@ export class GossipSyncer {
     queryRangeMessage.firstBlocknum = firstBlocknum;
     queryRangeMessage.numberOfBlocks = numberOfBlocks;
     this.peer.sendMessage(queryRangeMessage);
-    this.state = new AwaitingChannelRangeCompleteState({ context: this, logger: this.logger });
+    this.state = new AwaitingChannelRangeCompleteState();
   }
 
   public enqueueShortChannelIds(scids: ShortChannelId[]) {
@@ -89,19 +90,29 @@ export class GossipSyncer {
   private _handleMessage(msg: IWireMessage) {
     switch (msg.type) {
       case MESSAGE_TYPE.QUERY_CHANNEL_RANGE:
-        this._state.onQueryChannelRange(msg as QueryChannelRangeMessage);
+        if (this._state.onQueryChannelRange) {
+          this._state.onQueryChannelRange(msg as QueryChannelRangeMessage, this);
+        }
         break;
       case MESSAGE_TYPE.REPLY_CHANNEL_RANGE:
-        this._state.onReplyChannelRange(msg as ReplyChannelRangeMessage);
+        if (this._state.onReplyChannelRange) {
+          this._state.onReplyChannelRange(msg as ReplyChannelRangeMessage, this);
+        }
         break;
       case MESSAGE_TYPE.QUERY_SHORT_CHANNEL_IDS:
-        this._state.onQueryShortIds(msg as QueryShortChannelIdsMessage);
+        if (this._state.onQueryShortIds) {
+          this._state.onQueryShortIds(msg as QueryShortChannelIdsMessage, this);
+        }
         break;
       case MESSAGE_TYPE.REPLY_SHORT_CHANNEL_IDS_END:
-        this._state.onReplyShortIdsEnd(msg as ReplyShortChannelIdsEndMessage);
+        if (this._state.onReplyShortIdsEnd) {
+          this._state.onReplyShortIdsEnd(msg as ReplyShortChannelIdsEndMessage, this);
+        }
         break;
       case MESSAGE_TYPE.CHANNEL_ANNOUNCEMENT:
-        this._state.onChannelAnnouncement(msg as ChannelAnnouncementMessage);
+        if (this._state.onChannelAnnouncement) {
+          this._state.onChannelAnnouncement(msg as ChannelAnnouncementMessage, this);
+        }
     }
   }
 }

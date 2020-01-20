@@ -9,9 +9,8 @@ import { InactiveState } from "../../lib/gossip/states/inactive-state";
 import { GossipTimestampFilterMessage } from "../../lib/messages/gossip-timestamp-filter-message";
 import { QueryShortChannelIdsMessage } from "../../lib/messages/query-short-channel-ids-message";
 import { ReplyChannelRangeMessage } from "../../lib/messages/reply-channel-range-message";
-import { IPeerMessageReceiver, IPeerMessageSender } from "../../lib/peer";
-import { ShortChannelId } from "../../lib/shortchanid";
 import { ReplyShortChannelIdsEndMessage } from "../../lib/messages/reply-short-channel-ids-end-message";
+import { ShortChannelId } from "../../lib/shortchanid";
 
 function createFakePeer() {
   return {
@@ -43,7 +42,7 @@ describe("GossipSyncer", () => {
 
   describe("state: awaiting_channel_range_complete", () => {
     beforeEach(() => {
-      sut.state = new AwaitingChannelRangeCompleteState({ context: sut, logger });
+      sut.state = new AwaitingChannelRangeCompleteState();
     });
 
     it("state is 'awaiting_channel_range_complete'", () => {
@@ -135,7 +134,7 @@ describe("GossipSyncer", () => {
 
   describe("state: awaiting_short_ids_end", () => {
     beforeEach(() => {
-      sut.state = new AwaitingShortIdsCompleteState({ context: sut, logger });
+      sut.state = new AwaitingShortIdsCompleteState();
     });
 
     describe("on reply_short_channel_ids_end message", () => {

@@ -1,10 +1,5 @@
-import { GossipSyncStateBase } from "./gossip-sync-state-base";
+import { IGossipSyncState } from "./gossip-sync-state";
 
-export class ActiveState extends GossipSyncStateBase {
+export class ActiveState implements IGossipSyncState {
   public readonly name = "active";
-
-  constructor({ context, logger }) {
-    super({ context, logger });
-    this.logger.debug("gossip sync state", this.name);
-  }
 }
