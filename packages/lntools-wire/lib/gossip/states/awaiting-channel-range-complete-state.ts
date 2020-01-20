@@ -18,6 +18,7 @@ export class AwaitingChannelRangeCompleteState extends GossipSyncStateBase {
     // we must queue it until a complete flag is reached.
     if (!msg.complete && msg.shortChannelIds.length) {
       this.context.enqueueShortChannelIds(msg.shortChannelIds);
+      return;
     }
 
     // The remote peer indicated that they do not have complete
@@ -26,6 +27,7 @@ export class AwaitingChannelRangeCompleteState extends GossipSyncStateBase {
     // to receive message tickle.
     if (!msg.complete && !msg.shortChannelIds.length) {
       this.context.state = new InactiveState({ context: this.context, logger: this.logger });
+      return;
     }
 
     // We made a request but there was no data. Because the complete
@@ -36,6 +38,7 @@ export class AwaitingChannelRangeCompleteState extends GossipSyncStateBase {
     if (msg.complete && !msg.shortChannelIds.length) {
       this.context.sendGossipTimestampFilter();
       this.context.state = new ActiveState({ context: this.context, logger: this.logger });
+      return;
     }
 
     // When we receive complete and have short_channel_ids we are in the
@@ -47,6 +50,7 @@ export class AwaitingChannelRangeCompleteState extends GossipSyncStateBase {
         context: this.context,
         logger: this.logger,
       });
+      return;
     }
   }
 }

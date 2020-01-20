@@ -22,6 +22,7 @@ export class AwaitingShortIdsCompleteState extends GossipSyncStateBase {
     // since this peer is not valid for receiving gossip information from
     if (!msg.complete) {
       this.context.state = new InactiveState({ context: this.context, logger: this.logger });
+      return;
     }
 
     // This occurs when the last batch of information has been received
@@ -29,6 +30,7 @@ export class AwaitingShortIdsCompleteState extends GossipSyncStateBase {
     // requires sending another QueryShortIds message
     if (msg.complete && this.context.hasQueuedShortIds) {
       this.context.sendShortChannelIdsQuery();
+      return;
     }
 
     // This occurs when we receive a complete reply_short_ids_end message
@@ -38,6 +40,7 @@ export class AwaitingShortIdsCompleteState extends GossipSyncStateBase {
     if (msg.complete && !this.context.hasQueuedShortIds) {
       this.context.sendGossipTimestampFilter();
       this.context.state = new ActiveState({ context: this.context, logger: this.logger });
+      return;
     }
   }
 }
