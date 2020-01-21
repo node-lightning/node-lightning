@@ -10,6 +10,14 @@ import { PeerConnectOptions } from "./peer-connect-options";
 import { PeerState } from "./peer-state";
 import { PingPongState } from "./pingpong-state";
 
+export declare interface IPeerMessageSender {
+  sendMessage(msg: IWireMessage): void;
+}
+
+export declare interface IPeerMessageReceiver {
+  on(event: "message", listener: (msg: IWireMessage) => void): this;
+}
+
 // tslint:disable-next-line: interface-name
 export declare interface Peer {
   addListener(event: "close", listener: () => void): this;
@@ -147,7 +155,7 @@ export declare interface Peer {
  *
  * @emits end emitted when the connection to the peer is ending.
  */
-export class Peer extends EventEmitter {
+export class Peer extends EventEmitter implements IPeerMessageSender, IPeerMessageReceiver {
   public static states = PeerState;
 
   public state: PeerState = PeerState.pending;
@@ -170,7 +178,10 @@ export class Peer extends EventEmitter {
    */
   public connect({ ls, rpk, host, port = 9735 }: PeerConnectOptions) {
     // construct a logger before connecting
-    this.logger = manager.create("PEER", rpk && rpk.toString("hex"));
+    this.logger = manager.create(
+      "PEER",
+      rpk && rpk.toString("hex").substring(0, 4) + ".." + rpk.toString("hex").substring(60, 64),
+    );
 
     this.socket = noise.connect({ ls, rpk, host, port });
     this.socket.on("ready", this._onSocketReady.bind(this));
