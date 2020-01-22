@@ -1,5 +1,3 @@
-import BN from "bn.js";
-
 export class ShortChannelId {
   /**
    * Block height
@@ -33,7 +31,7 @@ export class ShortChannelId {
   /**
    * Converts the short_channel_id into a number
    */
-  public toNumber(): BN {
+  public toNumber(): bigint {
     return shortChannelIdToNumber(this);
   }
 
@@ -70,9 +68,9 @@ export function shortChannelIdToBuffer(obj: ShortChannelId): Buffer {
  * Returns the short_channel_id as a BigNumber object that can be
  * easily converted into a base10 string.
  */
-export function shortChannelIdToNumber(obj: ShortChannelId): BN {
+export function shortChannelIdToNumber(obj: ShortChannelId): bigint {
   const buf = shortChannelIdToBuffer(obj);
-  return new BN(buf);
+  return BigInt("0x" + buf.toString("hex"));
 }
 
 /**
