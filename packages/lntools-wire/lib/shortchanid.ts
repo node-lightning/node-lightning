@@ -102,6 +102,16 @@ export function shortChannelIdFromBuffer(buf: Buffer): ShortChannelId {
 }
 
 /**
+ * Creates a ShortChannelId from a number.
+ */
+export function shortChannelIdFromNumber(num: bigint): ShortChannelId {
+  const block = (num & BigInt(0xffffff0000000000)) >> BigInt(40);
+  const txIdx = (num & BigInt(0xffffff0000)) >> BigInt(16);
+  const voutIdx = num & BigInt(0xffff);
+  return new ShortChannelId(Number(block), Number(txIdx), Number(voutIdx));
+}
+
+/**
  * Returns the shortChannelId as a readable string in the format
  * "<block>x<tx_index>x<vout_index>"
  * @returns human readable string
