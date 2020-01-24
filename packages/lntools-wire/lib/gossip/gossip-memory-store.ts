@@ -25,6 +25,14 @@ export class GossipMemoryStore implements IGossipStore {
     return this._nodeAnn.size;
   }
 
+  public async findBlockHeight(): Promise<number> {
+    let max = 0;
+    for (const u of this._channelUpd.values()) {
+      max = Math.max(u.shortChannelId.block);
+    }
+    return max;
+  }
+
   public async saveChannelAnnouncement(msg: ChannelAnnouncementMessage): Promise<void> {
     const chanKey = getChanKey(msg.shortChannelId);
     this._channelAnn.set(chanKey, msg);
