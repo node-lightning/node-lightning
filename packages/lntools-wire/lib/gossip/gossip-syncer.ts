@@ -54,12 +54,7 @@ export class GossipSyncer {
     return this._scids.length > 0;
   }
 
-  public requestSync(full: boolean = false) {
-    const firstBlocknum = 0;
-    const numberOfBlocks = 4294967295;
-    if (!full) {
-      // query the messageStore to see what message we need
-    }
+  public requestSync(firstBlocknum: number = 0, numberOfBlocks = 4294967295) {
     const queryRangeMessage = new QueryChannelRangeMessage();
     queryRangeMessage.chainHash = this.chainHash;
     queryRangeMessage.firstBlocknum = firstBlocknum;

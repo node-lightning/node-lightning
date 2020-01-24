@@ -73,7 +73,7 @@ export class GossipManager extends EventEmitter {
    * events that will allow it to iteract with other sub-systems
    * managed by the GossipManager.
    */
-  public addPeer(peer: Peer) {
+  public async addPeer(peer: Peer) {
     this._peers.add(peer);
     peer.on("message", this._onPeerMessage);
     peer.on("close", () => this.removePeer(peer));
@@ -82,12 +82,16 @@ export class GossipManager extends EventEmitter {
     const gossipSyncer = new GossipSyncer({ peer, chainHash: this.chainHash, logger: this.logger });
     this._gossipSyncers.set(peer, gossipSyncer);
 
-    // request a full synchronization
+    // request historical sync
     if (this._peers.size === 1) {
+      const BLOCKS_PER_DAY = 144;
+      const ourFirstBlock = await this._gossipStore.findBlockHeight();
+      const queryFirstBlock = Math.max(0, ourFirstBlock - BLOCKS_PER_DAY);
+
       if (peer.state === PeerState.ready) {
-        gossipSyncer.requestSync(true);
+        gossipSyncer.requestSync(queryFirstBlock);
       } else {
-        peer.once("ready", () => gossipSyncer.requestSync(true));
+        peer.once("ready", () => gossipSyncer.requestSync(queryFirstBlock));
       }
     }
   }
