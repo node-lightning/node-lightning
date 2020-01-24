@@ -6,6 +6,7 @@ import { ConsoleTransport } from "./transports/console-transport";
 import { FileTransport } from "./transports/file-transport";
 
 export * from "./logger";
+export * from "./loglevel";
 export * from "./log-manager";
 export * from "./transports/console-transport";
 export * from "./transports/file-transport";
