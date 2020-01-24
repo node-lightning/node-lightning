@@ -42,9 +42,9 @@ export class GossipFilter extends EventEmitter {
     gossipStore,
     pendingStore,
   }: {
-    chainClient: IGossipFilterChainClient;
     gossipStore: IGossipStore;
     pendingStore: IGossipStore;
+    chainClient?: IGossipFilterChainClient;
   }) {
     super();
     this._gossipStore = gossipStore;
@@ -146,40 +146,42 @@ export class GossipFilter extends EventEmitter {
       return;
     }
 
-    // load the block hash for the block height
-    const blockHash = await this._chainClient.getBlockHash(msg.shortChannelId.block);
-    if (!blockHash) {
-      this.emit("error", new WireError(WireErrorCode.chanBadBlockHash, [msg]));
-      return;
-    }
+    if (this._chainClient) {
+      // load the block hash for the block height
+      const blockHash = await this._chainClient.getBlockHash(msg.shortChannelId.block);
+      if (!blockHash) {
+        this.emit("error", new WireError(WireErrorCode.chanBadBlockHash, [msg]));
+        return;
+      }
 
-    // load the block details so we can find the tx
-    const block = await this._chainClient.getBlock(blockHash);
-    if (!block) {
-      this.emit("error", new WireError(WireErrorCode.chanBadBlock, [msg, blockHash]));
-      return;
-    }
+      // load the block details so we can find the tx
+      const block = await this._chainClient.getBlock(blockHash);
+      if (!block) {
+        this.emit("error", new WireError(WireErrorCode.chanBadBlock, [msg, blockHash]));
+        return;
+      }
 
-    // load the txid from the block details
-    const txId = block.tx[msg.shortChannelId.txIdx];
-    if (!txId) {
-      this.emit("error", new WireError(WireErrorCode.chanAnnBadTx, [msg]));
-      return;
-    }
+      // load the txid from the block details
+      const txId = block.tx[msg.shortChannelId.txIdx];
+      if (!txId) {
+        this.emit("error", new WireError(WireErrorCode.chanAnnBadTx, [msg]));
+        return;
+      }
 
-    // obtain a UTXO to verify the tx hasn't been spent yet
-    const utxo = await this._chainClient.getUtxo(txId, msg.shortChannelId.voutIdx);
-    if (!utxo) {
-      this.emit("error", new WireError(WireErrorCode.chanUtxoSpent, [msg]));
-      return;
-    }
+      // obtain a UTXO to verify the tx hasn't been spent yet
+      const utxo = await this._chainClient.getUtxo(txId, msg.shortChannelId.voutIdx);
+      if (!utxo) {
+        this.emit("error", new WireError(WireErrorCode.chanUtxoSpent, [msg]));
+        return;
+      }
 
-    // verify the tx script is a p2ms
-    const expectedScript = fundingScript([msg.bitcoinKey1, msg.bitcoinKey2]);
-    const actualScript = Buffer.from(utxo.scriptPubKey.hex, "hex");
-    if (!expectedScript.equals(actualScript)) {
-      this.emit("error", new WireError(WireErrorCode.chanBadScript, [msg, expectedScript, actualScript])); // prettier-ignore
-      return;
+      // verify the tx script is a p2ms
+      const expectedScript = fundingScript([msg.bitcoinKey1, msg.bitcoinKey2]);
+      const actualScript = Buffer.from(utxo.scriptPubKey.hex, "hex");
+      if (!expectedScript.equals(actualScript)) {
+        this.emit("error", new WireError(WireErrorCode.chanBadScript, [msg, expectedScript, actualScript])); // prettier-ignore
+        return;
+      }
     }
 
     // save channel_ann

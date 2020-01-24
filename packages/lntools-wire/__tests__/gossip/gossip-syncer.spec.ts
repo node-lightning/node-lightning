@@ -11,20 +11,7 @@ import { QueryShortChannelIdsMessage } from "../../lib/messages/query-short-chan
 import { ReplyChannelRangeMessage } from "../../lib/messages/reply-channel-range-message";
 import { ReplyShortChannelIdsEndMessage } from "../../lib/messages/reply-short-channel-ids-end-message";
 import { ShortChannelId } from "../../lib/shortchanid";
-
-function createFakePeer() {
-  return {
-    _handlers: [],
-    on(type, handler) {
-      this._handlers.push([type, handler]);
-      return this;
-    },
-    emit(type, msg) {
-      this._handlers.filter(p => p[0] === type).forEach(p => p[1](msg));
-    },
-    sendMessage: sinon.stub(),
-  } as any;
-}
+import { createFakePeer } from "../_test-utils";
 
 function createFakeLogger() {
   return sinon.createStubInstance(Logger);
