@@ -1,0 +1,18 @@
+{
+  "name": "graph",
+  "version": "1.0.0",
+  "description": "Graph example",
+  "scripts": {
+    "postinstall": "cd ../..; npm run build",
+    "start": "../../node_modules/.bin/ts-node index.ts"
+  },
+  "keywords": [],
+  "author": "Brian Mancini <bmancini@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "@lntools/bitcoind": "file:../../packages/lntools-bitcoind",
+    "@lntools/chainmon": "file:../../packages/lntools-chainmon",
+    "@lntools/logger": "file:../../packages/lntools-logger",
+    "@lntools/wire": "file:../../packages/lntools-wire"
+  }
+}
