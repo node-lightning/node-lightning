@@ -1,94 +1,85 @@
+import { BitcoindClient } from "@lntools/bitcoind";
 import { LogLevel, manager } from "@lntools/logger";
 import { InitMessage } from "@lntools/wire";
 import { Peer } from "@lntools/wire";
 import { GossipMemoryStore } from "@lntools/wire";
 import { GossipManager } from "@lntools/wire";
-import crypto from "crypto";
-import fs from "fs";
+
+// tslint:disable-next-line: no-var-requires
+const config = require("./config.json");
 
 manager.level = LogLevel.Debug;
 const logger = manager.create("root");
 
-class App {
-  public static async main() {
-    try {
-      const app = new App();
-      const key = await app.loadOrCreateKey();
-      await app.connectToPeer(key);
-      process.stdin.resume();
-    } catch (err) {
-      logger.error(err);
-      process.exit(1);
-    }
-  }
+async function connectToPeer(peerInfo: { rpk: string; host: string; port: number }) {
+  // local secret is obtained from the config file and
+  // should be a 32-byte hex encoded ECDSA private key
+  const ls = Buffer.from(config.key, "hex");
 
-  public async loadOrCreateKey() {
-    try {
-      return fs.readFileSync("./secret.key");
-    } catch (ex) {
-      const key = crypto.randomBytes(32);
-      logger.info("create local secret", key.toString("hex"));
-      fs.writeFileSync("./secret.key", key);
-      return fs.readFileSync("./secret.key");
-    }
-  }
+  // configure the Bitcoind chain client that is used to
+  // validate validatity of funding transactions associated
+  // with channels inside the ChannelFilter
+  const chainClient = new BitcoindClient(config.bitcoind);
 
-  public async connectToPeer(ls: Buffer) {
-    logger.info("local secret", ls.toString("hex"));
+  // chainHash from the config, this should be for testnet
+  const chainHash = Buffer.from(config.chainhash, "hex");
 
-    // chain_hash
-    const chainHash = Buffer.from(
-      "43497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea330900000000",
-      "hex",
-    );
+  // constructs an init message to signal to the remote
+  // peer the capabilities of the current node. This
+  // method is called by the peer when a valid noise
+  // connection has been established.
+  const initMessageFactory = () => {
+    const initMessage = new InitMessage();
+    initMessage.localInitialRoutingSync = false;
+    initMessage.localDataLossProtect = true;
+    initMessage.localGossipQueries = true;
+    initMessage.localGossipQueriesEx = false;
+    return initMessage;
+  };
 
-    // demo1.lndexplorer.com
-    const rpk = Buffer.from("036b96e4713c5f84dcb8030592e1bd42a2d9a43d91fa2e535b9bfd05f2c5def9b9", "hex"); // prettier-ignore
-    const host = "38.87.54.163";
-    const port = 9745;
+  // constructs the peer and attaches a logger for tthe peer.
+  const peer = new Peer(initMessageFactory);
+  peer.logger = logger;
+  peer.on("open", () => logger.info("connecting"));
+  peer.on("error", err => logger.error("%s", err.stack));
+  peer.on("ready", () => logger.info("peer is ready"));
 
-    // demo2.lndexplorer.com
-    // let rpk = Buffer.from("03b1cf5623ca6757d49de3b6e2b9340065ba991c75b8e9cd8aec51dc54322cbd1d", "hex"); // prettier-ignore
-    // let host = "38.87.54.164";
-    // let port = 9745;
+  // constructs the gossip data storage and the manager for
+  // controlling gossip requests with the peer.
+  const gossipStore = new GossipMemoryStore();
+  const pendingStore = new GossipMemoryStore();
+  const gossipManager = new GossipManager({
+    chainHash,
+    logger,
+    gossipStore,
+    pendingStore,
+    chainClient,
+  });
+  let counter = 0;
+  gossipManager.on("message", msg => logger.info("msg: %d, type: %d", ++counter, msg.type));
+  gossipManager.on("error", err => logger.error("gossip failed", err));
 
-    // endurance (ACINQ - Eclair)
-    // let rpk = Buffer.from("03933884aaf1d6b108397e5efe5c86bcf2d8ca8d2f700eda99db9214fc2712b134", "hex"); // prettier-ignore
-    // let host = "34.250.234.192";
-    // let port = 9735;
+  // adds the peer to the gossip mananger. Once the peer is
+  // connected the gossip manager will take efforts to
+  // synchronize information with the remote peer.
+  gossipManager.addPeer(peer);
 
-    const initMessageFactory = () => {
-      const initMessage = new InitMessage();
-
-      // set initialization messages
-      initMessage.localInitialRoutingSync = false;
-      initMessage.localDataLossProtect = true;
-      initMessage.localGossipQueries = true;
-      initMessage.localGossipQueriesEx = true;
-      return initMessage;
-    };
-
-    const peer = new Peer(initMessageFactory);
-    peer.logger = logger;
-
-    const gossipStore = new GossipMemoryStore();
-    const pendingStore = new GossipMemoryStore();
-    const gossipManager = new GossipManager({
-      chainHash,
-      logger,
-      gossipStore,
-      pendingStore,
-    });
-
-    gossipManager.addPeer(peer);
-
-    let counter = 0;
-    gossipManager.on("message", msg => logger.info("msg: %d, type: %d", ++counter, msg.type));
-
-    peer.connect({ ls, rpk, host, port });
-    peer.on("error", err => logger.error("%s", err.stack));
-    peer.on("ready", () => logger.info("peer is ready"));
-  }
+  // connect to the remote peer using the local secret provided
+  // in our config file
+  console.log(peerInfo);
+  peer.connect({
+    ls,
+    rpk: Buffer.from(peerInfo.rpk, "hex"),
+    host: peerInfo.host,
+    port: peerInfo.port,
+  });
 }
 
-App.main();
+connectToPeer(config.peers[0])
+  .then(() => {
+    process.stdin.resume();
+  })
+  .catch(err => {
+    logger.error(err);
+    process.exit(1);
+  });
