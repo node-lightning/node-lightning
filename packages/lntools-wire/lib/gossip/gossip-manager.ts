@@ -13,9 +13,11 @@ import { GossipSyncer, GossipSyncerOptions } from "./gossip-syncer";
 export declare interface GossipManager {
   on(event: "message", fn: (msg: IWireMessage) => void): this;
   on(event: "error", fn: (err: Error) => void): this;
+  on(event: "flushed", fn: () => void): this;
 
   off(event: "message", fn: (msg: IWireMessage) => void): this;
   off(event: "error", fn: (err: Error) => void): this;
+  off(event: "flushed", fn: () => void): this;
 }
 
 /**
@@ -59,6 +61,7 @@ export class GossipManager extends EventEmitter {
     this._gossipFilter = new GossipFilter({ gossipStore, pendingStore, chainClient });
     this._gossipFilter.on("message", this._onFilterMessage.bind(this));
     this._gossipFilter.on("error", this._onError.bind(this));
+    this._gossipFilter.on("flushed", () => this.emit("flushed"));
   }
 
   /**

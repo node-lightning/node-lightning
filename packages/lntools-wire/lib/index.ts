@@ -35,6 +35,7 @@ export * from "./messages/announcement-signatures-message";
 export * from "./messages/channel-announcement-message";
 export * from "./messages/channel-update-message";
 export * from "./messages/error-message";
+export * from "./messages/extended-channel-announcement-message";
 export * from "./messages/gossip-timestamp-filter-message";
 export * from "./messages/init-message";
 export * from "./messages/node-announcement-message";

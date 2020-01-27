@@ -8,7 +8,7 @@
 export interface IGossipFilterChainClient {
   getBlockHash(height: number): Promise<string>;
   getBlock(hash: string): Promise<HasTxStrings>;
-  getUtxo(txId: string, voutIdx: number): Promise<HasScriptPubKey>;
+  getUtxo(txId: string, voutIdx: number): Promise<HasScriptPubKey & HasValue>;
 }
 
 export type HasTxStrings = {
@@ -17,6 +17,10 @@ export type HasTxStrings = {
 
 export type HasScriptPubKey = {
   scriptPubKey: HasHex;
+};
+
+export type HasValue = {
+  value: number;
 };
 
 export type HasHex = {

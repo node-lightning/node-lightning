@@ -3,7 +3,7 @@
 import { expect } from "chai";
 import sinon from "sinon";
 import { GossipFilter } from "../../lib/gossip/gossip-filter";
-import { HasScriptPubKey } from "../../lib/gossip/gossip-filter-chain-client";
+import { HasScriptPubKey, HasValue } from "../../lib/gossip/gossip-filter-chain-client";
 import { HasTxStrings } from "../../lib/gossip/gossip-filter-chain-client";
 import { IGossipFilterChainClient } from "../../lib/gossip/gossip-filter-chain-client";
 import { ChannelAnnouncementMessage } from "../../lib/messages/channel-announcement-message";
@@ -26,7 +26,7 @@ class FakeChainClient implements IGossipFilterChainClient {
     throw new Error("");
   }
 
-  public getUtxo(txId: string, voutIdx: number): Promise<HasScriptPubKey> {
+  public getUtxo(txId: string, voutIdx: number): Promise<HasScriptPubKey & HasValue> {
     throw new Error("");
   }
 }

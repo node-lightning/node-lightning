@@ -12,13 +12,11 @@ export interface IGossipStore {
   findChannelsForNode(nodeId: Buffer): Promise<ShortChannelId[]>;
   findNodeAnnouncement(nodeId: Buffer): Promise<NodeAnnouncementMessage>;
   findChannelAnnouncement(scid: ShortChannelId): Promise<ChannelAnnouncementMessage>;
+  findChannelAnnouncementByOutpoint(outpoint: OutPoint): Promise<ChannelAnnouncementMessage>;
   findChannelUpdate(scid: ShortChannelId, dir: number): Promise<ChannelUpdateMessage>;
   saveChannelAnnouncement(msg: ChannelAnnouncementMessage): Promise<void>;
   saveChannelUpdate(msg: ChannelUpdateMessage): Promise<void>;
   saveNodeAnnouncement(msg: NodeAnnouncementMessage): Promise<void>;
-  saveOutPointLink(outpoint: OutPoint, scid: ShortChannelId);
-  findOutPoint(scid: ShortChannelId);
-  findShortChannelId(outpoint: OutPoint);
   deleteChannelAnnouncement(scid: ShortChannelId): Promise<void>;
   deleteChannelUpdate(scid: ShortChannelId, dir: number): Promise<void>;
   deleteNodeAnnouncement(nodeId: Buffer): Promise<void>;

@@ -4,6 +4,7 @@ import { OutPoint } from "../domain/outpoint";
 import { MESSAGE_TYPE } from "../message-type";
 import { ChannelAnnouncementMessage } from "../messages/channel-announcement-message";
 import { ChannelUpdateMessage } from "../messages/channel-update-message";
+import { ExtendedChannelAnnouncementMessage } from "../messages/extended-channel-announcement-message";
 import { NodeAnnouncementMessage } from "../messages/node-announcement-message";
 import { IWireMessage } from "../messages/wire-message";
 import { fundingScript } from "../script-utils";
@@ -184,13 +185,19 @@ export class GossipFilter extends EventEmitter {
         return;
       }
 
-      // persist a link between the txid and the scid. This will be used
-      // to find the scid or txid in any future traffic without having
-      // to go back to the chainClient to fetch a txid from the scid
-      this._gossipStore.saveOutPointLink(
-        new OutPoint(txId, msg.shortChannelId.voutIdx),
-        msg.shortChannelId,
-      );
+      // construct outpoint
+      const outpoint = new OutPoint(txId, msg.shortChannelId.voutIdx);
+
+      // calculate capacity in satoshi
+      // Not sure about this code. MAX_SAFE_INTEGER is still safe
+      // for Bitcoin satoshi.
+      const capacity = BigInt(Math.round(utxo.value * 10 ** 8));
+
+      // overright msg with extended channel_announcement
+      const extended = ExtendedChannelAnnouncementMessage.fromMessage(msg);
+      extended.outpoint = outpoint;
+      extended.capacity = capacity;
+      msg = extended;
     }
 
     // save channel_ann
