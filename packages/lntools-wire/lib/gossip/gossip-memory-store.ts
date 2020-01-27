@@ -1,3 +1,4 @@
+import { OutPoint } from "../domain/outpoint";
 import { ChannelAnnouncementMessage } from "../messages/channel-announcement-message";
 import { ChannelUpdateMessage } from "../messages/channel-update-message";
 import { NodeAnnouncementMessage } from "../messages/node-announcement-message";
@@ -12,6 +13,8 @@ export class GossipMemoryStore implements IGossipStore {
   private _channelUpd = new Map<bigint, ChannelUpdateMessage>();
   private _nodeAnn = new Map<string, NodeAnnouncementMessage>();
   private _nodeChannels = new Map<string, Set<bigint>>();
+  private _outpointLookup = new Map<bigint, string>();
+  private _scidLookup = new Map<string, bigint>();
 
   get channelAnnouncementCount() {
     return this._channelAnn.size;
@@ -56,6 +59,21 @@ export class GossipMemoryStore implements IGossipStore {
       results.push(shortChannelIdFromNumber(scidInt));
     }
     return results;
+  }
+
+  public async saveOutPointLink(outpoint: OutPoint, scid: ShortChannelId) {
+    const scidNum = scid.toNumber();
+    const outpointKey = outpoint.toString();
+    this._scidLookup.set(outpointKey, scidNum);
+    this._outpointLookup.set(scidNum, outpointKey);
+  }
+
+  public async findOutPoint(scid: ShortChannelId): Promise<OutPoint> {
+    return OutPoint.fromString(this._outpointLookup.get(scid.toNumber()));
+  }
+
+  public async findShortChannelId(outpoint: OutPoint): Promise<ShortChannelId> {
+    return shortChannelIdFromNumber(this._scidLookup.get(outpoint.toString()));
   }
 
   public async findNodeAnnouncement(nodeId: Buffer): Promise<NodeAnnouncementMessage> {

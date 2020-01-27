@@ -22,6 +22,7 @@ export * from "./domain/address-tor2";
 export * from "./domain/address-tor3";
 export * from "./domain/address-type";
 export * from "./domain/network-type";
+export * from "./domain/outpoint";
 
 export * from "./gossip/gossip-filter";
 export * from "./gossip/gossip-filter-chain-client";

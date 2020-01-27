@@ -1,3 +1,4 @@
+import { OutPoint } from "../domain/outpoint";
 import { ChannelAnnouncementMessage } from "../messages/channel-announcement-message";
 import { ChannelUpdateMessage } from "../messages/channel-update-message";
 import { NodeAnnouncementMessage } from "../messages/node-announcement-message";
@@ -15,6 +16,9 @@ export interface IGossipStore {
   saveChannelAnnouncement(msg: ChannelAnnouncementMessage): Promise<void>;
   saveChannelUpdate(msg: ChannelUpdateMessage): Promise<void>;
   saveNodeAnnouncement(msg: NodeAnnouncementMessage): Promise<void>;
+  saveOutPointLink(outpoint: OutPoint, scid: ShortChannelId);
+  findOutPoint(scid: ShortChannelId);
+  findShortChannelId(outpoint: OutPoint);
   deleteChannelAnnouncement(scid: ShortChannelId): Promise<void>;
   deleteChannelUpdate(scid: ShortChannelId, dir: number): Promise<void>;
   deleteNodeAnnouncement(nodeId: Buffer): Promise<void>;

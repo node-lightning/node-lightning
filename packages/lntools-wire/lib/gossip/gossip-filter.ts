@@ -1,5 +1,6 @@
 import { EventEmitter } from "events";
 import { AsyncProcessingQueue } from "../async-processing-queue";
+import { OutPoint } from "../domain/outpoint";
 import { MESSAGE_TYPE } from "../message-type";
 import { ChannelAnnouncementMessage } from "../messages/channel-announcement-message";
 import { ChannelUpdateMessage } from "../messages/channel-update-message";
@@ -182,6 +183,14 @@ export class GossipFilter extends EventEmitter {
         this.emit("error", new WireError(WireErrorCode.chanBadScript, [msg, expectedScript, actualScript])); // prettier-ignore
         return;
       }
+
+      // persist a link between the txid and the scid. This will be used
+      // to find the scid or txid in any future traffic without having
+      // to go back to the chainClient to fetch a txid from the scid
+      this._gossipStore.saveOutPointLink(
+        new OutPoint(txId, msg.shortChannelId.voutIdx),
+        msg.shortChannelId,
+      );
     }
 
     // save channel_ann
