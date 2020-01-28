@@ -11,16 +11,16 @@ export class ChannelSettings {
   public feeProportionalMillionths: number;
   public disabled: boolean;
 
-  public toJSON() {
-    return {
-      signature: this.signature.toString("hex"),
-      timestamp: this.timestamp,
-      cltvExpiryDelta: this.cltvExpiryDelta,
-      htlcMinimumMsat: this.htlcMinimumMsat.toString(10),
-      htlcMaximumMsat: this.htlcMaximumMsat ? this.htlcMaximumMsat.toString(10) : undefined,
-      feeBaseMsat: this.feeBaseMsat.toString(10),
-      feeProportionalMillionths: this.feeProportionalMillionths.toString(10),
-      disabled: this.disabled,
-    };
-  }
+  // public toJSON() {
+  //   return {
+  //     signature: this.signature.toString("hex"),
+  //     timestamp: this.timestamp,
+  //     cltvExpiryDelta: this.cltvExpiryDelta,
+  //     htlcMinimumMsat: this.htlcMinimumMsat.toString(10),
+  //     htlcMaximumMsat: this.htlcMaximumMsat ? this.htlcMaximumMsat.toString(10) : undefined,
+  //     feeBaseMsat: this.feeBaseMsat.toString(10),
+  //     feeProportionalMillionths: this.feeProportionalMillionths.toString(10),
+  //     disabled: this.disabled,
+  //   };
+  // }
 }

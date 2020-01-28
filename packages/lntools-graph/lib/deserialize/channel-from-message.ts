@@ -1,4 +1,5 @@
 import { ChannelAnnouncementMessage } from "@lntools/wire";
+import { ExtendedChannelAnnouncementMessage } from "@lntools/wire";
 import { Channel } from "../channel";
 
 /**
@@ -10,14 +11,12 @@ export function channelFromMessage(msg: ChannelAnnouncementMessage): Channel {
   const c = new Channel();
   c.shortChannelId = msg.shortChannelId;
   c.chainHash = msg.chainHash;
-  c.features = msg.features;
+  c.features = BigInt("0x" + msg.features.toString(16));
   c.nodeId1 = msg.nodeId1;
   c.nodeId2 = msg.nodeId2;
-  c.bitcoinKey1 = msg.bitcoinKey1;
-  c.bitcoinKey2 = msg.bitcoinKey2;
-  c.nodeSignature1 = msg.nodeSignature1;
-  c.nodeSignature2 = msg.nodeSignature2;
-  c.bitcoinSignature1 = msg.bitcoinSignature1;
-  c.bitcoinSignature2 = msg.bitcoinSignature2;
+  if (msg instanceof ExtendedChannelAnnouncementMessage) {
+    c.channelPoint = msg.outpoint;
+    c.capacity = msg.capacity;
+  }
   return c;
 }

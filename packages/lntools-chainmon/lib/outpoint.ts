@@ -1,4 +1,5 @@
 export type Outpoint = {
-  txId: Buffer;
-  output: number;
+  txId: string;
+  voutIdx: number;
+  toString(): string;
 };

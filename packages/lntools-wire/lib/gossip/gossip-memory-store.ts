@@ -1,5 +1,7 @@
+import { OutPoint } from "../domain/outpoint";
 import { ChannelAnnouncementMessage } from "../messages/channel-announcement-message";
 import { ChannelUpdateMessage } from "../messages/channel-update-message";
+import { ExtendedChannelAnnouncementMessage } from "../messages/extended-channel-announcement-message";
 import { NodeAnnouncementMessage } from "../messages/node-announcement-message";
 import { ShortChannelId, shortChannelIdFromNumber } from "../shortchanid";
 import { IGossipStore } from "./gossip-store";
@@ -9,6 +11,7 @@ import { IGossipStore } from "./gossip-store";
  */
 export class GossipMemoryStore implements IGossipStore {
   private _channelAnn = new Map<bigint, ChannelAnnouncementMessage>();
+  private _channelByOutPoint = new Map<string, bigint>();
   private _channelUpd = new Map<bigint, ChannelUpdateMessage>();
   private _nodeAnn = new Map<string, NodeAnnouncementMessage>();
   private _nodeChannels = new Map<string, Set<bigint>>();
@@ -36,6 +39,9 @@ export class GossipMemoryStore implements IGossipStore {
   public async saveChannelAnnouncement(msg: ChannelAnnouncementMessage): Promise<void> {
     const chanKey = getChanKey(msg.shortChannelId);
     this._channelAnn.set(chanKey, msg);
+    if (msg instanceof ExtendedChannelAnnouncementMessage) {
+      this._channelByOutPoint.set(msg.outpoint.toString(), msg.shortChannelId.toNumber());
+    }
     await this._saveNodeChannel(msg.nodeId1, chanKey);
     await this._saveNodeChannel(msg.nodeId2, chanKey);
   }
@@ -64,6 +70,13 @@ export class GossipMemoryStore implements IGossipStore {
 
   public async findChannelAnnouncement(scid: ShortChannelId): Promise<ChannelAnnouncementMessage> {
     return this._channelAnn.get(getChanKey(scid));
+  }
+
+  public async findChannelAnnouncementByOutpoint(
+    outpoint: OutPoint,
+  ): Promise<ChannelAnnouncementMessage> {
+    const scidNum = this._channelByOutPoint.get(outpoint.toString());
+    return this._channelAnn.get(scidNum);
   }
 
   public async findChannelUpdate(scid: ShortChannelId, dir: number): Promise<ChannelUpdateMessage> {

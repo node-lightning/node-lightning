@@ -22,7 +22,9 @@ export * from "./domain/address-tor2";
 export * from "./domain/address-tor3";
 export * from "./domain/address-type";
 export * from "./domain/network-type";
+export * from "./domain/outpoint";
 
+export * from "./gossip/gossip-emitter";
 export * from "./gossip/gossip-filter";
 export * from "./gossip/gossip-filter-chain-client";
 export * from "./gossip/gossip-manager";
@@ -34,6 +36,7 @@ export * from "./messages/announcement-signatures-message";
 export * from "./messages/channel-announcement-message";
 export * from "./messages/channel-update-message";
 export * from "./messages/error-message";
+export * from "./messages/extended-channel-announcement-message";
 export * from "./messages/gossip-timestamp-filter-message";
 export * from "./messages/init-message";
 export * from "./messages/node-announcement-message";

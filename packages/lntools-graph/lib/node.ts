@@ -11,13 +11,12 @@ export class Node {
   public alias: Buffer;
   public addresses: Address[];
   public rgbColor: Buffer;
-  public nodeSignature: Buffer;
   public features: BN;
 
   /**
    * Channels that the node belongs to
    */
-  public channels: Map<string, Channel> = new Map();
+  public channels: Map<bigint, Channel> = new Map();
 
   /**
    * Gets the alias as human readable string
@@ -37,7 +36,7 @@ export class Node {
    * Adds a channel to the node's channel list
    */
   public linkChannel(channel: Channel) {
-    const key = channel.shortChannelId.toString();
+    const key = channel.shortChannelId.toNumber();
     this.channels.set(key, channel);
   }
 
@@ -45,21 +44,18 @@ export class Node {
    * Remove a channel from the node's channel list
    */
   public unlinkChannel(channel: Channel) {
-    const key = channel.shortChannelId.toString();
+    const key = channel.shortChannelId.toNumber();
     this.channels.delete(key);
   }
 
-  /**
-   * Customize JSON output by converting buffers to HEX
-   */
-  public toJSON() {
-    return {
-      nodeId: this.nodeId.toString("hex"),
-      lastUpdate: this.lastUpdate,
-      alias: this.aliasString,
-      addresses: this.addresses,
-      rgbColor: this.rgbColorString,
-      nodeSignature: this.nodeSignature,
-    };
-  }
+  // public toJSON() {
+  //   return {
+  //     nodeId: this.nodeId.toString("hex"),
+  //     lastUpdate: this.lastUpdate,
+  //     alias: this.aliasString,
+  //     addresses: this.addresses,
+  //     rgbColor: this.rgbColorString,
+  //     nodeSignature: this.nodeSignature,
+  //   };
+  // }
 }

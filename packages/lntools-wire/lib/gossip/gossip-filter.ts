@@ -1,8 +1,10 @@
 import { EventEmitter } from "events";
 import { AsyncProcessingQueue } from "../async-processing-queue";
+import { OutPoint } from "../domain/outpoint";
 import { MESSAGE_TYPE } from "../message-type";
 import { ChannelAnnouncementMessage } from "../messages/channel-announcement-message";
 import { ChannelUpdateMessage } from "../messages/channel-update-message";
+import { ExtendedChannelAnnouncementMessage } from "../messages/extended-channel-announcement-message";
 import { NodeAnnouncementMessage } from "../messages/node-announcement-message";
 import { IWireMessage } from "../messages/wire-message";
 import { fundingScript } from "../script-utils";
@@ -182,6 +184,20 @@ export class GossipFilter extends EventEmitter {
         this.emit("error", new WireError(WireErrorCode.chanBadScript, [msg, expectedScript, actualScript])); // prettier-ignore
         return;
       }
+
+      // construct outpoint
+      const outpoint = new OutPoint(txId, msg.shortChannelId.voutIdx);
+
+      // calculate capacity in satoshi
+      // Not sure about this code. MAX_SAFE_INTEGER is still safe
+      // for Bitcoin satoshi.
+      const capacity = BigInt(Math.round(utxo.value * 10 ** 8));
+
+      // overright msg with extended channel_announcement
+      const extended = ExtendedChannelAnnouncementMessage.fromMessage(msg);
+      extended.outpoint = outpoint;
+      extended.capacity = capacity;
+      msg = extended;
     }
 
     // save channel_ann
