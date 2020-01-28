@@ -24,6 +24,7 @@ export * from "./domain/address-type";
 export * from "./domain/network-type";
 export * from "./domain/outpoint";
 
+export * from "./gossip/gossip-emitter";
 export * from "./gossip/gossip-filter";
 export * from "./gossip/gossip-filter-chain-client";
 export * from "./gossip/gossip-manager";
