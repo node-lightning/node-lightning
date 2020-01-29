@@ -26,7 +26,8 @@ export declare interface GossipFilter {
  * follow messaging rules defined in Bolt #7 and include things like
  * signature checks, on-chain validation, and message sequencing requirements.
  * Successful message validation results in messages being written to an
- * instance of IGossipStore.
+ * instance of IGossipStore and emitted since GossipFilter is an
+ * IGossipEmitter.
  *
  * The GossipFilter will also store pending messages, such as channel_update
  * message arriving before the channel_announcement.

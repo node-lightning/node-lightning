@@ -4,6 +4,7 @@ import * as MF from "./message-factory";
 export const MessageFactory = MF;
 export * from "./async-processing-queue";
 export * from "./constants";
+export * from "./bitmask";
 export * from "./linked-list";
 export * from "./linked-list-node";
 export * from "./message-type";
