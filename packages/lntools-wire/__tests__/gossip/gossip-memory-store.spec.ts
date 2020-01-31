@@ -35,6 +35,14 @@ describe("GossipMemoryStore", () => {
     });
   });
 
+  describe(".findChannelAnnouncements", () => {
+    it("should find all channel_announcement messages", async () => {
+      const result = await sut.findChannelAnnouncemnts();
+      expect(result.length).to.equal(1);
+      expect(result[0]).to.be.an.instanceOf(ChannelAnnouncementMessage);
+    });
+  });
+
   describe(".saveChannelUpdate()", () => {
     it("should store channel_update for node_1", async () => {
       const msg = new ChannelUpdateMessage();

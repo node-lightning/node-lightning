@@ -68,6 +68,10 @@ export class GossipMemoryStore implements IGossipStore {
     return this._nodeAnn.get(getNodeKey(nodeId));
   }
 
+  public async findChannelAnnouncemnts(): Promise<ChannelAnnouncementMessage[]> {
+    return Array.from(this._channelAnn.values());
+  }
+
   public async findChannelAnnouncement(scid: ShortChannelId): Promise<ChannelAnnouncementMessage> {
     return this._channelAnn.get(getChanKey(scid));
   }
