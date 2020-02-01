@@ -22,6 +22,22 @@ export class RocksdbGossipStore extends RocksdbBase implements IGossipStore {
     return this._db.get("height");
   }
 
+  public async findChannelAnnouncemnts(): Promise<ChannelAnnouncementMessage[]> {
+    return new Promise((resolve, reject) => {
+      const stream = this._db.createReadStream();
+      const results: ChannelAnnouncementMessage[] = [];
+      stream.on("data", data => {
+        if (data.key[0] === Prefix.ChannelAnnouncement) {
+          results.push(ChannelAnnouncementMessage.deserialize(data.value));
+        }
+      });
+      stream.on("end", () => {
+        resolve(results);
+      });
+      stream.on("error", err => reject(err));
+    });
+  }
+
   public async findChannelsForNode(nodeId: Buffer): Promise<ShortChannelId[]> {
     const key = Buffer.concat([Buffer.from([Prefix.ChannelsForNode]), nodeId]);
     const raw = await this._db.get(key);
