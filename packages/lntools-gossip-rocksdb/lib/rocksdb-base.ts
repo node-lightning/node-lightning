@@ -17,4 +17,13 @@ export abstract class RocksdbBase {
   public async close(): Promise<void> {
     return this._db.close();
   }
+
+  protected async _safeGet<T>(key: Buffer): Promise<T> {
+    try {
+      return await this._db.get(key);
+    } catch (err) {
+      if (err.notFound) return;
+      else throw err;
+    }
+  }
 }

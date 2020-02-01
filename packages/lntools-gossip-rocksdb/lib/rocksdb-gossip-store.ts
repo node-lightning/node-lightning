@@ -18,8 +18,9 @@ enum Prefix {
 }
 
 export class RocksdbGossipStore extends RocksdbBase implements IGossipStore {
-  public findBlockHeight(): Promise<number> {
-    return this._db.get("height");
+  public async findBlockHeight(): Promise<number> {
+    const result = await this._safeGet<number>(Buffer.from("height"));
+    return result || 0;
   }
 
   public async findChannelAnnouncemnts(): Promise<ChannelAnnouncementMessage[]> {
@@ -40,7 +41,9 @@ export class RocksdbGossipStore extends RocksdbBase implements IGossipStore {
 
   public async findChannelsForNode(nodeId: Buffer): Promise<ShortChannelId[]> {
     const key = Buffer.concat([Buffer.from([Prefix.ChannelsForNode]), nodeId]);
-    const raw = await this._db.get(key);
+    const raw = await this._safeGet<Buffer>(key);
+    if (!raw) return [];
+
     const reader = new BufferCursor(raw);
     const results = [];
     while (!reader.eof) {
@@ -51,14 +54,14 @@ export class RocksdbGossipStore extends RocksdbBase implements IGossipStore {
 
   public async findNodeAnnouncement(nodeId: Buffer): Promise<NodeAnnouncementMessage> {
     const key = Buffer.concat([Buffer.from([Prefix.NodeAnnouncement]), nodeId]);
-    const raw = await this._db.get(key);
+    const raw = await this._safeGet<Buffer>(key);
     if (!raw) return;
     return NodeAnnouncementMessage.deserialize(raw);
   }
 
   public async findChannelAnnouncement(scid: ShortChannelId): Promise<ChannelAnnouncementMessage> {
     const key = Buffer.concat([Buffer.from([Prefix.ChannelAnnouncement]), scid.toBuffer()]);
-    const raw = await this._db.get(key);
+    const raw = await this._safeGet<Buffer>(key);
     if (!raw) return;
     return ChannelAnnouncementMessage.deserialize(raw);
   }
@@ -67,9 +70,11 @@ export class RocksdbGossipStore extends RocksdbBase implements IGossipStore {
     outpoint: OutPoint,
   ): Promise<ChannelAnnouncementMessage> {
     const key = Buffer.concat([Buffer.from([Prefix.Outpoint]), Buffer.from(outpoint.toString())]);
-    const scidBuf = await this._db.get(key);
+    const scidBuf = await this._safeGet<Buffer>(key);
+    if (!scidBuf) return;
     const key2 = Buffer.concat([Buffer.from([Prefix.ChannelAnnouncement]), scidBuf]);
-    const raw = await this._db.get(key2);
+    const raw = await this._safeGet<Buffer>(key2);
+    if (!raw) return;
     return ChannelAnnouncementMessage.deserialize(raw);
   }
 
@@ -79,7 +84,7 @@ export class RocksdbGossipStore extends RocksdbBase implements IGossipStore {
       scid.toBuffer(),
       Buffer.from([dir]),
     ]);
-    const raw = await this._db.get(key);
+    const raw = await this._safeGet<Buffer>(key);
     if (!raw) return;
     return ChannelUpdateMessage.deserialize(raw);
   }
@@ -95,11 +100,15 @@ export class RocksdbGossipStore extends RocksdbBase implements IGossipStore {
     // store outpoint reference
     if (msg instanceof ExtendedChannelAnnouncementMessage) {
       const key2 = Buffer.concat([
-        Buffer.from[Prefix.Outpoint],
+        Buffer.from([Prefix.Outpoint]),
         Buffer.from(msg.outpoint.toString()),
       ]);
       await this._db.put(key2, msg.shortChannelId.toBuffer());
     }
+
+    // store channel-node refererences
+    await this._saveNodeChannel(msg.shortChannelId, msg.nodeId1);
+    await this._saveNodeChannel(msg.shortChannelId, msg.nodeId2);
   }
 
   public async saveChannelUpdate(msg: ChannelUpdateMessage): Promise<void> {
@@ -115,11 +124,14 @@ export class RocksdbGossipStore extends RocksdbBase implements IGossipStore {
   public async saveNodeAnnouncement(msg: NodeAnnouncementMessage): Promise<void> {
     const key = Buffer.concat([Buffer.from([Prefix.NodeAnnouncement]), msg.nodeId]);
     const value = msg.serialize();
+    // todo delete node-channels
     await this._db.put(key, value);
   }
 
   public async deleteChannelAnnouncement(scid: ShortChannelId): Promise<void> {
     const key = Buffer.concat([Buffer.from([Prefix.ChannelAnnouncement]), scid.toBuffer()]);
+    // todo delete from node1-channels
+    // todo delete from node2-channels
     await this._db.del(key);
   }
 
@@ -135,5 +147,13 @@ export class RocksdbGossipStore extends RocksdbBase implements IGossipStore {
   public async deleteNodeAnnouncement(nodeId: Buffer): Promise<void> {
     const key = Buffer.concat([Buffer.from([Prefix.NodeAnnouncement]), nodeId]);
     await this._db.del(key);
+  }
+
+  private async _saveNodeChannel(scid: ShortChannelId, nodeId: Buffer) {
+    const key = Buffer.concat([Buffer.from([Prefix.ChannelsForNode]), nodeId]);
+    const scids = await this.findChannelsForNode(nodeId);
+    scids.push(scid);
+    const value = Buffer.concat(scids.map(p => p.toBuffer()));
+    await this._db.put(key, value);
   }
 }
