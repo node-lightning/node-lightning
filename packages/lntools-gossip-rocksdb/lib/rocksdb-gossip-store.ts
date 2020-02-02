@@ -18,11 +18,6 @@ enum Prefix {
 }
 
 export class RocksdbGossipStore extends RocksdbBase implements IGossipStore {
-  public async findBlockHeight(): Promise<number> {
-    const result = await this._safeGet<number>(Buffer.from("height"));
-    return result || 0;
-  }
-
   public async findChannelAnnouncemnts(): Promise<ChannelAnnouncementMessage[]> {
     return new Promise((resolve, reject) => {
       const stream = this._db.createReadStream();
@@ -124,14 +119,24 @@ export class RocksdbGossipStore extends RocksdbBase implements IGossipStore {
   public async saveNodeAnnouncement(msg: NodeAnnouncementMessage): Promise<void> {
     const key = Buffer.concat([Buffer.from([Prefix.NodeAnnouncement]), msg.nodeId]);
     const value = msg.serialize();
-    // todo delete node-channels
     await this._db.put(key, value);
   }
 
   public async deleteChannelAnnouncement(scid: ShortChannelId): Promise<void> {
     const key = Buffer.concat([Buffer.from([Prefix.ChannelAnnouncement]), scid.toBuffer()]);
-    // todo delete from node1-channels
-    // todo delete from node2-channels
+
+    const msg = await this.findChannelAnnouncement(scid);
+    if (!msg) return;
+
+    // delete channel updates
+    await this.deleteChannelUpdate(scid, 0);
+    await this.deleteChannelUpdate(scid, 1);
+
+    // delete node/channel links
+    await this._deleteNodeChannel(scid, msg.nodeId1);
+    await this._deleteNodeChannel(scid, msg.nodeId2);
+
+    // finally delete reference
     await this._db.del(key);
   }
 
@@ -146,13 +151,37 @@ export class RocksdbGossipStore extends RocksdbBase implements IGossipStore {
 
   public async deleteNodeAnnouncement(nodeId: Buffer): Promise<void> {
     const key = Buffer.concat([Buffer.from([Prefix.NodeAnnouncement]), nodeId]);
+    await this._deleteNodeChannels(nodeId);
+    await this._db.del(key);
+  }
+
+  private async _deleteNodeChannel(scid: ShortChannelId, nodeId: Buffer) {
+    const scids = await this.findChannelsForNode(nodeId);
+    if (!scids.length) return;
+    const scidKey = scid.toString();
+    const index = scids.findIndex(p => p.toString() === scidKey);
+    if (index === -1) return;
+    scids.splice(index, 1);
+    await this._putNodeChannels(nodeId, scids);
+  }
+
+  private async _deleteNodeChannels(nodeId: Buffer) {
+    const key = Buffer.concat([Buffer.from([Prefix.ChannelsForNode]), nodeId]);
     await this._db.del(key);
   }
 
   private async _saveNodeChannel(scid: ShortChannelId, nodeId: Buffer) {
-    const key = Buffer.concat([Buffer.from([Prefix.ChannelsForNode]), nodeId]);
     const scids = await this.findChannelsForNode(nodeId);
+    const scidKey = scid.toString();
+    for (const s of scids) {
+      if (s.toString() === scidKey) return;
+    }
     scids.push(scid);
+    await this._putNodeChannels(nodeId, scids);
+  }
+
+  private async _putNodeChannels(nodeId: Buffer, scids: ShortChannelId[]) {
+    const key = Buffer.concat([Buffer.from([Prefix.ChannelsForNode]), nodeId]);
     const value = Buffer.concat(scids.map(p => p.toBuffer()));
     await this._db.put(key, value);
   }
