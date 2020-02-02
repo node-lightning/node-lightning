@@ -28,14 +28,6 @@ export class GossipMemoryStore implements IGossipStore {
     return this._nodeAnn.size;
   }
 
-  public async findBlockHeight(): Promise<number> {
-    let max = 0;
-    for (const u of this._channelUpd.values()) {
-      max = Math.max(u.shortChannelId.block);
-    }
-    return max;
-  }
-
   public async saveChannelAnnouncement(msg: ChannelAnnouncementMessage): Promise<void> {
     const chanKey = getChanKey(msg.shortChannelId);
     this._channelAnn.set(chanKey, msg);
@@ -102,6 +94,7 @@ export class GossipMemoryStore implements IGossipStore {
 
   public async deleteNodeAnnouncement(nodeId: Buffer) {
     this._nodeAnn.delete(getNodeKey(nodeId));
+    this._nodeChannels.get(getNodeKey(nodeId));
   }
 
   private async _saveNodeChannel(nodeId: Buffer, chanKey: bigint) {

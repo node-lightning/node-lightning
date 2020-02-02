@@ -88,7 +88,7 @@ export class GossipManager extends EventEmitter {
     // request historical sync
     if (this._peers.size === 1) {
       const BLOCKS_PER_DAY = 144;
-      const ourFirstBlock = await this._gossipStore.findBlockHeight();
+      const ourFirstBlock = 0;
       const queryFirstBlock = Math.max(0, ourFirstBlock - BLOCKS_PER_DAY);
 
       if (peer.state === PeerState.ready) {
