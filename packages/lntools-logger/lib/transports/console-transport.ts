@@ -1,4 +1,4 @@
-import { ITransport } from "../itransport";
+import { ITransport } from "../transport";
 
 export class ConsoleTransport implements ITransport {
   public console: Console;

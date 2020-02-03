@@ -1,6 +1,7 @@
 import fs from "fs";
+import { ITransport } from "../transport";
 
-export class FileTransport {
+export class FileTransport implements ITransport {
   public filePath: string;
   public fileDescriptor: number;
 

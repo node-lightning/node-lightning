@@ -1,14 +1,14 @@
-const { expect } = require("chai");
-const sinon = require("sinon");
-const { ConsoleTransport } = require("../../lib/transports/console-transport");
+import { expect } from "chai";
+import sinon from "sinon";
+import { ConsoleTransport } from "../../lib/transports/console-transport";
 
 describe("ConsoleTransport", () => {
   describe(".write", () => {
     it("should write to the console", () => {
-      let stub = {
+      const stub = {
         log: sinon.stub(),
       };
-      let sut = new ConsoleTransport(stub);
+      const sut = new ConsoleTransport(stub as Console);
       sut.write("hello");
       expect(stub.log.args[0]).to.deep.equal(["hello"]);
     });

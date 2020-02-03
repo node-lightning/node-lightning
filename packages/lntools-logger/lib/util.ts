@@ -1,4 +1,4 @@
-import { LogLevel } from "./loglevel";
+import { LogLevel } from "./log-level";
 
 /**
  * Helper function to determine if a log message is at the appropraite

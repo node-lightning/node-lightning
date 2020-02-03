@@ -1,6 +1,7 @@
-const { expect } = require("chai");
-const { shouldLog } = require("../lib/util");
-const { LogLevel } = require("../lib/loglevel");
+// tslint:disable: no-unused-expression
+import { expect } from "chai";
+import { LogLevel } from "../lib/log-level";
+import { shouldLog } from "../lib/util";
 
 describe(".shouldLog", () => {
   it("should return false when invalid log level", () => {
