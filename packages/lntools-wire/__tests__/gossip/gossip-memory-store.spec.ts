@@ -78,13 +78,6 @@ describe("GossipMemoryStore", () => {
     });
   });
 
-  describe(".findBlockHeight", () => {
-    it("should return the highest block", async () => {
-      const actual = await sut.findBlockHeight();
-      expect(actual).to.equal(1);
-    });
-  });
-
   describe(".deleteNodeAnnouncement()", () => {
     it("should delete the node_announcement", async () => {
       await sut.deleteNodeAnnouncement(node1);
@@ -123,5 +116,15 @@ describe("GossipMemoryStore", () => {
       const results = await sut.findChannelsForNode(node2);
       expect(results.length).to.equal(0);
     });
+
+    it("should unlink channel_update for node_1", async () => {
+      const results = await sut.findChannelUpdate(scid, 0);
+    });
+
+    it("should unlink channel_update for node_2", async () => {
+      const results = await sut.findChannelUpdate(scid, 1);
+    });
+
+    it("should delete outpoint link");
   });
 });

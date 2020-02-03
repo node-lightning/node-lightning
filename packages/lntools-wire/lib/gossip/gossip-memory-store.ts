@@ -83,7 +83,20 @@ export class GossipMemoryStore implements IGossipStore {
     const msg = await this.findChannelAnnouncement(scid);
     if (!msg) return;
     const chanKey = getChanKey(scid);
+
+    // delete channel
     this._channelAnn.delete(getChanKey(scid));
+
+    // delete outpoint link
+    if (msg instanceof ExtendedChannelAnnouncementMessage) {
+      this._channelByOutPoint.delete(msg.outpoint.toString());
+    }
+
+    // delete channel_updates
+    this._channelUpd.delete(getChanUpdKey(scid.toNumber(), 0));
+    this._channelUpd.delete(getChanUpdKey(scid.toNumber(), 0));
+
+    // delete node links
     this._nodeChannels.get(getNodeKey(msg.nodeId1)).delete(chanKey);
     this._nodeChannels.get(getNodeKey(msg.nodeId2)).delete(chanKey);
   }

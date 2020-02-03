@@ -112,10 +112,8 @@ export class GossipManager extends EventEmitter {
    * Removes the channel from storage by the gossip manager. This
    * will likely be called by a chain-monitoring service.
    */
-  public removeChannel(scid: ShortChannelId) {
-    this._gossipStore.deleteChannelAnnouncement(scid);
-    this._gossipStore.deleteChannelUpdate(scid, 0);
-    this._gossipStore.deleteChannelUpdate(scid, 1);
+  public async removeChannel(scid: ShortChannelId) {
+    await this._gossipStore.deleteChannelAnnouncement(scid);
   }
 
   private _onPeerMessage(msg: IWireMessage) {
