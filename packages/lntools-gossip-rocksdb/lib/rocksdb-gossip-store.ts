@@ -24,7 +24,7 @@ export class RocksdbGossipStore extends RocksdbBase implements IGossipStore {
       const results: ChannelAnnouncementMessage[] = [];
       stream.on("data", data => {
         if (data.key[0] === Prefix.ChannelAnnouncement) {
-          results.push(ChannelAnnouncementMessage.deserialize(data.value));
+          results.push(ExtendedChannelAnnouncementMessage.deserialize(data.value));
         }
       });
       stream.on("end", () => {
@@ -58,7 +58,7 @@ export class RocksdbGossipStore extends RocksdbBase implements IGossipStore {
     const key = Buffer.concat([Buffer.from([Prefix.ChannelAnnouncement]), scid.toBuffer()]);
     const raw = await this._safeGet<Buffer>(key);
     if (!raw) return;
-    return ChannelAnnouncementMessage.deserialize(raw);
+    return ExtendedChannelAnnouncementMessage.deserialize(raw);
   }
 
   public async findChannelAnnouncementByOutpoint(
@@ -70,7 +70,7 @@ export class RocksdbGossipStore extends RocksdbBase implements IGossipStore {
     const key2 = Buffer.concat([Buffer.from([Prefix.ChannelAnnouncement]), scidBuf]);
     const raw = await this._safeGet<Buffer>(key2);
     if (!raw) return;
-    return ChannelAnnouncementMessage.deserialize(raw);
+    return ExtendedChannelAnnouncementMessage.deserialize(raw);
   }
 
   public async findChannelUpdate(scid: ShortChannelId, dir: number): Promise<ChannelUpdateMessage> {
