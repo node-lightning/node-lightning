@@ -1,8 +1,8 @@
 // tslint:disable: no-unused-expression
 import { expect } from "chai";
 import sinon from "sinon";
-import { Logger } from "../lib/logger";
 import { LogLevel } from "../lib/log-level";
+import { Logger } from "../lib/logger";
 import { ITransport } from "../lib/transport";
 
 describe("Logger", () => {
