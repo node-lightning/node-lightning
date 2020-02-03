@@ -28,14 +28,6 @@ export class GossipMemoryStore implements IGossipStore {
     return this._nodeAnn.size;
   }
 
-  public async findBlockHeight(): Promise<number> {
-    let max = 0;
-    for (const u of this._channelUpd.values()) {
-      max = Math.max(u.shortChannelId.block);
-    }
-    return max;
-  }
-
   public async saveChannelAnnouncement(msg: ChannelAnnouncementMessage): Promise<void> {
     const chanKey = getChanKey(msg.shortChannelId);
     this._channelAnn.set(chanKey, msg);
@@ -68,6 +60,10 @@ export class GossipMemoryStore implements IGossipStore {
     return this._nodeAnn.get(getNodeKey(nodeId));
   }
 
+  public async findChannelAnnouncemnts(): Promise<ChannelAnnouncementMessage[]> {
+    return Array.from(this._channelAnn.values());
+  }
+
   public async findChannelAnnouncement(scid: ShortChannelId): Promise<ChannelAnnouncementMessage> {
     return this._channelAnn.get(getChanKey(scid));
   }
@@ -87,7 +83,20 @@ export class GossipMemoryStore implements IGossipStore {
     const msg = await this.findChannelAnnouncement(scid);
     if (!msg) return;
     const chanKey = getChanKey(scid);
+
+    // delete channel
     this._channelAnn.delete(getChanKey(scid));
+
+    // delete outpoint link
+    if (msg instanceof ExtendedChannelAnnouncementMessage) {
+      this._channelByOutPoint.delete(msg.outpoint.toString());
+    }
+
+    // delete channel_updates
+    this._channelUpd.delete(getChanUpdKey(scid.toNumber(), 0));
+    this._channelUpd.delete(getChanUpdKey(scid.toNumber(), 0));
+
+    // delete node links
     this._nodeChannels.get(getNodeKey(msg.nodeId1)).delete(chanKey);
     this._nodeChannels.get(getNodeKey(msg.nodeId2)).delete(chanKey);
   }
@@ -98,6 +107,7 @@ export class GossipMemoryStore implements IGossipStore {
 
   public async deleteNodeAnnouncement(nodeId: Buffer) {
     this._nodeAnn.delete(getNodeKey(nodeId));
+    this._nodeChannels.get(getNodeKey(nodeId));
   }
 
   private async _saveNodeChannel(nodeId: Buffer, chanKey: bigint) {

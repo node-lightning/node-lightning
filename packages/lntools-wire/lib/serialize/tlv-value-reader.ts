@@ -56,6 +56,7 @@ export class TlvValueReader {
 
   public readTUInt16(): number {
     const size = Math.min(2, this._buffer.length - this._position);
+    if (size === 0) return 0;
     const val = this._buffer.readUIntBE(this._position, size);
     assertMinimalTUInt(BigInt(val), size);
     this._position += size;
@@ -64,6 +65,7 @@ export class TlvValueReader {
 
   public readTUInt32(): number {
     const size = Math.min(4, this._buffer.length - this._position);
+    if (size === 0) return 0;
     const val = this._buffer.readUIntBE(this._position, size);
     assertMinimalTUInt(BigInt(val), size);
     this._position += size;
@@ -72,6 +74,7 @@ export class TlvValueReader {
 
   public readTUInt64(): bigint {
     const size = Math.min(8, this._buffer.length - this._position);
+    if (size === 0) return BigInt(0);
     const hex = this._buffer.slice(this._position, this._position + size).toString("hex") || "0";
     const val = BigInt("0x" + hex);
     assertMinimalTUInt(val, size);

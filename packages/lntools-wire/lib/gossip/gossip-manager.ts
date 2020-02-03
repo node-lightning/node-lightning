@@ -88,7 +88,7 @@ export class GossipManager extends EventEmitter {
     // request historical sync
     if (this._peers.size === 1) {
       const BLOCKS_PER_DAY = 144;
-      const ourFirstBlock = await this._gossipStore.findBlockHeight();
+      const ourFirstBlock = 0;
       const queryFirstBlock = Math.max(0, ourFirstBlock - BLOCKS_PER_DAY);
 
       if (peer.state === PeerState.ready) {
@@ -112,10 +112,8 @@ export class GossipManager extends EventEmitter {
    * Removes the channel from storage by the gossip manager. This
    * will likely be called by a chain-monitoring service.
    */
-  public removeChannel(scid: ShortChannelId) {
-    this._gossipStore.deleteChannelAnnouncement(scid);
-    this._gossipStore.deleteChannelUpdate(scid, 0);
-    this._gossipStore.deleteChannelUpdate(scid, 1);
+  public async removeChannel(scid: ShortChannelId) {
+    await this._gossipStore.deleteChannelAnnouncement(scid);
   }
 
   private _onPeerMessage(msg: IWireMessage) {

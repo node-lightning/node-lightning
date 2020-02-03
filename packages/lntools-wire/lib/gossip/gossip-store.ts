@@ -8,7 +8,7 @@ import { ShortChannelId } from "../shortchanid";
  * Interface for storing, finding, and deleting gossip messages.
  */
 export interface IGossipStore {
-  findBlockHeight(): Promise<number>;
+  findChannelAnnouncemnts(): Promise<ChannelAnnouncementMessage[]>;
   findChannelsForNode(nodeId: Buffer): Promise<ShortChannelId[]>;
   findNodeAnnouncement(nodeId: Buffer): Promise<NodeAnnouncementMessage>;
   findChannelAnnouncement(scid: ShortChannelId): Promise<ChannelAnnouncementMessage>;

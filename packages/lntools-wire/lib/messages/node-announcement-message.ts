@@ -15,7 +15,7 @@ import { IWireMessage } from "./wire-message";
  * nodes not associated with an already known channel are ignored.
  */
 export class NodeAnnouncementMessage implements IWireMessage {
-  public static deserialize(payload) {
+  public static deserialize(payload: Buffer) {
     const instance = new NodeAnnouncementMessage();
     const reader = new BufferCursor(payload);
     reader.readUInt16BE(); // read off type

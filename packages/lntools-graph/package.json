@@ -22,7 +22,7 @@
     "prepublish": "npm run build"
   },
   "dependencies": {
-    "@lntools/wire": "^0.6.1",
+    "@lntools/wire": "^0.8.0",
     "bn.js": "^4.11.8"
   }
 }

@@ -35,6 +35,14 @@ describe("GossipMemoryStore", () => {
     });
   });
 
+  describe(".findChannelAnnouncements", () => {
+    it("should find all channel_announcement messages", async () => {
+      const result = await sut.findChannelAnnouncemnts();
+      expect(result.length).to.equal(1);
+      expect(result[0]).to.be.an.instanceOf(ChannelAnnouncementMessage);
+    });
+  });
+
   describe(".saveChannelUpdate()", () => {
     it("should store channel_update for node_1", async () => {
       const msg = new ChannelUpdateMessage();
@@ -67,13 +75,6 @@ describe("GossipMemoryStore", () => {
       const result = await sut.findNodeAnnouncement(node1);
       expect(result.nodeId.toString("hex")).to.equal(node1.toString("hex"));
       expect(sut.nodeAnnouncementCount).to.equal(1);
-    });
-  });
-
-  describe(".findBlockHeight", () => {
-    it("should return the highest block", async () => {
-      const actual = await sut.findBlockHeight();
-      expect(actual).to.equal(1);
     });
   });
 
@@ -115,5 +116,15 @@ describe("GossipMemoryStore", () => {
       const results = await sut.findChannelsForNode(node2);
       expect(results.length).to.equal(0);
     });
+
+    it("should unlink channel_update for node_1", async () => {
+      const results = await sut.findChannelUpdate(scid, 0);
+    });
+
+    it("should unlink channel_update for node_2", async () => {
+      const results = await sut.findChannelUpdate(scid, 1);
+    });
+
+    it("should delete outpoint link");
   });
 });
