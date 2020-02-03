@@ -1,9 +1,10 @@
+import { BufferCursor } from "@lntools/buffer-cursor";
 import BN = require("bn.js");
 import { OutPoint } from "../domain/outpoint";
-import { MESSAGE_TYPE } from "../message-type";
-import { ShortChannelId } from "../shortchanid";
+import { TlvStreamReader } from "../serialize/tlv-stream-reader";
+import { shortChannelIdFromBuffer } from "../shortchanid";
 import { ChannelAnnouncementMessage } from "./channel-announcement-message";
-import { IWireMessage } from "./wire-message";
+import { ExtendedChannelAnnouncementOutpoint } from "./tlvs/extended-channel-announcement-outpoint";
 
 /**
  * Decorator for the channel_announcement that includes the additional
@@ -39,6 +40,38 @@ export class ExtendedChannelAnnouncementMessage extends ChannelAnnouncementMessa
     return instance;
   }
 
+  public static deserialize(payload: Buffer): ExtendedChannelAnnouncementMessage {
+    const instance = new ExtendedChannelAnnouncementMessage();
+    const reader = new BufferCursor(payload);
+    reader.readUInt16BE(); // read off type
+
+    instance.nodeSignature1 = reader.readBytes(64);
+    instance.nodeSignature2 = reader.readBytes(64);
+    instance.bitcoinSignature1 = reader.readBytes(64);
+    instance.bitcoinSignature2 = reader.readBytes(64);
+
+    const len = reader.readUInt16BE();
+    instance.features = new BN(reader.readBytes(len));
+    instance.chainHash = reader.readBytes(32);
+    instance.shortChannelId = shortChannelIdFromBuffer(reader.readBytes(8));
+    instance.nodeId1 = reader.readBytes(33);
+    instance.nodeId2 = reader.readBytes(33);
+    instance.bitcoinKey1 = reader.readBytes(33);
+    instance.bitcoinKey2 = reader.readBytes(33);
+
+    const tlvReader = new TlvStreamReader();
+    tlvReader.register(ExtendedChannelAnnouncementOutpoint);
+    const tlvs = tlvReader.read(reader);
+    for (const tlv of tlvs) {
+      if (tlv instanceof ExtendedChannelAnnouncementOutpoint) {
+        instance.outpoint = tlv.outpoint;
+        continue;
+      }
+    }
+
+    return instance;
+  }
+
   /**
    * OutPoint for the channel that includes the transaction identifier as well
    * as the vout index. This information is obtained by finding the transaction
@@ -51,4 +84,14 @@ export class ExtendedChannelAnnouncementMessage extends ChannelAnnouncementMessa
    * validation of the transaction.
    */
   public capacity: bigint;
+
+  public serialize() {
+    const chanAnnBuffer = super.serialize();
+
+    const outpointTlv = new ExtendedChannelAnnouncementOutpoint();
+    outpointTlv.outpoint = this.outpoint;
+    const outpointTlvBuffer = outpointTlv.serialize();
+
+    return Buffer.concat([chanAnnBuffer, outpointTlvBuffer]);
+  }
 }
