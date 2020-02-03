@@ -15,6 +15,58 @@ describe("TlvValueReader", () => {
     });
   });
 
+  describe(".readTUInt16()", () => {
+    it("should read 0-byte", () => {
+      const sut = new TlvValueReader(Buffer.alloc(0));
+      const a = sut.readTUInt32();
+      expect(a).to.equal(0);
+    });
+
+    it("should read 1-byte", () => {
+      const sut = new TlvValueReader(Buffer.from([1]));
+      const a = sut.readTUInt32();
+      expect(a).to.equal(1);
+    });
+
+    it("should read 2-byte", () => {
+      const sut = new TlvValueReader(Buffer.from([1, 1]));
+      const a = sut.readTUInt32();
+      expect(a).to.equal(257);
+    });
+  });
+
+  describe(".readTUInt32()", () => {
+    it("should read 0-byte", () => {
+      const sut = new TlvValueReader(Buffer.alloc(0));
+      const a = sut.readTUInt32();
+      expect(a).to.equal(0);
+    });
+
+    it("should read 1-byte", () => {
+      const sut = new TlvValueReader(Buffer.from([1]));
+      const a = sut.readTUInt32();
+      expect(a).to.equal(1);
+    });
+
+    it("should read 2-byte", () => {
+      const sut = new TlvValueReader(Buffer.from([1, 1]));
+      const a = sut.readTUInt32();
+      expect(a).to.equal(257);
+    });
+
+    it("should read 3-byte", () => {
+      const sut = new TlvValueReader(Buffer.from([1, 0, 0]));
+      const a = sut.readTUInt32();
+      expect(a).to.equal(0x010000);
+    });
+
+    it("should read 4-byte", () => {
+      const sut = new TlvValueReader(Buffer.from([1, 0, 0, 0]));
+      const a = sut.readTUInt32();
+      expect(a).to.equal(0x01000000);
+    });
+  });
+
   describe(".readTUInt64()", () => {
     it("should read 0-byte", () => {
       const sut = new TlvValueReader(Buffer.alloc(0));
