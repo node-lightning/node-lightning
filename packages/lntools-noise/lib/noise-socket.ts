@@ -1,4 +1,4 @@
-import { Logger, manager } from "@lntools/logger";
+import { ILogger } from "@lntools/logger";
 import assert from "assert";
 import { Socket } from "net";
 import { Duplex } from "stream";
@@ -30,9 +30,9 @@ export class NoiseSocket extends Duplex {
   public messagesReceived: number;
 
   /**
-   * A logger
+   * A logger instance
    */
-  public logger: Logger;
+  public logger: ILogger;
 
   /**
    * Controls the handshake process at the start of the connection.
@@ -73,7 +73,7 @@ export class NoiseSocket extends Duplex {
    * benefit from the security and privacy enhancing used by the
    * Noise Protocol Framework.
    */
-  constructor({ socket, noiseState, rpk }: NoiseSocketOptions) {
+  constructor({ socket, noiseState, rpk, logger }: NoiseSocketOptions) {
     super();
     // perform type assertions
     assert.ok(socket instanceof Socket, new NoiseError("socket argument must be an instance of Socket")); // prettier-ignore
@@ -104,8 +104,7 @@ export class NoiseSocket extends Duplex {
     this._socket.on("readable", this._onData.bind(this));
     this._socket.on("timeout", () => this.emit("timeout"));
 
-    // create a logger for the socket
-    this.logger = manager.create("NOISE");
+    this.logger = logger;
   }
 
   /**
@@ -332,7 +331,7 @@ export class NoiseSocket extends Duplex {
       this._readState = READ_STATE.READY_FOR_LEN;
       return true;
     } else {
-      this.logger.debug("socket read is blocked");
+      if (this.logger) this.logger.debug("socket read is blocked");
       this._readState = READ_STATE.BLOCKED;
       return false;
     }
@@ -345,7 +344,7 @@ export class NoiseSocket extends Duplex {
     }
 
     if (this._readState === READ_STATE.BLOCKED) {
-      this.logger.debug("socket read is unblocked");
+      if (this.logger) this.logger.debug("socket read is unblocked");
       this._readState = READ_STATE.READY_FOR_LEN;
     }
     // Trigger a read but wait until the end of the event loop.
@@ -358,7 +357,7 @@ export class NoiseSocket extends Duplex {
 
   // tslint:disable-next-line: member-ordering
   public _write(data: Buffer, encoding: string, cb: (err: Error) => void) {
-    this.logger.debug("sending " + data.toString("hex"));
+    if (this.logger) this.logger.debug("sending " + data.toString("hex"));
     const c = this._noiseState.encryptMessage(data);
     this._socket.write(c, cb);
   }

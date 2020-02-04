@@ -52,6 +52,9 @@ export function connect({ ls, es, rpk, host, port = 9735 }: NoiseConnectOptions)
 /**
  * Factory function to create a new server
  */
-export function createServer({ ls, esFactory }: NoiseServerOptions, connListener: () => void) {
+export function createServer(
+  { ls, esFactory }: NoiseServerOptions,
+  connListener: (socket: NoiseSocket) => void,
+) {
   return new NoiseServer({ ls, esFactory }, connListener);
 }

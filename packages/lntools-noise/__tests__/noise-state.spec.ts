@@ -1,24 +1,14 @@
-const { expect } = require("chai");
-const winston = require("winston");
-const sinon = require("sinon");
-const { NoiseState } = require("../lib/noise-state");
+import { expect } from "chai";
+import { NoiseState } from "../lib/noise-state";
 
 describe("NoiseState", () => {
-  let sandbox;
-  before(() => {
-    sandbox = sinon.createSandbox();
-    sandbox.stub(winston);
-  });
-  after(() => {
-    sandbox.restore();
-  });
   describe("initiator", () => {
-    let rs = Buffer.from('028d7500dd4c12685d1f568b4c2b5048e8534b873319f3a8daa612b469132ec7f7', 'hex'); // prettier-ignore
-    let ls = Buffer.from('1111111111111111111111111111111111111111111111111111111111111111','hex'); // prettier-ignore
-    let es = Buffer.from('1212121212121212121212121212121212121212121212121212121212121212', 'hex'); // prettier-ignore
+    const rs = Buffer.from("028d7500dd4c12685d1f568b4c2b5048e8534b873319f3a8daa612b469132ec7f7", "hex"); // prettier-ignore
+    const ls = Buffer.from("1111111111111111111111111111111111111111111111111111111111111111", "hex"); // prettier-ignore
+    const es = Buffer.from("1212121212121212121212121212121212121212121212121212121212121212", "hex"); // prettier-ignore
     let sut = new NoiseState({ ls, es });
 
-    let sent = [
+    const sent = [
       Buffer.from(
         "cf2b30ddf0cf3f80e7c35a6e6730b59fe802473180f396d88a8fb0db8cbcf25d2f214cf9ea1d95",
         "hex",
@@ -44,7 +34,7 @@ describe("NoiseState", () => {
 
     describe("act2", () => {
       before(() => {
-        let input = Buffer.from(
+        const input = Buffer.from(
           "0002466d7fcae563e5cb09a0d1870bb580344804617879a14949cf22285f1bae3f276e2470b93aac583c9ef6eafca3f730ae",
           "hex",
         );
@@ -81,7 +71,7 @@ describe("NoiseState", () => {
 
     describe("send messages", () => {
       it("should encrypt message properly", () => {
-        let m = sut.encryptMessage(Buffer.from("68656c6c6f", "hex"));
+        const m = sut.encryptMessage(Buffer.from("68656c6c6f", "hex"));
         expect(m.toString("hex")).to.deep.equal(
           "cf2b30ddf0cf3f80e7c35a6e6730b59fe802473180f396d88a8fb0db8cbcf25d2f214cf9ea1d95",
         );
@@ -92,11 +82,11 @@ describe("NoiseState", () => {
       });
 
       it("should rotate keys correctly", () => {
-        let input = Buffer.from("68656c6c6f", "hex");
+        const input = Buffer.from("68656c6c6f", "hex");
         for (let i = 1; i < 1001; i++) {
-          let m = sut.encryptMessage(input);
+          const m = sut.encryptMessage(input);
           sent.push(m);
-          let tests = {
+          const tests = {
             1: "72887022101f0b6753e0c7de21657d35a4cb2a1f5cde2650528bbc8f837d0f0d7ad833b1a256a1",
             500: "178cb9d7387190fa34db9c2d50027d21793c9bc2d40b1e14dcf30ebeeeb220f48364f7a4c68bf8",
             501: "1b186c57d44eb6de4c057c49940d79bb838a145cb528d6e8fd26dbe50a60ca2c104b56b60e45bd",
@@ -126,19 +116,19 @@ describe("NoiseState", () => {
       });
 
       it("should decrypt the length", () => {
-        let l = sut.decryptLength(sent[0].slice(0, 18));
+        const l = sut.decryptLength(sent[0].slice(0, 18));
         expect(l).to.deep.equal(5);
       });
 
       it("should decrypt the message", () => {
-        let m = sut.decryptMessage(sent[0].slice(18));
+        const m = sut.decryptMessage(sent[0].slice(18));
         expect(m.toString()).to.deep.equal("hello");
       });
 
       it("should rotate keys correctly", () => {
         for (let i = 1; i < 1001; i++) {
-          let l = sut.decryptLength(sent[i].slice(0, 18));
-          let m = sut.decryptMessage(sent[i].slice(18));
+          const l = sut.decryptLength(sent[i].slice(0, 18));
+          const m = sut.decryptMessage(sent[i].slice(18));
 
           expect(l).to.deep.equal(5, "failed on message" + i);
           expect(m.toString()).to.deep.equal("hello", "failed on message" + i);
@@ -150,7 +140,7 @@ describe("NoiseState", () => {
       it("transport-initiator act2 short read test", () => {
         sut = new NoiseState({ ls, es });
         sut.initiatorAct1(rs);
-        let input = Buffer.from(
+        const input = Buffer.from(
           "0002466d7fcae563e5cb09a0d1870bb580344804617879a14949cf22285f1bae3f276e2470b93aac583c9ef6eafca3f730",
           "hex",
         );
@@ -160,7 +150,7 @@ describe("NoiseState", () => {
       it("transport-initiator act2 bad version test", () => {
         sut = new NoiseState({ ls, es });
         sut.initiatorAct1(rs);
-        let input = Buffer.from(
+        const input = Buffer.from(
           "0102466d7fcae563e5cb09a0d1870bb580344804617879a14949cf22285f1bae3f276e2470b93aac583c9ef6eafca3f730ae",
           "hex",
         );
@@ -170,7 +160,7 @@ describe("NoiseState", () => {
       it("transport-initiator act2 bad key serialization test", () => {
         sut = new NoiseState({ ls, es });
         sut.initiatorAct1(rs);
-        let input = Buffer.from(
+        const input = Buffer.from(
           "0004466d7fcae563e5cb09a0d1870bb580344804617879a14949cf22285f1bae3f276e2470b93aac583c9ef6eafca3f730ae",
           "hex",
         );
@@ -182,7 +172,7 @@ describe("NoiseState", () => {
       it("transport-initiator act2 bad MAC test", () => {
         sut = new NoiseState({ ls, es });
         sut.initiatorAct1(rs);
-        let input = Buffer.from(
+        const input = Buffer.from(
           "0002466d7fcae563e5cb09a0d1870bb580344804617879a14949cf22285f1bae3f276e2470b93aac583c9ef6eafca3f730af",
           "hex",
         );
@@ -192,15 +182,15 @@ describe("NoiseState", () => {
   });
 
   describe("responder", () => {
-    let ls = Buffer.from('2121212121212121212121212121212121212121212121212121212121212121', 'hex'); // prettier-ignore
-    let es = Buffer.from('2222222222222222222222222222222222222222222222222222222222222222', 'hex'); //prettier-ignore
+    const ls = Buffer.from("2121212121212121212121212121212121212121212121212121212121212121", "hex"); // prettier-ignore
+    const es = Buffer.from("2222222222222222222222222222222222222222222222222222222222222222", "hex"); // prettier-ignore
     let sut;
-    let sent = [];
+    const sent = [];
 
     describe("act 1", () => {
       before(() => {
         sut = new NoiseState({ ls, es });
-        let input = Buffer.from(
+        const input = Buffer.from(
           "00036360e856310ce5d294e8be33fc807077dc56ac80d95d9cd4ddbd21325eff73f70df6086551151f58b8afe6c195782c6a",
           "hex",
         );
@@ -232,7 +222,7 @@ describe("NoiseState", () => {
 
     describe("act 3", () => {
       before(() => {
-        let input = Buffer.from(
+        const input = Buffer.from(
           "00b9e3a702e93e3a9948c2ed6e5fd7590a6e1c3a0344cfc9d5b57357049aa22355361aa02e55a8fc28fef5bd6d71ad0c38228dc68b1c466263b47fdf31e560e139ba",
           "hex",
         );
@@ -277,7 +267,7 @@ describe("NoiseState", () => {
       });
 
       it("should encrypt message properly", () => {
-        let m = sut.encryptMessage(Buffer.from("68656c6c6f", "hex"));
+        const m = sut.encryptMessage(Buffer.from("68656c6c6f", "hex"));
         expect(m.toString("hex")).to.deep.equal(
           "cf2b30ddf0cf3f80e7c35a6e6730b59fe802473180f396d88a8fb0db8cbcf25d2f214cf9ea1d95",
         );
@@ -294,11 +284,11 @@ describe("NoiseState", () => {
       });
 
       it("should rotate keys correctly", () => {
-        let input = Buffer.from("68656c6c6f", "hex");
+        const input = Buffer.from("68656c6c6f", "hex");
         for (let i = 1; i < 1001; i++) {
-          let m = sut.encryptMessage(input);
+          const m = sut.encryptMessage(input);
           sent.push(m);
-          let tests = {
+          const tests = {
             1: "72887022101f0b6753e0c7de21657d35a4cb2a1f5cde2650528bbc8f837d0f0d7ad833b1a256a1",
             500: "178cb9d7387190fa34db9c2d50027d21793c9bc2d40b1e14dcf30ebeeeb220f48364f7a4c68bf8",
             501: "1b186c57d44eb6de4c057c49940d79bb838a145cb528d6e8fd26dbe50a60ca2c104b56b60e45bd",
@@ -330,19 +320,19 @@ describe("NoiseState", () => {
         );
       });
       it("should decrypt the length", () => {
-        let l = sut.decryptLength(sent[0].slice(0, 18));
+        const l = sut.decryptLength(sent[0].slice(0, 18));
         expect(l).to.deep.equal(5);
       });
 
       it("should decrypt the message", () => {
-        let m = sut.decryptMessage(sent[0].slice(18));
+        const m = sut.decryptMessage(sent[0].slice(18));
         expect(m.toString()).to.deep.equal("hello");
       });
 
       it("should rotate keys correctly", () => {
         for (let i = 1; i < 1001; i++) {
-          let l = sut.decryptLength(sent[i].slice(0, 18));
-          let m = sut.decryptMessage(sent[i].slice(18));
+          const l = sut.decryptLength(sent[i].slice(0, 18));
+          const m = sut.decryptMessage(sent[i].slice(18));
 
           expect(l).to.deep.equal(5, "failed on message" + i);
           expect(m.toString()).to.deep.equal("hello", "failed on message" + i);
@@ -353,7 +343,7 @@ describe("NoiseState", () => {
     describe("with errors", () => {
       it("transport-responder act1 short read test", () => {
         sut = new NoiseState({ ls, es });
-        let input = Buffer.from(
+        const input = Buffer.from(
           "00036360e856310ce5d294e8be33fc807077dc56ac80d95d9cd4ddbd21325eff73f70df6086551151f58b8afe6c195782c",
         );
         expect(() => sut.receiveAct1(input)).to.throw("ACT1_READ_FAILED");
@@ -361,7 +351,7 @@ describe("NoiseState", () => {
 
       it("transport-responder act1 bad version test", () => {
         sut = new NoiseState({ ls, es });
-        let input = Buffer.from(
+        const input = Buffer.from(
           "01036360e856310ce5d294e8be33fc807077dc56ac80d95d9cd4ddbd21325eff73f70df6086551151f58b8afe6c195782c6a",
           "hex",
         );
@@ -370,7 +360,7 @@ describe("NoiseState", () => {
 
       it("transport-responder act1 bad key serialization test", () => {
         sut = new NoiseState({ ls, es });
-        let input = Buffer.from(
+        const input = Buffer.from(
           "00046360e856310ce5d294e8be33fc807077dc56ac80d95d9cd4ddbd21325eff73f70df6086551151f58b8afe6c195782c6a",
           "hex",
         );
@@ -381,7 +371,7 @@ describe("NoiseState", () => {
 
       it("transport-responder act1 bad MAC test", () => {
         sut = new NoiseState({ ls, es });
-        let input = Buffer.from(
+        const input = Buffer.from(
           "00036360e856310ce5d294e8be33fc807077dc56ac80d95d9cd4ddbd21325eff73f70df6086551151f58b8afe6c195782c6b",
           "hex",
         );

@@ -1,3 +1,4 @@
+import { ILogger } from "@lntools/logger";
 import { Socket } from "net";
 import { NoiseState } from "./noise-state";
 
@@ -17,4 +18,9 @@ export type NoiseSocketOptions = {
    * makes the socket the noise state initiator.
    */
   rpk?: Buffer;
+
+  /**
+   * Logger that can be optionally used by the noise system
+   */
+  logger?: ILogger;
 };

@@ -1,4 +1,4 @@
-import { Logger } from "@lntools/logger";
+import { ILogger } from "@lntools/logger";
 
 export type NoiseStateOptions = {
   /**
@@ -14,5 +14,5 @@ export type NoiseStateOptions = {
   /**
    * Logger to use for NoiseState
    */
-  logger?: Logger;
+  logger?: ILogger;
 };

@@ -1,10 +1,10 @@
 import { ccpDecrypt, ccpEncrypt, ecdh, hkdf, sha256 } from "@lntools/crypto";
 import { getPublicKey } from "@lntools/crypto";
-import { Logger } from "@lntools/logger";
+import { ILogger } from "@lntools/logger";
 import { NoiseStateOptions } from "./noise-state-options";
 
 export class NoiseState {
-  public logger: Logger;
+  public logger: ILogger;
 
   /**
    * The official protocol name for the Lightning variant of Noise. This

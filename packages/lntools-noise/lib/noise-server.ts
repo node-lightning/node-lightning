@@ -34,7 +34,7 @@ export class NoiseServer extends EventEmitter {
    * The constructor take arguments that will be used by the
    * NoiseState.
    */
-  constructor(opts: NoiseServerOptions, connListener) {
+  constructor(opts: NoiseServerOptions, connListener?: (socket: NoiseSocket) => void) {
     super();
 
     // localSecret assertions
@@ -103,7 +103,7 @@ export class NoiseServer extends EventEmitter {
    * @param callback Called when the server is listening. Automatically binds
    * the function to the `listening` event.
    */
-  public listen(opts: NoiseServerListenOptions, callback: () => void) {
+  public listen(opts: NoiseServerListenOptions, callback?: () => void) {
     this._server.listen(opts, callback);
     return this;
   }
