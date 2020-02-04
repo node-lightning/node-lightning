@@ -26,7 +26,6 @@
   },
   "dependencies": {
     "@lntools/crypto": "^0.5.1",
-    "@lntools/logger": "^0.5.0",
-    "winston": "^3.2.1"
+    "@lntools/logger": "^0.5.0"
   }
 }
