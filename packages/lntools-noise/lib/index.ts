@@ -1,4 +1,5 @@
 import * as crypto from "@lntools/crypto";
+import { ILogger } from "@lntools/logger";
 import { Socket } from "net";
 import { NoiseServer } from "./noise-server";
 import { NoiseServerOptions } from "./noise-server-options";
@@ -33,18 +34,23 @@ export type NoiseConnectOptions = {
    * Optional port. Defaults to 9735.
    */
   port?: number;
+
+  /**
+   * Optional logger
+   */
+  logger?: ILogger;
 };
 
 /**
  * Connect to a remote noise socket server.
  */
-export function connect({ ls, es, rpk, host, port = 9735 }: NoiseConnectOptions) {
+export function connect({ ls, es, rpk, host, port = 9735, logger }: NoiseConnectOptions) {
   if (!es) {
     es = crypto.createPrivateKey();
   }
-  const noiseState = new NoiseState({ ls, es });
+  const noiseState = new NoiseState({ ls, es, logger });
   const socket = new Socket();
-  const instance = new NoiseSocket({ socket, noiseState, rpk });
+  const instance = new NoiseSocket({ socket, noiseState, rpk, logger });
   socket.connect({ host, port });
   return instance;
 }
