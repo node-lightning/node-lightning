@@ -1,4 +1,5 @@
 import { Logger } from "@lntools/logger";
+import { EventEmitter } from "events";
 import { MESSAGE_TYPE } from "../message-type";
 import { ChannelAnnouncementMessage } from "../messages/channel-announcement-message";
 import { GossipTimestampFilterMessage } from "../messages/gossip-timestamp-filter-message";
@@ -9,36 +10,45 @@ import { ReplyShortChannelIdsEndMessage } from "../messages/reply-short-channel-
 import { IWireMessage } from "../messages/wire-message";
 import { IPeerMessageReceiver, IPeerMessageSender } from "../peer";
 import { ShortChannelId } from "../shortchanid";
-import { AwaitingChannelRangeCompleteState } from "./states/awaiting-channel-range-complete-state";
-import { IGossipSyncState } from "./states/gossip-sync-state";
-import { InactiveState } from "./states/inactive-state";
+import { WireError } from "../wire-error";
+import { GossipFilter } from "./gossip-filter";
+import { AwaitingRangeCompleteState } from "./gossip-sync-states/awaiting-range-complete-state";
+import { IGossipSyncState } from "./gossip-sync-states/gossip-sync-state";
+import { InactiveState } from "./gossip-sync-states/inactive-state";
 
 export type GossipSyncerOptions = {
   chainHash: Buffer;
   logger: Logger;
   peer: IPeerMessageReceiver & IPeerMessageSender;
+  filter: GossipFilter;
 };
 
 /**
- * Gossip synchronizer is a state machine (using the state pattern)
- * that transitions through states as gossip_messages are received from the
- * peer.
+ * Peer gossip synchronizer is a state machine (using the state pattern)
+ * that that maintains the peer's gossip state.
  */
-export class GossipSyncer {
+export class GossipSyncer extends EventEmitter {
   public readonly peer: IPeerMessageSender & IPeerMessageReceiver;
   public readonly chainHash: Buffer;
   public readonly logger: Logger;
+  public readonly filter: GossipFilter;
   public shortChannelIdsChunksSize = 8000;
 
   private _state: IGossipSyncState;
-  private _scids: ShortChannelId[] = [];
 
-  constructor({ peer, chainHash, logger }: GossipSyncerOptions) {
-    this.peer = peer;
+  constructor({ peer, filter, chainHash, logger }: GossipSyncerOptions) {
+    super();
     this.chainHash = chainHash;
     this.logger = logger;
-    this.peer.on("message", this._handleMessage.bind(this));
     this.state = new InactiveState();
+
+    this.peer = peer;
+    this.peer.on("message", this._handlePeerMessage.bind(this));
+
+    this.filter = filter;
+    this.filter.on("message", this._handleFilterMessage.bind(this));
+    this.filter.on("error", this._handleFilterError.bind(this));
+    this.filter.on("flushed", this._filterFlushed.bind(this));
   }
 
   public get state() {
@@ -50,21 +60,13 @@ export class GossipSyncer {
     this._state = state;
   }
 
-  public get hasQueuedShortIds() {
-    return this._scids.length > 0;
-  }
-
   public requestSync(firstBlocknum: number = 0, numberOfBlocks = 4294967295) {
     const queryRangeMessage = new QueryChannelRangeMessage();
     queryRangeMessage.chainHash = this.chainHash;
     queryRangeMessage.firstBlocknum = firstBlocknum;
     queryRangeMessage.numberOfBlocks = numberOfBlocks;
     this.peer.sendMessage(queryRangeMessage);
-    this.state = new AwaitingChannelRangeCompleteState();
-  }
-
-  public enqueueShortChannelIds(scids: ShortChannelId[]) {
-    this._scids.push(...scids);
+    this.state = new AwaitingRangeCompleteState();
   }
 
   public sendGossipTimestampFilter() {
@@ -75,14 +77,15 @@ export class GossipSyncer {
     this.peer.sendMessage(gossipFilter);
   }
 
-  public sendShortChannelIdsQuery() {
+  public sendShortChannelIdsQuery(scids: ShortChannelId[]) {
+    this.logger.info("sending query_short_channel_ids - scid_count:", scids.length);
     const queryShortIds = new QueryShortChannelIdsMessage();
     queryShortIds.chainHash = this.chainHash;
-    queryShortIds.shortChannelIds = this._scids.splice(0, this.shortChannelIdsChunksSize);
+    queryShortIds.shortChannelIds = scids;
     this.peer.sendMessage(queryShortIds);
   }
 
-  private _handleMessage(msg: IWireMessage) {
+  private _handlePeerMessage(msg: IWireMessage) {
     switch (msg.type) {
       case MESSAGE_TYPE.QUERY_CHANNEL_RANGE:
         if (this._state.onQueryChannelRange) {
@@ -105,9 +108,34 @@ export class GossipSyncer {
         }
         break;
       case MESSAGE_TYPE.CHANNEL_ANNOUNCEMENT:
+      case MESSAGE_TYPE.CHANNEL_UPDATE:
+      case MESSAGE_TYPE.NODE_ANNOUNCEMENT:
+        this.filter.enqueue(msg);
+        break;
+    }
+  }
+
+  private _handleFilterMessage(msg: IWireMessage) {
+    switch (msg.type) {
+      case MESSAGE_TYPE.CHANNEL_ANNOUNCEMENT:
         if (this._state.onChannelAnnouncement) {
           this._state.onChannelAnnouncement(msg as ChannelAnnouncementMessage, this);
         }
+    }
+  }
+
+  private _handleFilterError(err: WireError, msg: IWireMessage) {
+    switch (msg.type) {
+      case MESSAGE_TYPE.CHANNEL_ANNOUNCEMENT:
+        if (this._state.onChannelAnnouncement) {
+          this._state.onChannelAnnouncement(msg as ChannelAnnouncementMessage, this);
+        }
+    }
+  }
+
+  private _filterFlushed() {
+    if (this._state.onFilterFlushed) {
+      this._state.onFilterFlushed(this);
     }
   }
 }

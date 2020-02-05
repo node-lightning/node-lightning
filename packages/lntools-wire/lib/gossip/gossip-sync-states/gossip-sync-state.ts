@@ -15,4 +15,5 @@ export interface IGossipSyncState {
   onQueryShortIds?(msg: QueryShortChannelIdsMessage, context: GossipSyncer): void;
   onReplyShortIdsEnd?(msg: ReplyShortChannelIdsEndMessage, context: GossipSyncer): void;
   onChannelAnnouncement?(msg: ChannelAnnouncementMessage, context: GossipSyncer): void;
+  onFilterFlushed?(context: GossipSyncer): void;
 }

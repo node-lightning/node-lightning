@@ -21,17 +21,21 @@ export declare interface GossipManager {
 }
 
 /**
- * GossipManager provides orchestration for validating, storing, and emitting
- * routing gossip traffic emitted by peers.
+ * GossipManager provides is a facade for many parts of gossip. It
+ * orchestrates for validating, storing, and emitting
+ * routing gossip traffic obtained by peers.
  */
 export class GossipManager extends EventEmitter {
   public chainHash: Buffer;
   public logger: Logger;
+  public lastBlock: number;
   private _gossipStore: IGossipStore;
   private _pendingStore: IGossipStore;
   private _gossipFilter: GossipFilter;
   private _peers: Set<Peer>;
   private _gossipSyncers: Map<Peer, GossipSyncer>;
+  private _peersReady = false;
+  private _pendingPeers: Peer[] = [];
 
   constructor({
     chainClient,
@@ -72,17 +76,46 @@ export class GossipManager extends EventEmitter {
   }
 
   /**
+   * Starts the gossip manager. This method will interrogate the gossip
+   * store to obtain the highest block height. This value will be
+   * used when peers are added to obtain missing information.
+   */
+  public start() {
+    // tslint:disable-next-line: no-floating-promises
+    this._restoreState().then(() => {
+      this._peersReady = true;
+      for (const peer of this._pendingPeers) {
+        this.addPeer(peer);
+      }
+    });
+  }
+
+  /**
    * Adds a new peer to the GossipManager and subscribes to
    * events that will allow it to iteract with other sub-systems
    * managed by the GossipManager.
    */
-  public async addPeer(peer: Peer) {
+  public addPeer(peer: Peer) {
+    // TODO add assertion that we have started the gossip manager
+
+    if (!this._peersReady) {
+      this.logger.info("enqueing peer " + peer.toString());
+      this._pendingPeers.push(peer);
+      return;
+    }
+
+    this.logger.info("syncing peer %s", peer.toString());
     this._peers.add(peer);
     peer.on("message", this._onPeerMessage);
     peer.on("close", () => this.removePeer(peer));
 
     // construct a gossip syncer
-    const gossipSyncer = new GossipSyncer({ peer, chainHash: this.chainHash, logger: this.logger });
+    const gossipSyncer = new GossipSyncer({
+      peer,
+      filter: this._gossipFilter,
+      chainHash: this.chainHash,
+      logger: this.logger,
+    });
     this._gossipSyncers.set(peer, gossipSyncer);
 
     // request historical sync
@@ -126,5 +159,20 @@ export class GossipManager extends EventEmitter {
 
   private _onError(err: Error) {
     this.emit("error", err);
+  }
+
+  private async _restoreState() {
+    try {
+      this.logger.info("retrieving gossip state");
+      this.lastBlock = 0;
+      const chanAnns = await this._gossipStore.findChannelAnnouncemnts();
+      for (const chanAnn of chanAnns) {
+        this.lastBlock = Math.max(this.lastBlock, chanAnn.shortChannelId.block);
+      }
+      this.logger.info("%d channels restored with highest block %d", chanAnns.length, this.lastBlock); // prettier-ignore
+    } catch (ex) {
+      this.emit("error", ex);
+      // transition to failed
+    }
   }
 }

@@ -1,11 +1,11 @@
 import { Logger } from "@lntools/logger";
 import { expect } from "chai";
 import sinon from "sinon";
+import { ActiveState } from "../../lib/gossip/gossip-sync-states/active-state";
+import { AwaitingChannelRangeCompleteState } from "../../lib/gossip/gossip-sync-states/awaiting-channel-range-complete-state";
+import { AwaitingSyncComplete } from "../../lib/gossip/gossip-sync-states/awaiting-sync-complete";
+import { InactiveState } from "../../lib/gossip/gossip-sync-states/inactive-state";
 import { GossipSyncer } from "../../lib/gossip/gossip-syncer";
-import { ActiveState } from "../../lib/gossip/states/active-state";
-import { AwaitingChannelRangeCompleteState } from "../../lib/gossip/states/awaiting-channel-range-complete-state";
-import { AwaitingShortIdsCompleteState } from "../../lib/gossip/states/awaiting-short-ids-complete-state";
-import { InactiveState } from "../../lib/gossip/states/inactive-state";
 import { GossipTimestampFilterMessage } from "../../lib/messages/gossip-timestamp-filter-message";
 import { QueryShortChannelIdsMessage } from "../../lib/messages/query-short-channel-ids-message";
 import { ReplyChannelRangeMessage } from "../../lib/messages/reply-channel-range-message";
