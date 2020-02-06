@@ -22,8 +22,6 @@ export enum PeerGossipQueryState {
   Pending = "pending",
   AwaitingRanges = "awaiting_ranges",
   AwaitingScids = "awaiting_scids",
-  Complete = "complete",
-  Failed = "failed",
 }
 
 /**
@@ -59,6 +57,8 @@ export class PeerGossipSynchronizer extends EventEmitter {
 
     this.peer = peer;
     this.peer.on("message", this._handlePeerMessage.bind(this));
+
+    this._queryState = PeerGossipQueryState.Pending;
   }
 
   public get queryState() {
@@ -79,6 +79,10 @@ export class PeerGossipSynchronizer extends EventEmitter {
     this.logger.debug("receive state -", state);
     this._receiveState = state;
     this.emit("receive_state", state);
+  }
+
+  public get queryScidQueueSize() {
+    return this._queryScidQueue.length;
   }
 
   public deactivate() {
@@ -143,6 +147,14 @@ export class PeerGossipSynchronizer extends EventEmitter {
       msg.shortChannelIds.length,
     );
 
+    // This occurs if the remote peer did not have any
+    // information for cha
+    if (!msg.complete && !msg.shortChannelIds.length) {
+      this.queryState = PeerGossipQueryState.Pending;
+      this.emit("channel_range_failed", msg);
+      return;
+    }
+
     for (const scid of msg.shortChannelIds) {
       this._queryScidQueue.push(scid);
       // this._queryScidSet.add(scid.toString());
@@ -165,7 +177,8 @@ export class PeerGossipSynchronizer extends EventEmitter {
           // request chain_hash. We therefore transition to the inactive state
           // since this peer is not valid for receiving gossip information from
           if (!msg.complete) {
-            this.queryState = PeerGossipQueryState.Failed;
+            this.emit("query_short_ids_failed", msg);
+            this.queryState = PeerGossipQueryState.Pending;
             return;
           }
 
@@ -180,7 +193,7 @@ export class PeerGossipSynchronizer extends EventEmitter {
           // Successfully finished querying. We should expected messages
           // to stream in to the client, but the gossip synchronizer
           // has done its job.
-          this.queryState = PeerGossipQueryState.Complete;
+          this.emit("query_short_ids_complete", msg);
           this.queryState = PeerGossipQueryState.Pending;
         }
         break;
