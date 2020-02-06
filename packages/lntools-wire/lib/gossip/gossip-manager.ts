@@ -4,10 +4,11 @@ import { IWireMessage } from "../messages/wire-message";
 import { Peer } from "../peer";
 import { PeerState } from "../peer-state";
 import { ShortChannelId } from "../shortchanid";
+import { WireError, WireErrorCode } from "../wire-error";
 import { GossipFilter } from "./gossip-filter";
 import { IGossipFilterChainClient } from "./gossip-filter-chain-client";
 import { IGossipStore } from "./gossip-store";
-import { GossipSyncer, GossipSyncerOptions } from "./gossip-syncer";
+import { PeerGossipSynchronizer } from "./peer-gossip-synchronizer";
 
 // tslint:disable-next-line: interface-name
 export declare interface GossipManager {
@@ -15,23 +16,27 @@ export declare interface GossipManager {
   on(event: "error", fn: (err: Error) => void): this;
   on(event: "flushed", fn: () => void): this;
 
+  off(event: "restored", fn: (block: number) => void): this;
   off(event: "message", fn: (msg: IWireMessage) => void): this;
   off(event: "error", fn: (err: Error) => void): this;
   off(event: "flushed", fn: () => void): this;
 }
 
 /**
- * GossipManager provides orchestration for validating, storing, and emitting
- * routing gossip traffic emitted by peers.
+ * GossipManager provides is a facade for many parts of gossip. It
+ * orchestrates for validating, storing, and emitting
+ * routing gossip traffic obtained by peers.
  */
 export class GossipManager extends EventEmitter {
   public chainHash: Buffer;
   public logger: Logger;
+  public blockHeight: number;
+  public started: boolean;
+  private _peers: Set<Peer>;
   private _gossipStore: IGossipStore;
   private _pendingStore: IGossipStore;
   private _gossipFilter: GossipFilter;
-  private _peers: Set<Peer>;
-  private _gossipSyncers: Map<Peer, GossipSyncer>;
+  private _gossipSyncers: Map<Peer, PeerGossipSynchronizer>;
 
   constructor({
     chainClient,
@@ -54,7 +59,7 @@ export class GossipManager extends EventEmitter {
     this._pendingStore = pendingStore;
 
     this._peers = new Set<Peer>();
-    this._gossipSyncers = new Map<Peer, GossipSyncer>();
+    this._gossipSyncers = new Map<Peer, PeerGossipSynchronizer>();
 
     this._onPeerMessage = this._onPeerMessage.bind(this);
 
@@ -72,29 +77,52 @@ export class GossipManager extends EventEmitter {
   }
 
   /**
+   * Starts the gossip manager. This method will interrogate the gossip
+   * store to obtain the highest block height. This value will be
+   * used when peers are added to obtain missing information.
+   */
+  public async start() {
+    await this._restoreState();
+    this.started = true;
+  }
+
+  /**
    * Adds a new peer to the GossipManager and subscribes to
    * events that will allow it to iteract with other sub-systems
    * managed by the GossipManager.
    */
-  public async addPeer(peer: Peer) {
+  public addPeer(peer: Peer) {
+    if (!this.started) throw new WireError(WireErrorCode.gossipManagerNotStarted);
+
+    this.logger.info("syncing peer %s", peer.toString());
     this._peers.add(peer);
     peer.on("message", this._onPeerMessage);
     peer.on("close", () => this.removePeer(peer));
 
-    // construct a gossip syncer
-    const gossipSyncer = new GossipSyncer({ peer, chainHash: this.chainHash, logger: this.logger });
+    // construct a gossip synchronizer for the peer
+    const gossipSyncer = new PeerGossipSynchronizer({
+      peer,
+      chainHash: this.chainHash,
+      logger: this.logger,
+    });
     this._gossipSyncers.set(peer, gossipSyncer);
+
+    // active gossip for the peer
+    if (peer.state === PeerState.ready) {
+      gossipSyncer.activate();
+    } else {
+      peer.once("ready", () => gossipSyncer.activate());
+    }
 
     // request historical sync
     if (this._peers.size === 1) {
       const BLOCKS_PER_DAY = 144;
       const ourFirstBlock = 0;
       const queryFirstBlock = Math.max(0, ourFirstBlock - BLOCKS_PER_DAY);
-
       if (peer.state === PeerState.ready) {
-        gossipSyncer.requestSync(queryFirstBlock);
+        gossipSyncer.syncRange(queryFirstBlock);
       } else {
-        peer.once("ready", () => gossipSyncer.requestSync(queryFirstBlock));
+        peer.once("ready", () => gossipSyncer.syncRange(queryFirstBlock));
       }
     }
   }
@@ -126,5 +154,15 @@ export class GossipManager extends EventEmitter {
 
   private _onError(err: Error) {
     this.emit("error", err);
+  }
+
+  private async _restoreState() {
+    this.logger.info("retrieving gossip state");
+    this.blockHeight = 0;
+    const chanAnns = await this._gossipStore.findChannelAnnouncemnts();
+    for (const chanAnn of chanAnns) {
+      this.blockHeight = Math.max(this.blockHeight, chanAnn.shortChannelId.block);
+    }
+    this.logger.info("%d channels restored with highest block %d", chanAnns.length, this.blockHeight); // prettier-ignore
   }
 }
