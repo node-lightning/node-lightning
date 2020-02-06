@@ -1,3 +1,5 @@
+// tslint:disable: no-unused-expression
+
 import { Logger } from "@lntools/logger";
 import { expect } from "chai";
 import sinon from "sinon";
@@ -15,22 +17,6 @@ function createFakeLogger() {
   return sinon.createStubInstance(Logger);
 }
 
-// general_events:
-//    activate
-//    deactivate
-
-// query_events:
-//    syncRange with defaults
-//    syncRange with options
-//    reply_channel_range with complete, has scids
-//    reply_channel_range with complete, no scids
-//    reply_channel_range with not complete, has scids
-//    reply_channel_rnage with not complete, no scids
-//    reply_short_channel_ids_end with complete, has scids
-//    reply_short_channel_ids_end with complete, no scids
-//    reply_short_channel_ids_end with not complete, scids
-//    reply_short_channel_ids_end with not complete, no scids
-
 describe("PeerGossipSynchronizer", () => {
   let sut: PeerGossipSynchronizer;
   let peer: any;
@@ -41,243 +27,415 @@ describe("PeerGossipSynchronizer", () => {
     sut = new PeerGossipSynchronizer({ peer, chainHash: Buffer.alloc(32, 1), logger });
   });
 
-  describe("query_state: pending", () => {
-    describe(".syncRange()", () => {
-      it("should send query_channel_range", () => {
-        sut.syncRange(1000000, 1000);
-        const msg = peer.sendMessage.args[0][0] as QueryChannelRangeMessage;
-        expect(msg.firstBlocknum).to.equal(1000000);
-        expect(msg.numberOfBlocks).to.equal(1000);
-      });
+  type QueryEventAssertions = {
+    onSyncRange_WithDefaults: () => void;
+    onSyncRange_WithOptions: () => void;
+    onReplyChannelRange_Complete_NoScids: () => void;
+    onReplyChannelRange_Complete_Scids: () => void;
+    onReplyChannelRange_NotComplete_Scids: () => void;
+    onReplyChannelRange_NotComplete_NoScids: () => void;
+    onReplyShortChannelIdsEnd_Complete_Scids: () => void;
+    onReplyShortChannelIdsEnd_Complete_NoScids: () => void;
+    onReplyShortChannelIdsEnd_NotComplete_Scids: () => void;
+    onReplyShortChannelIdsEnd_NotComplete_NoScids: () => void;
+  };
 
-      it("should transition to awaiting_ranges", () => {
+  function runQueryEvents(assertions: QueryEventAssertions) {
+    describe("event: call .syncRange() with defaults", () => {
+      beforeEach(() => {
         sut.syncRange();
-        expect(sut.queryState).to.equal(PeerGossipQueryState.AwaitingRanges);
       });
+      assertions.onSyncRange_WithDefaults();
     });
 
-    describe("receive: reply_channel_range", () => {
-      describe("complete, has scids", () => {
-        function createMsg() {
-          const msg = new ReplyChannelRangeMessage();
-          msg.complete = true;
-          msg.shortChannelIds.push(new ShortChannelId(1, 1, 1));
-          return msg;
-        }
-
-        it("should not send anything", () => {
-          peer.emit("message", createMsg());
-          expect(peer.sendMessage.callCount).to.equal(0);
-        });
+    describe("event: call .syncRange() with options", () => {
+      beforeEach(() => {
+        sut.syncRange(1000000, 1000);
       });
-
-      describe("not complete, has scids", () => {
-        function createMsg() {
-          const msg = new ReplyChannelRangeMessage();
-          msg.complete = false;
-          msg.shortChannelIds.push(new ShortChannelId(1, 1, 1));
-          return msg;
-        }
-
-        it("should not send anything", () => {
-          peer.emit("message", createMsg());
-          expect(peer.sendMessage.callCount).to.equal(0);
-        });
-      });
-
-      describe("note complete, no scids", () => {
-        function createMsg() {
-          const msg = new ReplyChannelRangeMessage();
-          msg.complete = false;
-          msg.shortChannelIds = [];
-          return msg;
-        }
-
-        it("should not send anything", () => {
-          peer.emit("message", createMsg());
-          expect(peer.sendMessage.callCount).to.equal(0);
-        });
-      });
+      assertions.onSyncRange_WithOptions();
     });
 
-    describe("receive: reply_short_channel_ids_end", () => {
-      it("should stay in pending", () => {});
+    describe("event: receive reply_channel_range complete=true, with_scids=true", () => {
+      beforeEach(() => {
+        const msg = new ReplyChannelRangeMessage();
+        msg.complete = true;
+        msg.shortChannelIds.push(new ShortChannelId(1, 1, 1));
+        peer.emit("message", msg);
+      });
+      assertions.onReplyChannelRange_Complete_Scids();
+    });
+
+    describe("event: receive reply_channel_range complete=true, with_scids=false", () => {
+      beforeEach(() => {
+        const msg = new ReplyChannelRangeMessage();
+        msg.complete = true;
+        msg.shortChannelIds = [];
+        peer.emit("message", msg);
+      });
+      assertions.onReplyChannelRange_Complete_NoScids();
+    });
+
+    describe("event: receive reply_channel_range complete=false, with_scids=true", () => {
+      beforeEach(() => {
+        const msg = new ReplyChannelRangeMessage();
+        msg.complete = false;
+        msg.shortChannelIds.push(new ShortChannelId(1, 1, 1));
+        peer.emit("message", msg);
+      });
+      assertions.onReplyChannelRange_NotComplete_Scids();
+    });
+
+    describe("event: receive reply_channel_range complete=false, with_scids=false", () => {
+      beforeEach(() => {
+        const msg = new ReplyChannelRangeMessage();
+        msg.complete = false;
+        msg.shortChannelIds = [];
+        peer.emit("message", msg);
+      });
+      assertions.onReplyChannelRange_NotComplete_NoScids();
+    });
+
+    describe("event: receive reply_short_channel_ids_end complete=true, with_scids=true", () => {
+      beforeEach(() => {
+        (sut as any)._queryScidQueue.push(new ShortChannelId(2, 2, 2));
+        const msg = new ReplyShortChannelIdsEndMessage();
+        msg.complete = true;
+        peer.emit("message", msg);
+      });
+      assertions.onReplyShortChannelIdsEnd_Complete_Scids();
+    });
+
+    describe("event: receive reply_short_channel_ids_end complete=true, with_scids=false", () => {
+      beforeEach(() => {
+        const msg = new ReplyShortChannelIdsEndMessage();
+        msg.complete = true;
+        peer.emit("message", msg);
+      });
+      assertions.onReplyShortChannelIdsEnd_Complete_NoScids();
+    });
+
+    describe("event: receive reply_short_channel_ids_end complete=false, with_scids=true", () => {
+      beforeEach(() => {
+        (sut as any)._queryScidQueue.push(new ShortChannelId(2, 2, 2));
+        const msg = new ReplyShortChannelIdsEndMessage();
+        msg.complete = false;
+        peer.emit("message", msg);
+      });
+      assertions.onReplyShortChannelIdsEnd_NotComplete_Scids();
+    });
+
+    describe("event receive reply_short_channel_ids_end complete=false, with_scids=false", () => {
+      beforeEach(() => {
+        const msg = new ReplyShortChannelIdsEndMessage();
+        msg.complete = false;
+        peer.emit("message", msg);
+      });
+      assertions.onReplyShortChannelIdsEnd_NotComplete_NoScids();
+    });
+  }
+
+  describe("query_state: pending", () => {
+    runQueryEvents({
+      onSyncRange_WithDefaults: () => {
+        it("should send query_channel_range", () => {
+          const msg = peer.sendMessage.args[0][0] as QueryChannelRangeMessage;
+          expect(msg.firstBlocknum).to.equal(0);
+          expect(msg.numberOfBlocks).to.equal(4294967295);
+        });
+
+        it("should transition to awaiting_ranges", () => {
+          sut.syncRange();
+          expect(sut.queryState).to.equal(PeerGossipQueryState.AwaitingRanges);
+        });
+      },
+
+      onSyncRange_WithOptions: () => {
+        it("should send query_channel_range", () => {
+          const msg = peer.sendMessage.args[0][0] as QueryChannelRangeMessage;
+          expect(msg.firstBlocknum).to.equal(1000000);
+          expect(msg.numberOfBlocks).to.equal(1000);
+        });
+
+        it("should transition to awaiting_ranges", () => {
+          expect(sut.queryState).to.equal(PeerGossipQueryState.AwaitingRanges);
+        });
+      },
+
+      onReplyChannelRange_Complete_NoScids: () => {
+        it("should not send anything", () => {
+          expect(peer.sendMessage.callCount).to.equal(0);
+        });
+
+        it("should stay in pending", () => {
+          expect(sut.queryState).to.equal(PeerGossipQueryState.Pending);
+        });
+      },
+
+      onReplyChannelRange_Complete_Scids: () => {
+        it("should not send anything", () => {
+          expect(peer.sendMessage.callCount).to.equal(0);
+        });
+
+        it("should stay in pending", () => {
+          expect(sut.queryState).to.equal(PeerGossipQueryState.Pending);
+        });
+      },
+
+      onReplyChannelRange_NotComplete_Scids: () => {
+        it("should not send anything", () => {
+          expect(peer.sendMessage.callCount).to.equal(0);
+        });
+
+        it("should stay in pending", () => {
+          expect(sut.queryState).to.equal(PeerGossipQueryState.Pending);
+        });
+      },
+
+      onReplyChannelRange_NotComplete_NoScids: () => {
+        it("should not send anything", () => {
+          expect(peer.sendMessage.callCount).to.equal(0);
+        });
+
+        it("should stay in pending", () => {
+          expect(sut.queryState).to.equal(PeerGossipQueryState.Pending);
+        });
+      },
+
+      onReplyShortChannelIdsEnd_Complete_NoScids: () => {
+        it("should not send anything", () => {
+          expect(peer.sendMessage.callCount).to.equal(0);
+        });
+
+        it("should stay in pending", () => {
+          expect(sut.queryState).to.equal(PeerGossipQueryState.Pending);
+        });
+      },
+
+      onReplyShortChannelIdsEnd_Complete_Scids: () => {
+        it("should not send anything", () => {
+          expect(peer.sendMessage.callCount).to.equal(0);
+        });
+
+        it("should stay in pending", () => {
+          expect(sut.queryState).to.equal(PeerGossipQueryState.Pending);
+        });
+      },
+
+      onReplyShortChannelIdsEnd_NotComplete_NoScids: () => {
+        it("should not send anything", () => {
+          expect(peer.sendMessage.callCount).to.equal(0);
+        });
+
+        it("should stay in pending", () => {
+          expect(sut.queryState).to.equal(PeerGossipQueryState.Pending);
+        });
+      },
+
+      onReplyShortChannelIdsEnd_NotComplete_Scids: () => {
+        it("should not send anything", () => {
+          expect(peer.sendMessage.callCount).to.equal(0);
+        });
+
+        it("should stay in pending", () => {
+          expect(sut.queryState).to.equal(PeerGossipQueryState.Pending);
+        });
+      },
     });
   });
 
   describe("query_state: awaiting_range", () => {
+    let channelRangeFailedEvent;
     beforeEach(() => {
       sut.queryState = PeerGossipQueryState.AwaitingRanges;
+
+      channelRangeFailedEvent = sinon.stub();
+      sut.on("channel_range_failed", channelRangeFailedEvent);
     });
 
-    describe("receive: reply_channel_range", () => {
-      describe("complete, has scids", () => {
-        function createMsg() {
-          const msg = new ReplyChannelRangeMessage();
-          msg.complete = true;
-          msg.shortChannelIds.push(new ShortChannelId(1, 1, 1));
-          return msg;
-        }
+    runQueryEvents({
+      onSyncRange_WithDefaults: () => {
+        // TODO
+        it("to be defined");
+      },
+      onSyncRange_WithOptions: () => {
+        it("to be defined");
+      },
 
+      onReplyChannelRange_Complete_Scids: () => {
         it("should send query_short_channel_ids", () => {
-          peer.emit("message", createMsg());
           const msg = peer.sendMessage.args[0][0] as QueryShortChannelIdsMessage;
           expect(msg.shortChannelIds[0]).to.deep.equal(new ShortChannelId(1, 1, 1));
         });
 
         it("should transition to await_scids", () => {
-          peer.emit("message", createMsg());
           expect(sut.queryState).to.equal(PeerGossipQueryState.AwaitingScids);
         });
-      });
+      },
 
-      describe("not complete, has scids", () => {
-        function createMsg() {
-          const msg = new ReplyChannelRangeMessage();
-          msg.complete = false;
-          msg.shortChannelIds.push(new ShortChannelId(1, 1, 1));
-          return msg;
-        }
-
-        it("should send query_short_channel_ids", () => {
-          peer.emit("message", createMsg());
-          const msg = peer.sendMessage.args[0][0] as QueryShortChannelIdsMessage;
-          expect(msg.shortChannelIds[0]).to.deep.equal(new ShortChannelId(1, 1, 1));
-        });
-
-        it("should transition to await_scids", () => {
-          peer.emit("message", createMsg());
-          expect(sut.queryState).to.equal(PeerGossipQueryState.AwaitingScids);
-        });
-      });
-
-      describe("not complete, no scids", () => {
-        function createMsg() {
-          const msg = new ReplyChannelRangeMessage();
-          msg.complete = false;
-          msg.shortChannelIds = [];
-          return msg;
-        }
-
+      onReplyChannelRange_Complete_NoScids: () => {
         it("should not send message", () => {
-          peer.emit("message", createMsg());
           expect(peer.sendMessage.callCount).to.equal(0);
         });
 
         it("should transition to pending", () => {
-          peer.emit("message", createMsg());
           expect(sut.queryState).to.equal(PeerGossipQueryState.Pending);
         });
-      });
+      },
+
+      onReplyChannelRange_NotComplete_Scids: () => {
+        it("should send query_short_channel_ids", () => {
+          const msg = peer.sendMessage.args[0][0] as QueryShortChannelIdsMessage;
+          expect(msg.shortChannelIds[0]).to.deep.equal(new ShortChannelId(1, 1, 1));
+        });
+
+        it("should transition to await_scids", () => {
+          expect(sut.queryState).to.equal(PeerGossipQueryState.AwaitingScids);
+        });
+      },
+
+      onReplyChannelRange_NotComplete_NoScids: () => {
+        it("should not send message", () => {
+          expect(peer.sendMessage.callCount).to.equal(0);
+        });
+
+        it("should transition to pending", () => {
+          expect(sut.queryState).to.equal(PeerGossipQueryState.Pending);
+        });
+
+        it("should emit channel_range_failed", () => {
+          expect(channelRangeFailedEvent.called).to.be.true;
+          const msg = channelRangeFailedEvent.args[0][0];
+          expect(msg).to.be.instanceOf(ReplyChannelRangeMessage);
+        });
+      },
+
+      onReplyShortChannelIdsEnd_Complete_NoScids: () => {
+        it("should not send anything", () => {
+          expect(peer.sendMessage.callCount).to.equal(0);
+        });
+
+        it("should stay in awaiting_ranges", () => {
+          expect(sut.queryState).to.equal(PeerGossipQueryState.AwaitingRanges);
+        });
+      },
+
+      onReplyShortChannelIdsEnd_Complete_Scids: () => {
+        it("should not send anything", () => {
+          expect(peer.sendMessage.callCount).to.equal(0);
+        });
+
+        it("should stay in awaiting_ranges", () => {
+          expect(sut.queryState).to.equal(PeerGossipQueryState.AwaitingRanges);
+        });
+      },
+
+      onReplyShortChannelIdsEnd_NotComplete_NoScids: () => {
+        it("should not send anything", () => {
+          expect(peer.sendMessage.callCount).to.equal(0);
+        });
+
+        it("should stay in awaiting_ranges", () => {
+          expect(sut.queryState).to.equal(PeerGossipQueryState.AwaitingRanges);
+        });
+      },
+
+      onReplyShortChannelIdsEnd_NotComplete_Scids: () => {
+        it("should not send anything", () => {
+          expect(peer.sendMessage.callCount).to.equal(0);
+        });
+
+        it("should stay in awaiting_ranges", () => {
+          expect(sut.queryState).to.equal(PeerGossipQueryState.AwaitingRanges);
+        });
+      },
+    });
+  });
+
+  describe("query_state: awaiting_scids", () => {
+    let failedEvent;
+
+    beforeEach(() => {
+      sut.queryState = PeerGossipQueryState.AwaitingScids;
+      failedEvent = sinon.stub();
+      sut.on("query_short_channel_ids_failed", failedEvent);
     });
 
-    describe("query_state: await_scids", () => {
-      beforeEach(() => {
-        sut.queryState = PeerGossipQueryState.AwaitingScids;
-      });
+    runQueryEvents({
+      onSyncRange_WithDefaults: () => {
+        // TODO
+        it("to be defined");
+      },
 
-      describe("receive reply_channel_range", () => {
-        describe("complete, has scids", () => {
-          function createMsg() {
-            const msg = new ReplyChannelRangeMessage();
-            msg.complete = true;
-            msg.shortChannelIds.push(new ShortChannelId(1, 1, 1));
-            return msg;
-          }
+      onSyncRange_WithOptions: () => {
+        // TODO
+        it("to be defined");
+      },
 
-          it("should not send message", () => {
-            peer.emit("message", createMsg());
-            expect(peer.sendMessage.callCount).to.equal(0);
-          });
+      onReplyChannelRange_Complete_Scids: () => {
+        it("should not transition", () => {
+          expect(sut.queryState).to.equal(PeerGossipQueryState.AwaitingScids);
+        });
+      },
 
-          it("should enqueue scids", () => {
-            peer.emit("message", createMsg());
-            expect(sut.queryScidQueueSize).equal(1);
-          });
+      onReplyChannelRange_Complete_NoScids: () => {
+        it("should not transition", () => {
+          expect(sut.queryState).to.equal(PeerGossipQueryState.AwaitingScids);
+        });
+      },
+
+      onReplyChannelRange_NotComplete_Scids: () => {
+        it("should not transition", () => {
+          expect(sut.queryState).to.equal(PeerGossipQueryState.AwaitingScids);
+        });
+      },
+
+      onReplyChannelRange_NotComplete_NoScids: () => {
+        it("should not transition", () => {
+          expect(sut.queryState).to.equal(PeerGossipQueryState.AwaitingScids);
+        });
+      },
+
+      onReplyShortChannelIdsEnd_Complete_NoScids: () => {
+        it("should transition to pending", () => {
+          expect(sut.queryState).to.equal(PeerGossipQueryState.Pending);
+        });
+      },
+
+      onReplyShortChannelIdsEnd_Complete_Scids: () => {
+        it("should send query_short_channel_ids", () => {
+          const msg = peer.sendMessage.args[0][0];
+          expect(msg).to.be.instanceOf(QueryShortChannelIdsMessage);
+          expect(msg.shortChannelIds).to.deep.equal([new ShortChannelId(2, 2, 2)]);
         });
 
-        describe("not complete, has scids", () => {
-          function createMsg() {
-            const msg = new ReplyChannelRangeMessage();
-            msg.complete = false;
-            msg.shortChannelIds.push(new ShortChannelId(1, 1, 1));
-            return msg;
-          }
+        it("should stay in awaiting_scids", () => {
+          expect(sut.queryState).to.equal(PeerGossipQueryState.AwaitingScids);
+        });
+      },
 
-          it("should not send message", () => {
-            peer.emit("message", createMsg());
-            expect(peer.sendMessage.callCount).to.equal(0);
-          });
-
-          it("should enqueue scids", () => {
-            peer.emit("message", createMsg());
-            expect(sut.queryScidQueueSize).equal(1);
-          });
+      onReplyShortChannelIdsEnd_NotComplete_Scids: () => {
+        it("should send query_short_channel_ids", () => {
+          const msg = peer.sendMessage.args[0][0];
+          expect(msg).to.be.instanceOf(QueryShortChannelIdsMessage);
+          expect(msg.shortChannelIds).to.deep.equal([new ShortChannelId(2, 2, 2)]);
         });
 
-        describe("not complete, no scids", () => {
-          function createMsg() {
-            const msg = new ReplyChannelRangeMessage();
-            msg.complete = false;
-            msg.shortChannelIds = [];
-            return msg;
-          }
-
-          it("should not send message", () => {
-            peer.emit("message", createMsg());
-            expect(peer.sendMessage.callCount).to.equal(0);
-          });
-
-          it("should transition to pending", () => {
-            peer.emit("message", createMsg());
-            expect(sut.queryState).to.equal(PeerGossipQueryState.Pending);
-          });
+        it("should stay in awaiting_scids", () => {
+          expect(sut.queryState).to.equal(PeerGossipQueryState.AwaitingScids);
         });
-      });
+      },
 
-      describe("receive reply_short_channel_ids_end", () => {
-        describe("complete, empty queue", () => {
-          function createMsg() {
-            const msg = new ReplyShortChannelIdsEndMessage();
-            msg.complete = true;
-            return msg;
-          }
-
-          it("should transition to pending", () => {
-            peer.emit("message", createMsg());
-            expect(sut.queryState).to.equal(PeerGossipQueryState.Pending);
-          });
+      onReplyShortChannelIdsEnd_NotComplete_NoScids: () => {
+        it("should transition to pending", () => {
+          expect(sut.queryState).to.equal(PeerGossipQueryState.Pending);
         });
 
-        describe("complete, queued scids", () => {
-          beforeEach(() => {
-            //
-          });
-
-          function createMsg() {
-            const msg = new ReplyShortChannelIdsEndMessage();
-            msg.complete = true;
-            return msg;
-          }
-
-          it("should not transition state", () => {
-            //
-          });
+        it("should emit query_short_ids_failed", () => {
+          expect(failedEvent.called).to.be.true;
+          const msg = failedEvent.args[0][0] as ReplyShortChannelIdsEndMessage;
+          expect(msg).to.be.instanceOf(ReplyShortChannelIdsEndMessage);
         });
-
-        describe("not complete", () => {
-          function createMsg() {
-            const msg = new ReplyShortChannelIdsEndMessage();
-            msg.complete = false;
-            return msg;
-          }
-
-          it("should transition to pending", () => {
-            peer.emit("message", createMsg());
-            expect(sut.queryState).to.equal(PeerGossipQueryState.Pending);
-          });
-        });
-      });
+      },
     });
   });
 

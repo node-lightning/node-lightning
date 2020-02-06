@@ -131,11 +131,6 @@ export class PeerGossipSynchronizer extends EventEmitter {
       this._onReplyShortIdsEnd(msg);
       return;
     }
-
-    // if (msg instanceof ChannelAnnouncementMessage) {
-    //   this._onChannelAnnouncement(msg);
-    //   return;
-    // }
   }
 
   private _onReplyChannelRange(msg: ReplyChannelRangeMessage) {
@@ -147,23 +142,25 @@ export class PeerGossipSynchronizer extends EventEmitter {
       msg.shortChannelIds.length,
     );
 
-    // This occurs if the remote peer did not have any
-    // information for cha
-    if (!msg.complete && !msg.shortChannelIds.length) {
-      this.queryState = PeerGossipQueryState.Pending;
-      this.emit("channel_range_failed", msg);
-      return;
-    }
-
     for (const scid of msg.shortChannelIds) {
       this._queryScidQueue.push(scid);
       // this._queryScidSet.add(scid.toString());
     }
 
+    // This occurs if the remote peer did not have any
+    // information for cha
+    if (!msg.complete && !msg.shortChannelIds.length) {
+      this.emit("channel_range_failed", msg);
+    }
+
     switch (this.queryState) {
       case PeerGossipQueryState.AwaitingRanges:
-        this.queryState = PeerGossipQueryState.AwaitingScids;
-        this._sendShortChannelIdsQuery();
+        if (this._queryScidQueue.length === 0) {
+          this.queryState = PeerGossipQueryState.Pending;
+        } else {
+          this.queryState = PeerGossipQueryState.AwaitingScids;
+          this._sendShortChannelIdsQuery();
+        }
         break;
     }
   }
@@ -177,9 +174,7 @@ export class PeerGossipSynchronizer extends EventEmitter {
           // request chain_hash. We therefore transition to the inactive state
           // since this peer is not valid for receiving gossip information from
           if (!msg.complete) {
-            this.emit("query_short_ids_failed", msg);
-            this.queryState = PeerGossipQueryState.Pending;
-            return;
+            this.emit("query_short_channel_ids_failed", msg);
           }
 
           // This occurs when the last batch of information has been received
@@ -193,14 +188,9 @@ export class PeerGossipSynchronizer extends EventEmitter {
           // Successfully finished querying. We should expected messages
           // to stream in to the client, but the gossip synchronizer
           // has done its job.
-          this.emit("query_short_ids_complete", msg);
           this.queryState = PeerGossipQueryState.Pending;
         }
         break;
     }
   }
-
-  // private _onChannelAnnouncement(msg: ChannelAnnouncementMessage) {
-  //   this._queryScidSet.delete(msg.shortChannelId.toString());
-  // }
 }
