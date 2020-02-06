@@ -8,8 +8,15 @@ import { LogLevel } from "./log-level";
  */
 export function shouldLog(myLevel: LogLevel, msgLevel: LogLevel): boolean {
   switch (myLevel) {
-    case LogLevel.Debug:
+    case LogLevel.Trace:
       return true;
+    case LogLevel.Debug:
+      return (
+        msgLevel === LogLevel.Debug ||
+        msgLevel === LogLevel.Info ||
+        msgLevel === LogLevel.Warn ||
+        msgLevel === LogLevel.Error
+      );
     case LogLevel.Info:
       return (
         msgLevel === LogLevel.Info || msgLevel === LogLevel.Warn || msgLevel === LogLevel.Error

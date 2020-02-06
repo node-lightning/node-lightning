@@ -42,6 +42,16 @@ describe("Logger", () => {
     });
   });
 
+  describe("nested sub logger", () => {
+    it("should point to root", () => {
+      sut.level = LogLevel.Debug;
+      const level2 = sut.sub("level2");
+      const level3 = sut.sub("level3");
+      level3.debug("test");
+      expect((transport.write as sinon.SinonSpy).args[0][0]).contain("test");
+    });
+  });
+
   describe("create logger without instance", () => {
     it("should create logger without an instance", () => {
       const logger = sut.sub("area");

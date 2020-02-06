@@ -7,6 +7,7 @@ import { shouldLog } from "./util";
 export interface ILogger {
   area: string;
   instance: string;
+  trace(...args: any[]): void;
   debug(...args: any[]): void;
   info(...args: any[]): void;
   warn(...args: any[]): void;
@@ -30,6 +31,7 @@ export class Logger implements ILogger {
     this._transports = [];
 
     // create bound methods so consumer doesnt lose context
+    this.trace = this.trace.bind(this);
     this.debug = this.debug.bind(this);
     this.info = this.info.bind(this);
     this.warn = this.warn.bind(this);
@@ -56,11 +58,20 @@ export class Logger implements ILogger {
 
   /**
    * Constructs a sub-logger under the current parent
+   * @param area optional area, if not provided it inherits from the parent
+   * @param instance optional instance, if not provied it inherits from the parent
    */
-  public sub(area: string, instance?: string): ILogger {
-    const logger = new Logger(area, instance);
-    logger._root = this;
+  public sub(area?: string, instance?: string): ILogger {
+    const logger = new Logger(area || this.area, instance || this.instance);
+    logger._root = this._root;
     return logger;
+  }
+
+  /**
+   * Write a trace message
+   */
+  public trace(...args: any[]) {
+    this._log(LogLevel.Trace, this.area, this.instance, args);
   }
 
   /**
