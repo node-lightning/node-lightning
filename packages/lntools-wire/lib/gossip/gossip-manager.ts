@@ -107,15 +107,18 @@ export class GossipManager extends EventEmitter {
     });
     this._gossipSyncers.set(peer, gossipSyncer);
 
-    // activate using gossip_timestamp_filter based on the current date
-    gossipSyncer.activate();
+    // active gossip for the peer
+    if (peer.state === PeerState.ready) {
+      gossipSyncer.activate();
+    } else {
+      peer.once("ready", () => gossipSyncer.activate());
+    }
 
     // request historical sync
     if (this._peers.size === 1) {
       const BLOCKS_PER_DAY = 144;
       const ourFirstBlock = 0;
       const queryFirstBlock = Math.max(0, ourFirstBlock - BLOCKS_PER_DAY);
-
       if (peer.state === PeerState.ready) {
         gossipSyncer.syncRange(queryFirstBlock);
       } else {

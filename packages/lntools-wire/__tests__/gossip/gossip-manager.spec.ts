@@ -51,14 +51,6 @@ describe("GossipManager", () => {
       await sut.start();
     });
 
-    it("send a gossip_timestamp_filter to activate", () => {
-      sut.addPeer(peer1);
-      const msg = (peer1.sendMessage as any).args[0][0];
-      expect(msg.type).to.equal(265);
-      expect(msg.firstTimestamp).to.be.gte(1580946012);
-      expect(msg.timestampRange).to.equal(4294967295);
-    });
-
     describe("first peer that is `ready`", () => {
       it("should start gossip_sync process", () => {
         peer1.state = PeerState.ready;
@@ -78,6 +70,30 @@ describe("GossipManager", () => {
           expect(msg.type).to.equal(263);
           expect(msg.firstBlocknum).to.equal(0);
           expect(msg.numberOfBlocks).to.equal(4294967295);
+        });
+        peer1.emit("ready");
+      });
+    });
+
+    describe("peer that is `ready`", () => {
+      it("send a gossip_timestamp_filter to activate", () => {
+        peer1.state = PeerState.ready;
+        sut.addPeer(peer1);
+        const msg = (peer1.sendMessage as any).args[0][0];
+        expect(msg.type).to.equal(265);
+        expect(msg.firstTimestamp).to.be.gte(1580946012);
+        expect(msg.timestampRange).to.equal(4294967295);
+      });
+    });
+
+    describe("peer that is not `ready`", () => {
+      it("should start gossip_sync process once peer is `ready`", () => {
+        sut.addPeer(peer1);
+        peer1.on("ready", () => {
+          const msg = (peer1.sendMessage as any).args[0][0];
+          expect(msg.type).to.equal(265);
+          expect(msg.firstTimestamp).to.be.gte(1580946012);
+          expect(msg.timestampRange).to.equal(4294967295);
         });
         peer1.emit("ready");
       });
