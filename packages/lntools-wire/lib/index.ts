@@ -31,7 +31,7 @@ export * from "./gossip/gossip-filter-chain-client";
 export * from "./gossip/gossip-manager";
 export * from "./gossip/gossip-memory-store";
 export * from "./gossip/gossip-store";
-export * from "./gossip/gossip-syncer";
+export * from "./gossip/peer-gossip-synchronizer";
 
 export * from "./messages/announcement-signatures-message";
 export * from "./messages/channel-announcement-message";
