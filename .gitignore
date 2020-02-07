@@ -60,6 +60,7 @@ typings/
 .DS_Store
 
 test*.js
+test*.ts
 
 dist
 
