@@ -1,5 +1,7 @@
 import { ILogger } from "@lntools/logger";
 import { EventEmitter } from "events";
+import { ChannelAnnouncementMessage } from "../messages/channel-announcement-message";
+import { ExtendedChannelAnnouncementMessage } from "../messages/extended-channel-announcement-message";
 import { IWireMessage } from "../messages/wire-message";
 import { Peer } from "../peer";
 import { PeerState } from "../peer-state";
@@ -37,6 +39,7 @@ export class GossipManager extends EventEmitter {
   private _pendingStore: IGossipStore;
   private _gossipFilter: GossipFilter;
   private _gossipSyncers: Map<Peer, PeerGossipSynchronizer>;
+  private _chainClient: IGossipFilterChainClient;
 
   constructor({
     chainClient,
@@ -57,6 +60,7 @@ export class GossipManager extends EventEmitter {
 
     this._gossipStore = gossipStore;
     this._pendingStore = pendingStore;
+    this._chainClient = chainClient;
 
     this._peers = new Set<Peer>();
     this._gossipSyncers = new Map<Peer, PeerGossipSynchronizer>();
@@ -82,6 +86,7 @@ export class GossipManager extends EventEmitter {
    * used when peers are added to obtain missing information.
    */
   public async start() {
+    this.logger.info("starting gossip manager");
     await this._restoreState();
     this.started = true;
   }
@@ -93,7 +98,6 @@ export class GossipManager extends EventEmitter {
    */
   public addPeer(peer: Peer) {
     if (!this.started) throw new WireError(WireErrorCode.gossipManagerNotStarted);
-
     this.logger.info("adding peer", peer.pubkey.toString("hex"));
     this._peers.add(peer);
     peer.on("message", this._onPeerMessage);
@@ -117,7 +121,7 @@ export class GossipManager extends EventEmitter {
     // request historical sync
     if (this._peers.size === 1) {
       const BLOCKS_PER_DAY = 144;
-      const ourFirstBlock = 0;
+      const ourFirstBlock = this.blockHeight;
       const queryFirstBlock = Math.max(0, ourFirstBlock - BLOCKS_PER_DAY);
       if (peer.state === PeerState.ready) {
         gossipSyncer.syncRange(queryFirstBlock);
@@ -141,6 +145,7 @@ export class GossipManager extends EventEmitter {
    * will likely be called by a chain-monitoring service.
    */
   public async removeChannel(scid: ShortChannelId) {
+    this.logger.debug("removing channel %s", scid.toString());
     await this._gossipStore.deleteChannelAnnouncement(scid);
   }
 
@@ -157,12 +162,42 @@ export class GossipManager extends EventEmitter {
   }
 
   private async _restoreState() {
-    this.logger.info("retrieving gossip state");
+    this.logger.info("retrieving gossip state from store");
     this.blockHeight = 0;
     const chanAnns = await this._gossipStore.findChannelAnnouncemnts();
+
+    // find best block height
     for (const chanAnn of chanAnns) {
       this.blockHeight = Math.max(this.blockHeight, chanAnn.shortChannelId.block);
     }
-    this.logger.info("%d channels restored with highest block %d", chanAnns.length, this.blockHeight); // prettier-ignore
+    this.logger.info("highest block %d found from %d channels", this.blockHeight, chanAnns.length); // prettier-ignore
+
+    // validate all utxos
+    await this._validateUtxos(chanAnns);
+  }
+
+  private async _validateUtxos(chanAnns: ChannelAnnouncementMessage[]) {
+    if (!this._chainClient) {
+      this.logger.info("skipping utxo validation, no chain_client configured");
+      return;
+    }
+
+    const extChanAnnCount = chanAnns.reduce(
+      (acc, msg) => acc + (msg instanceof ExtendedChannelAnnouncementMessage ? 1 : 0),
+      0,
+    );
+    this.logger.info("checking %d utxos", extChanAnnCount);
+
+    for (const chanAnn of chanAnns) {
+      if (chanAnn instanceof ExtendedChannelAnnouncementMessage) {
+        const utxo = await this._chainClient.getUtxo(
+          chanAnn.outpoint.txId,
+          chanAnn.outpoint.voutIdx,
+        );
+        if (!utxo) {
+          await this.removeChannel(chanAnn.shortChannelId);
+        }
+      }
+    }
   }
 }
