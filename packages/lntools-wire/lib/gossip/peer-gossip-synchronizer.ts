@@ -104,6 +104,11 @@ export class PeerGossipSynchronizer extends EventEmitter {
   }
 
   public syncRange(firstBlocknum: number = 0, numberOfBlocks = 4294967295) {
+    this.logger.info(
+      "synchronizing from block %d to %d",
+      firstBlocknum,
+      firstBlocknum + numberOfBlocks,
+    );
     const queryRangeMessage = new QueryChannelRangeMessage();
     queryRangeMessage.chainHash = this.chainHash;
     queryRangeMessage.firstBlocknum = firstBlocknum;

@@ -37,6 +37,7 @@ export class GossipManager extends EventEmitter {
   private _pendingStore: IGossipStore;
   private _gossipFilter: GossipFilter;
   private _gossipSyncers: Map<Peer, PeerGossipSynchronizer>;
+  private _chainClient: IGossipFilterChainClient;
 
   constructor({
     chainClient,
@@ -57,6 +58,7 @@ export class GossipManager extends EventEmitter {
 
     this._gossipStore = gossipStore;
     this._pendingStore = pendingStore;
+    this._chainClient = chainClient;
 
     this._peers = new Set<Peer>();
     this._gossipSyncers = new Map<Peer, PeerGossipSynchronizer>();
@@ -67,6 +69,7 @@ export class GossipManager extends EventEmitter {
     this._gossipFilter.on("message", this._onFilterMessage.bind(this));
     this._gossipFilter.on("error", this._onError.bind(this));
     this._gossipFilter.on("flushed", () => this.emit("flushed"));
+
   }
 
   /**
@@ -117,7 +120,7 @@ export class GossipManager extends EventEmitter {
     // request historical sync
     if (this._peers.size === 1) {
       const BLOCKS_PER_DAY = 144;
-      const ourFirstBlock = 0;
+      const ourFirstBlock = this.blockHeight;
       const queryFirstBlock = Math.max(0, ourFirstBlock - BLOCKS_PER_DAY);
       if (peer.state === PeerState.ready) {
         gossipSyncer.syncRange(queryFirstBlock);
@@ -160,9 +163,14 @@ export class GossipManager extends EventEmitter {
     this.logger.info("retrieving gossip state");
     this.blockHeight = 0;
     const chanAnns = await this._gossipStore.findChannelAnnouncemnts();
+
+    // find best block height
     for (const chanAnn of chanAnns) {
       this.blockHeight = Math.max(this.blockHeight, chanAnn.shortChannelId.block);
     }
-    this.logger.info("%d channels restored with highest block %d", chanAnns.length, this.blockHeight); // prettier-ignore
+    this.logger.info("highest block %d found from %d channels", this.blockHeight, chanAnns.length); // prettier-ignore
+
+    // validate all utxos
+    if(this.)
   }
 }
