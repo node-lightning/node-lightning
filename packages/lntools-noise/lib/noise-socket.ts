@@ -357,7 +357,6 @@ export class NoiseSocket extends Duplex {
 
   // tslint:disable-next-line: member-ordering
   public _write(data: Buffer, encoding: string, cb: (err: Error) => void) {
-    if (this.logger) this.logger.debug("sending " + data.toString("hex"));
     const c = this._noiseState.encryptMessage(data);
     this._socket.write(c, cb);
   }
