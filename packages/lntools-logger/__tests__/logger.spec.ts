@@ -69,6 +69,7 @@ describe("Logger", () => {
   });
 
   const fixtures = [
+    { fn: "trace", level: LogLevel.Trace },
     { fn: "debug", level: LogLevel.Debug },
     { fn: "info", level: LogLevel.Info },
     { fn: "warn", level: LogLevel.Warn },
@@ -79,7 +80,7 @@ describe("Logger", () => {
     describe("." + fn, () => {
       beforeEach(() => {
         sut = new Logger("area", "instance");
-        sut.level = LogLevel.Debug;
+        sut.level = LogLevel.Trace;
         sut.transports.push(transport);
       });
 
