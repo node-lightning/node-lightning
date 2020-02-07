@@ -49,7 +49,7 @@ export function connect({ ls, es, rpk, host, port = 9735, logger }: NoiseConnect
     es = crypto.createPrivateKey();
   }
 
-  const noiseLogger = logger.sub("noise", rpk.slice(0, 8).toString("hex"));
+  const noiseLogger = logger ? logger.sub("noise", rpk.slice(0, 8).toString("hex")) : undefined;
   const noiseState = new NoiseState({ ls, es, logger: noiseLogger });
   const socket = new Socket();
   const instance = new NoiseSocket({ socket, noiseState, rpk, logger: noiseLogger });
