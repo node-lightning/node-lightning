@@ -26,7 +26,7 @@
   },
   "dependencies": {
     "@lntools/buffer-cursor": "^0.5.0",
-    "@lntools/wire": "^0.9.0",
+    "@lntools/wire": "^0.10.0",
     "levelup": "^4.3.2",
     "rocksdb": "^4.1.0"
   },
