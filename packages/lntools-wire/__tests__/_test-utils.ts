@@ -27,9 +27,12 @@ export function createFakePeer() {
       }
     },
     sendMessage: sinon.stub(),
+    pubkey: Buffer.alloc(32, 1),
   } as any;
 }
 
 export function createFakeLogger() {
-  return sinon.createStubInstance(Logger);
+  const fake = sinon.createStubInstance(Logger);
+  fake.sub = createFakeLogger;
+  return fake;
 }

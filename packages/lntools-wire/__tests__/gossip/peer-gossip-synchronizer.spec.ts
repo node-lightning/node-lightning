@@ -1,6 +1,6 @@
 // tslint:disable: no-unused-expression
 
-import { Logger } from "@lntools/logger";
+import { ILogger } from "@lntools/logger";
 import { expect } from "chai";
 import sinon from "sinon";
 import { PeerGossipSynchronizer } from "../../lib/gossip/peer-gossip-synchronizer";
@@ -11,16 +11,12 @@ import { QueryShortChannelIdsMessage } from "../../lib/messages/query-short-chan
 import { ReplyChannelRangeMessage } from "../../lib/messages/reply-channel-range-message";
 import { ReplyShortChannelIdsEndMessage } from "../../lib/messages/reply-short-channel-ids-end-message";
 import { ShortChannelId } from "../../lib/shortchanid";
-import { createFakePeer } from "../_test-utils";
-
-function createFakeLogger() {
-  return sinon.createStubInstance(Logger);
-}
+import { createFakeLogger, createFakePeer } from "../_test-utils";
 
 describe("PeerGossipSynchronizer", () => {
   let sut: PeerGossipSynchronizer;
   let peer: any;
-  let logger: Logger;
+  let logger: ILogger;
   beforeEach(() => {
     peer = createFakePeer();
     logger = createFakeLogger();
