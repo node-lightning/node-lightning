@@ -1,4 +1,4 @@
-import { Logger, manager } from "@lntools/logger";
+import { ILogger } from "@lntools/logger";
 import * as noise from "@lntools/noise";
 import { NoiseSocket } from "@lntools/noise";
 import assert from "assert";
@@ -6,7 +6,7 @@ import { EventEmitter } from "events";
 import * as MessageFactory from "./message-factory";
 import { InitMessage } from "./messages/init-message";
 import { IWireMessage } from "./messages/wire-message";
-import { PeerConnectOptions } from "./peer-connect-options";
+import { PeerOptions } from "./peer-options";
 import { PeerState } from "./peer-state";
 import { PingPongState } from "./pingpong-state";
 
@@ -162,28 +162,38 @@ export class Peer extends EventEmitter implements IPeerMessageSender, IPeerMessa
   public socket: NoiseSocket;
   public messageCounter: number = 0;
   public pingPongState: PingPongState;
-  public logger: Logger;
+  public logger: ILogger;
   public remoteInit: InitMessage;
   public localInit: InitMessage;
   public initMessageFactory: () => InitMessage;
 
-  constructor(initMessageFactory: () => InitMessage) {
+  private _options: PeerOptions;
+  private _id: string;
+
+  constructor(options: PeerOptions) {
     super();
+    this._options = options;
+
     this.pingPongState = new PingPongState(this);
-    this.initMessageFactory = initMessageFactory;
+    this.initMessageFactory = options.initMessageFactory;
+
+    this._id = this._options.rpk.slice(0, 8).toString("hex");
+    this.logger = options.logger.sub("peer", this._id);
+  }
+
+  public get id(): string {
+    return this._id;
+  }
+
+  public get pubkey(): Buffer {
+    return this._options.rpk;
   }
 
   /**
    * Connect to the remote peer and binds socket events into the Peer.
    */
-  public connect({ ls, rpk, host, port = 9735 }: PeerConnectOptions) {
-    // construct a logger before connecting
-    this.logger = manager.create(
-      "PEER",
-      rpk && rpk.toString("hex").substring(0, 4) + ".." + rpk.toString("hex").substring(60, 64),
-    );
-
-    this.socket = noise.connect({ ls, rpk, host, port });
+  public connect() {
+    this.socket = noise.connect({ ...this._options, logger: this.logger });
     this.socket.on("ready", this._onSocketReady.bind(this));
     this.socket.on("end", this._onSocketEnd.bind(this));
     this.socket.on("close", this._onSocketClose.bind(this));

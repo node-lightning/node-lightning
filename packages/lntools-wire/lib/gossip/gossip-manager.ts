@@ -1,4 +1,4 @@
-import { Logger } from "@lntools/logger";
+import { ILogger } from "@lntools/logger";
 import { EventEmitter } from "events";
 import { IWireMessage } from "../messages/wire-message";
 import { Peer } from "../peer";
@@ -29,7 +29,7 @@ export declare interface GossipManager {
  */
 export class GossipManager extends EventEmitter {
   public chainHash: Buffer;
-  public logger: Logger;
+  public logger: ILogger;
   public blockHeight: number;
   public started: boolean;
   private _peers: Set<Peer>;
@@ -46,14 +46,14 @@ export class GossipManager extends EventEmitter {
     pendingStore,
   }: {
     chainHash: Buffer;
-    logger: Logger;
+    logger: ILogger;
     gossipStore: IGossipStore;
     pendingStore: IGossipStore;
     chainClient?: IGossipFilterChainClient;
   }) {
     super();
     this.chainHash = chainHash;
-    this.logger = logger;
+    this.logger = logger.sub("gossip_mgr");
 
     this._gossipStore = gossipStore;
     this._pendingStore = pendingStore;
@@ -94,7 +94,7 @@ export class GossipManager extends EventEmitter {
   public addPeer(peer: Peer) {
     if (!this.started) throw new WireError(WireErrorCode.gossipManagerNotStarted);
 
-    this.logger.info("syncing peer %s", peer.toString());
+    this.logger.info("adding peer", peer.pubkey.toString("hex"));
     this._peers.add(peer);
     peer.on("message", this._onPeerMessage);
     peer.on("close", () => this.removePeer(peer));
@@ -103,7 +103,7 @@ export class GossipManager extends EventEmitter {
     const gossipSyncer = new PeerGossipSynchronizer({
       peer,
       chainHash: this.chainHash,
-      logger: this.logger,
+      logger: this.logger.sub("gossip_syncer", peer.id),
     });
     this._gossipSyncers.set(peer, gossipSyncer);
 

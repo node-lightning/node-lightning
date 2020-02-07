@@ -1,4 +1,4 @@
-import { Logger } from "@lntools/logger";
+import { ILogger } from "@lntools/logger";
 import { EventEmitter } from "events";
 import { MESSAGE_TYPE } from "../message-type";
 import { ChannelAnnouncementMessage } from "../messages/channel-announcement-message";
@@ -31,7 +31,7 @@ export enum PeerGossipQueryState {
 export class PeerGossipSynchronizer extends EventEmitter {
   public readonly peer: IPeerMessageSender & IPeerMessageReceiver;
   public readonly chainHash: Buffer;
-  public readonly logger: Logger;
+  public readonly logger: ILogger;
   public readonly filter: GossipFilter;
   public shortChannelIdsChunksSize = 8000;
   public queryReplyTimeout = 5000;
@@ -48,7 +48,7 @@ export class PeerGossipSynchronizer extends EventEmitter {
     logger,
   }: {
     chainHash: Buffer;
-    logger: Logger;
+    logger: ILogger;
     peer: IPeerMessageReceiver & IPeerMessageSender;
   }) {
     super();
