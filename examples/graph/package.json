@@ -3,16 +3,20 @@
   "version": "1.0.0",
   "description": "Graph example",
   "scripts": {
-    "postinstall": "cd ../..; npm run build",
     "start": "../../node_modules/.bin/ts-node index.ts"
   },
   "keywords": [],
   "author": "Brian Mancini <bmancini@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "@lntools/bitcoin": "file:../../packages/lntools-bitcoin",
     "@lntools/bitcoind": "file:../../packages/lntools-bitcoind",
+    "@lntools/buffer-cursor": "file:../../packages/lntools-buffer-cursor",
     "@lntools/chainmon": "file:../../packages/lntools-chainmon",
+    "@lntools/crypto": "file:../../packages/lntools-crypto",
+    "@lntools/gossip-rocksdb": "file:../../packages/lntools-gossip-rocksdb",
     "@lntools/logger": "file:../../packages/lntools-logger",
-    "@lntools/wire": "file:../../packages/lntools-wire"
+    "@lntools/noise": "file:../../packages/lntools-noise",
+    "@lntools/wire": "file:/../../packages/lntools-wire"
   }
 }

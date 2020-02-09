@@ -6,6 +6,7 @@ const noise = require("@lntools/noise");
 const { Peer } = require("../lib/peer");
 const { PingPongState } = require("../lib/pingpong-state");
 const { InitMessage } = require("../lib/messages/init-message");
+const { createFakeLogger } = require("./_test-utils");
 
 class FakeSocket extends EventEmitter {
   constructor() {
@@ -40,7 +41,9 @@ describe("Peer", () => {
       msg.localDataLossProtect = true;
       return msg;
     };
-    sut = new Peer(initMessageFactory);
+    const rpk = Buffer.alloc(32, 1);
+    const logger = createFakeLogger();
+    sut = new Peer({ rpk, initMessageFactory, logger });
     sut.socket = socket = new FakeSocket();
     sut.pingPongState = sinon.createStubInstance(PingPongState);
     sandbox = sinon.createSandbox();
@@ -59,7 +62,7 @@ describe("Peer", () => {
       sandbox.stub(sut, "_onSocketClose");
       sandbox.stub(sut, "_onSocketError");
       sandbox.stub(sut, "_onSocketData");
-      sut.connect({});
+      sut.connect();
     });
 
     it("should bind to ready", () => {
