@@ -1,9 +1,9 @@
 {
   "name": "@lntools/crypto",
   "version": "0.6.0",
-  "description": "Crypto suite for LN Tools",
+  "description": "Crypto suite for LNTools",
   "author": "Brian Mancini <bmancini@gmail.com>",
-  "homepage": "https://github.com/altangent/lntools#readme",
+  "homepage": "https://github.com/altangent/lntools/tree/master/packages/lntools-crypto",
   "license": "MIT",
   "main": "dist/index.js",
   "scripts": {
@@ -11,6 +11,9 @@
     "lint": "../../node_modules/.bin/tslint --project tsconfig.json --config ../../tslint.json",
     "build": "../../node_modules/.bin/tsc --project tsconfig.json",
     "prepublish": "npm run build"
+  },
+  "engines": {
+    "node": ">=10.17"
   },
   "repository": {
     "type": "git",
