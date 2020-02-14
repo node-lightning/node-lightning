@@ -8,7 +8,7 @@
     "lint": "eslint packages",
     "test": "lerna run test",
     "build": "lerna run build",
-    "bootstrap:ci": "lerna bootsrap --hoist",
+    "bootstrap:ci": "lerna bootstrap --hoist",
     "ci": "lerna run test"
   },
   "keywords": [
