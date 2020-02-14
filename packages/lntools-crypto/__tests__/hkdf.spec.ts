@@ -2,6 +2,12 @@ import { expect } from "chai";
 import { hkdf } from "../lib/hkdf";
 
 describe("hkdf", () => {
+  describe("general", () => {
+    it("should not overflow on length", () => {
+      expect(() => hkdf(Buffer.alloc(32, 1), 8192)).to.throw();
+    });
+  });
+
   describe("rfc5869 vectors", () => {
     const vectors = [
       {
