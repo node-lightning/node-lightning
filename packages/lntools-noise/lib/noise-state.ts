@@ -141,7 +141,7 @@ export class NoiseState {
     const ss = ecdh(this.rpk, this.es);
 
     // 4. ck, temp_k1 = HKDF(ck, es)
-    const tempK1 = hkdf(this.ck, ss);
+    const tempK1 = hkdf(ss, 64, this.ck);
     this.ck = tempK1.slice(0, 32);
     this.tempK1 = tempK1.slice(32);
 
@@ -187,7 +187,7 @@ export class NoiseState {
     const ss = ecdh(this.repk, this.es);
 
     // 6. ck, temp_k2 = HKDF(cd, ss)
-    const tempK2 = hkdf(this.ck, ss);
+    const tempK2 = hkdf(ss, 64, this.ck);
     this.ck = tempK2.slice(0, 32);
     this.tempK2 = tempK2.slice(32);
 
@@ -222,7 +222,7 @@ export class NoiseState {
     const ss = ecdh(this.repk, this.ls);
 
     // 4. ck, temp_k3 = HKDF(ck, ss)
-    const tempK3 = hkdf(this.ck, ss);
+    const tempK3 = hkdf(ss, 64, this.ck);
     this.ck = tempK3.slice(0, 32);
     this.tempK3 = tempK3.slice(32);
 
@@ -230,7 +230,7 @@ export class NoiseState {
     const t = ccpEncrypt(this.tempK3, Buffer.alloc(12), this.h, Buffer.alloc(0));
 
     // 6. sk, rk = hkdf(ck, zero)
-    const sk = hkdf(this.ck, Buffer.alloc(0));
+    const sk = hkdf(Buffer.alloc(0), 64, this.ck);
     this.rk = sk.slice(32);
     this.sk = sk.slice(0, 32);
 
@@ -272,7 +272,7 @@ export class NoiseState {
     const ss = ecdh(re, this.ls);
 
     // 6. ck, temp_k1 = HKDF(cd, ss)
-    const tempK1 = hkdf(this.ck, ss);
+    const tempK1 = hkdf(ss, 64, this.ck);
     this.ck = tempK1.slice(0, 32);
     this.tempK1 = tempK1.slice(32);
 
@@ -297,7 +297,7 @@ export class NoiseState {
     const ss = ecdh(this.repk, this.es);
 
     // 4. ck, temp_k2 = hkdf(ck, ss)
-    const tempK2 = hkdf(this.ck, ss);
+    const tempK2 = hkdf(ss, 64, this.ck);
     this.ck = tempK2.slice(0, 32);
     this.tempK2 = tempK2.slice(32);
 
@@ -341,7 +341,7 @@ export class NoiseState {
     const ss = ecdh(this.rpk, this.es);
 
     // 7. ck, temp_k3 = hkdf(cs, ss)
-    const tempK3 = hkdf(this.ck, ss);
+    const tempK3 = hkdf(ss, 64, this.ck);
     this.ck = tempK3.slice(0, 32);
     this.tempK3 = tempK3.slice(32);
 
@@ -349,7 +349,7 @@ export class NoiseState {
     ccpDecrypt(this.tempK3, Buffer.alloc(12), this.h, t);
 
     // 9. rk, sk = hkdf(ck, zero)
-    const sk = hkdf(this.ck, Buffer.alloc(0));
+    const sk = hkdf(Buffer.alloc(0), 64, this.ck);
     this.rk = sk.slice(0, 32);
     this.sk = sk.slice(32);
 
@@ -444,7 +444,7 @@ export class NoiseState {
 
   private _rotateSendingKeys() {
     if (this.logger) this.logger.debug("rotating sending key");
-    const result = hkdf(this.ck, this.sk);
+    const result = hkdf(this.sk, 64, this.ck);
     this.sk = result.slice(32);
     this.ck = result.slice(0, 32);
     this.sn = Buffer.alloc(12);
@@ -452,7 +452,7 @@ export class NoiseState {
 
   private _rotateRecievingKeys() {
     if (this.logger) this.logger.debug("rotating receiving key");
-    const result = hkdf(this.ck, this.rk);
+    const result = hkdf(this.rk, 64, this.ck);
     this.rk = result.slice(32);
     this.ck = result.slice(0, 32);
     this.rn = Buffer.alloc(12);

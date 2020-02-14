@@ -4,12 +4,11 @@
   "description": "Toolkit for the Bitcoin Lightning Network",
   "scripts": {
     "start": "cd packages/daemon; npm run start",
-    "link": "lerna link",
-    "bootstrap": "lerna bootstrap --hoist",
-    "pretest": "npm run lint",
+    "bootstrap": "lerna bootstrap",
     "lint": "eslint packages",
     "test": "lerna run test",
     "build": "lerna run build",
+    "bootstrap:ci": "lerna bootstrap --hoist",
     "ci": "lerna run test"
   },
   "keywords": [
