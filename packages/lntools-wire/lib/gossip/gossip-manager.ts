@@ -186,9 +186,19 @@ export class GossipManager extends EventEmitter {
       (acc, msg) => acc + (msg instanceof ExtendedChannelAnnouncementMessage ? 1 : 0),
       0,
     );
-    this.logger.info("checking %d utxos", extChanAnnCount);
+    this.logger.info("validating %d utxos", extChanAnnCount);
 
-    for (const chanAnn of chanAnns) {
+    if (!extChanAnnCount) return;
+
+    const oct = Math.trunc(extChanAnnCount / 8);
+    for (let i = 0; i < chanAnns.length; i++) {
+      const chanAnn = chanAnns[i];
+      if ((i + 1) % oct === 0) {
+        this.logger.info(
+          "validating utxos %s% complete",
+          (((i + 1) / extChanAnnCount) * 100).toFixed(2),
+        );
+      }
       if (chanAnn instanceof ExtendedChannelAnnouncementMessage) {
         const utxo = await this._chainClient.getUtxo(
           chanAnn.outpoint.txId,

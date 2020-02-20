@@ -95,6 +95,7 @@ export class PeerGossipSynchronizer extends EventEmitter {
   }
 
   public activate(start: number = Math.trunc(Date.now() / 1000), range = 4294967295) {
+    this.logger.info("activating gossip for range %d to %d", start, range);
     const gossipFilter = new GossipTimestampFilterMessage();
     gossipFilter.chainHash = this.chainHash;
     gossipFilter.firstTimestamp = start;
@@ -167,6 +168,7 @@ export class PeerGossipSynchronizer extends EventEmitter {
   }
 
   private _onReplyShortIdsEnd(msg: ReplyShortChannelIdsEndMessage) {
+    this.logger.debug("received reply_short_channel_ids_end - complete: %d", msg.complete);
     switch (this.queryState) {
       case PeerGossipQueryState.AwaitingScids:
         {
