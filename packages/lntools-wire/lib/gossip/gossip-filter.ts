@@ -139,10 +139,6 @@ export class GossipFilter extends EventEmitter {
    * and validating the transaction on chain work. This message will
    */
   private async _validateChannelAnnouncement(msg: ChannelAnnouncementMessage): Promise<boolean> {
-    // abort if we've already processed this channel announcement before...
-    const existing = await this._gossipStore.findChannelAnnouncement(msg.shortChannelId);
-    if (existing) return;
-
     // validate signatures for message
     if (!ChannelAnnouncementMessage.verifySignatures(msg)) {
       this.emit("error", new WireError(WireErrorCode.chanAnnSigFailed, [msg]));
