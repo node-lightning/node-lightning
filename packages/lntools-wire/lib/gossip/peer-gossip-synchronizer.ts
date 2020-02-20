@@ -94,7 +94,7 @@ export class PeerGossipSynchronizer extends EventEmitter {
     this.receiveState = PeerGossipReceiveState.Inactive;
   }
 
-  public activate(start: number = Math.trunc(Date.now() / 1000), range: number = 4294967295) {
+  public activate(start: number = Math.trunc(Date.now() / 1000), range = 4294967295) {
     const gossipFilter = new GossipTimestampFilterMessage();
     gossipFilter.chainHash = this.chainHash;
     gossipFilter.firstTimestamp = start;
@@ -103,12 +103,8 @@ export class PeerGossipSynchronizer extends EventEmitter {
     this.receiveState = PeerGossipReceiveState.Active;
   }
 
-  public syncRange(firstBlocknum: number = 0, numberOfBlocks = 4294967295) {
-    this.logger.info(
-      "synchronizing from block %d to %d",
-      firstBlocknum,
-      firstBlocknum + numberOfBlocks,
-    );
+  public syncRange(firstBlocknum: number = 0, numberOfBlocks = 4294967295 - firstBlocknum) {
+    this.logger.info("synchronizing from block %d to %d", firstBlocknum, numberOfBlocks);
     const queryRangeMessage = new QueryChannelRangeMessage();
     queryRangeMessage.chainHash = this.chainHash;
     queryRangeMessage.firstBlocknum = firstBlocknum;

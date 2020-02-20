@@ -26,6 +26,7 @@ describe("PeerGossipSynchronizer", () => {
   type QueryEventAssertions = {
     onSyncRange_WithDefaults: () => void;
     onSyncRange_WithOptions: () => void;
+    onSyncRange_WithOverflow: () => void;
     onReplyChannelRange_Complete_NoScids: () => void;
     onReplyChannelRange_Complete_Scids: () => void;
     onReplyChannelRange_NotComplete_Scids: () => void;
@@ -49,6 +50,13 @@ describe("PeerGossipSynchronizer", () => {
         sut.syncRange(1000000, 1000);
       });
       assertions.onSyncRange_WithOptions();
+    });
+
+    describe("event: call .syncRange() with overflow", () => {
+      beforeEach(() => {
+        sut.syncRange(1000);
+      });
+      assertions.onSyncRange_WithOverflow();
     });
 
     describe("event: receive reply_channel_range complete=true, with_scids=true", () => {
@@ -157,6 +165,18 @@ describe("PeerGossipSynchronizer", () => {
         });
       },
 
+      onSyncRange_WithOverflow: () => {
+        it("should send query_channel_range", () => {
+          const msg = peer.sendMessage.args[0][0] as QueryChannelRangeMessage;
+          expect(msg.firstBlocknum).to.equal(1000);
+          expect(msg.numberOfBlocks).to.equal(4294967295 - 1000);
+        });
+
+        it("should transition to awaiting_ranges", () => {
+          expect(sut.queryState).to.equal(PeerGossipQueryState.AwaitingRanges);
+        });
+      },
+
       onReplyChannelRange_Complete_NoScids: () => {
         it("should not send anything", () => {
           expect(peer.sendMessage.callCount).to.equal(0);
@@ -253,7 +273,12 @@ describe("PeerGossipSynchronizer", () => {
         // TODO
         it("to be defined");
       },
+
       onSyncRange_WithOptions: () => {
+        it("to be defined");
+      },
+
+      onSyncRange_WithOverflow: () => {
         it("to be defined");
       },
 
@@ -363,6 +388,11 @@ describe("PeerGossipSynchronizer", () => {
       },
 
       onSyncRange_WithOptions: () => {
+        // TODO
+        it("to be defined");
+      },
+
+      onSyncRange_WithOverflow: () => {
         // TODO
         it("to be defined");
       },
