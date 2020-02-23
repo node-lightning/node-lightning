@@ -81,13 +81,22 @@ export class GossipManager extends EventEmitter {
   }
 
   /**
-   * Starts the gossip manager. This method will interrogate the gossip
-   * store to obtain the highest block height. This value will be
-   * used when peers are added to obtain missing information.
+   * Starts the gossip manager. This method will load information
+   * from the gossip store, determine when the last information
+   * was obtained, validate the existing messages (to see if any
+   * channels have closed), and finally emit all messages that
+   * exist in the system.
    */
   public async start() {
     this.logger.info("starting gossip manager");
     await this._restoreState();
+
+    // emit all restored messages
+    const msgs = await this.allMessages();
+    for (const msg of msgs) {
+      this.emit("message", msg);
+    }
+
     this.started = true;
   }
 
@@ -147,6 +156,58 @@ export class GossipManager extends EventEmitter {
   public async removeChannel(scid: ShortChannelId) {
     this.logger.debug("removing channel %s", scid.toString());
     await this._gossipStore.deleteChannelAnnouncement(scid);
+  }
+
+  /**
+   * Retrieves the valid chan_ann, chan_update, node_ann messages
+   * while making sure to not send duplicate node_ann messages.
+   *
+   * @remarks
+   * For now we are going to buffer messages into memory. We could
+   * return a stream and yield messages as they are streamed from
+   * the gossip_store.
+   */
+  public async allMessages(): Promise<IWireMessage[]> {
+    this.logger.debug("fetching all messages");
+    const results: IWireMessage[] = [];
+
+    // maintain a set of node ids that we have already seen so that
+    // we do no rebroadcast node announcements. This set stores the
+    // nodeid pubkey as a hex string, which through testing is the
+    // fastest way to perfrom set operations.
+    const seenNodeIds: Set<string> = new Set();
+
+    // obtain full list of channel announcements
+    const chanAnns = await this._gossipStore.findChannelAnnouncemnts();
+    for (const chanAnn of chanAnns) {
+      results.push(chanAnn);
+
+      // load and add the node1 channel_update
+      const update1 = await this._gossipStore.findChannelUpdate(chanAnn.shortChannelId, 0);
+      if (update1) results.push(update1);
+
+      // load and add the nod2 channel_update
+      const update2 = await this._gossipStore.findChannelUpdate(chanAnn.shortChannelId, 1);
+      if (update2) results.push(update2);
+
+      // optionally load node1 announcement
+      const nodeId1 = chanAnn.nodeId1.toString("hex");
+      if (!seenNodeIds.has(nodeId1)) {
+        seenNodeIds.add(nodeId1);
+        const nodeAnn = await this._gossipStore.findNodeAnnouncement(chanAnn.nodeId1);
+        if (nodeAnn) results.push(nodeAnn);
+      }
+
+      // optionally load node2 announcement
+      const nodeId2 = chanAnn.nodeId2.toString("hex");
+      if (!seenNodeIds.has(nodeId2)) {
+        seenNodeIds.add(nodeId2);
+        const nodeAnn = await this._gossipStore.findNodeAnnouncement(chanAnn.nodeId2);
+        if (nodeAnn) results.push(nodeAnn);
+      }
+    }
+
+    return results;
   }
 
   private _onPeerMessage(msg: IWireMessage) {
