@@ -1,29 +1,30 @@
-const { expect } = require('chai');
-const BN = require('bn.js');
-const { ShortChannelId } = require('../../lib/shortchanid');
-const { ChannelUpdateMessage } = require('../../lib/messages/channel-update-message');
+const { expect } = require("chai");
+const BN = require("bn.js");
+const { ShortChannelId } = require("../../lib/shortchanid");
+const { ChannelUpdateMessage } = require("../../lib/messages/channel-update-message");
+const { Bitmask } = require("../../lib/bitmask");
 
-describe('ChannelUpdateMessage', () => {
+describe("ChannelUpdateMessage", () => {
   let input;
 
   beforeEach(() => {
     input = Buffer.from(
-      '010260957fec5b79b49303c1abe01b188842512c91ff465bdde51e255416e63bb293124a8dfea82644ee554ef8bd13d6ffbd20b6e297a1eae3c46ba1b188fd1d86c543497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea33090000000013a8b300011300005ca907fa0100009000000000000003e8000003e8000000010000000005f5e100',
-      'hex'
+      "010260957fec5b79b49303c1abe01b188842512c91ff465bdde51e255416e63bb293124a8dfea82644ee554ef8bd13d6ffbd20b6e297a1eae3c46ba1b188fd1d86c543497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea33090000000013a8b300011300005ca907fa0100009000000000000003e8000003e8000000010000000005f5e100",
+      "hex",
     );
   });
 
-  describe('.deserialize', () => {
-    it('should deserialize without error', () => {
+  describe(".deserialize", () => {
+    it("should deserialize without error", () => {
       let result = ChannelUpdateMessage.deserialize(input);
       expect(result.type).to.equal(258);
       expect(result.chainHash).to.deep.equal(
-        Buffer.from('43497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea330900000000', 'hex')
+        Buffer.from("43497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea330900000000", "hex"),
       );
       expect(result.shortChannelId).to.deep.equal(new ShortChannelId(1288371, 275, 0));
       expect(result.timestamp).to.equal(1554581498);
-      expect(result.messageFlags).to.equal(1);
-      expect(result.channelFlags).to.equal(0);
+      expect(result.messageFlags.value).to.equal(BigInt(1));
+      expect(result.channelFlags.value).to.equal(BigInt(0));
       expect(result.cltvExpiryDelta).to.equal(144);
       expect(result.htlcMinimumMsat.toNumber()).to.equal(1000);
       expect(result.htlcMaximumMsat.toNumber()).to.equal(100000000);
@@ -34,15 +35,15 @@ describe('ChannelUpdateMessage', () => {
     });
   });
 
-  describe('.serialize', () => {
-    it('should serialize a message', () => {
+  describe(".serialize", () => {
+    it("should serialize a message", () => {
       let instance = new ChannelUpdateMessage();
       instance.signature = Buffer.from('60957fec5b79b49303c1abe01b188842512c91ff465bdde51e255416e63bb293124a8dfea82644ee554ef8bd13d6ffbd20b6e297a1eae3c46ba1b188fd1d86c5', 'hex'); // prettier-ignore
       instance.chainHash = Buffer.from('43497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea330900000000', 'hex'); // prettier-ignore
       instance.shortChannelId = new ShortChannelId(1288371, 275, 0);
       instance.timestamp = 1554581498;
-      instance.messageFlags = 1;
-      instance.channelFlags = 0;
+      instance.messageFlags = new Bitmask(BigInt(1));
+      instance.channelFlags = new Bitmask(BigInt(0));
       instance.cltvExpiryDelta = 144;
       instance.htlcMinimumMsat = new BN(1000);
       instance.htlcMaximumMsat = new BN(100000000);
@@ -50,27 +51,27 @@ describe('ChannelUpdateMessage', () => {
       instance.feeProportionalMillionths = 1;
 
       let result = instance.serialize();
-      expect(result.toString('hex')).to.deep.equal(
-        '010260957fec5b79b49303c1abe01b188842512c91ff465bdde51e255416e63bb293124a8dfea82644ee554ef8bd13d6ffbd20b6e297a1eae3c46ba1b188fd1d86c543497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea33090000000013a8b300011300005ca907fa0100009000000000000003e8000003e8000000010000000005f5e100'
+      expect(result.toString("hex")).to.deep.equal(
+        "010260957fec5b79b49303c1abe01b188842512c91ff465bdde51e255416e63bb293124a8dfea82644ee554ef8bd13d6ffbd20b6e297a1eae3c46ba1b188fd1d86c543497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea33090000000013a8b300011300005ca907fa0100009000000000000003e8000003e8000000010000000005f5e100",
       );
     });
   });
 
-  describe('.validateSignature', () => {
+  describe(".validateSignature", () => {
     let input;
     let nodeId;
     beforeEach(() => {
       input = Buffer.from(
-        '01024e6eac97124742ba6a033612c8009945c0d52568756a885692b4adbf202666503b56ecb6f5758ea450dda940b2a6853b8e1706c3bd4f38a347be91b08c5e5c4743497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea33090000000013a90900000300005cdd9d780002009000000000000003e8000003e800000001',
-        'hex'
+        "01024e6eac97124742ba6a033612c8009945c0d52568756a885692b4adbf202666503b56ecb6f5758ea450dda940b2a6853b8e1706c3bd4f38a347be91b08c5e5c4743497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea33090000000013a90900000300005cdd9d780002009000000000000003e8000003e800000001",
+        "hex",
       );
       nodeId = Buffer.from(
-        '036b96e4713c5f84dcb8030592e1bd42a2d9a43d91fa2e535b9bfd05f2c5def9b9',
-        'hex'
+        "036b96e4713c5f84dcb8030592e1bd42a2d9a43d91fa2e535b9bfd05f2c5def9b9",
+        "hex",
       );
     });
 
-    it('should return true on valid signature', () => {
+    it("should return true on valid signature", () => {
       let instance = ChannelUpdateMessage.deserialize(input);
       let result = ChannelUpdateMessage.validateSignature(instance, nodeId);
       expect(result).to.be.true;

@@ -47,7 +47,7 @@ describe("GossipMemoryStore", () => {
     it("should store channel_update for node_1", async () => {
       const msg = new ChannelUpdateMessage();
       msg.shortChannelId = scid;
-      msg.channelFlags |= 0;
+      msg.direction = 0;
       await sut.saveChannelUpdate(msg);
       const result = await sut.findChannelUpdate(scid, 0);
       expect(result.shortChannelId.toString()).to.equal(scid.toString());
@@ -58,7 +58,7 @@ describe("GossipMemoryStore", () => {
     it("should store channel_update for node_2", async () => {
       const msg = new ChannelUpdateMessage();
       msg.shortChannelId = scid;
-      msg.channelFlags |= 1;
+      msg.direction = 1;
       await sut.saveChannelUpdate(msg);
       const result = await sut.findChannelUpdate(scid, 1);
       expect(result.shortChannelId.toString()).to.equal(scid.toString());
