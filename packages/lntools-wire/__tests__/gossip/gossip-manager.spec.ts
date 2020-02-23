@@ -4,14 +4,13 @@ import { IGossipFilterChainClient } from "../../lib/gossip/gossip-filter-chain-c
 import { GossipManager } from "../../lib/gossip/gossip-manager";
 import { GossipMemoryStore } from "../../lib/gossip/gossip-memory-store";
 import { ChannelAnnouncementMessage } from "../../lib/messages/channel-announcement-message";
+import { ChannelUpdateMessage } from "../../lib/messages/channel-update-message";
 import { ExtendedChannelAnnouncementMessage } from "../../lib/messages/extended-channel-announcement-message";
+import { NodeAnnouncementMessage } from "../../lib/messages/node-announcement-message";
 import { Peer } from "../../lib/peer";
 import { PeerState } from "../../lib/peer-state";
 import { ShortChannelId } from "../../lib/shortchanid";
 import { createFakeLogger, createFakePeer } from "../_test-utils";
-import { SSL_OP_MSIE_SSLV2_RSA_PADDING } from "constants";
-import { ChannelUpdateMessage } from "../../lib/messages/channel-update-message";
-import { NodeAnnouncementMessage } from "../../lib/messages/node-announcement-message";
 
 function createFakeChainClient() {
   return {
@@ -247,7 +246,10 @@ describe("GossipManager", () => {
       msg7.messageFlags |= 1;
       await gossipStore.saveChannelUpdate(msg7);
 
-      const actual = await sut.allMessages();
+      const actual = [];
+      for await (const msg of sut.allMessages()) {
+        actual.push(msg);
+      }
       expect(actual.length).to.equal(7);
       expect(actual[0]).to.be.instanceof(ChannelAnnouncementMessage);
       expect(actual[1]).to.be.instanceof(ChannelUpdateMessage);

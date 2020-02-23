@@ -92,8 +92,7 @@ export class GossipManager extends EventEmitter {
     await this._restoreState();
 
     // emit all restored messages
-    const msgs = await this.allMessages();
-    for (const msg of msgs) {
+    for await (const msg of this.allMessages()) {
       this.emit("message", msg);
     }
 
@@ -167,9 +166,8 @@ export class GossipManager extends EventEmitter {
    * return a stream and yield messages as they are streamed from
    * the gossip_store.
    */
-  public async allMessages(): Promise<IWireMessage[]> {
+  public async *allMessages(): AsyncGenerator<IWireMessage, void, unknown> {
     this.logger.debug("fetching all messages");
-    const results: IWireMessage[] = [];
 
     // maintain a set of node ids that we have already seen so that
     // we do no rebroadcast node announcements. This set stores the
@@ -180,22 +178,22 @@ export class GossipManager extends EventEmitter {
     // obtain full list of channel announcements
     const chanAnns = await this._gossipStore.findChannelAnnouncemnts();
     for (const chanAnn of chanAnns) {
-      results.push(chanAnn);
+      yield chanAnn;
 
       // load and add the node1 channel_update
       const update1 = await this._gossipStore.findChannelUpdate(chanAnn.shortChannelId, 0);
-      if (update1) results.push(update1);
+      if (update1) yield update1;
 
       // load and add the nod2 channel_update
       const update2 = await this._gossipStore.findChannelUpdate(chanAnn.shortChannelId, 1);
-      if (update2) results.push(update2);
+      if (update2) yield update2;
 
       // optionally load node1 announcement
       const nodeId1 = chanAnn.nodeId1.toString("hex");
       if (!seenNodeIds.has(nodeId1)) {
         seenNodeIds.add(nodeId1);
         const nodeAnn = await this._gossipStore.findNodeAnnouncement(chanAnn.nodeId1);
-        if (nodeAnn) results.push(nodeAnn);
+        if (nodeAnn) yield nodeAnn;
       }
 
       // optionally load node2 announcement
@@ -203,11 +201,9 @@ export class GossipManager extends EventEmitter {
       if (!seenNodeIds.has(nodeId2)) {
         seenNodeIds.add(nodeId2);
         const nodeAnn = await this._gossipStore.findNodeAnnouncement(chanAnn.nodeId2);
-        if (nodeAnn) results.push(nodeAnn);
+        if (nodeAnn) yield nodeAnn;
       }
     }
-
-    return results;
   }
 
   private _onPeerMessage(msg: IWireMessage) {
