@@ -11,7 +11,7 @@ export class Bitmask {
     this.value = value || BigInt(0);
   }
 
-  public has(bit: number): boolean {
+  public isSet(bit: number): boolean {
     return (this.value & (BigInt(1) << BigInt(bit))) > BigInt(0);
   }
 
@@ -27,7 +27,11 @@ export class Bitmask {
     this.value ^= BigInt(1) << BigInt(bit);
   }
 
-  public valueOf() {
+  public toBigInt() {
     return this.value;
+  }
+
+  public toNumber() {
+    return Number(this.value);
   }
 }

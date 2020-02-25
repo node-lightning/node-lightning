@@ -149,7 +149,7 @@ export class ChannelUpdateMessage implements IWireMessage {
    * maximum HTLC msat value available
    */
   get hasHtlcMaximumMsatFlag(): boolean {
-    return this.messageFlags.has(0);
+    return this.messageFlags.isSet(0);
   }
 
   /**
@@ -158,7 +158,7 @@ export class ChannelUpdateMessage implements IWireMessage {
    * node_2 is the sender
    */
   get direction(): number {
-    return this.channelFlags.has(0) ? 1 : 0;
+    return this.channelFlags.isSet(0) ? 1 : 0;
   }
 
   set direction(val: number) {
@@ -177,7 +177,7 @@ export class ChannelUpdateMessage implements IWireMessage {
    * the channel is disabled.
    */
   get disabled(): boolean {
-    return this.channelFlags.has(1);
+    return this.channelFlags.isSet(1);
   }
 
   set disabled(val: boolean) {
@@ -214,8 +214,8 @@ export class ChannelUpdateMessage implements IWireMessage {
     writer.writeBytes(this.chainHash);
     writer.writeBytes(this.shortChannelId.toBuffer());
     writer.writeUInt32BE(this.timestamp);
-    writer.writeUInt8(Number(this.messageFlags.value));
-    writer.writeUInt8(Number(this.channelFlags.value));
+    writer.writeUInt8(this.messageFlags.toNumber());
+    writer.writeUInt8(this.channelFlags.toNumber());
     writer.writeUInt16BE(this.cltvExpiryDelta);
     writer.writeBytes(this.htlcMinimumMsat.toBuffer("be", 8));
     writer.writeUInt32BE(this.feeBaseMsat);
