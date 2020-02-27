@@ -2,7 +2,10 @@ import { BitcoindClient } from "@lntools/bitcoind";
 import { TxWatcher } from "@lntools/chainmon";
 import { RocksdbGossipStore } from "@lntools/gossip-rocksdb";
 import { ConsoleTransport, Logger, LogLevel } from "@lntools/logger";
-import { ChannelAnnouncementMessage, InitMessage, MESSAGE_TYPE } from "@lntools/wire";
+import { ChannelAnnouncementMessage } from "@lntools/wire";
+import { InitMessage } from "@lntools/wire";
+import { ChannelUpdateMessage } from "@lntools/wire";
+import { NodeAnnouncementMessage } from "@lntools/wire";
 import { ExtendedChannelAnnouncementMessage } from "@lntools/wire";
 import { Peer } from "@lntools/wire";
 import { GossipMemoryStore } from "@lntools/wire";
@@ -45,11 +48,32 @@ async function connectToPeer(peerInfo: { rpk: string; host: string; port: number
     pendingStore,
     chainClient,
   });
-  let counter = 0;
+
+  // attach error handling for gossip manager
   gossipManager.on("error", err => logger.error("gossip failed", err));
-  gossipManager.on("message", msg =>
-    logger.info("msg: %d, type: %d %s", ++counter, msg.type, msg.constructor.name),
-  );
+
+  // attach a message handler for completed and validated messages
+  let counter = 0;
+  gossipManager.on("message", msg => {
+    let extra = "";
+    if (msg instanceof ChannelAnnouncementMessage) {
+      extra += msg.shortChannelId.toString();
+      extra += " ";
+    }
+    if (msg instanceof ExtendedChannelAnnouncementMessage) {
+      extra += msg.outpoint.toString();
+    }
+    if (msg instanceof ChannelUpdateMessage) {
+      extra += msg.shortChannelId.toString();
+      extra += " ";
+      extra += msg.direction;
+    }
+    if (msg instanceof NodeAnnouncementMessage) {
+      extra += msg.nodeId.toString("hex");
+    }
+
+    logger.info("msg: %d, type: %d %s %s", ++counter, msg.type, msg.constructor.name, extra);
+  });
 
   // listen for new channel announcement messages. when we receive one, we will
   // add it to the chain_mon transaction watcher to see if it gets spent. once it
@@ -69,6 +93,7 @@ async function connectToPeer(peerInfo: { rpk: string; host: string; port: number
   txWatcher.on("outpointspent", async (tx, outpoint) => {
     const msg = await gossipStore.findChannelAnnouncementByOutpoint(outpoint);
     await gossipManager.removeChannel(msg.shortChannelId);
+    logger.info("removed channel", outpoint.toString());
   });
 
   // constructs an init message to signal to the remote
@@ -101,7 +126,7 @@ async function connectToPeer(peerInfo: { rpk: string; host: string; port: number
   // adds the peer to the gossip mananger. Once the peer is
   // connected the gossip manager will take efforts to
   // synchronize information with the remote peer.
-  await gossipManager.addPeer(peer);
+  gossipManager.addPeer(peer);
 
   // connect to the remote peer using the local secret provided
   // in our config file
