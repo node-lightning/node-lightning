@@ -1,12 +1,10 @@
 import { BufferCursor } from "@lntools/buffer-cursor";
 import * as crypto from "@lntools/crypto";
-import BN from "bn.js";
+import { Bitmask } from "../bitmask";
 import { deserializeAddress } from "../deserialize/address/deserialize-address";
 import { Address } from "../domain/address";
 import { MESSAGE_TYPE } from "../message-type";
 import { serializeAddress } from "../serialize/address/serialize-address";
-import { shortChannelIdFromBuffer } from "../shortchanid";
-import { ShortChannelId } from "../shortchanid";
 import { IWireMessage } from "./wire-message";
 
 /**
@@ -23,7 +21,7 @@ export class NodeAnnouncementMessage implements IWireMessage {
     instance.signature = reader.readBytes(64);
 
     const flen = reader.readUInt16BE();
-    instance.features = new BN(reader.readBytes(flen));
+    instance.features = Bitmask.fromBuffer(reader.readBytes(flen));
 
     instance.timestamp = reader.readUInt32BE();
     instance.nodeId = reader.readBytes(33);
@@ -71,7 +69,7 @@ export class NodeAnnouncementMessage implements IWireMessage {
    */
   public signature: Buffer;
 
-  public features: BN;
+  public features: Bitmask;
 
   public timestamp: number;
 
@@ -100,8 +98,8 @@ export class NodeAnnouncementMessage implements IWireMessage {
   public addresses: Address[] = [];
 
   public serialize() {
-    const featuresBuffer = this.features.toBuffer("be");
-    const featuresLen = this.features.gtn(0) ? featuresBuffer.length : 0;
+    const featuresBuffer = this.features.toBuffer();
+    const featuresLen = featuresBuffer.length;
 
     // serialize addresses into buffers so we can obtain the length
     const addressBuffers = [];
