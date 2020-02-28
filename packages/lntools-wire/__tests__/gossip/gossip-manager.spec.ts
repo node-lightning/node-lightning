@@ -4,7 +4,9 @@ import { IGossipFilterChainClient } from "../../lib/gossip/gossip-filter-chain-c
 import { GossipManager } from "../../lib/gossip/gossip-manager";
 import { GossipMemoryStore } from "../../lib/gossip/gossip-memory-store";
 import { ChannelAnnouncementMessage } from "../../lib/messages/channel-announcement-message";
+import { ChannelUpdateMessage } from "../../lib/messages/channel-update-message";
 import { ExtendedChannelAnnouncementMessage } from "../../lib/messages/extended-channel-announcement-message";
+import { NodeAnnouncementMessage } from "../../lib/messages/node-announcement-message";
 import { Peer } from "../../lib/peer";
 import { PeerState } from "../../lib/peer-state";
 import { ShortChannelId } from "../../lib/shortchanid";
@@ -204,6 +206,58 @@ describe("GossipManager", () => {
   describe(".removeChannel()", () => {
     it("should remove the channel", async () => {
       await sut.removeChannel(new ShortChannelId(1288457, 3, 0));
+    });
+  });
+
+  describe(".allMessages()", () => {
+    it("happy path", async () => {
+      const msg1 = new ChannelAnnouncementMessage();
+      msg1.shortChannelId = new ShortChannelId(1, 1, 1);
+      msg1.nodeId1 = Buffer.alloc(32, 1);
+      msg1.nodeId2 = Buffer.alloc(32, 2);
+      await gossipStore.saveChannelAnnouncement(msg1);
+
+      const msg2 = new ChannelUpdateMessage();
+      msg2.shortChannelId = new ShortChannelId(1, 1, 1);
+      msg2.channelFlags = 0;
+      await gossipStore.saveChannelUpdate(msg2);
+
+      const msg3 = new ChannelUpdateMessage();
+      msg3.shortChannelId = new ShortChannelId(1, 1, 1);
+      msg3.channelFlags = 1;
+      await gossipStore.saveChannelUpdate(msg3);
+
+      const msg4 = new NodeAnnouncementMessage();
+      msg4.nodeId = Buffer.alloc(32, 1);
+      await gossipStore.saveNodeAnnouncement(msg4);
+
+      const msg5 = new NodeAnnouncementMessage();
+      msg5.nodeId = Buffer.alloc(32, 2);
+      await gossipStore.saveNodeAnnouncement(msg5);
+
+      const msg6 = new ChannelAnnouncementMessage();
+      msg6.shortChannelId = new ShortChannelId(2, 2, 2);
+      msg6.nodeId1 = Buffer.alloc(32, 1);
+      msg6.nodeId2 = Buffer.alloc(32, 2);
+      await gossipStore.saveChannelAnnouncement(msg6);
+
+      const msg7 = new ChannelUpdateMessage();
+      msg7.shortChannelId = new ShortChannelId(2, 2, 2);
+      msg7.messageFlags |= 1;
+      await gossipStore.saveChannelUpdate(msg7);
+
+      const actual = [];
+      for await (const msg of sut.allMessages()) {
+        actual.push(msg);
+      }
+      expect(actual.length).to.equal(7);
+      expect(actual[0]).to.be.instanceof(ChannelAnnouncementMessage);
+      expect(actual[1]).to.be.instanceof(ChannelUpdateMessage);
+      expect(actual[2]).to.be.instanceof(ChannelUpdateMessage);
+      expect(actual[3]).to.be.instanceof(NodeAnnouncementMessage);
+      expect(actual[4]).to.be.instanceof(NodeAnnouncementMessage);
+      expect(actual[5]).to.be.instanceof(ChannelAnnouncementMessage);
+      expect(actual[6]).to.be.instanceof(ChannelUpdateMessage);
     });
   });
 });
