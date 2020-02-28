@@ -27,8 +27,8 @@ export class ChannelUpdateMessage implements IWireMessage {
     instance.chainHash = reader.readBytes(32);
     instance.shortChannelId = shortChannelIdFromBuffer(reader.readBytes(8));
     instance.timestamp = reader.readUInt32BE();
-    instance.messageFlags = new Bitmask(BigInt(reader.readUInt8()));
-    instance.channelFlags = new Bitmask(BigInt(reader.readUInt8()));
+    instance.messageFlags = Bitmask.fromNumber(reader.readUInt8());
+    instance.channelFlags = Bitmask.fromNumber(reader.readUInt8());
     instance.cltvExpiryDelta = reader.readUInt16BE();
     instance.htlcMinimumMsat = reader.readUInt64BE();
     instance.feeBaseMsat = reader.readUInt32BE();
