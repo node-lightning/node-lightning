@@ -1,11 +1,12 @@
-const { expect } = require("chai");
-const BN = require("bn.js");
-const { ShortChannelId } = require("../../lib/shortchanid");
-const { ChannelUpdateMessage } = require("../../lib/messages/channel-update-message");
-const { Bitmask } = require("../../lib/bitmask");
+// tslint:disable: no-unused-expression
+import BN from "bn.js";
+import { expect } from "chai";
+import { Bitmask } from "../../lib/bitmask";
+import { ChannelUpdateMessage } from "../../lib/messages/channel-update-message";
+import { ShortChannelId } from "../../lib/shortchanid";
 
 describe("ChannelUpdateMessage", () => {
-  let input;
+  let input: Buffer;
 
   beforeEach(() => {
     input = Buffer.from(
@@ -16,7 +17,7 @@ describe("ChannelUpdateMessage", () => {
 
   describe(".deserialize", () => {
     it("should deserialize without error", () => {
-      let result = ChannelUpdateMessage.deserialize(input);
+      const result = ChannelUpdateMessage.deserialize(input);
       expect(result.type).to.equal(258);
       expect(result.chainHash).to.deep.equal(
         Buffer.from("43497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea330900000000", "hex"),
@@ -37,9 +38,9 @@ describe("ChannelUpdateMessage", () => {
 
   describe(".serialize", () => {
     it("should serialize a message", () => {
-      let instance = new ChannelUpdateMessage();
-      instance.signature = Buffer.from('60957fec5b79b49303c1abe01b188842512c91ff465bdde51e255416e63bb293124a8dfea82644ee554ef8bd13d6ffbd20b6e297a1eae3c46ba1b188fd1d86c5', 'hex'); // prettier-ignore
-      instance.chainHash = Buffer.from('43497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea330900000000', 'hex'); // prettier-ignore
+      const instance = new ChannelUpdateMessage();
+      instance.signature = Buffer.from("60957fec5b79b49303c1abe01b188842512c91ff465bdde51e255416e63bb293124a8dfea82644ee554ef8bd13d6ffbd20b6e297a1eae3c46ba1b188fd1d86c5", "hex"); // prettier-ignore
+      instance.chainHash = Buffer.from("43497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea330900000000", "hex"); // prettier-ignore
       instance.shortChannelId = new ShortChannelId(1288371, 275, 0);
       instance.timestamp = 1554581498;
       instance.messageFlags = new Bitmask(BigInt(1));
@@ -50,7 +51,7 @@ describe("ChannelUpdateMessage", () => {
       instance.feeBaseMsat = 1000;
       instance.feeProportionalMillionths = 1;
 
-      let result = instance.serialize();
+      const result = instance.serialize();
       expect(result.toString("hex")).to.deep.equal(
         "010260957fec5b79b49303c1abe01b188842512c91ff465bdde51e255416e63bb293124a8dfea82644ee554ef8bd13d6ffbd20b6e297a1eae3c46ba1b188fd1d86c543497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea33090000000013a8b300011300005ca907fa0100009000000000000003e8000003e8000000010000000005f5e100",
       );
@@ -58,8 +59,8 @@ describe("ChannelUpdateMessage", () => {
   });
 
   describe(".validateSignature", () => {
-    let input;
-    let nodeId;
+    let input: Buffer;
+    let nodeId: Buffer;
     beforeEach(() => {
       input = Buffer.from(
         "01024e6eac97124742ba6a033612c8009945c0d52568756a885692b4adbf202666503b56ecb6f5758ea450dda940b2a6853b8e1706c3bd4f38a347be91b08c5e5c4743497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea33090000000013a90900000300005cdd9d780002009000000000000003e8000003e800000001",
@@ -72,8 +73,8 @@ describe("ChannelUpdateMessage", () => {
     });
 
     it("should return true on valid signature", () => {
-      let instance = ChannelUpdateMessage.deserialize(input);
-      let result = ChannelUpdateMessage.validateSignature(instance, nodeId);
+      const instance = ChannelUpdateMessage.deserialize(input);
+      const result = ChannelUpdateMessage.validateSignature(instance, nodeId);
       expect(result).to.be.true;
     });
   });
