@@ -1,4 +1,4 @@
-import { BufferCursor } from "@lntools/buffer-cursor";
+import { Bitmask } from "../../bitmask";
 import { TlvValueReader } from "../../serialize/tlv-value-reader";
 import { TlvValueWriter } from "../../serialize/tlv-value-writer";
 import { Tlv } from "./tlv";
@@ -28,58 +28,35 @@ export class QueryChannelRangeOptions extends Tlv {
   }
 
   public type: bigint = QueryChannelRangeOptions.type;
-  private _options: bigint;
-  private _timestampMask = BigInt(1 << 0);
-  private _checksumMask = BigInt(1 << 1);
+
+  public options: Bitmask;
 
   constructor(options?: bigint) {
     super();
-    this._options = options || BigInt(0);
-  }
-
-  public get options() {
-    return this._options;
+    this.options = new Bitmask(options);
   }
 
   public get timestamp() {
-    return (this._options & this._timestampMask) === this._timestampMask;
+    return this.options.isSet(0);
+  }
+
+  public set timestamp(val: boolean) {
+    if (val) this.options.set(0);
+    else this.options.unset(0);
   }
 
   public get checksum() {
-    return (this._options & this._checksumMask) === this._checksumMask;
+    return this.options.isSet(1);
   }
 
-  public enableTimestamp() {
-    this._enableOption(this._timestampMask);
-    return this;
-  }
-
-  public disableTimestamp() {
-    this._disableOption(this._timestampMask);
-    return this;
-  }
-
-  public enableChecksum() {
-    this._enableOption(this._checksumMask);
-    return this;
-  }
-
-  public disableChecksum() {
-    this._disableOption(this._checksumMask);
-    return this;
+  public set checksum(val: boolean) {
+    if (val) this.options.set(1);
+    else this.options.unset(1);
   }
 
   public serializeValue(): Buffer {
     const writer = new TlvValueWriter();
-    writer.writeBigSize(BigInt(this._options));
+    writer.writeBigSize(BigInt(this.options.value));
     return writer.toBuffer();
-  }
-
-  private _enableOption(mask: bigint) {
-    this._options |= mask;
-  }
-
-  private _disableOption(mask: bigint) {
-    this._options &= ~mask;
   }
 }
