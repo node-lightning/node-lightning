@@ -78,7 +78,8 @@ describe("QueryChannelRangeMessage", () => {
       );
       msg.firstBlocknum = 1630000;
       msg.numberOfBlocks = 2000;
-      msg.options = new QueryChannelRangeOptions().enableChecksum();
+      msg.options = new QueryChannelRangeOptions();
+      msg.options.checksum = true;
       expect(msg.serialize().toString("hex")).to.equal(
         "010743497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea3309000000000018df30000007d0010102",
       );
@@ -92,7 +93,9 @@ describe("QueryChannelRangeMessage", () => {
       );
       msg.firstBlocknum = 1630000;
       msg.numberOfBlocks = 2000;
-      msg.options = new QueryChannelRangeOptions().enableTimestamp().enableChecksum();
+      msg.options = new QueryChannelRangeOptions();
+      msg.options.checksum = true;
+      msg.options.timestamp = true;
       expect(msg.serialize().toString("hex")).to.equal(
         "010743497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea3309000000000018df30000007d0010103",
       );

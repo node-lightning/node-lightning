@@ -11,6 +11,7 @@ import { Peer } from "../../lib/peer";
 import { PeerState } from "../../lib/peer-state";
 import { ShortChannelId } from "../../lib/shortchanid";
 import { createFakeLogger, createFakePeer } from "../_test-utils";
+import { Bitmask } from "../../lib/bitmask";
 
 function createFakeChainClient() {
   return {
@@ -219,12 +220,12 @@ describe("GossipManager", () => {
 
       const msg2 = new ChannelUpdateMessage();
       msg2.shortChannelId = new ShortChannelId(1, 1, 1);
-      msg2.channelFlags = 0;
+      msg2.channelFlags = Bitmask.fromNumber(0);
       await gossipStore.saveChannelUpdate(msg2);
 
       const msg3 = new ChannelUpdateMessage();
       msg3.shortChannelId = new ShortChannelId(1, 1, 1);
-      msg3.channelFlags = 1;
+      msg3.channelFlags = Bitmask.fromNumber(1);
       await gossipStore.saveChannelUpdate(msg3);
 
       const msg4 = new NodeAnnouncementMessage();
@@ -243,7 +244,7 @@ describe("GossipManager", () => {
 
       const msg7 = new ChannelUpdateMessage();
       msg7.shortChannelId = new ShortChannelId(2, 2, 2);
-      msg7.messageFlags |= 1;
+      msg7.messageFlags.set(0);
       await gossipStore.saveChannelUpdate(msg7);
 
       const actual = [];

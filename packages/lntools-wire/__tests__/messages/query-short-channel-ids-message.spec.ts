@@ -1,8 +1,8 @@
 import { expect } from "chai";
 import { QueryShortChannelIdsMessage } from "../../lib/messages/query-short-channel-ids-message";
-import { QueryShortChannelIdsFlag } from "../../lib/messages/tlvs/query-short-channel-ids-flag";
 import { QueryShortChannelIdsFlags } from "../../lib/messages/tlvs/query-short-channel-ids-flags";
 import { ShortChannelId } from "../../lib/shortchanid";
+import { Bitmask } from "../../lib/bitmask";
 
 describe("QueryShortChannelIdsMessage", () => {
   describe(".deserialize", () => {
@@ -75,8 +75,8 @@ describe("QueryShortChannelIdsMessage", () => {
       expect(msg.shortChannelIds[1].voutIdx).to.equal(0);
 
       expect(msg.flags.flags.length).to.equal(2);
-      expect(msg.flags.flags[0].flags.toString()).to.equal("1");
-      expect(msg.flags.flags[1].flags.toString()).to.equal("2");
+      expect(msg.flags.flags[0].value.toString()).to.equal("1");
+      expect(msg.flags.flags[1].value.toString()).to.equal("2");
     });
 
     it("zlib deflate encoded tlv message", () => {
@@ -105,8 +105,8 @@ describe("QueryShortChannelIdsMessage", () => {
       expect(msg.shortChannelIds[1].voutIdx).to.equal(0);
 
       expect(msg.flags.flags.length).to.equal(2);
-      expect(msg.flags.flags[0].flags.toString()).to.equal("1");
-      expect(msg.flags.flags[1].flags.toString()).to.equal("2");
+      expect(msg.flags.flags[0].value.toString()).to.equal("1");
+      expect(msg.flags.flags[1].value.toString()).to.equal("2");
     });
   });
 
@@ -165,8 +165,8 @@ describe("QueryShortChannelIdsMessage", () => {
       msg.shortChannelIds.push(new ShortChannelId(1630300, 1, 0));
       msg.shortChannelIds.push(new ShortChannelId(1631517, 4, 0));
       msg.flags = new QueryShortChannelIdsFlags();
-      msg.flags.addFlags(new QueryShortChannelIdsFlag().setChannelAnnouncement(true));
-      msg.flags.addFlags(new QueryShortChannelIdsFlag().setNode1ChannelUpdate(true));
+      msg.flags.addFlags(Bitmask.fromNumber(1));
+      msg.flags.addFlags(Bitmask.fromNumber(2));
       expect(msg.serialize(0).toString("hex")).to.equal(
         "0105" +
         "43497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea330900000000" +
@@ -189,8 +189,8 @@ describe("QueryShortChannelIdsMessage", () => {
       msg.shortChannelIds.push(new ShortChannelId(1630300, 1, 0));
       msg.shortChannelIds.push(new ShortChannelId(1631517, 4, 0));
       msg.flags = new QueryShortChannelIdsFlags();
-      msg.flags.addFlags(new QueryShortChannelIdsFlag().setChannelAnnouncement(true));
-      msg.flags.addFlags(new QueryShortChannelIdsFlag().setNode1ChannelUpdate(true));
+      msg.flags.addFlags(Bitmask.fromNumber(1));
+      msg.flags.addFlags(Bitmask.fromNumber(2));
       expect(msg.serialize(1).toString("hex")).to.equal(
         "0105" +
         "43497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea330900000000" +
