@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { QueryShortChannelIdsFlag } from "../../../lib/messages/tlvs/query-short-channel-ids-flag";
+import { Bitmask } from "../../../lib/bitmask";
 import { QueryShortChannelIdsFlags } from "../../../lib/messages/tlvs/query-short-channel-ids-flags";
 import { TlvValueReader } from "../../../lib/serialize/tlv-value-reader";
 
@@ -7,15 +7,15 @@ describe("QueryShortChannelIdsFlags", () => {
   describe(".serialize()", () => {
     it("raw encoded", () => {
       const sut = new QueryShortChannelIdsFlags();
-      sut.flags.push(new QueryShortChannelIdsFlag(BigInt(8)));
-      sut.flags.push(new QueryShortChannelIdsFlag(BigInt(8)));
+      sut.flags.push(new Bitmask(BigInt(8)));
+      sut.flags.push(new Bitmask(BigInt(8)));
       expect(sut.serialize(0).toString("hex")).to.equal("0103000808");
     });
 
     it("deflate encoded", () => {
       const sut = new QueryShortChannelIdsFlags();
-      sut.flags.push(new QueryShortChannelIdsFlag(BigInt(8)));
-      sut.flags.push(new QueryShortChannelIdsFlag(BigInt(8)));
+      sut.flags.push(new Bitmask(BigInt(8)));
+      sut.flags.push(new Bitmask(BigInt(8)));
       expect(sut.serialize(1).toString("hex")).to.equal("010b01789ce3e00000001a0011");
     });
   });
@@ -23,15 +23,15 @@ describe("QueryShortChannelIdsFlags", () => {
   describe(".serializeValue()", () => {
     it("raw encoded", () => {
       const sut = new QueryShortChannelIdsFlags();
-      sut.flags.push(new QueryShortChannelIdsFlag(BigInt(8)));
-      sut.flags.push(new QueryShortChannelIdsFlag(BigInt(8)));
+      sut.flags.push(new Bitmask(BigInt(8)));
+      sut.flags.push(new Bitmask(BigInt(8)));
       expect(sut.serializeValue(0).toString("hex")).to.equal("000808");
     });
 
     it("deflate encoded", () => {
       const sut = new QueryShortChannelIdsFlags();
-      sut.flags.push(new QueryShortChannelIdsFlag(BigInt(8)));
-      sut.flags.push(new QueryShortChannelIdsFlag(BigInt(8)));
+      sut.flags.push(new Bitmask(BigInt(8)));
+      sut.flags.push(new Bitmask(BigInt(8)));
       expect(sut.serializeValue(1).toString("hex")).to.equal("01789ce3e00000001a0011");
     });
   });
@@ -42,8 +42,8 @@ describe("QueryShortChannelIdsFlags", () => {
       const reader = new TlvValueReader(buf);
       const result = QueryShortChannelIdsFlags.deserialize(reader);
       expect(result.flags.length).to.equal(2);
-      expect(result.flags[0].flags.toString()).to.equal("8");
-      expect(result.flags[1].flags.toString()).to.equal("8");
+      expect(result.flags[0].value.toString()).to.equal("8");
+      expect(result.flags[1].value.toString()).to.equal("8");
     });
 
     it("deflate encoded", () => {
@@ -51,8 +51,8 @@ describe("QueryShortChannelIdsFlags", () => {
       const reader = new TlvValueReader(buf);
       const result = QueryShortChannelIdsFlags.deserialize(reader);
       expect(result.flags.length).to.equal(2);
-      expect(result.flags[0].flags.toString()).to.equal("8");
-      expect(result.flags[1].flags.toString()).to.equal("8");
+      expect(result.flags[0].value.toString()).to.equal("8");
+      expect(result.flags[1].value.toString()).to.equal("8");
     });
   });
 });
