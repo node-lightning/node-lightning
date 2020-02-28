@@ -1,6 +1,5 @@
 import { BufferCursor } from "@lntools/buffer-cursor";
-import BN from "bn.js";
-import * as bitwise from "../bitwise";
+import { Bitmask } from "../bitmask";
 import { MESSAGE_TYPE } from "../message-type";
 import { IWireMessage } from "./wire-message";
 
@@ -39,11 +38,11 @@ export class InitMessage implements IWireMessage {
 
     // Read the global length and parse into a BN value.
     const gflen = reader.readUInt16BE();
-    instance.globalFeatures = new BN(reader.readBytes(gflen));
+    instance.globalFeatures = Bitmask.fromBuffer(reader.readBytes(gflen));
 
     // Read the local length and parse into a BN value.
     const lflen = reader.readUInt16BE();
-    instance.localFeatures = new BN(reader.readBytes(lflen));
+    instance.localFeatures = Bitmask.fromBuffer(reader.readBytes(lflen));
 
     return instance;
   }
@@ -52,16 +51,18 @@ export class InitMessage implements IWireMessage {
    * Message type 16
    */
   public type: MESSAGE_TYPE = MESSAGE_TYPE.INIT;
-  public globalFeatures: BN = new BN(0);
-  public localFeatures: BN = new BN(0);
+  public globalFeatures: Bitmask = new Bitmask();
+  public localFeatures: Bitmask = new Bitmask();
 
   /**
    * Serialize will construct a properly formatted message
    * based on the properties of the configured message.
    */
   public serialize() {
-    const gflen = this.globalFeatures.byteLength();
-    const lflen = this.localFeatures.byteLength();
+    const gf = this.globalFeatures.toBuffer();
+    const lf = this.localFeatures.toBuffer();
+    const gflen = gf.length;
+    const lflen = lf.length;
 
     // create a Buffer of the correct length that will
     // be returned after all data is written to the buffer.
@@ -82,36 +83,16 @@ export class InitMessage implements IWireMessage {
     // write gflen
     cursor.writeUInt16BE(gflen);
 
-    // Write the global features and ignore zero because
-    // it will incorrectly push a 0-byte into the output.
-    if (this.globalFeatures.byteLength() > 0) {
-      cursor.writeBytes(this.globalFeatures.toBuffer("be"));
-    }
+    // write gf
+    cursor.writeBytes(gf);
 
-    // Write the local features and ignore zero because
-    // it will incorrectly push a 0-byte into the output.
-    cursor.writeUInt16BE(this.localFeatures.byteLength());
-    if (this.localFeatures.byteLength() > 0) {
-      cursor.writeBytes(this.localFeatures.toBuffer("be"));
-    }
+    // write lflen
+    cursor.writeUInt16BE(lflen);
+
+    // write lf
+    cursor.writeBytes(lf);
 
     return buffer;
-  }
-
-  /**
-   * Helper function that sets (enables) the bit in the
-   * local features.
-   */
-  public setLocalBit(bit: number) {
-    bitwise.isetn(this.localFeatures, bit);
-  }
-
-  /**
-   * Helper function that unsets (disables) the bit in the
-   * local features.
-   */
-  public unsetLocalBit(bit: number) {
-    bitwise.iunsetn(this.localFeatures, bit);
   }
 
   /**
@@ -124,13 +105,13 @@ export class InitMessage implements IWireMessage {
    * setter will ensure that only the odd bit is set.
    */
   get localDataLossProtect(): boolean {
-    return this.localFeatures.testn(0) || this.localFeatures.testn(1);
+    return this.localFeatures.isSet(0) || this.localFeatures.isSet(1);
   }
 
   set localDataLossProtect(val: boolean) {
-    if (val) this.setLocalBit(1);
-    else this.unsetLocalBit(1);
-    this.unsetLocalBit(0);
+    this.localFeatures.unset(0);
+    if (val) this.localFeatures.set(1);
+    else this.localFeatures.unset(1);
   }
 
   /**
@@ -143,12 +124,12 @@ export class InitMessage implements IWireMessage {
    * Sets the initial_routing_sync local flag.
    */
   get localInitialRoutingSync(): boolean {
-    return this.localFeatures.testn(3);
+    return this.localFeatures.isSet(3);
   }
 
   set localInitialRoutingSync(val: boolean) {
-    if (val) this.setLocalBit(3);
-    else this.unsetLocalBit(3);
+    if (val) this.localFeatures.set(3);
+    else this.localFeatures.unset(3);
   }
 
   /**
@@ -161,13 +142,13 @@ export class InitMessage implements IWireMessage {
    * to ensure both are not set.
    */
   get localUpfrontShutdownScript(): boolean {
-    return this.localFeatures.testn(4) || this.localFeatures.testn(5);
+    return this.localFeatures.isSet(4) || this.localFeatures.isSet(5);
   }
 
   set localUpfrontShutdownScript(val: boolean) {
-    if (val) this.setLocalBit(5);
-    else this.unsetLocalBit(5);
-    this.unsetLocalBit(4);
+    this.localFeatures.unset(4);
+    if (val) this.localFeatures.set(5);
+    else this.localFeatures.unset(5);
   }
 
   /**
@@ -180,23 +161,23 @@ export class InitMessage implements IWireMessage {
    * of the setter will set 7 and unset 6 to ensure both are not set.
    */
   get localGossipQueries(): boolean {
-    return this.localFeatures.testn(6) || this.localFeatures.testn(7);
+    return this.localFeatures.isSet(6) || this.localFeatures.isSet(7);
   }
 
   set localGossipQueries(val: boolean) {
-    if (val) this.setLocalBit(7);
-    else this.unsetLocalBit(7);
-    this.unsetLocalBit(6);
+    this.localFeatures.unset(6);
+    if (val) this.localFeatures.set(7);
+    else this.localFeatures.unset(7);
   }
 
   get localGossipQueriesEx(): boolean {
-    return this.localFeatures.testn(10) || this.localFeatures.testn(11);
+    return this.localFeatures.isSet(10) || this.localFeatures.isSet(11);
   }
 
   set localGossipQueriesEx(val: boolean) {
-    if (val) this.setLocalBit(11);
-    else this.unsetLocalBit(11);
-    this.unsetLocalBit(10);
+    this.localFeatures.unset(10);
+    if (val) this.localFeatures.set(11);
+    else this.localFeatures.unset(11);
   }
 
   public toJSON() {
