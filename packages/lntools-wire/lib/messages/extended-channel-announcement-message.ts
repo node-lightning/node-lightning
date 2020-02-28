@@ -1,5 +1,5 @@
 import { BufferCursor } from "@lntools/buffer-cursor";
-import BN = require("bn.js");
+import { Bitmask } from "../bitmask";
 import { OutPoint } from "../domain/outpoint";
 import { TlvStreamReader } from "../serialize/tlv-stream-reader";
 import { shortChannelIdFromBuffer } from "../shortchanid";
@@ -51,7 +51,7 @@ export class ExtendedChannelAnnouncementMessage extends ChannelAnnouncementMessa
     instance.bitcoinSignature2 = reader.readBytes(64);
 
     const len = reader.readUInt16BE();
-    instance.features = new BN(reader.readBytes(len));
+    instance.features = Bitmask.fromBuffer(reader.readBytes(len));
     instance.chainHash = reader.readBytes(32);
     instance.shortChannelId = shortChannelIdFromBuffer(reader.readBytes(8));
     instance.nodeId1 = reader.readBytes(33);
