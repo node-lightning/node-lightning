@@ -1,6 +1,7 @@
 import { BufferCursor } from "@lntools/buffer-cursor";
 import * as crypto from "@lntools/crypto";
 import BN from "bn.js";
+import { Bitmask } from "../bitmask";
 import { MESSAGE_TYPE } from "../message-type";
 import { shortChannelIdFromBuffer } from "../shortchanid";
 import { ShortChannelId } from "../shortchanid";
@@ -34,7 +35,7 @@ export class ChannelAnnouncementMessage implements IWireMessage {
     instance.bitcoinSignature2 = reader.readBytes(64);
 
     const len = reader.readUInt16BE();
-    instance.features = new BN(reader.readBytes(len));
+    instance.features = Bitmask.fromBuffer(reader.readBytes(len));
     instance.chainHash = reader.readBytes(32);
     instance.shortChannelId = shortChannelIdFromBuffer(reader.readBytes(8));
     instance.nodeId1 = reader.readBytes(33);
@@ -110,7 +111,7 @@ export class ChannelAnnouncementMessage implements IWireMessage {
   /**
    * The channel features stored as a BN value.
    */
-  public features: BN;
+  public features: Bitmask;
 
   /**
    * Must set chain_hash to a 32-byte hash that uniquely identifies
@@ -155,8 +156,8 @@ export class ChannelAnnouncementMessage implements IWireMessage {
    * for wire transport
    */
   public serialize(): Buffer {
-    const featuresBuffer = this.features.toBuffer("be");
-    const featuresLen = this.features.gtn(0) ? featuresBuffer.length : 0;
+    const featuresBuffer = this.features.toBuffer();
+    const featuresLen = featuresBuffer.length;
     const result = Buffer.alloc(
       2 +   // type
       64 +  // node_signature_1

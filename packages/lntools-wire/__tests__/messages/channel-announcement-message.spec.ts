@@ -1,6 +1,7 @@
 // tslint:disable: no-unused-expression
 import BN from "bn.js";
 import { expect } from "chai";
+import { Bitmask } from "../../lib/bitmask";
 import { ChannelAnnouncementMessage } from "../../lib/messages/channel-announcement-message";
 import { ShortChannelId } from "../../lib/shortchanid";
 
@@ -119,7 +120,7 @@ describe("ChannelAnnouncementMessage", () => {
         "b063dd7a82583211185fea8bd7a47f1dec88fbda2377f76dfc253cc85e7c33231023d6647f1379e84ff36b4286edd1a2a71f817964bb16f0fd19254ce6441d5a",
         "hex",
       );
-      instance.features = new BN(0);
+      instance.features = new Bitmask();
       instance.chainHash = Buffer.from(
         "43497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea330900000000",
         "hex",
@@ -165,7 +166,7 @@ describe("ChannelAnnouncementMessage", () => {
         "b063dd7a82583211185fea8bd7a47f1dec88fbda2377f76dfc253cc85e7c33231023d6647f1379e84ff36b4286edd1a2a71f817964bb16f0fd19254ce6441d5a",
         "hex",
       );
-      instance.features = new BN(1);
+      instance.features = Bitmask.fromNumber(1);
       instance.chainHash = Buffer.from(
         "43497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea330900000000",
         "hex",
