@@ -1,6 +1,7 @@
 import { BufferCursor } from "@lntools/buffer-cursor";
 import * as crypto from "@lntools/crypto";
 import BN from "bn.js";
+import { Bitmask } from "../bitmask";
 import { Checksum } from "../domain/checksum";
 import { MESSAGE_TYPE } from "../message-type";
 import { shortChannelIdFromBuffer } from "../shortchanid";
@@ -26,8 +27,8 @@ export class ChannelUpdateMessage implements IWireMessage {
     instance.chainHash = reader.readBytes(32);
     instance.shortChannelId = shortChannelIdFromBuffer(reader.readBytes(8));
     instance.timestamp = reader.readUInt32BE();
-    instance.messageFlags = reader.readUInt8();
-    instance.channelFlags = reader.readUInt8();
+    instance.messageFlags = Bitmask.fromNumber(reader.readUInt8());
+    instance.channelFlags = Bitmask.fromNumber(reader.readUInt8());
     instance.cltvExpiryDelta = reader.readUInt16BE();
     instance.htlcMinimumMsat = reader.readUInt64BE();
     instance.feeBaseMsat = reader.readUInt32BE();
@@ -99,7 +100,7 @@ export class ChannelUpdateMessage implements IWireMessage {
    *   bit, field
    *   0, htlc_maximum_msat
    */
-  public messageFlags: number;
+  public messageFlags: Bitmask = new Bitmask();
 
   /**
    * Indicates the direction of the channel: it identifies the node that this
@@ -109,7 +110,7 @@ export class ChannelUpdateMessage implements IWireMessage {
    *   0, direction
    *   1, disabled
    */
-  public channelFlags: number;
+  public channelFlags: Bitmask = new Bitmask();
 
   /**
    * The number of blocks the channel will subtract from an incoming
@@ -148,7 +149,7 @@ export class ChannelUpdateMessage implements IWireMessage {
    * maximum HTLC msat value available
    */
   get hasHtlcMaximumMsatFlag(): boolean {
-    return (this.messageFlags & 0x1) === 1;
+    return this.messageFlags.isSet(0);
   }
 
   /**
@@ -157,16 +158,34 @@ export class ChannelUpdateMessage implements IWireMessage {
    * node_2 is the sender
    */
   get direction(): number {
-    return this.channelFlags & 0x1;
+    return this.channelFlags.isSet(0) ? 1 : 0;
+  }
+
+  set direction(val: number) {
+    if (val === 0) {
+      this.channelFlags.unset(0);
+    } else if (val === 1) {
+      this.channelFlags.set(0);
+    } else {
+      throw new Error("Invlid direction");
+    }
   }
 
   /**
    * Disabled flag is determined by channel_flags bit 1.
-   * When set to 0, the channel is active. When set to 0
-   * the chanenl is disabled.
+   * When set to 0, the channel is active. When set to 1
+   * the channel is disabled.
    */
   get disabled(): boolean {
-    return (this.channelFlags & 0x2) === 2;
+    return this.channelFlags.isSet(1);
+  }
+
+  set disabled(val: boolean) {
+    if (val) {
+      this.channelFlags.set(1);
+    } else {
+      this.channelFlags.unset(1);
+    }
   }
 
   /**
@@ -195,8 +214,8 @@ export class ChannelUpdateMessage implements IWireMessage {
     writer.writeBytes(this.chainHash);
     writer.writeBytes(this.shortChannelId.toBuffer());
     writer.writeUInt32BE(this.timestamp);
-    writer.writeUInt8(this.messageFlags);
-    writer.writeUInt8(this.channelFlags);
+    writer.writeUInt8(this.messageFlags.toNumber());
+    writer.writeUInt8(this.channelFlags.toNumber());
     writer.writeUInt16BE(this.cltvExpiryDelta);
     writer.writeBytes(this.htlcMinimumMsat.toBuffer("be", 8));
     writer.writeUInt32BE(this.feeBaseMsat);
@@ -234,8 +253,8 @@ export class ChannelUpdateMessage implements IWireMessage {
     writer.writeUInt16BE(this.type);
     writer.writeBytes(this.chainHash);
     writer.writeBytes(this.shortChannelId.toBuffer());
-    writer.writeUInt8(this.messageFlags);
-    writer.writeUInt8(this.channelFlags);
+    writer.writeUInt8(Number(this.messageFlags));
+    writer.writeUInt8(Number(this.channelFlags));
     writer.writeUInt16BE(this.cltvExpiryDelta);
     writer.writeBytes(this.htlcMinimumMsat.toBuffer("be", 8));
     writer.writeUInt32BE(this.feeBaseMsat);

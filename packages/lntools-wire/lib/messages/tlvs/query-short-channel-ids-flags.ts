@@ -1,8 +1,8 @@
+import { Bitmask } from "../../bitmask";
 import { Encoder } from "../../serialize/encoder";
 import { EncodingType } from "../../serialize/encoding-type";
 import { TlvValueReader } from "../../serialize/tlv-value-reader";
 import { TlvValueWriter } from "../../serialize/tlv-value-writer";
-import { QueryShortChannelIdsFlag } from "./query-short-channel-ids-flag";
 import { Tlv } from "./tlv";
 
 export class QueryShortChannelIdsFlags extends Tlv {
@@ -16,16 +16,16 @@ export class QueryShortChannelIdsFlags extends Tlv {
     const reader2 = new TlvValueReader(rawBytes);
     while (!reader2.eof) {
       const rawFlags = reader2.readBigSize();
-      const flags = new QueryShortChannelIdsFlag(rawFlags);
+      const flags = new Bitmask(rawFlags);
       instance.flags.push(flags);
     }
     return instance;
   }
 
   public type: bigint = BigInt(1);
-  public flags: QueryShortChannelIdsFlag[] = [];
+  public flags: Bitmask[] = [];
 
-  public addFlags(...flags: QueryShortChannelIdsFlag[]) {
+  public addFlags(...flags: Bitmask[]) {
     this.flags.push(...flags);
     return this;
   }
@@ -33,7 +33,7 @@ export class QueryShortChannelIdsFlags extends Tlv {
   public serializeValue(encoding: number = EncodingType.ZlibDeflate): Buffer {
     const writer = new TlvValueWriter();
     for (const flags of this.flags) {
-      writer.writeBigSize(flags.flags);
+      writer.writeBigSize(flags.value);
     }
 
     const encoder = new Encoder();
@@ -43,7 +43,7 @@ export class QueryShortChannelIdsFlags extends Tlv {
   public toJSON() {
     return {
       type: this.type.toString(),
-      flags: this.flags.map(p => p.toJSON()),
+      flags: this.flags.map(p => p.toNumber()),
     };
   }
 }

@@ -27,55 +27,31 @@ describe("QueryChannelRangeOptions", () => {
     });
   });
 
-  describe(".enableTimestamp()", () => {
+  describe("set timestamp", () => {
     it("should set the timestamp to true", () => {
       const sut = new QueryChannelRangeOptions();
-      sut.enableTimestamp();
+      sut.timestamp = true;
       expect(sut.timestamp).to.equal(true);
     });
 
-    it("should return the instance", () => {
-      const sut = new QueryChannelRangeOptions();
-      expect(sut.enableTimestamp()).to.equal(sut);
-    });
-  });
-
-  describe(".disableTimestamp()", () => {
-    it("should set the timestamp to true", () => {
+    it("should unset the timestamp", () => {
       const sut = new QueryChannelRangeOptions(BigInt(3));
-      sut.disableTimestamp();
+      sut.timestamp = false;
       expect(sut.timestamp).to.equal(false);
     });
-
-    it("should return the instance", () => {
-      const sut = new QueryChannelRangeOptions();
-      expect(sut.disableTimestamp()).to.equal(sut);
-    });
   });
 
-  describe(".enableChecksum()", () => {
+  describe("set checksum", () => {
     it("should set the checksum to true", () => {
       const sut = new QueryChannelRangeOptions();
-      sut.enableChecksum();
+      sut.checksum = true;
       expect(sut.checksum).to.equal(true);
     });
 
-    it("should return the instance", () => {
-      const sut = new QueryChannelRangeOptions();
-      expect(sut.enableChecksum()).to.equal(sut);
-    });
-  });
-
-  describe(".disableChecksum()", () => {
-    it("should set the timestamp to false", () => {
+    it("should unset the checksum to false", () => {
       const sut = new QueryChannelRangeOptions(BigInt(3));
-      sut.disableChecksum();
+      sut.checksum = false;
       expect(sut.checksum).to.equal(false);
-    });
-
-    it("should return the instance", () => {
-      const sut = new QueryChannelRangeOptions();
-      expect(sut.disableChecksum()).to.equal(sut);
     });
   });
 
@@ -95,7 +71,7 @@ describe("QueryChannelRangeOptions", () => {
     it("should deserialize", () => {
       const reader = new TlvValueReader(Buffer.from("03", "hex"));
       const sut = QueryChannelRangeOptions.deserialize(reader);
-      expect(sut.options.toString(16)).to.equal("3");
+      expect(sut.options.value.toString(16)).to.equal("3");
     });
   });
 });
