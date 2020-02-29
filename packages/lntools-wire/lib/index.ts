@@ -51,7 +51,6 @@ export * from "./messages/wire-message";
 
 export * from "./messages/tlvs/channel-update-checksums";
 export * from "./messages/tlvs/query-channel-range-options";
-export * from "./messages/tlvs/query-short-channel-ids-flag";
 export * from "./messages/tlvs/query-short-channel-ids-flags";
 export * from "./messages/tlvs/reply-channel-range-checksums";
 export * from "./messages/tlvs/reply-channel-range-timestamps";
