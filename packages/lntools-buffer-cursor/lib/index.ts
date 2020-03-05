@@ -196,10 +196,10 @@ export class BufferCursor {
    * slice method, the values do not point to the same memory location
    * as the source buffer. The values are copied to a new buffer.
    *
-   * @param [len] optional number of bytes to read, returns
+   * @param len optional number of bytes to read, returns
    * all remaining bytes when omitted
    */
-  public readBytes(len: number): Buffer {
+  public readBytes(len?: number): Buffer {
     if (len === 0) {
       this._lastReadBytes = 0;
       return Buffer.alloc(0);
@@ -223,9 +223,9 @@ export class BufferCursor {
   /**
    * Reads bytes from the buffer at the current position without
    * moving the cursor.
-   * @param len number of bytes to read
+   * @param len optional number of bytes to read
    */
-  public peakBytes(len: number): Buffer {
+  public peakBytes(len?: number): Buffer {
     if (len === 0) {
       return Buffer.alloc(0);
     } else if (len > 0) {
@@ -287,6 +287,11 @@ export class BufferCursor {
    */
   public writeUInt64LE(value: number | bigint) {
     const val = BigInt(value);
+    if (val < 0 || val >= BigInt(2) ** BigInt(64)) {
+      throw new RangeError(
+        `The value of "value" is out of range. It must be >= 0 and <= 18446744073709551615. Received ${value.toString()}`,
+      );
+    }
     const buf = Buffer.from(val.toString(16).padStart(16, "0"), "hex");
     this.writeBytes(buf.reverse());
   }
@@ -297,6 +302,11 @@ export class BufferCursor {
    */
   public writeUInt64BE(value: number | bigint) {
     const val = BigInt(value);
+    if (val < 0 || val >= BigInt(2) ** BigInt(64)) {
+      throw new RangeError(
+        `The value of "value" is out of range. It must be >= 0 and <= 18446744073709551615. Received ${value.toString()}`,
+      );
+    }
     const buf = Buffer.from(val.toString(16).padStart(16, "0"), "hex");
     this.writeBytes(buf);
   }
