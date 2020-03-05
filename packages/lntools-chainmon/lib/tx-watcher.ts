@@ -1,4 +1,5 @@
 import { decodeTx } from "@lntools/bitcoin";
+import { Tx } from "@lntools/bitcoin/dist/tx";
 import { BitcoindClient } from "@lntools/bitcoind";
 import { EventEmitter } from "events";
 import { Outpoint } from "./outpoint";
@@ -49,10 +50,9 @@ export class TxWatcher extends EventEmitter {
 
   ////////////////////////////////////////////////////////////////
 
-  private _checkOutpoints(tx) {
-    // check each
+  private _checkOutpoints(tx: Tx) {
     for (const vin of tx.vin) {
-      const key = `${vin.txId}:${vin.vout}`;
+      const key = `${vin.txId.toString("hex")}:${vin.vout}`;
       const watchedOutpoint = this.watchedOutpoints.get(key);
       if (watchedOutpoint) {
         this.watchedOutpoints.delete(key);
