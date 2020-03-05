@@ -1,12 +1,10 @@
-import BN = require("bn.js");
-
 export class ChannelSettings {
   public signature: Buffer;
   public direction: number;
   public timestamp: number;
   public cltvExpiryDelta: number;
-  public htlcMinimumMsat: BN;
-  public htlcMaximumMsat: BN;
+  public htlcMinimumMsat: bigint;
+  public htlcMaximumMsat: bigint;
   public feeBaseMsat: number;
   public feeProportionalMillionths: number;
   public disabled: boolean;

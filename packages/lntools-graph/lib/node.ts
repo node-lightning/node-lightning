@@ -1,5 +1,4 @@
-import { Address } from "@lntools/wire";
-import BN = require("bn.js");
+import { Address, Bitmask } from "@lntools/wire";
 import { Channel } from "./channel";
 
 /**
@@ -11,7 +10,7 @@ export class Node {
   public alias: Buffer;
   public addresses: Address[];
   public rgbColor: Buffer;
-  public features: BN;
+  public features: Bitmask;
 
   /**
    * Channels that the node belongs to

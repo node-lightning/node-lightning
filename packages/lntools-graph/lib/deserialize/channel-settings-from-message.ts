@@ -1,5 +1,4 @@
 import { ChannelUpdateMessage } from "@lntools/wire";
-import BN from "bn.js";
 import { ChannelSettings } from "../channel-settings";
 
 /**
