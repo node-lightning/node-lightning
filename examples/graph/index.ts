@@ -32,11 +32,6 @@ async function connectToPeer(peerInfo: { rpk: string; host: string; port: number
   // with channels inside the ChannelFilter
   const chainClient = new BitcoindClient(config.bitcoind);
 
-  // construucts a new transaction watcher which is used to watch for
-  // spending of tx outpoints. This class us enables to monitor the blockchain
-  // for spent outpoints and remove them from our routing view.
-  const txWatcher = new TxWatcher(chainClient);
-
   // constructs the gossip data storage and the manager for
   // controlling gossip requests with the peer.
   const gossipStore = new RocksdbGossipStore(".db");
@@ -75,17 +70,22 @@ async function connectToPeer(peerInfo: { rpk: string; host: string; port: number
     logger.info("msg: %d, type: %d %s %s", ++counter, msg.type, msg.constructor.name, extra);
   });
 
+  // construucts a new transaction watcher which is used to watch for
+  // spending of tx outpoints. This class us enables to monitor the blockchain
+  // for spent outpoints and remove them from our routing view.
+  const txWatcher = new TxWatcher(chainClient);
+
+  // start the tx watcher looking for transactions
+  txWatcher.start();
+
   // listen for new channel announcement messages. when we receive one, we will
   // add it to the chain_mon transaction watcher to see if it gets spent. once it
   // is spent, we will remove it from the routing view
   gossipManager.on("message", async msg => {
     if (msg instanceof ExtendedChannelAnnouncementMessage) {
-      txWatcher.watchOutpoint((msg as ExtendedChannelAnnouncementMessage).outpoint);
+      txWatcher.watchOutpoint(msg.outpoint);
     }
   });
-
-  // start the gossip manager to enable us to add peers to it
-  await gossipManager.start();
 
   // The transaction watcher will notify us of transactions that have been spent.
   // We remove the outpoint from the routing table by deleting it from the
@@ -95,6 +95,9 @@ async function connectToPeer(peerInfo: { rpk: string; host: string; port: number
     await gossipManager.removeChannel(msg.shortChannelId);
     logger.info("removed channel", outpoint.toString());
   });
+
+  // start the gossip manager to enable us to add peers to it
+  await gossipManager.start();
 
   // constructs an init message to signal to the remote
   // peer the capabilities of the current node. This
