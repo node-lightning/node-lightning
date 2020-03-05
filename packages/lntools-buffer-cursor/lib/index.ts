@@ -1,5 +1,4 @@
 import assert from "assert";
-import BN from "bn.js";
 
 export class BufferCursor {
   /**
@@ -22,14 +21,8 @@ export class BufferCursor {
    */
   constructor(buffer: Buffer) {
     assert(Buffer.isBuffer(buffer), "Requires a buffer");
-
-    /** @type {Buffer} */
     this._buffer = buffer;
-
-    /** @type {number} */
     this._position = 0;
-
-    /** @type {number} */
     this._lastReadBytes = 0;
   }
 
@@ -106,15 +99,20 @@ export class BufferCursor {
   /**
    * Read a UInt64 number as big-endian
    */
-  public readUInt64BE(): BN {
-    return new BN(this.readBytes(8), null, "be");
+  public readUInt64BE(): bigint {
+    return BigInt("0x" + this.readBytes(8).toString("hex"));
   }
 
   /**
    * Read a UInt64 number as little-endian
    */
-  public readUInt64LE(): BN {
-    return new BN(this.readBytes(8), null, "le");
+  public readUInt64LE(): bigint {
+    return BigInt(
+      "0x" +
+        this.readBytes(8)
+          .reverse()
+          .toString("hex"),
+    );
   }
 
   /**
@@ -132,19 +130,19 @@ export class BufferCursor {
    *   0xfe = 4 byte number (5 bytes total)
    *   0xff = 8 byte number (9 bytes total)
    */
-  public readVarUint(): BN {
+  public readVarUint(): bigint {
     const size = this.readUInt8();
     if (size < 0xfd) {
       this._lastReadBytes = 1;
-      return new BN(size);
+      return BigInt(size);
     }
     switch (size) {
       case 0xfd:
         this._lastReadBytes = 3;
-        return new BN(this.readUInt16LE());
+        return BigInt(this.readUInt16LE());
       case 0xfe:
         this._lastReadBytes = 5;
-        return new BN(this.readUInt32LE());
+        return BigInt(this.readUInt32LE());
       case 0xff:
         this._lastReadBytes = 9;
         return this.readUInt64LE();
@@ -187,8 +185,8 @@ export class BufferCursor {
       case 0xff: {
         this._lastReadBytes = 9;
         const val = this.readUInt64BE();
-        if (val.lt(new BN(0x100000000))) throw new Error("decoded varint is not canonical");
-        return BigInt("0x" + val.toString("hex"));
+        if (val < BigInt(0x100000000)) throw new Error("decoded varint is not canonical");
+        return val;
       }
     }
   }
@@ -198,10 +196,10 @@ export class BufferCursor {
    * slice method, the values do not point to the same memory location
    * as the source buffer. The values are copied to a new buffer.
    *
-   * @param [len] optional number of bytes to read, returns
+   * @param len optional number of bytes to read, returns
    * all remaining bytes when omitted
    */
-  public readBytes(len: number): Buffer {
+  public readBytes(len?: number): Buffer {
     if (len === 0) {
       this._lastReadBytes = 0;
       return Buffer.alloc(0);
@@ -225,9 +223,9 @@ export class BufferCursor {
   /**
    * Reads bytes from the buffer at the current position without
    * moving the cursor.
-   * @param len number of bytes to read
+   * @param len optional number of bytes to read
    */
-  public peakBytes(len: number): Buffer {
+  public peakBytes(len?: number): Buffer {
     if (len === 0) {
       return Buffer.alloc(0);
     } else if (len > 0) {
@@ -287,18 +285,30 @@ export class BufferCursor {
    * Write at the current positiion
    * @param value
    */
-  public writeUInt64LE(value: number | BN) {
-    if (!(value instanceof BN)) value = new BN(value);
-    this.writeBytes(value.toBuffer("le", 8));
+  public writeUInt64LE(value: number | bigint) {
+    const val = BigInt(value);
+    if (val < 0 || val >= BigInt(2) ** BigInt(64)) {
+      throw new RangeError(
+        `The value of "value" is out of range. It must be >= 0 and <= 18446744073709551615. Received ${value.toString()}`,
+      );
+    }
+    const buf = Buffer.from(val.toString(16).padStart(16, "0"), "hex");
+    this.writeBytes(buf.reverse());
   }
 
   /**
    * Write at the current positiion
    * @param value
    */
-  public writeUInt64BE(value: number | BN) {
-    if (!(value instanceof BN)) value = new BN(value);
-    this.writeBytes(value.toBuffer("be", 8));
+  public writeUInt64BE(value: number | bigint) {
+    const val = BigInt(value);
+    if (val < 0 || val >= BigInt(2) ** BigInt(64)) {
+      throw new RangeError(
+        `The value of "value" is out of range. It must be >= 0 and <= 18446744073709551615. Received ${value.toString()}`,
+      );
+    }
+    const buf = Buffer.from(val.toString(16).padStart(16, "0"), "hex");
+    this.writeBytes(buf);
   }
 
   /**
@@ -339,7 +349,7 @@ export class BufferCursor {
       this.writeUInt32BE(Number(num));
     } else {
       this.writeUInt8(0xff);
-      this.writeUInt64BE(new BN(num.toString(16), "hex"));
+      this.writeUInt64BE(num);
     }
   }
 
