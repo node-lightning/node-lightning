@@ -1,7 +1,6 @@
 // @ts-check
 
 import bech32 from "bech32";
-import BN from "bn.js";
 import bs58check from "bs58check";
 import { ADDRESS_VERSION } from "./address-version";
 import { EXPIRY_DEFAULT, MIN_FINAL_CLTV_EXPIRY_DEFAULT } from "./constants";
@@ -11,9 +10,9 @@ import { FIELD_TYPE } from "./field-type";
 import { Route } from "./route";
 import { Signature } from "./signature";
 
-const picoToMsat = 10;
-const picoToSat = picoToMsat * 1000;
-const picoToBtc = 1e12;
+const picoToMsat = BigInt(10);
+const picoToSat = picoToMsat * BigInt(1000);
+const picoToBtc = BigInt(1e12);
 const MAX_SHORT_DESC_BYTES = 639;
 
 /**
@@ -57,7 +56,7 @@ export class Invoice {
   /**
    * Invoice value stored in pico bitcoin
    */
-  public _value: BN;
+  public _value: bigint;
 
   /**
    * Returns true when the invoice has a value
@@ -66,7 +65,7 @@ export class Invoice {
    * any value.
    */
   get hasValue(): boolean {
-    return this._value instanceof BN;
+    return typeof this._value === "bigint";
   }
 
   /**
@@ -83,12 +82,12 @@ export class Invoice {
    * Use property `valueSat` or `valueMsat` instead.
    */
   get amount(): string {
-    return this.hasValue ? (this._value.toNumber() / picoToBtc).toFixed(11) : null;
+    return this.hasValue ? (Number(this._value) / Number(picoToBtc)).toFixed(11) : null;
   }
 
   set amount(val) {
     if (!val) this._value = null;
-    else this._value = new BN(parseFloat(val) * picoToBtc);
+    else this._value = BigInt(Math.trunc(parseFloat(val) * Number(picoToBtc)));
   }
 
   /**
@@ -101,12 +100,12 @@ export class Invoice {
    * Setting a falsy value will remove the value from the invoice.
    */
   get valueSat() {
-    return this.hasValue ? this._value.divn(picoToSat).toString() : null;
+    return this.hasValue ? (this._value / picoToSat).toString() : null;
   }
 
   set valueSat(val) {
     if (!val) this._value = null;
-    else this._value = new BN(val).muln(picoToSat);
+    else this._value = BigInt(val) * picoToSat;
   }
 
   /**
@@ -117,12 +116,12 @@ export class Invoice {
    * value will remove the value from the invoice.
    */
   get valueMsat(): string {
-    return this.hasValue ? this._value.divn(picoToMsat).toString() : null;
+    return this.hasValue ? (this._value / picoToMsat).toString() : null;
   }
 
   set valueMsat(val) {
     if (!val) this._value = null;
-    else this._value = new BN(val).muln(picoToMsat);
+    else this._value = BigInt(val) * picoToMsat;
   }
 
   /**

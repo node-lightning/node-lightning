@@ -1,6 +1,5 @@
 import { BufferCursor } from "@lntools/buffer-cursor";
 import bech32 from "bech32";
-import BN from "bn.js";
 import { ADDRESS_VERSION } from "./address-version";
 import * as crypto from "./crypto";
 import { FIELD_TYPE } from "./field-type";
@@ -162,7 +161,7 @@ export function decode(invoice: string): Invoice {
  *
  * Value is returned as pico bitcoin.
  */
-function parsePrefix(prefix: string): { network: string; picoBtc: BN } {
+function parsePrefix(prefix: string): { network: string; picoBtc: bigint } {
   if (!prefix.startsWith("ln")) throw new Error("Invalid prefix");
   let network = "";
   let tempValue = "";
@@ -195,7 +194,7 @@ function parsePrefix(prefix: string): { network: string; picoBtc: BN } {
   if (tempValue === "") value = null;
   // otherwise we multiply by the value by the pico amount to obtain
   // the actual pico value of the
-  else value = new BN(tempValue).mul(hrpToPico(multiplier));
+  else value = BigInt(tempValue) * hrpToPico(multiplier);
 
   if (!isValidNetwork(network)) throw new Error("Invalid network");
   if (!isValidValue(value)) throw new Error("Invalid amount");
