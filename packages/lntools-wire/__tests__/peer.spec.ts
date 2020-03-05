@@ -1,14 +1,17 @@
-const { EventEmitter } = require("events");
-const winston = require("winston");
-const { expect } = require("chai");
-const sinon = require("sinon");
-const noise = require("@lntools/noise");
-const { Peer } = require("../lib/peer");
-const { PingPongState } = require("../lib/pingpong-state");
-const { InitMessage } = require("../lib/messages/init-message");
-const { createFakeLogger } = require("./_test-utils");
+// tslint:disable: max-classes-per-file
+// tslint:disable: no-unused-expression
+import * as noise from "@lntools/noise";
+import { expect } from "chai";
+import { EventEmitter } from "events";
+import sinon from "sinon";
+import { InitMessage } from "../lib/messages/init-message";
+import { Peer } from "../lib/peer";
+import { PingPongState } from "../lib/pingpong-state";
+import { createFakeLogger } from "./_test-utils";
 
 class FakeSocket extends EventEmitter {
+  [x: string]: any;
+
   constructor() {
     super();
     this.write = sinon.stub();
@@ -17,37 +20,34 @@ class FakeSocket extends EventEmitter {
 }
 
 class FakeMessage {
+  [x: string]: any;
+
   constructor(msg) {
     this.msg = msg;
   }
-  serialize() {
+  public serialize() {
     return Buffer.from(this.msg);
   }
 }
 
 describe("Peer", () => {
-  /** @type Peer */
-  let sut;
-
-  /** @type sinon.SinonSandbox */
-  let sandbox;
-
-  /** @type noise.NoiseSocket */
-  let socket;
+  let sut: Peer;
+  let sandbox: sinon.SinonSandbox;
+  let socket: noise.NoiseSocket;
 
   beforeEach(() => {
     const initMessageFactory = () => {
-      let msg = new InitMessage();
+      const msg = new InitMessage();
       msg.localDataLossProtect = true;
       return msg;
     };
+    const ls = Buffer.alloc(32, 0);
     const rpk = Buffer.alloc(32, 1);
     const logger = createFakeLogger();
-    sut = new Peer({ rpk, initMessageFactory, logger });
-    sut.socket = socket = new FakeSocket();
+    sut = new Peer({ ls, rpk, initMessageFactory, logger });
+    sut.socket = socket = new FakeSocket() as any;
     sut.pingPongState = sinon.createStubInstance(PingPongState);
     sandbox = sinon.createSandbox();
-    sandbox.stub(winston);
   });
 
   afterEach(() => {
@@ -67,44 +67,44 @@ describe("Peer", () => {
 
     it("should bind to ready", () => {
       socket.emit("ready");
-      expect(sut._onSocketReady.called).to.be.true;
+      expect((sut as any)._onSocketReady.called).to.be.true;
     });
 
     it("should bind end", () => {
       socket.emit("end");
-      expect(sut._onSocketEnd.called).to.be.true;
+      expect((sut as any)._onSocketEnd.called).to.be.true;
     });
 
     it("should bind close", () => {
       socket.emit("close");
-      expect(sut._onSocketClose.called).to.be.true;
+      expect((sut as any)._onSocketClose.called).to.be.true;
     });
 
     it("should bind error", () => {
       socket.emit("error");
-      expect(sut._onSocketError.called).to.be.true;
+      expect((sut as any)._onSocketError.called).to.be.true;
     });
 
     it("should bind data", () => {
       socket.emit("data");
-      expect(sut._onSocketData.called).to.be.true;
+      expect((sut as any)._onSocketData.called).to.be.true;
     });
   });
 
   describe(".sendMessage()", () => {
     it("should throw when not ready", () => {
-      expect(() => sut.write(new FakeMessage())).to.throw();
+      expect(() => sut.sendMessage(new FakeMessage("hello") as any)).to.throw();
     });
 
     it("should send the serialized message", () => {
-      let input = new FakeMessage("test");
+      const input = new FakeMessage("test");
       sut.state = Peer.states.ready;
       sut.sendMessage(input);
-      expect(socket.write.args[0][0]).to.deep.equal(Buffer.from("test"));
+      expect((socket as any).write.args[0][0]).to.deep.equal(Buffer.from("test"));
     });
 
     it("should emit a sending message", done => {
-      let input = new FakeMessage("test");
+      const input = new FakeMessage("test");
       sut.state = Peer.states.ready;
       sut.on("sending", () => done());
       sut.sendMessage(input);
@@ -114,45 +114,45 @@ describe("Peer", () => {
   describe(".disconnect()", () => {
     it("should stop the socket", () => {
       sut.disconnect();
-      expect(sut.socket.end.called).to.be.true;
+      expect((sut.socket as any).end.called).to.be.true;
     });
   });
 
   describe("._onSocketReady()", () => {
     it("should transition state to awaiting_peer_init", () => {
-      sut._onSocketReady();
+      (sut as any)._onSocketReady();
       expect(sut.state).to.equal(Peer.states.awaiting_peer_init);
     });
 
     it("should send the init message to the peer", () => {
-      sut._onSocketReady();
-      expect(socket.write.args[0][0]).to.deep.equal(Buffer.from("00100000000102", "hex"));
+      (sut as any)._onSocketReady();
+      expect((socket as any).write.args[0][0]).to.deep.equal(Buffer.from("00100000000102", "hex"));
     });
   });
 
   describe("_onSocketEnd", () => {
     it("should emit the end event", done => {
       sut.on("end", () => done());
-      sut._onSocketEnd();
+      (sut as any)._onSocketEnd();
     });
   });
 
   describe("_onSocketClose", () => {
     it("should stop the ping pong state", () => {
-      sut._onSocketClose();
-      expect(sut.pingPongState.onDisconnecting.called).to.be.true;
+      (sut as any)._onSocketClose();
+      expect((sut as any).pingPongState.onDisconnecting.called).to.be.true;
     });
 
     it("should emit the close event", done => {
       sut.on("close", () => done());
-      sut._onSocketClose();
+      (sut as any)._onSocketClose();
     });
   });
 
   describe("_onSocketError", () => {
     it("should emit error event", done => {
       sut.on("error", () => done());
-      sut._onSocketError();
+      (sut as any)._onSocketError();
     });
   });
 
@@ -164,38 +164,38 @@ describe("Peer", () => {
 
     it("should read peer init message when awaiting_peer_init state", () => {
       sut.state = Peer.states.awaiting_peer_init;
-      sut._onSocketData("data");
-      expect(sut._processPeerInitMessage.called).to.be.true;
+      (sut as any)._onSocketData("data");
+      expect((sut as any)._processPeerInitMessage.called).to.be.true;
     });
 
     it("should process message when in ready state", () => {
       sut.state = Peer.states.ready;
-      sut._onSocketData("datat");
-      expect(sut._processMessage.called).to.be.true;
+      (sut as any)._onSocketData("datat");
+      expect((sut as any)._processMessage.called).to.be.true;
     });
 
     describe("on error", () => {
       it("should close the socket", () => {
         sut.state = Peer.states.ready;
-        sut._processMessage.throws(new Error("boom"));
+        (sut as any)._processMessage.throws(new Error("boom"));
         sut.on("error", () => {});
-        sut._onSocketData("data");
-        expect(socket.end.called).to.be.true;
+        (sut as any)._onSocketData("data");
+        expect((socket as any).end.called).to.be.true;
       });
 
       it("should emit an error event", done => {
         sut.state = Peer.states.ready;
-        sut._processMessage.throws(new Error("boom"));
+        (sut as any)._processMessage.throws(new Error("boom"));
         sut.on("error", () => done());
-        sut._onSocketData("data");
+        (sut as any)._onSocketData("data");
       });
     });
   });
 
   describe("_sendInitMessage", () => {
     it("should send the initialization message", () => {
-      sut._sendInitMessage();
-      expect(socket.write.args[0][0]).to.deep.equal(Buffer.from("00100000000102", "hex"));
+      (sut as any)._sendInitMessage();
+      expect((socket as any).write.args[0][0]).to.deep.equal(Buffer.from("00100000000102", "hex"));
     });
   });
 
@@ -208,27 +208,27 @@ describe("Peer", () => {
 
     it("it should fail if not init message", () => {
       input = Buffer.from("001100000000", "hex");
-      expect(() => sut._processPeerInitMessage(input)).to.throw();
+      expect(() => (sut as any)._processPeerInitMessage(input)).to.throw();
     });
 
     it("should store the init message", () => {
-      sut._processPeerInitMessage(input);
+      (sut as any)._processPeerInitMessage(input);
       expect(sut.remoteInit).to.be.instanceof(InitMessage);
     });
 
     it("should start ping state", () => {
-      sut._processPeerInitMessage(input);
-      expect(sut.pingPongState.start.called).to.be.true;
+      (sut as any)._processPeerInitMessage(input);
+      expect((sut as any).pingPongState.start.called).to.be.true;
     });
 
     it("should change the state to ready", () => {
-      sut._processPeerInitMessage(input);
+      (sut as any)._processPeerInitMessage(input);
       expect(sut.state).to.equal(Peer.states.ready);
     });
 
     it("should emit ready", done => {
       sut.on("ready", () => done());
-      sut._processPeerInitMessage(input);
+      (sut as any)._processPeerInitMessage(input);
     });
   });
 
@@ -241,13 +241,13 @@ describe("Peer", () => {
 
     describe("when valid message", () => {
       it("should log with ping service", () => {
-        sut._processMessage(input);
-        expect(sut.pingPongState.onMessage.called).to.be.true;
+        (sut as any)._processMessage(input);
+        expect((sut as any).pingPongState.onMessage.called).to.be.true;
       });
 
       it("should emit the message", done => {
         sut.on("message", () => done());
-        sut._processMessage(input);
+        (sut as any)._processMessage(input);
       });
     });
   });

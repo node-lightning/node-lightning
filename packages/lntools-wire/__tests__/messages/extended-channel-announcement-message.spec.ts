@@ -1,5 +1,4 @@
 // tslint:disable: no-unused-expression
-import BN from "bn.js";
 import { expect } from "chai";
 import { Bitmask } from "../../lib/bitmask";
 import { OutPoint } from "../../lib/domain/outpoint";

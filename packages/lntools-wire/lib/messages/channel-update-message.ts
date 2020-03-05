@@ -1,6 +1,5 @@
 import { BufferCursor } from "@lntools/buffer-cursor";
 import * as crypto from "@lntools/crypto";
-import BN from "bn.js";
 import { Bitmask } from "../bitmask";
 import { Checksum } from "../domain/checksum";
 import { MESSAGE_TYPE } from "../message-type";
@@ -122,7 +121,7 @@ export class ChannelUpdateMessage implements IWireMessage {
    * The minimum HTLC value (in millisatoshi) that the channel peer
    * will accept.
    */
-  public htlcMinimumMsat: BN;
+  public htlcMinimumMsat: bigint;
 
   /**
    * The maximum value (in millisatoshi) it will send through this
@@ -130,7 +129,7 @@ export class ChannelUpdateMessage implements IWireMessage {
    * channel capacity. This value will only be available when the
    * message flag option_channel_htlc_max is set.
    */
-  public htlcMaximumMsat: BN;
+  public htlcMaximumMsat: bigint;
 
   /**
    * The base fee (in millisatoshi) the channel will charge for
@@ -217,11 +216,11 @@ export class ChannelUpdateMessage implements IWireMessage {
     writer.writeUInt8(this.messageFlags.toNumber());
     writer.writeUInt8(this.channelFlags.toNumber());
     writer.writeUInt16BE(this.cltvExpiryDelta);
-    writer.writeBytes(this.htlcMinimumMsat.toBuffer("be", 8));
+    writer.writeUInt64BE(this.htlcMinimumMsat);
     writer.writeUInt32BE(this.feeBaseMsat);
     writer.writeUInt32BE(this.feeProportionalMillionths);
     if (this.hasHtlcMaximumMsatFlag) {
-      writer.writeBytes(this.htlcMaximumMsat.toBuffer("be", 8));
+      writer.writeUInt64BE(this.htlcMaximumMsat);
     }
     return result;
   }
@@ -256,11 +255,11 @@ export class ChannelUpdateMessage implements IWireMessage {
     writer.writeUInt8(Number(this.messageFlags));
     writer.writeUInt8(Number(this.channelFlags));
     writer.writeUInt16BE(this.cltvExpiryDelta);
-    writer.writeBytes(this.htlcMinimumMsat.toBuffer("be", 8));
+    writer.writeUInt64BE(this.htlcMinimumMsat);
     writer.writeUInt32BE(this.feeBaseMsat);
     writer.writeUInt32BE(this.feeProportionalMillionths);
     if (this.hasHtlcMaximumMsatFlag) {
-      writer.writeBytes(this.htlcMaximumMsat.toBuffer("be", 8));
+      writer.writeUInt64BE(this.htlcMaximumMsat);
     }
     return Checksum.fromBuffer(buffer);
   }

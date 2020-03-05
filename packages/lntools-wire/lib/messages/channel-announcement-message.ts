@@ -1,6 +1,5 @@
 import { BufferCursor } from "@lntools/buffer-cursor";
 import * as crypto from "@lntools/crypto";
-import BN from "bn.js";
 import { Bitmask } from "../bitmask";
 import { MESSAGE_TYPE } from "../message-type";
 import { shortChannelIdFromBuffer } from "../shortchanid";
@@ -109,7 +108,7 @@ export class ChannelAnnouncementMessage implements IWireMessage {
   public bitcoinSignature2: Buffer;
 
   /**
-   * The channel features stored as a BN value.
+   * The channel features are a bitmask
    */
   public features: Bitmask;
 

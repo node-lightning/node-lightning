@@ -1,5 +1,4 @@
 // tslint:disable: no-unused-expression
-import BN from "bn.js";
 import { expect } from "chai";
 import { Bitmask } from "../../lib/bitmask";
 import { ChannelUpdateMessage } from "../../lib/messages/channel-update-message";
@@ -27,8 +26,8 @@ describe("ChannelUpdateMessage", () => {
       expect(result.messageFlags.value).to.equal(BigInt(1));
       expect(result.channelFlags.value).to.equal(BigInt(0));
       expect(result.cltvExpiryDelta).to.equal(144);
-      expect(result.htlcMinimumMsat.toNumber()).to.equal(1000);
-      expect(result.htlcMaximumMsat.toNumber()).to.equal(100000000);
+      expect(Number(result.htlcMinimumMsat)).to.equal(1000);
+      expect(Number(result.htlcMaximumMsat)).to.equal(100000000);
       expect(result.feeBaseMsat).to.equal(1000);
       expect(result.feeProportionalMillionths).to.equal(1);
       expect(result.direction).to.equal(0);
@@ -46,8 +45,8 @@ describe("ChannelUpdateMessage", () => {
       instance.messageFlags = new Bitmask(BigInt(1));
       instance.channelFlags = new Bitmask(BigInt(0));
       instance.cltvExpiryDelta = 144;
-      instance.htlcMinimumMsat = new BN(1000);
-      instance.htlcMaximumMsat = new BN(100000000);
+      instance.htlcMinimumMsat = BigInt(1000);
+      instance.htlcMaximumMsat = BigInt(100000000);
       instance.feeBaseMsat = 1000;
       instance.feeProportionalMillionths = 1;
 

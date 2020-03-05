@@ -1,4 +1,3 @@
-import winston from "winston";
 import { MESSAGE_TYPE } from "./message-type";
 import { ChannelAnnouncementMessage } from "./messages/channel-announcement-message";
 import { ChannelUpdateMessage } from "./messages/channel-update-message";
@@ -48,6 +47,4 @@ export function deserialize(buffer: Buffer): IWireMessage {
     case MESSAGE_TYPE.GOSSIP_TIMESTAMP_FILTER:
       return GossipTimestampFilterMessage.deserialize(buffer);
   }
-
-  winston.warn("unknown message type " + type);
 }
