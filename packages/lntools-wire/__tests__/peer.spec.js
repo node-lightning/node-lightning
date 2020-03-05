@@ -1,5 +1,4 @@
 const { EventEmitter } = require("events");
-const winston = require("winston");
 const { expect } = require("chai");
 const sinon = require("sinon");
 const noise = require("@lntools/noise");
@@ -47,7 +46,6 @@ describe("Peer", () => {
     sut.socket = socket = new FakeSocket();
     sut.pingPongState = sinon.createStubInstance(PingPongState);
     sandbox = sinon.createSandbox();
-    sandbox.stub(winston);
   });
 
   afterEach(() => {
