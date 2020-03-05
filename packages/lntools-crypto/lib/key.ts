@@ -1,11 +1,8 @@
-// @ts-check
-
-import BN from "bn.js";
 import crypto from "crypto";
 import secp256k1 from "secp256k1";
 
-const minPrivateKey = new BN(Buffer.from("01", "hex"));
-const maxPrivateKey = new BN(Buffer.from("fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364140", "hex")); // prettier-ignore
+const minPrivateKey = BigInt("0x01");
+const maxPrivateKey = BigInt("0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364140");
 
 /**
  * Returns true when the Buffer represents a 256-bit number that is between
@@ -18,8 +15,8 @@ export function validPrivateKey(privKey: Buffer): boolean {
   if (!Buffer.isBuffer(privKey)) return false;
   if (privKey.length !== 32) return false;
 
-  const val = new BN(privKey);
-  return val.gte(minPrivateKey) && val.lte(maxPrivateKey);
+  const val = BigInt("0x" + privKey.toString("hex"));
+  return val >= minPrivateKey && val <= maxPrivateKey;
 }
 
 /**
@@ -33,10 +30,10 @@ export function validPrivateKey(privKey: Buffer): boolean {
  * @returns the 32-byte/256-bit private key
  */
 export function createPrivateKey(): Buffer {
-  let result;
+  let result: Buffer;
   do {
     result = crypto.randomBytes(32);
-  } while (!validPrivateKey);
+  } while (!validPrivateKey(result));
   return result;
 }
 
