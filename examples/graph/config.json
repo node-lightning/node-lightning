@@ -5,7 +5,9 @@
     "rpcuser": "kek",
     "rpcpassword": "kek",
     "host": "localhost",
-    "port": 18332
+    "port": 18332,
+    "zmqpubrawtx": "tcp://127.0.0.1:38332",
+    "zmqpubrawblock": "tcp://127.0.0.1:38333"
   },
   "peers":[
     {
