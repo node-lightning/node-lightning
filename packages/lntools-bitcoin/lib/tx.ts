@@ -1,5 +1,3 @@
-import BN = require("bn.js");
-
 export type Tx = {
   txId: Buffer;
   hash: Buffer;
@@ -21,6 +19,6 @@ export type TxIn = {
 };
 
 export type TxOut = {
-  value: BN;
+  value: bigint;
   pubKeyScript: Buffer;
 };

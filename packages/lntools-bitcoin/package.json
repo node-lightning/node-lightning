@@ -13,7 +13,7 @@
     "prepublish": "npm run build"
   },
   "dependencies": {
-    "@lntools/buffer-cursor": "^0.3.0",
+    "@lntools/buffer-cursor": "^0.6.0",
     "@lntools/crypto": "^0.5.1",
     "bitcoin-ops": "^1.4.1",
     "bn.js": "^4.11.8",
