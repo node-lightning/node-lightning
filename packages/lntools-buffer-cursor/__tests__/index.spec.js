@@ -1,7 +1,6 @@
 /* eslint-disable no-undef */
 
 const { expect } = require("chai");
-const BN = require("bn.js");
 const { BufferCursor } = require("../lib");
 
 const readTests = [
@@ -45,18 +44,15 @@ for (let readTest of readTests) {
   describe(readTest.method, () => {
     it("should read at start", () => {
       let actual = readTest.instance[readTest.method]();
-      actual = actual instanceof BN ? actual.toNumber() : actual;
-      expect(actual).to.equal(1);
+      expect(Number(actual)).to.equal(1);
     });
     it("should read in middle", () => {
       let actual = readTest.instance[readTest.method]();
-      actual = actual instanceof BN ? actual.toNumber() : actual;
-      expect(actual).to.equal(2);
+      expect(Number(actual)).to.equal(2);
     });
     it("should read at last", () => {
       let actual = readTest.instance[readTest.method]();
-      actual = actual instanceof BN ? actual.toNumber() : actual;
-      expect(actual).to.equal(3);
+      expect(Number(actual)).to.equal(3);
     });
     it("should throw when out of bounds", () => {
       expect(() => readTest.instance[readTest.method]()).to.throw("Index out of range");
@@ -125,7 +121,7 @@ describe("readBytes", () => {
 describe("readVarUint", () => {
   it("should return 1 byte numbers", () => {
     let result = new BufferCursor(Buffer.from("01", "hex")).readVarUint();
-    expect(result.toString("hex")).to.equal("1");
+    expect(result.toString()).to.equal("1");
   });
   it("should indicate 1 byte read", () => {
     let sut = new BufferCursor(Buffer.from("01", "hex"));
@@ -134,7 +130,7 @@ describe("readVarUint", () => {
   });
   it("should return 2 byte numbers", () => {
     let result = new BufferCursor(Buffer.from("fd0100", "hex")).readVarUint();
-    expect(result.toString("hex")).to.equal("1");
+    expect(result.toString()).to.equal("1");
   });
   it("should indicate 2 byte read", () => {
     let sut = new BufferCursor(Buffer.from("fd0100", "hex"));
@@ -143,7 +139,7 @@ describe("readVarUint", () => {
   });
   it("should return 4 byte numbers", () => {
     let result = new BufferCursor(Buffer.from("fe01000000", "hex")).readVarUint();
-    expect(result.toString("hex")).to.equal("1");
+    expect(result.toString()).to.equal("1");
   });
   it("should indicate 4 byte read", () => {
     let sut = new BufferCursor(Buffer.from("fe01000000", "hex"));
@@ -152,7 +148,7 @@ describe("readVarUint", () => {
   });
   it("should return 8 byte numbers", () => {
     let result = new BufferCursor(Buffer.from("ff0100000000000000", "hex")).readVarUint();
-    expect(result.toString("hex")).to.equal("1");
+    expect(result.toString()).to.equal("1");
   });
   it("should indicate 8 byte read", () => {
     let sut = new BufferCursor(Buffer.from("ff0100000000000000", "hex"));
@@ -443,7 +439,7 @@ for (let writeTest of writeTests) {
       expect(writeTest.instance.buffer).to.deep.equal(writeTest.assertions[2]);
     });
     it("should throw when out of bounds", () => {
-      expect(() => writeTest.instance[writeTest.method]()).to.throw("Index out of range");
+      expect(() => writeTest.instance[writeTest.method](0)).to.throw("Index out of range");
     });
   });
 }
