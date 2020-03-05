@@ -1,8 +1,8 @@
+// tslint:disable: no-unused-expression
 /* eslint-disable no-undef */
 
-const { expect } = require("chai");
-const BN = require("bn.js");
-const { BufferCursor } = require("../lib");
+import { expect } from "chai";
+import { BufferCursor } from "../lib";
 
 const readTests = [
   {
@@ -41,22 +41,19 @@ const readTests = [
   },
 ];
 
-for (let readTest of readTests) {
+for (const readTest of readTests) {
   describe(readTest.method, () => {
     it("should read at start", () => {
-      let actual = readTest.instance[readTest.method]();
-      actual = actual instanceof BN ? actual.toNumber() : actual;
-      expect(actual).to.equal(1);
+      const actual = readTest.instance[readTest.method]();
+      expect(Number(actual)).to.equal(1);
     });
     it("should read in middle", () => {
-      let actual = readTest.instance[readTest.method]();
-      actual = actual instanceof BN ? actual.toNumber() : actual;
-      expect(actual).to.equal(2);
+      const actual = readTest.instance[readTest.method]();
+      expect(Number(actual)).to.equal(2);
     });
     it("should read at last", () => {
-      let actual = readTest.instance[readTest.method]();
-      actual = actual instanceof BN ? actual.toNumber() : actual;
-      expect(actual).to.equal(3);
+      const actual = readTest.instance[readTest.method]();
+      expect(Number(actual)).to.equal(3);
     });
     it("should throw when out of bounds", () => {
       expect(() => readTest.instance[readTest.method]()).to.throw("Index out of range");
@@ -66,11 +63,11 @@ for (let readTest of readTests) {
 
 describe("lastReadBytes", () => {
   it("should start at 0", () => {
-    let sut = new BufferCursor(Buffer.from([1]));
+    const sut = new BufferCursor(Buffer.from([1]));
     expect(sut.lastReadBytes).to.equal(0);
   });
   it("should return for standard read", () => {
-    let sut = new BufferCursor(Buffer.from([1]));
+    const sut = new BufferCursor(Buffer.from([1]));
     sut.readUInt8();
     expect(sut.lastReadBytes).to.equal(1);
   });
@@ -116,7 +113,7 @@ describe("readBytes", () => {
   });
   it("should not share memory with the underlying buffer", () => {
     buffer = new BufferCursor(Buffer.from([0, 1, 2, 3]));
-    let result = buffer.readBytes();
+    const result = buffer.readBytes();
     result.reverse();
     expect(buffer.buffer).to.deep.equal(Buffer.from([0, 1, 2, 3]));
   });
@@ -124,38 +121,38 @@ describe("readBytes", () => {
 
 describe("readVarUint", () => {
   it("should return 1 byte numbers", () => {
-    let result = new BufferCursor(Buffer.from("01", "hex")).readVarUint();
-    expect(result.toString("hex")).to.equal("1");
+    const result = new BufferCursor(Buffer.from("01", "hex")).readVarUint();
+    expect(result.toString()).to.equal("1");
   });
   it("should indicate 1 byte read", () => {
-    let sut = new BufferCursor(Buffer.from("01", "hex"));
+    const sut = new BufferCursor(Buffer.from("01", "hex"));
     sut.readVarUint();
     expect(sut.lastReadBytes).to.equal(1);
   });
   it("should return 2 byte numbers", () => {
-    let result = new BufferCursor(Buffer.from("fd0100", "hex")).readVarUint();
-    expect(result.toString("hex")).to.equal("1");
+    const result = new BufferCursor(Buffer.from("fd0100", "hex")).readVarUint();
+    expect(result.toString()).to.equal("1");
   });
   it("should indicate 2 byte read", () => {
-    let sut = new BufferCursor(Buffer.from("fd0100", "hex"));
+    const sut = new BufferCursor(Buffer.from("fd0100", "hex"));
     sut.readVarUint();
     expect(sut.lastReadBytes).to.equal(2);
   });
   it("should return 4 byte numbers", () => {
-    let result = new BufferCursor(Buffer.from("fe01000000", "hex")).readVarUint();
-    expect(result.toString("hex")).to.equal("1");
+    const result = new BufferCursor(Buffer.from("fe01000000", "hex")).readVarUint();
+    expect(result.toString()).to.equal("1");
   });
   it("should indicate 4 byte read", () => {
-    let sut = new BufferCursor(Buffer.from("fe01000000", "hex"));
+    const sut = new BufferCursor(Buffer.from("fe01000000", "hex"));
     sut.readVarUint();
     expect(sut.lastReadBytes).to.equal(4);
   });
   it("should return 8 byte numbers", () => {
-    let result = new BufferCursor(Buffer.from("ff0100000000000000", "hex")).readVarUint();
-    expect(result.toString("hex")).to.equal("1");
+    const result = new BufferCursor(Buffer.from("ff0100000000000000", "hex")).readVarUint();
+    expect(result.toString()).to.equal("1");
   });
   it("should indicate 8 byte read", () => {
-    let sut = new BufferCursor(Buffer.from("ff0100000000000000", "hex"));
+    const sut = new BufferCursor(Buffer.from("ff0100000000000000", "hex"));
     sut.readVarUint();
     expect(sut.lastReadBytes).to.equal(8);
   });
@@ -335,32 +332,32 @@ describe("writeBigSize", () => {
 
 describe("peakBytes", () => {
   it("should return empty buffer when 0", () => {
-    let sut = new BufferCursor(Buffer.from([1]));
-    let result = sut.peakBytes(0);
+    const sut = new BufferCursor(Buffer.from([1]));
+    const result = sut.peakBytes(0);
     expect(result).to.deep.equal(Buffer.alloc(0));
   });
   it("should return buffer of length", () => {
-    let sut = new BufferCursor(Buffer.from([1]));
-    let result = sut.peakBytes(1);
+    const sut = new BufferCursor(Buffer.from([1]));
+    const result = sut.peakBytes(1);
     expect(result).to.deep.equal(Buffer.from([1]));
   });
   it("should return buffer of length", () => {
-    let sut = new BufferCursor(Buffer.from([1]));
+    const sut = new BufferCursor(Buffer.from([1]));
     expect(() => sut.peakBytes(2)).to.throw("Index out of range");
   });
   it("should return all bytes remaining when omitted", () => {
-    let sut = new BufferCursor(Buffer.from([1]));
-    let result = sut.peakBytes();
+    const sut = new BufferCursor(Buffer.from([1]));
+    const result = sut.peakBytes();
     expect(result).to.deep.equal(Buffer.from([1]));
   });
   it("should throw when eof", () => {
-    let sut = new BufferCursor(Buffer.from([1]));
+    const sut = new BufferCursor(Buffer.from([1]));
     sut.readBytes();
     expect(() => sut.peakBytes()).to.throw("Index out of range");
   });
   it("should not share memory with the underlying buffer", () => {
-    let sut = new BufferCursor(Buffer.from([0, 1, 2, 3]));
-    let result = sut.peakBytes();
+    const sut = new BufferCursor(Buffer.from([0, 1, 2, 3]));
+    const result = sut.peakBytes();
     result.reverse();
     expect(sut.buffer).to.deep.equal(Buffer.from([0, 1, 2, 3]));
   });
@@ -428,7 +425,7 @@ const writeTests = [
   },
 ];
 
-for (let writeTest of writeTests) {
+for (const writeTest of writeTests) {
   describe(writeTest.method, () => {
     it("should write at start", () => {
       writeTest.instance[writeTest.method](1);
@@ -443,8 +440,22 @@ for (let writeTest of writeTests) {
       expect(writeTest.instance.buffer).to.deep.equal(writeTest.assertions[2]);
     });
     it("should throw when out of bounds", () => {
-      expect(() => writeTest.instance[writeTest.method]()).to.throw("Index out of range");
+      expect(() => writeTest.instance[writeTest.method](0)).to.throw("Index out of range");
     });
+
+    if (writeTest.method.startsWith("writeUInt64")) {
+      it("should throw when exceeds lower bound", () => {
+        expect(() => writeTest.instance[writeTest.method](BigInt(-1))).to.throw(
+          'The value of "value" is out of range. It must be >= 0 and <= 18446744073709551615. Received -1',
+        );
+      });
+
+      it("should throw when exceeds upper bound", () => {
+        expect(() => writeTest.instance[writeTest.method](BigInt("18446744073709551616"))).to.throw(
+          'The value of "value" is out of range. It must be >= 0 and <= 18446744073709551615. Received 18446744073709551616',
+        );
+      });
+    }
   });
 }
 
