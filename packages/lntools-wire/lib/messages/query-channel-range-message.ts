@@ -1,5 +1,5 @@
 import { BufferCursor } from "@lntools/buffer-cursor";
-import { MESSAGE_TYPE } from "../message-type";
+import { MessageType } from "../message-type";
 import { TlvStreamReader } from "../serialize/tlv-stream-reader";
 import { QueryChannelRangeOptions } from "./tlvs/query-channel-range-options";
 import { IWireMessage } from "./wire-message";
@@ -26,7 +26,7 @@ export class QueryChannelRangeMessage implements IWireMessage {
   /**
    * Type 263
    */
-  public type: MESSAGE_TYPE = MESSAGE_TYPE.QUERY_CHANNEL_RANGE;
+  public type: MessageType = MessageType.QueryChannelRange;
 
   /**
    * 32-byte hash that uniquely identifies the chain that the reply
@@ -59,7 +59,7 @@ export class QueryChannelRangeMessage implements IWireMessage {
       optionsBuffer.length, // options tlv
     ); // prettier-ignore
     const writer = new BufferCursor(buffer);
-    writer.writeUInt16BE(MESSAGE_TYPE.QUERY_CHANNEL_RANGE);
+    writer.writeUInt16BE(MessageType.QueryChannelRange);
     writer.writeBytes(this.chainHash);
     writer.writeUInt32BE(this.firstBlocknum);
     writer.writeUInt32BE(this.numberOfBlocks);

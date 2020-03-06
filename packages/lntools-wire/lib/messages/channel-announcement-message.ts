@@ -1,7 +1,7 @@
 import { BufferCursor } from "@lntools/buffer-cursor";
 import * as crypto from "@lntools/crypto";
 import { Bitmask } from "../bitmask";
-import { MESSAGE_TYPE } from "../message-type";
+import { MessageType } from "../message-type";
 import { shortChannelIdFromBuffer } from "../shortchanid";
 import { ShortChannelId } from "../shortchanid";
 import { IWireMessage } from "./wire-message";
@@ -77,7 +77,7 @@ export class ChannelAnnouncementMessage implements IWireMessage {
   /**
    * The message type - 256
    */
-  public type: MESSAGE_TYPE = MESSAGE_TYPE.CHANNEL_ANNOUNCEMENT;
+  public type: MessageType = MessageType.ChannelAnnouncement;
 
   /**
    * Validate signature from node_1 of the hash containing the

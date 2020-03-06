@@ -1,5 +1,5 @@
 import { BufferCursor } from "@lntools/buffer-cursor";
-import { MESSAGE_TYPE } from "../message-type";
+import { MessageType } from "../message-type";
 import { Encoder } from "../serialize/encoder";
 import { EncodingType } from "../serialize/encoding-type";
 import { TlvStreamReader } from "../serialize/tlv-stream-reader";
@@ -36,7 +36,7 @@ export class QueryShortChannelIdsMessage implements IWireMessage {
   /**
    * Type 261
    */
-  public type: MESSAGE_TYPE = MESSAGE_TYPE.QUERY_SHORT_CHANNEL_IDS;
+  public type: MessageType = MessageType.QueryShortChannelIds;
 
   /**
    * 32-byte chain hash

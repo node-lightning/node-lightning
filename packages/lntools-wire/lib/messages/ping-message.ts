@@ -1,6 +1,6 @@
 import { BufferCursor } from "@lntools/buffer-cursor";
 import { PONG_BYTE_THRESHOLD } from "../constants";
-import { MESSAGE_TYPE } from "../message-type";
+import { MessageType } from "../message-type";
 import { IWireMessage } from "./wire-message";
 
 /**
@@ -33,7 +33,7 @@ export class PingMessage implements IWireMessage {
   /**
    * Ping message type is 18
    */
-  public type: MESSAGE_TYPE = MESSAGE_TYPE.PING;
+  public type: MessageType = MessageType.Ping;
 
   /**
    * The number of bytes that should be returned in the pong message.

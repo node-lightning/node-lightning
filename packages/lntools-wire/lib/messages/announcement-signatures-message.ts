@@ -1,5 +1,5 @@
 import { BufferCursor } from "@lntools/buffer-cursor";
-import { MESSAGE_TYPE } from "../message-type";
+import { MessageType } from "../message-type";
 import { shortChannelIdFromBuffer } from "../shortchanid";
 import { ShortChannelId } from "../shortchanid";
 import { IWireMessage } from "./wire-message";
@@ -35,7 +35,7 @@ export class AnnouncementSignaturesMessage implements IWireMessage {
   /**
    * Message type - 259
    */
-  public type: MESSAGE_TYPE = MESSAGE_TYPE.ANNOUNCEMENT_SIGNATURES;
+  public type: MessageType = MessageType.AnnouncementSignatures;
 
   /**
    * Buffer of the channel_id for the message.

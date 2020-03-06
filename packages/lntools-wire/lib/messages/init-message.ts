@@ -1,6 +1,6 @@
 import { BufferCursor } from "@lntools/buffer-cursor";
 import { Bitmask } from "../bitmask";
-import { MESSAGE_TYPE } from "../message-type";
+import { MessageType } from "../message-type";
 import { IWireMessage } from "./wire-message";
 
 /**
@@ -50,7 +50,7 @@ export class InitMessage implements IWireMessage {
   /**
    * Message type 16
    */
-  public type: MESSAGE_TYPE = MESSAGE_TYPE.INIT;
+  public type: MessageType = MessageType.Init;
   public globalFeatures: Bitmask = new Bitmask();
   public localFeatures: Bitmask = new Bitmask();
 

@@ -1,6 +1,6 @@
 import { ILogger } from "@lntools/logger";
 import { EventEmitter } from "events";
-import { MESSAGE_TYPE } from "../message-type";
+import { MessageType } from "../message-type";
 import { ChannelAnnouncementMessage } from "../messages/channel-announcement-message";
 import { GossipTimestampFilterMessage } from "../messages/gossip-timestamp-filter-message";
 import { QueryChannelRangeMessage } from "../messages/query-channel-range-message";

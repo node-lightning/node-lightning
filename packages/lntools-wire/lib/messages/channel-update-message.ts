@@ -2,7 +2,7 @@ import { BufferCursor } from "@lntools/buffer-cursor";
 import * as crypto from "@lntools/crypto";
 import { Bitmask } from "../bitmask";
 import { Checksum } from "../domain/checksum";
-import { MESSAGE_TYPE } from "../message-type";
+import { MessageType } from "../message-type";
 import { shortChannelIdFromBuffer } from "../shortchanid";
 import { ShortChannelId } from "../shortchanid";
 import { IWireMessage } from "./wire-message";
@@ -68,7 +68,7 @@ export class ChannelUpdateMessage implements IWireMessage {
   /**
    * Message type is 258
    */
-  public type: MESSAGE_TYPE = MESSAGE_TYPE.CHANNEL_UPDATE;
+  public type: MessageType = MessageType.ChannelUpdate;
 
   /**
    * 64-byte buffer containing the ECDSA secp256k1 signature of the double

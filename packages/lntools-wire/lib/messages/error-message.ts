@@ -1,5 +1,5 @@
 import { BufferCursor } from "@lntools/buffer-cursor";
-import { MESSAGE_TYPE } from "../message-type";
+import { MessageType } from "../message-type";
 import { IWireMessage } from "./wire-message";
 
 /**
@@ -33,7 +33,7 @@ export class ErrorMessage implements IWireMessage {
   /**
    * Message type 17
    */
-  public type: MESSAGE_TYPE = MESSAGE_TYPE.ERROR;
+  public type: MessageType = MessageType.Error;
 
   /**
    * channelId is used to indicate the failing channel. It

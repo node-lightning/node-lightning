@@ -1,12 +1,12 @@
 /**
  * Defined in BOLT01
  */
-export enum MESSAGE_TYPE {
+export enum MessageType {
   // Setup and Control (0 - 31)
-  INIT = 16,
-  ERROR = 17,
-  PING = 18,
-  PONG = 19,
+  Init = 16,
+  Error = 17,
+  Ping = 18,
+  Pong = 19,
 
   // Channel (32-127)
   //
@@ -15,17 +15,17 @@ export enum MESSAGE_TYPE {
   //
 
   // Routing (256-511)
-  CHANNEL_ANNOUNCEMENT = 256,
-  NODE_ANNOUNCEMENT = 257,
-  CHANNEL_UPDATE = 258,
-  ANNOUNCEMENT_SIGNATURES = 259,
+  ChannelAnnouncement = 256,
+  NodeAnnouncement = 257,
+  ChannelUpdate = 258,
+  AnnouncementSignatures = 259,
 
-  QUERY_SHORT_CHANNEL_IDS = 261,
-  REPLY_SHORT_CHANNEL_IDS_END = 262,
+  QueryShortChannelIds = 261,
+  ReplyShortChannelIdsEnd = 262,
 
-  QUERY_CHANNEL_RANGE = 263,
-  REPLY_CHANNEL_RANGE = 264,
+  QueryChannelRange = 263,
+  ReplyChannelRange = 264,
 
-  GOSSIP_TIMESTAMP_FILTER = 265,
+  GossipTimestampFilter = 265,
 
 } // prettier-ignore

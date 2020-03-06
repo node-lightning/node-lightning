@@ -3,7 +3,7 @@ import * as crypto from "@lntools/crypto";
 import { Bitmask } from "../bitmask";
 import { deserializeAddress } from "../deserialize/address/deserialize-address";
 import { Address } from "../domain/address";
-import { MESSAGE_TYPE } from "../message-type";
+import { MessageType } from "../message-type";
 import { serializeAddress } from "../serialize/address/serialize-address";
 import { IWireMessage } from "./wire-message";
 
@@ -61,7 +61,7 @@ export class NodeAnnouncementMessage implements IWireMessage {
   /**
    * Type 257
    */
-  public type: MESSAGE_TYPE = MESSAGE_TYPE.NODE_ANNOUNCEMENT;
+  public type: MessageType = MessageType.NodeAnnouncement;
 
   /**
    * Signature of the announcement message by the node's public key

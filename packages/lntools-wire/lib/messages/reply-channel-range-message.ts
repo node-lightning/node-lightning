@@ -1,5 +1,5 @@
 import { BufferCursor } from "@lntools/buffer-cursor";
-import { MESSAGE_TYPE } from "../message-type";
+import { MessageType } from "../message-type";
 import { Encoder } from "../serialize/encoder";
 import { EncodingType } from "../serialize/encoding-type";
 import { TlvStreamReader } from "../serialize/tlv-stream-reader";
@@ -43,7 +43,7 @@ export class ReplyChannelRangeMessage implements IWireMessage {
     return instance;
   }
 
-  public type: MESSAGE_TYPE = MESSAGE_TYPE.REPLY_CHANNEL_RANGE;
+  public type: MessageType = MessageType.ReplyChannelRange;
   public chainHash: Buffer;
   public firstBlocknum: number;
   public numberOfBlocks: number;

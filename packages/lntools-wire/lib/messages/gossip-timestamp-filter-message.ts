@@ -1,5 +1,5 @@
 import { BufferCursor } from "@lntools/buffer-cursor";
-import { MESSAGE_TYPE } from "../message-type";
+import { MessageType } from "../message-type";
 import { IWireMessage } from "./wire-message";
 
 export class GossipTimestampFilterMessage implements IWireMessage {
@@ -13,7 +13,7 @@ export class GossipTimestampFilterMessage implements IWireMessage {
     return instance;
   }
 
-  public type: MESSAGE_TYPE = MESSAGE_TYPE.GOSSIP_TIMESTAMP_FILTER;
+  public type: MessageType = MessageType.GossipTimestampFilter;
   public chainHash: Buffer;
   public firstTimestamp: number;
   public timestampRange: number;

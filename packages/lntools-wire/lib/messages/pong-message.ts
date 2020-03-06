@@ -1,5 +1,5 @@
 import { BufferCursor } from "@lntools/buffer-cursor";
-import { MESSAGE_TYPE } from "../message-type";
+import { MessageType } from "../message-type";
 import { IWireMessage } from "./wire-message";
 
 export class PongMessage implements IWireMessage {
@@ -21,7 +21,7 @@ export class PongMessage implements IWireMessage {
   /**
    * Message type = 19
    */
-  public type: MESSAGE_TYPE = MESSAGE_TYPE.PONG;
+  public type: MessageType = MessageType.Pong;
 
   /**
    * Should be set to zeros of length specified in a ping message's

@@ -1,5 +1,5 @@
 import { BufferCursor } from "@lntools/buffer-cursor";
-import { MESSAGE_TYPE } from "../message-type";
+import { MessageType } from "../message-type";
 import { ShortChannelId, shortChannelIdFromBuffer } from "../shortchanid";
 import { IWireMessage } from "./wire-message";
 
@@ -17,7 +17,7 @@ export class ReplyShortChannelIdsEndMessage implements IWireMessage {
     return instance;
   }
 
-  public type: MESSAGE_TYPE = MESSAGE_TYPE.REPLY_SHORT_CHANNEL_IDS_END;
+  public type: MessageType = MessageType.ReplyShortChannelIdsEnd;
   public chainHash: Buffer;
   public complete: boolean;
 

@@ -1,4 +1,4 @@
-import { MESSAGE_TYPE } from "./message-type";
+import { MessageType } from "./message-type";
 import { ChannelAnnouncementMessage } from "./messages/channel-announcement-message";
 import { ChannelUpdateMessage } from "./messages/channel-update-message";
 import { ErrorMessage } from "./messages/error-message";
@@ -18,33 +18,33 @@ export function deserialize(buffer: Buffer): IWireMessage {
 
   switch (type) {
     // control messages
-    case MESSAGE_TYPE.INIT:
+    case MessageType.Init:
       return InitMessage.deserialize(buffer);
-    case MESSAGE_TYPE.ERROR:
+    case MessageType.Error:
       return ErrorMessage.deserialize(buffer);
-    case MESSAGE_TYPE.PING:
+    case MessageType.Ping:
       return PingMessage.deserialize(buffer);
-    case MESSAGE_TYPE.PONG:
+    case MessageType.Pong:
       return PongMessage.deserialize(buffer);
 
     // channel messages
     // [MESSAGE_TYPE.ANNOUNCEMENT_SIGNATURES]: messages.AnnouncementSignaturesMessage,
-    case MESSAGE_TYPE.NODE_ANNOUNCEMENT:
+    case MessageType.NodeAnnouncement:
       return NodeAnnouncementMessage.deserialize(buffer);
-    case MESSAGE_TYPE.CHANNEL_ANNOUNCEMENT:
+    case MessageType.ChannelAnnouncement:
       return ChannelAnnouncementMessage.deserialize(buffer);
-    case MESSAGE_TYPE.CHANNEL_UPDATE:
+    case MessageType.ChannelUpdate:
       return ChannelUpdateMessage.deserialize(buffer);
 
-    case MESSAGE_TYPE.QUERY_SHORT_CHANNEL_IDS:
+    case MessageType.QueryShortChannelIds:
       return QueryShortChannelIdsMessage.deserialize(buffer);
-    case MESSAGE_TYPE.REPLY_SHORT_CHANNEL_IDS_END:
+    case MessageType.ReplyShortChannelIdsEnd:
       return ReplyShortChannelIdsEndMessage.deserialize(buffer);
-    case MESSAGE_TYPE.QUERY_CHANNEL_RANGE:
+    case MessageType.QueryChannelRange:
       return QueryChannelRangeMessage.deserialize(buffer);
-    case MESSAGE_TYPE.REPLY_CHANNEL_RANGE:
+    case MessageType.ReplyChannelRange:
       return ReplyChannelRangeMessage.deserialize(buffer);
-    case MESSAGE_TYPE.GOSSIP_TIMESTAMP_FILTER:
+    case MessageType.GossipTimestampFilter:
       return GossipTimestampFilterMessage.deserialize(buffer);
   }
 }

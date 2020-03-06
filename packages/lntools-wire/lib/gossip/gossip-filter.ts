@@ -1,7 +1,7 @@
 import { EventEmitter } from "events";
 import { AsyncProcessingQueue } from "../async-processing-queue";
 import { OutPoint } from "../domain/outpoint";
-import { MESSAGE_TYPE } from "../message-type";
+import { MessageType } from "../message-type";
 import { ChannelAnnouncementMessage } from "../messages/channel-announcement-message";
 import { ChannelUpdateMessage } from "../messages/channel-update-message";
 import { ExtendedChannelAnnouncementMessage } from "../messages/extended-channel-announcement-message";
@@ -67,9 +67,9 @@ export class GossipFilter extends EventEmitter {
   public enqueue(msg: IWireMessage) {
     // ignore messages that do not contain p2p graph data
     if (
-      msg.type !== MESSAGE_TYPE.CHANNEL_ANNOUNCEMENT &&
-      msg.type !== MESSAGE_TYPE.CHANNEL_UPDATE &&
-      msg.type !== MESSAGE_TYPE.NODE_ANNOUNCEMENT
+      msg.type !== MessageType.ChannelAnnouncement &&
+      msg.type !== MessageType.ChannelUpdate &&
+      msg.type !== MessageType.NodeAnnouncement
     ) {
       return;
     }
@@ -90,13 +90,13 @@ export class GossipFilter extends EventEmitter {
    */
   private async _validateMessage(msg: IWireMessage) {
     switch (msg.type) {
-      case MESSAGE_TYPE.CHANNEL_ANNOUNCEMENT:
+      case MessageType.ChannelAnnouncement:
         await this._validateChannelAnnouncement(msg as ChannelAnnouncementMessage);
         break;
-      case MESSAGE_TYPE.NODE_ANNOUNCEMENT:
+      case MessageType.NodeAnnouncement:
         await this._validateNodeAnnouncement(msg as NodeAnnouncementMessage);
         break;
-      case MESSAGE_TYPE.CHANNEL_UPDATE:
+      case MessageType.ChannelUpdate:
         await this._validateChannelUpdate(msg as ChannelUpdateMessage);
         break;
     }

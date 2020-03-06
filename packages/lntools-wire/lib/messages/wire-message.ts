@@ -1,6 +1,6 @@
-import { MESSAGE_TYPE } from "../message-type";
+import { MessageType } from "../message-type";
 
 export interface IWireMessage {
-  type: MESSAGE_TYPE;
+  type: MessageType;
   serialize(): Buffer;
 }
