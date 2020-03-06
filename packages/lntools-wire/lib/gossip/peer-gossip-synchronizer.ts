@@ -18,12 +18,6 @@ export enum PeerGossipReceiveState {
   Active = "active",
 }
 
-export enum PeerGossipQueryState {
-  Pending = "pending",
-  AwaitingRanges = "awaiting_ranges",
-  AwaitingScids = "awaiting_scids",
-}
-
 /**
  * Peer gossip synchronizer is a state machine (using the state pattern)
  * that that maintains the peer's gossip state.
@@ -37,10 +31,10 @@ export class PeerGossipSynchronizer extends EventEmitter {
   public queryReplyTimeout = 5000;
 
   private _queryScidQueue: ShortChannelId[] = [];
-  private _queryScidSet: Set<string> = new Set();
+  private _rangeQueryQueue: Array<[number, number]> = [];
 
   private _receiveState: PeerGossipReceiveState;
-  private _queryState: PeerGossipQueryState;
+  private _awaitingRangeQueryReply: boolean = false;
 
   constructor({
     peer,
@@ -57,18 +51,10 @@ export class PeerGossipSynchronizer extends EventEmitter {
 
     this.peer = peer;
     this.peer.on("message", this._handlePeerMessage.bind(this));
-
-    this._queryState = PeerGossipQueryState.Pending;
   }
 
-  public get queryState() {
-    return this._queryState;
-  }
-
-  public set queryState(state: PeerGossipQueryState) {
-    this.logger.debug("query state -", state);
-    this._queryState = state;
-    this.emit("query_state", state);
+  public get awaitingRangeQueryReply() {
+    return this._awaitingRangeQueryReply;
   }
 
   public get receiveState() {
@@ -104,23 +90,18 @@ export class PeerGossipSynchronizer extends EventEmitter {
     this.receiveState = PeerGossipReceiveState.Active;
   }
 
-  public syncRange(firstBlocknum: number = 0, numberOfBlocks = 4294967295 - firstBlocknum) {
-    this.logger.info("synchronizing from block %d to %d", firstBlocknum, numberOfBlocks);
-    const queryRangeMessage = new QueryChannelRangeMessage();
-    queryRangeMessage.chainHash = this.chainHash;
-    queryRangeMessage.firstBlocknum = firstBlocknum;
-    queryRangeMessage.numberOfBlocks = numberOfBlocks;
-    this.peer.sendMessage(queryRangeMessage);
-    this.queryState = PeerGossipQueryState.AwaitingRanges;
-  }
+  public queryRange(firstBlocknum: number = 0, numberOfBlocks = 4294967295 - firstBlocknum) {
+    // Check if a range query has already been sent and if it has
+    // enqueue the query until a reply is received from the peer.
+    // This is required to conform to BOLT7 which indicates a single
+    // pending query message can be outstanding at one time
+    if (this._awaitingRangeQueryReply) {
+      this._rangeQueryQueue.push([firstBlocknum, numberOfBlocks]);
+      return;
+    }
 
-  private _sendShortChannelIdsQuery() {
-    const scids = this._queryScidQueue.splice(0, this.shortChannelIdsChunksSize);
-    const queryShortIds = new QueryShortChannelIdsMessage();
-    queryShortIds.chainHash = this.chainHash;
-    queryShortIds.shortChannelIds = scids;
-    this.logger.debug("sending query_short_channel_ids - scid_count:", scids.length);
-    this.peer.sendMessage(queryShortIds);
+    // Looks like its ok to send, so fire off that bad boy
+    this._sendChannelRangeQuery(firstBlocknum, numberOfBlocks);
   }
 
   private _handlePeerMessage(msg: IWireMessage) {
@@ -135,6 +116,27 @@ export class PeerGossipSynchronizer extends EventEmitter {
     }
   }
 
+  private _sendChannelRangeQuery(firstBlocknum: number, numberOfBlocks: number) {
+    this.logger.info("querying block range %d to %d", firstBlocknum, numberOfBlocks);
+    this._awaitingRangeQueryReply = true;
+    const queryRangeMessage = new QueryChannelRangeMessage();
+    queryRangeMessage.chainHash = this.chainHash;
+    queryRangeMessage.firstBlocknum = firstBlocknum;
+    queryRangeMessage.numberOfBlocks = numberOfBlocks;
+    this.peer.sendMessage(queryRangeMessage);
+  }
+
+  private _sendShortChannelIdsQuery() {
+    const scids = this._queryScidQueue.splice(0, this.shortChannelIdsChunksSize);
+    if (!scids.length) return;
+
+    const queryShortIds = new QueryShortChannelIdsMessage();
+    queryShortIds.chainHash = this.chainHash;
+    queryShortIds.shortChannelIds = scids;
+    this.logger.debug("sending query_short_channel_ids - scid_count:", scids.length);
+    this.peer.sendMessage(queryShortIds);
+  }
+
   private _onReplyChannelRange(msg: ReplyChannelRangeMessage) {
     this.logger.debug(
       "received reply_channel_range - complete: %d, start_block: %d, end_block: %d, scid_count: %d",
@@ -144,56 +146,46 @@ export class PeerGossipSynchronizer extends EventEmitter {
       msg.shortChannelIds.length,
     );
 
+    // enques any scids to be processed by a
+    // query_shot_chan_id message
     for (const scid of msg.shortChannelIds) {
       this._queryScidQueue.push(scid);
-      // this._queryScidSet.add(scid.toString());
     }
 
     // This occurs if the remote peer did not have any
-    // information for cha
+    // information for the chain
     if (!msg.complete && !msg.shortChannelIds.length) {
       this.emit("channel_range_failed", msg);
     }
 
-    switch (this.queryState) {
-      case PeerGossipQueryState.AwaitingRanges:
-        if (this._queryScidQueue.length === 0) {
-          this.queryState = PeerGossipQueryState.Pending;
-        } else {
-          this.queryState = PeerGossipQueryState.AwaitingScids;
-          this._sendShortChannelIdsQuery();
-        }
-        break;
-    }
+    // send the scid query with the results
+    this._sendShortChannelIdsQuery();
+
+    // indicate  that we are hokay to send another query message
+    this._awaitingRangeQueryReply = false;
+
+    // send the next query message if one exists
+    const query = this._rangeQueryQueue.shift();
+    if (query) this._sendChannelRangeQuery(...query);
   }
 
   private _onReplyShortIdsEnd(msg: ReplyShortChannelIdsEndMessage) {
     this.logger.debug("received reply_short_channel_ids_end - complete: %d", msg.complete);
-    switch (this.queryState) {
-      case PeerGossipQueryState.AwaitingScids:
-        {
-          // If we receive a reply with complete=false, the remote peer
-          // does not maintain up-to-date channel information for the
-          // request chain_hash. We therefore transition to the inactive state
-          // since this peer is not valid for receiving gossip information from
-          if (!msg.complete) {
-            this.emit("query_short_channel_ids_failed", msg);
-          }
 
-          // This occurs when the last batch of information has been received
-          // but there is still more short_channel_ids to request. This scenario
-          // requires sending another QueryShortIds message
-          if (this._queryScidQueue.length > 0) {
-            this._sendShortChannelIdsQuery();
-            return;
-          }
+    // If we receive a reply with complete=false, the remote peer
+    // does not maintain up-to-date channel information for the
+    // request chain_hash. We therefore transition to the inactive state
+    // since this peer is not valid for receiving gossip information from
+    if (!msg.complete) {
+      this.emit("query_short_channel_ids_failed", msg);
+    }
 
-          // Successfully finished querying. We should expected messages
-          // to stream in to the client, but the gossip synchronizer
-          // has done its job.
-          this.queryState = PeerGossipQueryState.Pending;
-        }
-        break;
+    // This occurs when the last batch of information has been received
+    // but there is still more short_channel_ids to request. This scenario
+    // requires sending another QueryShortIds message
+    if (this._queryScidQueue.length > 0) {
+      this._sendShortChannelIdsQuery();
+      return;
     }
   }
 }
