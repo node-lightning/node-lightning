@@ -1,4 +1,3 @@
-import BN from "bn.js";
 import { hrpToPico } from "./hrp-pico";
 
 /**
@@ -18,7 +17,7 @@ export function encodePico(pico: string): string {
   if (!pico) return;
   const lsdIndex = _lsdIndex(pico);
   const hrpMultiplier = _minimumHrpMultiplier(lsdIndex);
-  return new BN(pico).div(hrpToPico(hrpMultiplier)).toString() + hrpMultiplier;
+  return (BigInt(pico) / hrpToPico(hrpMultiplier)).toString() + hrpMultiplier;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

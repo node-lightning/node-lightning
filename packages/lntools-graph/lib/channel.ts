@@ -1,6 +1,5 @@
-import { ShortChannelId } from "@lntools/wire";
+import { ShortChannelId, Bitmask } from "@lntools/wire";
 import { OutPoint } from "@lntools/wire";
-import BN = require("bn.js");
 import { ChannelSettings } from "./channel-settings";
 
 export class Channel {
@@ -17,7 +16,7 @@ export class Channel {
   public node2Settings: ChannelSettings;
   public nodeId1: Buffer;
   public nodeId2: Buffer;
-  public features: bigint;
+  public features: Bitmask;
   public lastUpdate: number;
   public capacity: bigint;
 

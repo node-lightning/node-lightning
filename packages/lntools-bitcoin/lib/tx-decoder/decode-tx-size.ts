@@ -29,7 +29,7 @@ export function decodeTxSize(raw: Buffer): SizeResult {
   }
 
   // number of inputs
-  const vinLen = cursor.readVarUint().toNumber();
+  const vinLen = Number(cursor.readVarUint()); // safe to convert
   nwBytes += cursor.lastReadBytes;
 
   for (let idx = 0; idx < vinLen; idx++) {
@@ -42,7 +42,7 @@ export function decodeTxSize(raw: Buffer): SizeResult {
     nwBytes += 4;
 
     // script sig length
-    const scriptSigLen = cursor.readVarUint().toNumber(); // safe to convert
+    const scriptSigLen = Number(cursor.readVarUint()); // safe to convert
     nwBytes += cursor.lastReadBytes;
 
     // script sig
@@ -55,7 +55,7 @@ export function decodeTxSize(raw: Buffer): SizeResult {
   }
 
   // number of outputs
-  const voutLen = cursor.readVarUint().toNumber(); // safe to convert
+  const voutLen = Number(cursor.readVarUint()); // safe to convert
   nwBytes += cursor.lastReadBytes;
 
   // process each output
@@ -65,7 +65,7 @@ export function decodeTxSize(raw: Buffer): SizeResult {
     nwBytes += 8;
 
     // pubkey/redeem script len
-    const pubKeyScriptLen = cursor.readVarUint().toNumber(); // safe to convert
+    const pubKeyScriptLen = Number(cursor.readVarUint()); // safe to convert
     nwBytes += cursor.lastReadBytes;
 
     // pubkeyScript/redeemScript
@@ -78,13 +78,13 @@ export function decodeTxSize(raw: Buffer): SizeResult {
     // for each input
     for (let i = 0; i < vinLen; i++) {
       // find how many witness components there are
-      const witnessItems = cursor.readVarUint().toNumber(); // safe to convert
+      const witnessItems = Number(cursor.readVarUint()); // safe to convert
       wBytes += cursor.lastReadBytes;
 
       // read each witness component
       for (let w = 0; w < witnessItems; w++) {
         // read the item length
-        const itemLen = cursor.readVarUint().toNumber(); // safe to convert
+        const itemLen = Number(cursor.readVarUint()); // safe to convert
         wBytes += cursor.lastReadBytes;
 
         // read the item data

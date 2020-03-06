@@ -18,21 +18,21 @@ export function indexOfWitness(raw: Buffer): number {
   cursor.position += 4; // version
   cursor.position += 2; // segwit marker and version
 
-  const vinLen = cursor.readVarUint().toNumber(); // number of inputs
+  const vinLen = Number(cursor.readVarUint()); // number of inputs
   for (let idx = 0; idx < vinLen; idx++) {
     cursor.position += 32; // prev output hash
     cursor.position += 4; // prev output index
 
-    const scriptSigLen = cursor.readVarUint().toNumber(); // script sig length
+    const scriptSigLen = Number(cursor.readVarUint()); // script sig length
     cursor.position += scriptSigLen; // script sig
     cursor.position += 4; // sequence
   }
 
-  const voutLen = cursor.readVarUint().toNumber(); // number of outputs
+  const voutLen = Number(cursor.readVarUint()); // number of outputs
   for (let idx = 0; idx < voutLen; idx++) {
     cursor.position += 8; // sats
 
-    const pubKeyScriptLen = cursor.readVarUint().toNumber(); // pubkeyscript length
+    const pubKeyScriptLen = Number(cursor.readVarUint()); // pubkeyscript length
     cursor.position += pubKeyScriptLen; // pubkeyScript/redeemScript
   }
   return cursor.position;

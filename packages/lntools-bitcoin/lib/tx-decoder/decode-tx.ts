@@ -17,12 +17,8 @@ import { isSegWitTx } from "./is-segwit-tx";
  */
 export function decodeTx(raw: Buffer): Tx {
   const cursor = new BufferCursor(raw);
-
-  /**  @type {TxIn[]} */
-  const vins = [];
-
-  /**  @type {TxOut[]} */
-  const vouts = [];
+  const vins: TxIn[] = [];
+  const vouts: TxOut[] = [];
 
   // read version
   const version = cursor.readUInt32LE();
@@ -36,7 +32,7 @@ export function decodeTx(raw: Buffer): Tx {
   }
 
   // number of inputs
-  const vinLen = cursor.readVarUint().toNumber(); // safe to convert
+  const vinLen = Number(cursor.readVarUint()); // safe to convert
 
   for (let idx = 0; idx < vinLen; idx++) {
     // prev output hash
@@ -46,7 +42,7 @@ export function decodeTx(raw: Buffer): Tx {
     const vout = cursor.readUInt32LE();
 
     // script sig length
-    const scriptSigLen = cursor.readVarUint().toNumber(); // safe to convert
+    const scriptSigLen = Number(cursor.readVarUint()); // safe to convert
 
     // script sig
     const scriptSig = cursor.readBytes(scriptSigLen);
@@ -64,7 +60,7 @@ export function decodeTx(raw: Buffer): Tx {
   }
 
   // number of outputs
-  const voutLen = cursor.readVarUint().toNumber(); // safe to convert
+  const voutLen = Number(cursor.readVarUint()); // safe to convert
 
   // process each output
   for (let idx = 0; idx < voutLen; idx++) {
@@ -72,7 +68,7 @@ export function decodeTx(raw: Buffer): Tx {
     const value = cursor.readUInt64LE();
 
     // pubkey/redeem script len
-    const pubKeyScriptLen = cursor.readVarUint().toNumber(); // safe to convert
+    const pubKeyScriptLen = Number(cursor.readVarUint()); // safe to convert
 
     // pubkeyScript/redeemScript
     const pubKeyScript = cursor.readBytes(pubKeyScriptLen);
@@ -89,13 +85,13 @@ export function decodeTx(raw: Buffer): Tx {
     // for each input
     for (let i = 0; i < vinLen; i++) {
       // find how many witness components there are
-      const witnessItems = cursor.readVarUint().toNumber(); // safe to convert
+      const witnessItems = Number(cursor.readVarUint()); // safe to convert
 
       // read each witness component
       vins[i].witness = [];
       for (let w = 0; w < witnessItems; w++) {
         // read the item length
-        const itemLen = cursor.readVarUint().toNumber(); // safe to convert
+        const itemLen = Number(cursor.readVarUint()); // safe to convert
 
         // read the item data
         const item = cursor.readBytes(itemLen);

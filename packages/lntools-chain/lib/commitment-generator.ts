@@ -1,12 +1,11 @@
 import { sha256 } from "@lntools/crypto";
-import BN from "bn.js";
 
 // note we will need to use bignumber.js because we can't do bitmath over 2**32
 export function generateFromSeed(seed: Buffer, i: number): Buffer {
-  const ibn = new BN(i);
+  const ibn = BigInt(i);
   let p = seed;
   for (let b = 47; b >= 0; b--) {
-    if (ibn.and(new BN(2 ** b)).gtn(0)) {
+    if ((ibn & (BigInt(2) ** BigInt(b))) > BigInt(0)) {
       // since p is a buffer...
       //  read least significant int64 value
       //  flip via int64 ^ 2**b

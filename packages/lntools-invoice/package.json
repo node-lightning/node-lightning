@@ -1,6 +1,6 @@
 {
   "name": "@lntools/invoice",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "BOLT 11 Lightning Network invoice encoding/decoding library",
   "main": "dist/index.js",
   "scripts": {
@@ -28,7 +28,6 @@
   "dependencies": {
     "@lntools/buffer-cursor": "^0.3.0",
     "bech32": "^1.1.3",
-    "bn.js": "^4.11.8",
     "bs58check": "^2.1.2",
     "secp256k1": "^3.5.0"
   }

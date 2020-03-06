@@ -1,10 +1,9 @@
 // tslint:disable: no-unused-expression
-import { ShortChannelId, AddressIPv4 } from "@lntools/wire";
+import { AddressIPv4, Bitmask, ShortChannelId } from "@lntools/wire";
 import { IGossipEmitter } from "@lntools/wire";
 import { ChannelAnnouncementMessage } from "@lntools/wire";
 import { ChannelUpdateMessage } from "@lntools/wire";
 import { NodeAnnouncementMessage } from "@lntools/wire";
-import BN = require("bn.js");
 import { expect } from "chai";
 import { EventEmitter } from "events";
 import { Channel } from "../lib/channel";
@@ -34,7 +33,7 @@ describe("GraphManager", () => {
         msg.shortChannelId = scid;
         msg.nodeId1 = node1;
         msg.nodeId2 = node2;
-        msg.features = new BN(0);
+        msg.features = new Bitmask();
         return msg;
       }
 
@@ -74,7 +73,7 @@ describe("GraphManager", () => {
         msg.shortChannelId = scid;
         msg.nodeId1 = node1;
         msg.nodeId2 = node2;
-        msg.features = new BN(0);
+        msg.features = new Bitmask();
         return msg;
       }
 
@@ -96,14 +95,14 @@ describe("GraphManager", () => {
       msg.shortChannelId = scid;
       msg.nodeId1 = node1;
       msg.nodeId2 = node2;
-      msg.features = new BN(0);
+      msg.features = new Bitmask();
       return msg;
     }
 
     function createUpdateMsg(dir: number) {
       const msg = new ChannelUpdateMessage();
       msg.shortChannelId = scid;
-      msg.channelFlags = dir;
+      msg.channelFlags = new Bitmask(BigInt(dir));
       return msg;
     }
 
@@ -149,7 +148,7 @@ describe("GraphManager", () => {
     function createMsg() {
       const msg = new NodeAnnouncementMessage();
       msg.nodeId = node1;
-      msg.features = new BN(0);
+      msg.features = new Bitmask();
       msg.timestamp = 1;
       return msg;
     }
@@ -179,7 +178,7 @@ describe("GraphManager", () => {
       msg.timestamp = 2;
       msg.alias = Buffer.from("test");
       msg.rgbColor = Buffer.from("111111", "hex");
-      msg.features = new BN(2);
+      msg.features = new Bitmask(BigInt(2));
       msg.addresses = [new AddressIPv4("1.1.1.1", 9735)];
       gossipEmitter.emit("message", msg);
     });

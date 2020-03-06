@@ -1,5 +1,3 @@
-import BN from "bn.js";
-
 /**
  * Returns the pico equivalent of the hrp multiplier as a BN object
  *
@@ -10,17 +8,17 @@ import BN from "bn.js";
  * @param hrpMultiplier
  * @return returns the BN pico bitcoin value
  */
-export function hrpToPico(hrpMultiplier: string): BN {
-  if (!hrpMultiplier) return new BN(1e12);
+export function hrpToPico(hrpMultiplier: string): bigint {
+  if (!hrpMultiplier) return BigInt(1e12);
   switch (hrpMultiplier) {
     case "m":
-      return new BN(1e9);
+      return BigInt(1e9);
     case "u":
-      return new BN(1e6);
+      return BigInt(1e6);
     case "n":
-      return new BN(1e3);
+      return BigInt(1e3);
     case "p":
-      return new BN(1);
+      return BigInt(1);
     default:
       throw new Error("Invalid multiplier");
   }
