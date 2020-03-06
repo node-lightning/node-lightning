@@ -16,7 +16,7 @@ export function channelFromJson(text: string): Channel {
   c.nodeId1 = Buffer.from(t.nodeId1, "hex");
   c.nodeId2 = Buffer.from(t.nodeId2, "hex");
   c.capacity = BigInt(t.capacity);
-  c.features = BigInt(t.features);
+  c.features = t.features;
   c.node1Settings = channelSettingsFromJson(t.node1Settings);
   c.node2Settings = channelSettingsFromJson(t.node2Settings);
   return c;
