@@ -132,9 +132,9 @@ export class GossipManager extends EventEmitter {
       const ourFirstBlock = this.blockHeight;
       const queryFirstBlock = Math.max(0, ourFirstBlock - BLOCKS_PER_DAY);
       if (peer.state === PeerState.ready) {
-        gossipSyncer.syncRange(queryFirstBlock);
+        gossipSyncer.queryRange(queryFirstBlock);
       } else {
-        peer.once("ready", () => gossipSyncer.syncRange(queryFirstBlock));
+        peer.once("ready", () => gossipSyncer.queryRange(queryFirstBlock));
       }
     }
   }
