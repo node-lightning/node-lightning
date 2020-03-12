@@ -15,6 +15,7 @@
     "@lntools/chainmon": "file:../../packages/lntools-chainmon",
     "@lntools/crypto": "file:../../packages/lntools-crypto",
     "@lntools/gossip-rocksdb": "file:../../packages/lntools-gossip-rocksdb",
+    "@lntools/graph": "file:../../packages/lntools-graph",
     "@lntools/logger": "file:../../packages/lntools-logger",
     "@lntools/noise": "file:../../packages/lntools-noise",
     "@lntools/wire": "file:/../../packages/lntools-wire"
