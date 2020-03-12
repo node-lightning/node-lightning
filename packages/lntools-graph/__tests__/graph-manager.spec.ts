@@ -8,7 +8,7 @@ import { expect } from "chai";
 import { EventEmitter } from "events";
 import { Channel } from "../lib/channel";
 import { ChannelSettings } from "../lib/channel-settings";
-import { ErrorCode } from "../lib/graph-error";
+import { GraphErrorCode } from "../lib/graph-error";
 import { GraphManager } from "../lib/graph-manager";
 import { Node } from "../lib/node";
 
@@ -77,11 +77,7 @@ describe("GraphManager", () => {
         return msg;
       }
 
-      it("should emit error", done => {
-        sut.on("error", err => {
-          expect(err.code).to.equal(ErrorCode.duplicateChannel);
-          done();
-        });
+      it("should not emit error", () => {
         const msg = createMsg();
         gossipEmitter.emit("message", msg);
         gossipEmitter.emit("message", msg);
@@ -137,7 +133,7 @@ describe("GraphManager", () => {
 
     it("should emit error when channel doesnt exist", done => {
       sut.on("error", err => {
-        expect(err.code).to.equal(ErrorCode.channelNotFound);
+        expect(err.code).to.equal(GraphErrorCode.ChannelNotFound);
         done();
       });
       gossipEmitter.emit("message", createUpdateMsg(0));
