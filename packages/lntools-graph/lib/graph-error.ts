@@ -1,22 +1,30 @@
-export enum ErrorCode {
-  duplicateChannel = 1,
-  nodeNotFound = 2,
-  channelNotFound = 3,
+// tslint:disable: max-classes-per-file
+import { ShortChannelId } from "@lntools/wire";
+
+export enum GraphErrorCode {
+  ChannelNotFound = 1,
+  NodeNotFound = 2,
 }
 
-export function graphErrorCodeMessage(code: ErrorCode) {
-  switch (code) {
-    case ErrorCode.duplicateChannel:
-      return "channel_exists";
+export abstract class GraphError extends Error {
+  public code: GraphErrorCode;
+
+  constructor(code: GraphErrorCode, message: string) {
+    super(message);
+    this.code = code;
   }
 }
 
-export class GraphError extends Error {
-  public code: ErrorCode;
+export class ChannelNotFoundError extends GraphError {
+  constructor(scid: ShortChannelId) {
+    const msg = `channel_not_found ${scid.toString()}`;
+    super(GraphErrorCode.ChannelNotFound, msg);
+  }
+}
 
-  constructor(code: ErrorCode) {
-    super();
-    this.code = code;
-    this.message = `graph error ${graphErrorCodeMessage(code)}`;
+export class NodeNotFoundError extends GraphError {
+  constructor(nodeId: Buffer) {
+    const msg = `node_not_found ${nodeId.toString()}`;
+    super(GraphErrorCode.NodeNotFound, msg);
   }
 }
