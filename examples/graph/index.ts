@@ -1,16 +1,18 @@
 import { BitcoindClient } from "@lntools/bitcoind";
 import { TxWatcher } from "@lntools/chainmon";
 import { RocksdbGossipStore } from "@lntools/gossip-rocksdb";
+import { GraphManager } from "@lntools/graph";
+import { GraphError } from "@lntools/graph";
 import { ConsoleTransport, Logger, LogLevel } from "@lntools/logger";
 import { ChannelAnnouncementMessage } from "@lntools/wire";
 import { InitMessage } from "@lntools/wire";
 import { ChannelUpdateMessage } from "@lntools/wire";
 import { NodeAnnouncementMessage } from "@lntools/wire";
 import { ExtendedChannelAnnouncementMessage } from "@lntools/wire";
+import { MessageType } from "@lntools/wire";
 import { Peer } from "@lntools/wire";
 import { GossipMemoryStore } from "@lntools/wire";
 import { GossipManager } from "@lntools/wire";
-// import { GraphManager } from "../../packages/lntools-graph/dist/graph-manager";
 
 // tslint:disable-next-line: no-var-requires
 const config = require("./config.json");
@@ -47,29 +49,6 @@ async function connectToPeer(peerInfo: { rpk: string; host: string; port: number
   // attach error handling for gossip manager
   gossipManager.on("error", err => logger.error("gossip failed", err));
 
-  // attach a message handler for completed and validated messages
-  let counter = 0;
-  gossipManager.on("message", msg => {
-    let extra = "";
-    if (msg instanceof ChannelAnnouncementMessage) {
-      extra += msg.shortChannelId.toString();
-      extra += " ";
-    }
-    if (msg instanceof ExtendedChannelAnnouncementMessage) {
-      extra += msg.outpoint.toString();
-    }
-    if (msg instanceof ChannelUpdateMessage) {
-      extra += msg.shortChannelId.toString();
-      extra += " ";
-      extra += msg.direction;
-    }
-    if (msg instanceof NodeAnnouncementMessage) {
-      extra += msg.nodeId.toString("hex");
-    }
-
-    logger.info("msg: %d, type: %d %s %s", ++counter, msg.type, msg.constructor.name, extra);
-  });
-
   // construucts a new transaction watcher which is used to watch for
   // spending of tx outpoints. This class us enables to monitor the blockchain
   // for spent outpoints and remove them from our routing view.
@@ -96,7 +75,35 @@ async function connectToPeer(peerInfo: { rpk: string; host: string; port: number
     logger.info("removed channel", outpoint.toString());
   });
 
-  // start the gossip manager to enable us to add peers to it
+  // Construct a new graph manager. The graph manager is used to convert gossip
+  // routing messages into a graph data structure. The graph manager needs to
+  // constructed prior to connecting to any peers or startting the gossip
+  // manager to ensure that all message are receieved.
+  const graphManager = new GraphManager(gossipManager);
+
+  // Listen for creation or update of nodes
+  graphManager.on("node", node => {
+    logger.info("node    ", node.nodeId.toString("hex"));
+  });
+
+  // Listen for the creation of new channels
+  graphManager.on("channel", channel => {
+    logger.info("chan_new", channel.shortChannelId.toString());
+  });
+
+  // Listen for updates to settings on one side of a channel
+  graphManager.on("channel_update", (channel, settings) => {
+    logger.info("chan_upd", channel.shortChannelId.toString(), settings.direction);
+  });
+
+  // Listen for graph errors
+  graphManager.on("error", (err: GraphError) => {
+    logger.error(err.message);
+  });
+
+  // Start the gossip manager to enable us to add peers to it. Because the graph
+  // state is restored when the gossip manager starts, we must enable the graph
+  // prior to starting the manager.
   await gossipManager.start();
 
   // constructs an init message to signal to the remote
@@ -134,13 +141,6 @@ async function connectToPeer(peerInfo: { rpk: string; host: string; port: number
   // connect to the remote peer using the local secret provided
   // in our config file
   peer.connect();
-
-  // constructs a graph manager to build and construct a channel
-  // graph that can be used for route querying.
-  // const graphManager = new GraphManager(gossipManager);
-  // graphManager.on("channel", c => {
-  //   logger.info("new channel", c.shortChannelId.toString(), "capacity", c.capacity);
-  // });
 }
 
 connectToPeer(config.peers[0])

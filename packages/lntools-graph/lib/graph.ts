@@ -1,7 +1,7 @@
 import { ShortChannelId } from "@lntools/wire";
 import { OutPoint } from "@lntools/wire";
 import { Channel } from "./channel";
-import { ErrorCode, GraphError } from "./graph-error";
+import { NodeNotFoundError } from "./graph-error";
 import { Node } from "./node";
 
 /**
@@ -36,7 +36,8 @@ export class Graph {
   public addChannel(channel: Channel) {
     const node1 = this.getNode(channel.nodeId1);
     const node2 = this.getNode(channel.nodeId2);
-    if (!node1 || !node2) throw new GraphError(ErrorCode.nodeNotFound);
+    if (!node1) throw new NodeNotFoundError(channel.nodeId1);
+    if (!node2) throw new NodeNotFoundError(channel.nodeId2);
 
     // attach channel
     const key = channel.shortChannelId.toNumber();

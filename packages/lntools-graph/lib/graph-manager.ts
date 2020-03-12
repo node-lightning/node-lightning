@@ -3,11 +3,22 @@ import { ChannelAnnouncementMessage } from "@lntools/wire";
 import { ChannelUpdateMessage } from "@lntools/wire";
 import { NodeAnnouncementMessage } from "@lntools/wire";
 import { EventEmitter } from "events";
+import { Channel } from "./channel";
+import { ChannelSettings } from "./channel-settings";
 import { channelFromMessage } from "./deserialize/channel-from-message";
 import { channelSettingsFromMessage } from "./deserialize/channel-settings-from-message";
 import { Graph } from "./graph";
-import { ErrorCode, GraphError } from "./graph-error";
+import { ChannelNotFoundError } from "./graph-error";
+import { GraphError } from "./graph-error";
 import { Node } from "./node";
+
+// tslint:disable-next-line: interface-name
+export declare interface GraphManager {
+  on(event: "node", fn: (node: Node) => void): this;
+  on(event: "channel", fn: (channel: Channel) => void): this;
+  on(event: "channel_update", fn: (channel: Channel, settings: ChannelSettings) => void): this;
+  on(event: "error", fn: (err: GraphError) => void): this;
+}
 
 /**
  * GraphManager is a facade around a Graph object. It converts in-bound
@@ -18,9 +29,9 @@ export class GraphManager extends EventEmitter {
   public graph: Graph;
   public gossipEmitter: IGossipEmitter;
 
-  constructor(gossipManager: IGossipEmitter) {
+  constructor(gossipManager: IGossipEmitter, graph = new Graph()) {
     super();
-    this.graph = new Graph();
+    this.graph = graph;
     this.gossipEmitter = gossipManager;
     this.gossipEmitter.on("message", this._onMessage.bind(this));
   }
@@ -38,7 +49,6 @@ export class GraphManager extends EventEmitter {
 
       // abort processing if the channel already exists
       if (this.graph.getChannel(msg.shortChannelId)) {
-        this.emit("error", new GraphError(ErrorCode.duplicateChannel));
         return;
       }
 
@@ -73,7 +83,7 @@ export class GraphManager extends EventEmitter {
       // first validate we have a channel
       const channel = this.graph.getChannel(msg.shortChannelId);
       if (!channel) {
-        this.emit("error", new GraphError(ErrorCode.channelNotFound));
+        this.emit("error", new ChannelNotFoundError(msg.shortChannelId));
         return;
       }
 
