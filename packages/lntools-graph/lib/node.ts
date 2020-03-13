@@ -8,7 +8,7 @@ export class Node {
   public nodeId: Buffer;
   public lastUpdate: number;
   public alias: Buffer;
-  public addresses: Address[];
+  public addresses: Address[] = [];
   public rgbColor: Buffer;
   public features: Bitmask;
 
@@ -28,7 +28,7 @@ export class Node {
    * Gets the color as a an RGB color string
    */
   get rgbColorString(): string {
-    return this.rgbColor ? "#" + this.rgbColor.toString("hex") : "";
+    return this.rgbColor ? "#" + this.rgbColor.toString("hex") : "#000000";
   }
 
   /**
@@ -46,15 +46,4 @@ export class Node {
     const key = channel.shortChannelId.toNumber();
     this.channels.delete(key);
   }
-
-  // public toJSON() {
-  //   return {
-  //     nodeId: this.nodeId.toString("hex"),
-  //     lastUpdate: this.lastUpdate,
-  //     alias: this.aliasString,
-  //     addresses: this.addresses,
-  //     rgbColor: this.rgbColorString,
-  //     nodeSignature: this.nodeSignature,
-  //   };
-  // }
 }

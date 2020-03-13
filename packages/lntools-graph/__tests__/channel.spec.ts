@@ -36,6 +36,63 @@ describe("Channel class", () => {
     });
   });
 
+  describe(".lastUpdate", () => {
+    it("shoulud return 0 when no updates", () => {
+      const channel = new Channel();
+      expect(channel.lastUpdate).to.equal(0);
+    });
+
+    it("should return node1 only", () => {
+      const channel = new Channel();
+      const s1 = new ChannelSettings();
+      s1.direction = 0;
+      s1.timestamp = 1;
+      channel.updateSettings(s1);
+
+      expect(channel.lastUpdate).to.equal(1);
+    });
+
+    it("should return node2 only", () => {
+      const channel = new Channel();
+      const s1 = new ChannelSettings();
+      s1.direction = 1;
+      s1.timestamp = 1;
+      channel.updateSettings(s1);
+
+      expect(channel.lastUpdate).to.equal(1);
+    });
+
+    it("should return max when node1 is higher", () => {
+      const channel = new Channel();
+      const s1 = new ChannelSettings();
+      s1.direction = 0;
+      s1.timestamp = 2;
+      channel.updateSettings(s1);
+
+      const s2 = new ChannelSettings();
+      s2.direction = 1;
+      s2.timestamp = 1;
+      channel.updateSettings(s2);
+
+      expect(channel.lastUpdate).to.equal(2);
+    });
+
+    it("should return max when node2 is higher", () => {
+      const channel = new Channel();
+      const s1 = new ChannelSettings();
+      s1.direction = 0;
+      s1.timestamp = 1;
+      channel.updateSettings(s1);
+
+      const s2 = new ChannelSettings();
+      s2.direction = 1;
+      s2.timestamp = 2;
+      channel.updateSettings(s2);
+
+      expect(channel.lastUpdate).to.equal(2);
+    });
+  });
+
   describe(".updateSettings", () => {
     const testGroups: Array<[string, number, string]> = [
       ["node1", 0, "node1Settings"],
@@ -44,7 +101,7 @@ describe("Channel class", () => {
 
     for (const [title, direction, channelProp] of testGroups) {
       describe(title, () => {
-        let channel;
+        let channel: Channel;
 
         beforeEach(() => {
           channel = new Channel();
@@ -87,9 +144,5 @@ describe("Channel class", () => {
         });
       });
     }
-
-    describe("node2", () => {
-      //
-    });
   });
 });

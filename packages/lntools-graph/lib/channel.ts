@@ -1,9 +1,12 @@
-import { ShortChannelId, Bitmask } from "@lntools/wire";
+import { Bitmask, ShortChannelId } from "@lntools/wire";
 import { OutPoint } from "@lntools/wire";
 import { ChannelSettings } from "./channel-settings";
 
 export class Channel {
-  public chainHash: Buffer;
+  /**
+   * Short channel identifier for the channel that points to the funding
+   * transaction on the blockchain.
+   */
   public shortChannelId: ShortChannelId;
 
   /**
@@ -12,13 +15,48 @@ export class Channel {
    */
   public channelPoint: OutPoint;
 
-  public node1Settings: ChannelSettings;
-  public node2Settings: ChannelSettings;
+  /**
+   * Public key of the first node, as ordered by DER encoding of the
+   * 33-byte secp256k1 public key.
+   */
   public nodeId1: Buffer;
+
+  /**
+   * Public key of the second node, as ordered by DER encoding of the
+   * 33-byte secp256k1 public key.
+   */
   public nodeId2: Buffer;
+
+  /**
+   * Channel features
+   */
   public features: Bitmask;
-  public lastUpdate: number;
+
+  /**
+   * Routing policy for the first node
+   */
+  public node1Settings: ChannelSettings;
+
+  /**
+   * Routing policy for the second node
+   */
+  public node2Settings: ChannelSettings;
+
+  /**
+   * Capacity of the channel as determined by the funding transaction
+   * output amount.
+   */
   public capacity: bigint;
+
+  /**
+   * Gets the most recently updated timestamp based on the settings
+   * from the two nodes
+   */
+  public get lastUpdate(): number {
+    const t1 = (this.node1Settings && this.node1Settings.timestamp) || 0;
+    const t2 = (this.node2Settings && this.node2Settings.timestamp) || 0;
+    return Math.max(t1, t2);
+  }
 
   /**
    * Routable when nodes are known and validated and at least one
@@ -46,24 +84,4 @@ export class Channel {
       return true;
     }
   }
-
-  // public toJSON() {
-  //   const c = this;
-  //   return {
-  //     shortChannelId: c.shortChannelId.toString(),
-  //     channelPoint: c.channelPoint.toString(),
-  //     nodeId1: c.nodeId1.toString("hex"),
-  //     nodeId2: c.nodeId2.toString("hex"),
-  //     bitcoinKey1: c.bitcoinKey1.toString("hex"),
-  //     bitcoinKey2: c.bitcoinKey2.toString("hex"),
-  //     nodeSignature1: c.nodeSignature1.toString("hex"),
-  //     nodeSignature2: c.nodeSignature2.toString("hex"),
-  //     bitcoinSignature1: c.bitcoinSignature1.toString("hex"),
-  //     bitcoinSignature2: c.bitcoinSignature2.toString("hex"),
-  //     features: c.features.toString(10),
-  //     capacity: c.capacity.toString(10),
-  //     node1Settings: c.node1Settings,
-  //     node2Settings: c.node2Settings,
-  //   };
-  // }
 }

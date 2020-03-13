@@ -10,7 +10,6 @@ import { Channel } from "../channel";
 export function channelFromMessage(msg: ChannelAnnouncementMessage): Channel {
   const c = new Channel();
   c.shortChannelId = msg.shortChannelId;
-  c.chainHash = msg.chainHash;
   c.features = msg.features;
   c.nodeId1 = msg.nodeId1;
   c.nodeId2 = msg.nodeId2;
