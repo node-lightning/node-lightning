@@ -90,8 +90,8 @@ describe("ExtendedChannelAnnouncementMessage", () => {
       );
     });
 
-    it("shoulud have capacity", () => {
-      expect(result.capacity).to.equal(BigInt(16777061));
+    it("should have capacity", () => {
+      expect(result.capacity).to.equal(BigInt("16777061"));
     });
   });
 

@@ -62,6 +62,7 @@ export class ExtendedChannelAnnouncementMessage extends ChannelAnnouncementMessa
 
     const tlvReader = new TlvStreamReader();
     tlvReader.register(ExtendedChannelAnnouncementOutpoint);
+    tlvReader.register(ExtendedChannelAnnouncementCapacity);
     const tlvs = tlvReader.read(reader);
     for (const tlv of tlvs) {
       switch (tlv.type) {
