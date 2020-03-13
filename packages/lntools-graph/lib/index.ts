@@ -4,3 +4,4 @@ export * from "./graph";
 export * from "./graph-error";
 export * from "./graph-manager";
 export * from "./node";
+export * from "./serializers/lnd-serializer";
