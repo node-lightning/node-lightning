@@ -22,6 +22,6 @@
     "prepublish": "npm run build"
   },
   "dependencies": {
-    "@lntools/wire": "^0.12.1"
+    "@lntools/wire": "^0.12.2"
   }
 }
