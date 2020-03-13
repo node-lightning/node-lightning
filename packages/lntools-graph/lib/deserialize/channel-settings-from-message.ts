@@ -7,7 +7,6 @@ import { ChannelSettings } from "../channel-settings";
  */
 export function channelSettingsFromMessage(msg: ChannelUpdateMessage): ChannelSettings {
   const instance = new ChannelSettings();
-  instance.signature = msg.signature;
   instance.direction = msg.direction;
   instance.timestamp = msg.timestamp;
   instance.cltvExpiryDelta = msg.cltvExpiryDelta;
