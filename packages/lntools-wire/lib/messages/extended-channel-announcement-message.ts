@@ -4,6 +4,7 @@ import { OutPoint } from "../domain/outpoint";
 import { TlvStreamReader } from "../serialize/tlv-stream-reader";
 import { shortChannelIdFromBuffer } from "../shortchanid";
 import { ChannelAnnouncementMessage } from "./channel-announcement-message";
+import { ExtendedChannelAnnouncementCapacity } from "./tlvs/extended-channel-announcement-capacity";
 import { ExtendedChannelAnnouncementOutpoint } from "./tlvs/extended-channel-announcement-outpoint";
 
 /**
@@ -61,11 +62,16 @@ export class ExtendedChannelAnnouncementMessage extends ChannelAnnouncementMessa
 
     const tlvReader = new TlvStreamReader();
     tlvReader.register(ExtendedChannelAnnouncementOutpoint);
+    tlvReader.register(ExtendedChannelAnnouncementCapacity);
     const tlvs = tlvReader.read(reader);
     for (const tlv of tlvs) {
-      if (tlv instanceof ExtendedChannelAnnouncementOutpoint) {
-        instance.outpoint = tlv.outpoint;
-        continue;
+      switch (tlv.type) {
+        case ExtendedChannelAnnouncementOutpoint.type:
+          instance.outpoint = (tlv as ExtendedChannelAnnouncementOutpoint).outpoint;
+          break;
+        case ExtendedChannelAnnouncementCapacity.type:
+          instance.capacity = (tlv as ExtendedChannelAnnouncementCapacity).capacity;
+          break;
       }
     }
 
@@ -92,6 +98,10 @@ export class ExtendedChannelAnnouncementMessage extends ChannelAnnouncementMessa
     outpointTlv.outpoint = this.outpoint;
     const outpointTlvBuffer = outpointTlv.serialize();
 
-    return Buffer.concat([chanAnnBuffer, outpointTlvBuffer]);
+    const capacityTlv = new ExtendedChannelAnnouncementCapacity();
+    capacityTlv.capacity = this.capacity;
+    const capacityTlvBuffer = capacityTlv.serialize();
+
+    return Buffer.concat([chanAnnBuffer, outpointTlvBuffer, capacityTlvBuffer]);
   }
 }
