@@ -3,16 +3,14 @@ import { TxWatcher } from "@lntools/chainmon";
 import { RocksdbGossipStore } from "@lntools/gossip-rocksdb";
 import { GraphManager } from "@lntools/graph";
 import { GraphError } from "@lntools/graph";
-import { ConsoleTransport, Logger, LogLevel } from "@lntools/logger";
-import { ChannelAnnouncementMessage } from "@lntools/wire";
+import { LndSerializer } from "@lntools/graph";
+import { ConsoleTransport, ILogger, Logger, LogLevel } from "@lntools/logger";
 import { InitMessage } from "@lntools/wire";
-import { ChannelUpdateMessage } from "@lntools/wire";
-import { NodeAnnouncementMessage } from "@lntools/wire";
 import { ExtendedChannelAnnouncementMessage } from "@lntools/wire";
-import { MessageType } from "@lntools/wire";
 import { Peer } from "@lntools/wire";
 import { GossipMemoryStore } from "@lntools/wire";
 import { GossipManager } from "@lntools/wire";
+import fs from "fs";
 
 // tslint:disable-next-line: no-var-requires
 const config = require("./config.json");
@@ -81,19 +79,25 @@ async function connectToPeer(peerInfo: { rpk: string; host: string; port: number
   // manager to ensure that all message are receieved.
   const graphManager = new GraphManager(gossipManager);
 
+  // Create a flag that we will use to periodically persist the graph state to disk
+  let dirtyGraph = false;
+
   // Listen for creation or update of nodes
   graphManager.on("node", node => {
     logger.info("node    ", node.nodeId.toString("hex"));
+    dirtyGraph = true;
   });
 
   // Listen for the creation of new channels
   graphManager.on("channel", channel => {
     logger.info("chan_new", channel.shortChannelId.toString());
+    dirtyGraph = true;
   });
 
   // Listen for updates to settings on one side of a channel
   graphManager.on("channel_update", (channel, settings) => {
     logger.info("chan_upd", channel.shortChannelId.toString(), settings.direction);
+    dirtyGraph = true;
   });
 
   // Listen for graph errors
@@ -141,6 +145,19 @@ async function connectToPeer(peerInfo: { rpk: string; host: string; port: number
   // connect to the remote peer using the local secret provided
   // in our config file
   peer.connect();
+
+  // periodically save the graph state to disk. If there were no changes
+  // to the graph then nothing will be stored.
+  setInterval(() => {
+    if (!dirtyGraph) return;
+    logger.info(
+      `saving graph with ${graphManager.graph.nodes.size} nodes and ${graphManager.graph.channels.size} channels`,
+    );
+    const serializer = new LndSerializer();
+    const result = serializer.serialize(graphManager.graph, true);
+    fs.writeFileSync("./graph.json", result);
+    dirtyGraph = false;
+  }, 60000);
 }
 
 connectToPeer(config.peers[0])
