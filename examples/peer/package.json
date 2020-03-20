@@ -1,0 +1,19 @@
+{
+  "name": "example-gossip",
+  "version": "1.0.0",
+  "description": "Gossip example",
+  "scripts": {
+    "start": "../../node_modules/.bin/ts-node index.ts"
+  },
+  "keywords": [],
+  "author": "Brian Mancini <bmancini@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "@lntools/buffer-cursor": "file:../../packages/lntools-buffer-cursor",
+    "@lntools/chainmon": "file:../../packages/lntools-chainmon",
+    "@lntools/crypto": "file:../../packages/lntools-crypto",
+    "@lntools/logger": "file:../../packages/lntools-logger",
+    "@lntools/noise": "file:../../packages/lntools-noise",
+    "@lntools/wire": "file:/../../packages/lntools-wire"
+  }
+}
