@@ -1,6 +1,6 @@
 {
   "name": "@lntools/bitcoind",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Basic bitcoind JSONRPC and ZMQ client",
   "keywords": [],
   "author": "Brian Mancini <bmancini@gmail.com>",

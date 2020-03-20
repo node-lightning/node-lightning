@@ -1,6 +1,6 @@
 {
   "name": "@lntools/wire",
-  "version": "0.12.2",
+  "version": "0.12.3",
   "description": "Lightning Network Wire Protocol",
   "scripts": {
     "test": "../../node_modules/.bin/nyc --reporter=lcov --reporter=text --extension=.ts ../../node_modules/.bin/mocha --require ts-node/register --recursive \"__tests__/**/*.spec.*\"",
@@ -25,10 +25,10 @@
     "url": "git+https://github.com/altangent/lntools.git"
   },
   "dependencies": {
-    "@lntools/buffer-cursor": "^0.6.0",
-    "@lntools/crypto": "^0.7.0",
-    "@lntools/logger": "^0.6.0",
-    "@lntools/noise": "^0.11.0",
+    "@lntools/buffer-cursor": "^0.6.1",
+    "@lntools/crypto": "^0.7.1",
+    "@lntools/logger": "^0.6.1",
+    "@lntools/noise": "^0.11.1",
     "rfc4648": "^1.2.1",
     "sse4_crc32": "^6.0.1"
   }

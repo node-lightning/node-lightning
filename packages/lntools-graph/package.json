@@ -1,6 +1,6 @@
 {
   "name": "@lntools/graph",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Peer graph tools",
   "keywords": [
     "lightning network",
@@ -22,6 +22,6 @@
     "prepublish": "npm run build"
   },
   "dependencies": {
-    "@lntools/wire": "^0.12.2"
+    "@lntools/wire": "^0.12.3"
   }
 }

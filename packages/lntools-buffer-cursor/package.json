@@ -1,6 +1,6 @@
 {
   "name": "@lntools/buffer-cursor",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "Buffer reader/writer utility ",
   "keywords": [],
   "author": "Brian Mancini <bmancini@gmail.com>",
@@ -11,6 +11,5 @@
     "lint": "../../node_modules/.bin/tslint --project tsconfig.json --config ../../tslint.json",
     "build": "../../node_modules/.bin/tsc --project tsconfig.json",
     "prepublish": "npm run build"
-  },
-  "dependencies": {}
+  }
 }
