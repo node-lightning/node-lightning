@@ -17,7 +17,6 @@ export declare interface GossipManager {
   on(event: "message", fn: (msg: IWireMessage) => void): this;
   on(event: "error", fn: (err: Error) => void): this;
   on(event: "flushed", fn: () => void): this;
-
   off(event: "restored", fn: (block: number) => void): this;
   off(event: "message", fn: (msg: IWireMessage) => void): this;
   off(event: "error", fn: (err: Error) => void): this;
@@ -120,10 +119,10 @@ export class GossipManager extends EventEmitter {
     this._gossipSyncers.set(peer, gossipSyncer);
 
     // active gossip for the peer
-    if (peer.state === PeerState.ready) {
+    if (peer.state === PeerState.Ready) {
       gossipSyncer.activate();
     } else {
-      peer.once("ready", () => gossipSyncer.activate());
+      peer.on("ready", () => gossipSyncer.activate());
     }
 
     // request historical sync
@@ -131,10 +130,10 @@ export class GossipManager extends EventEmitter {
       const BLOCKS_PER_DAY = 144;
       const ourFirstBlock = this.blockHeight;
       const queryFirstBlock = Math.max(0, ourFirstBlock - BLOCKS_PER_DAY);
-      if (peer.state === PeerState.ready) {
+      if (peer.state === PeerState.Ready) {
         gossipSyncer.queryRange(queryFirstBlock);
       } else {
-        peer.once("ready", () => gossipSyncer.queryRange(queryFirstBlock));
+        peer.on("ready", () => gossipSyncer.queryRange(queryFirstBlock));
       }
     }
   }

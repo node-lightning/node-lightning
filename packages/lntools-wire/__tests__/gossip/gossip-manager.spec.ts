@@ -129,7 +129,7 @@ describe("GossipManager", () => {
 
     describe("first peer that is `ready`", () => {
       it("should start gossip_sync process", () => {
-        peer1.state = PeerState.ready;
+        peer1.state = PeerState.Ready;
         sut.addPeer(peer1);
         const msg = (peer1.sendMessage as any).args[1][0];
         expect(msg.type).to.equal(263);
@@ -153,7 +153,7 @@ describe("GossipManager", () => {
 
     describe("peer that is `ready`", () => {
       it("send a gossip_timestamp_filter to activate", () => {
-        peer1.state = PeerState.ready;
+        peer1.state = PeerState.Ready;
         sut.addPeer(peer1);
         const msg = (peer1.sendMessage as any).args[0][0];
         expect(msg.type).to.equal(265);
