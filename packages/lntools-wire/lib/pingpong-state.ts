@@ -118,17 +118,20 @@ export class PingPongState {
 
     // check that pong is a valid one and if not, we disconnect
     if (this._sentPing && this._sentPing.numPongBytes !== pong.ignored.length) {
+      this._peerClient.logger.debug("invalid pong message");
       this._peerClient.disconnect();
       return;
     }
   }
 
   private _pongTimedOut() {
-    this._peerClient.disconnect();
+    this._peerClient.logger.debug("timed out waiting for pong");
+    this._peerClient.reconnect();
   }
 
   private _checkForPingFlood() {
     if (this._pingsReceieved > this.PING_FLOOD_THRESHOLD) {
+      this._peerClient.logger.debug("ping flooding detected");
       this._peerClient.disconnect();
     }
   }
