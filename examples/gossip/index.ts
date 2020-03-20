@@ -97,11 +97,6 @@ async function connectToPeer(peerInfo: { rpk: string; host: string; port: number
   // connect to the remote peer using the local secret provided
   // in our config file
   peer.connect();
-
-  // peer.on("close", () => {
-  //   logger.warn("disconnected, reconnecting...");
-  //   setTimeout(() => peer.connect(), 15000);
-  // });
 }
 
 connectToPeer(config.peers[0])
