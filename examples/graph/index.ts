@@ -132,7 +132,6 @@ async function connectToPeer(peerInfo: { rpk: string; host: string; port: number
     logger,
     initMessageFactory,
   });
-  peer.logger = logger;
   peer.on("open", () => logger.info("connecting"));
   peer.on("error", err => logger.error("%s", err.stack));
   peer.on("ready", () => logger.info("peer is ready"));

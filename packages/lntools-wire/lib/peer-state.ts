@@ -1,5 +1,6 @@
 export enum PeerState {
-  pending = 0,
-  awaiting_peer_init = 1,
-  ready = 100,
+  Disconnected = 0,
+  AwaitingPeerInit = 1,
+  Ready = 100,
+  Disconnecting = 1000,
 }

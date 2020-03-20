@@ -4,8 +4,12 @@ import { PingPongState } from "../lib/pingpong-state";
 
 function createAndStart({ PING_INTERVAL_MS, PONG_TIMEOUT_MS, PING_FLOOD_THRESHOLD }: any) {
   const peerClient = {
+    reconnect: sinon.stub(),
     disconnect: sinon.stub(),
     sendMessage: sinon.stub(),
+    logger: {
+      debug: sinon.stub(),
+    },
   };
   const sut = new PingPongState(peerClient as any);
   if (PING_INTERVAL_MS) {
@@ -68,10 +72,10 @@ describe("pingpong-state", () => {
   });
 
   describe("when pong expires", () => {
-    it("it should disconnect", async () => {
+    it("it should reconnect", async () => {
       sut = createAndStart({ PING_INTERVAL_MS: 10, PONG_TIMEOUT_MS: 1 });
       await wait(15);
-      expect(sut._peerClient.disconnect.callCount).to.equal(1);
+      expect(sut._peerClient.reconnect.callCount).to.equal(1);
     });
   });
 

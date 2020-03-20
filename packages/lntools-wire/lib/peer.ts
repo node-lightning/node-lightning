@@ -21,7 +21,6 @@ export declare interface IPeerMessageReceiver {
 // tslint:disable-next-line: interface-name
 export declare interface Peer {
   addListener(event: "close", listener: () => void): this;
-  addListener(event: "end", listener: () => void): this;
   addListener(event: "error", listener: (err: Error) => void): this;
   addListener(event: "message", listener: (msg: any) => void): this;
   addListener(event: "open", listener: () => void): this;
@@ -30,11 +29,10 @@ export declare interface Peer {
   addListener(event: "sending", listener: (buf: Buffer) => void): this;
 
   listenerCount(
-    event: "close" | "end" | "error" | "message" | "open" | "rawmessage" | "ready" | "sending",
+    event: "close" | "error" | "message" | "open" | "rawmessage" | "ready" | "sending",
   ): number;
 
   off(event: "close", listener: () => void): this;
-  off(event: "end", listener: () => void): this;
   off(event: "error", listener: (err: Error) => void): this;
   off(event: "message", listener: (msg: IWireMessage) => void): this;
   off(event: "open", listener: () => void): this;
@@ -43,7 +41,6 @@ export declare interface Peer {
   off(event: "sending", listener: (buf: Buffer) => void): this;
 
   on(event: "close", listener: () => void): this;
-  on(event: "end", listener: () => void): this;
   on(event: "error", listener: (err: Error) => void): this;
   on(event: "message", listener: (msg: IWireMessage) => void): this;
   on(event: "open", listener: () => void): this;
@@ -52,7 +49,6 @@ export declare interface Peer {
   on(event: "sending", listener: (buf: Buffer) => void): this;
 
   once(event: "close", listener: () => void): this;
-  once(event: "end", listener: () => void): this;
   once(event: "error", listener: (err: Error) => void): this;
   once(event: "message", listener: (msg: IWireMessage) => void): this;
   once(event: "open", listener: () => void): this;
@@ -61,7 +57,6 @@ export declare interface Peer {
   once(event: "sending", listener: (buf: Buffer) => void): this;
 
   prependListener(event: "close", listener: () => void): this;
-  prependListener(event: "end", listener: () => void): this;
   prependListener(event: "error", listener: (err: Error) => void): this;
   prependListener(event: "message", listener: (msg: IWireMessage) => void): this;
   prependListener(event: "open", listener: () => void): this;
@@ -70,7 +65,6 @@ export declare interface Peer {
   prependListener(event: "sending", listener: (buf: Buffer) => void): this;
 
   prependOnceListener(event: "close", listener: () => void): this;
-  prependOnceListener(event: "end", listener: () => void): this;
   prependOnceListener(event: "error", listener: (err: Error) => void): this;
   prependOnceListener(event: "message", listener: (msg: IWireMessage) => void): this;
   prependOnceListener(event: "open", listener: () => void): this;
@@ -79,11 +73,10 @@ export declare interface Peer {
   prependOnceListener(event: "sending", listener: (buf: Buffer) => void): this;
 
   removeAllListeners(
-    event?: "close" | "end" | "error" | "message" | "open" | "rawmessage" | "ready" | "sending",
+    event?: "close" | "error" | "message" | "open" | "rawmessage" | "ready" | "sending",
   ): this;
 
   removeListener(event: "close", listener: () => void): this;
-  removeListener(event: "end", listener: () => void): this;
   removeListener(event: "error", listener: (err: Error) => void): this;
   removeListener(event: "message", listener: (msg: IWireMessage) => void): this;
   removeListener(event: "open", listener: () => void): this;
@@ -92,7 +85,6 @@ export declare interface Peer {
   removeListener(event: "sending", listener: (buf: Buffer) => void): this;
 
   rawListeners(event: "close"): Array<() => void>;
-  rawListeners(event: "end"): Array<() => void>;
   rawListeners(event: "error"): Array<(err: Error) => void>;
   rawListeners(event: "message"): Array<(msg: IWireMessage) => void>;
   rawListeners(event: "open"): Array<() => void>;
@@ -158,7 +150,7 @@ export declare interface Peer {
 export class Peer extends EventEmitter implements IPeerMessageSender, IPeerMessageReceiver {
   public static states = PeerState;
 
-  public state: PeerState = PeerState.pending;
+  public state: PeerState = PeerState.Disconnected;
   public socket: NoiseSocket;
   public messageCounter: number = 0;
   public pingPongState: PingPongState;
@@ -166,9 +158,12 @@ export class Peer extends EventEmitter implements IPeerMessageSender, IPeerMessa
   public remoteInit: InitMessage;
   public localInit: InitMessage;
   public initMessageFactory: () => InitMessage;
+  public isInitiator: boolean = false;
+  public reconnectTimeoutMs = 15000;
 
   private _options: PeerOptions;
   private _id: string;
+  private _reconnectHandle: NodeJS.Timeout;
 
   constructor(options: PeerOptions) {
     super();
@@ -193,9 +188,10 @@ export class Peer extends EventEmitter implements IPeerMessageSender, IPeerMessa
    * Connect to the remote peer and binds socket events into the Peer.
    */
   public connect() {
+    this.logger.info("connecting");
+    this.isInitiator = true;
     this.socket = noise.connect({ ...this._options, logger: this.logger });
     this.socket.on("ready", this._onSocketReady.bind(this));
-    this.socket.on("end", this._onSocketEnd.bind(this));
     this.socket.on("close", this._onSocketClose.bind(this));
     this.socket.on("error", this._onSocketError.bind(this));
     this.socket.on("data", this._onSocketData.bind(this));
@@ -205,7 +201,7 @@ export class Peer extends EventEmitter implements IPeerMessageSender, IPeerMessa
    * Writes the message on the NoiseSocket
    */
   public sendMessage(m: any): boolean {
-    assert.ok(this.state === PeerState.ready, new Error("Peer is not ready"));
+    assert.ok(this.state === PeerState.Ready, new Error("Peer is not ready"));
     const buf = m.serialize() as Buffer;
     this.emit("sending", buf);
     return this.socket.write(buf);
@@ -215,6 +211,15 @@ export class Peer extends EventEmitter implements IPeerMessageSender, IPeerMessa
    * Closes the socket
    */
   public disconnect() {
+    this.logger.info("disconnecting");
+    this.state = PeerState.Disconnecting;
+    this.socket.end();
+  }
+
+  /**
+   * Reconnects the socket
+   */
+  public reconnect() {
     this.socket.end();
   }
 
@@ -223,20 +228,49 @@ export class Peer extends EventEmitter implements IPeerMessageSender, IPeerMessa
   private _onSocketReady() {
     // now that we're connected, we need to wait for the remote reply
     // before any other messages can be receieved or sent
-    this.state = PeerState.awaiting_peer_init;
+    this.state = PeerState.AwaitingPeerInit;
 
     // blast off our init message
     this.emit("open");
     this._sendInitMessage();
   }
 
-  private _onSocketEnd() {
-    this.emit("end");
-  }
-
   private _onSocketClose() {
+    this.logger.debug("socket closed");
+
+    // Clear any existing reconnection handles. We want the logic in
+    // this method, and the current state of the peer to dictate
+    // what should happen.
+    clearTimeout(this._reconnectHandle);
+
+    // Clear the ping/pong status
     if (this.pingPongState) this.pingPongState.onDisconnecting();
-    this.emit("close");
+
+    // If socket closed because there was a request to disconnect
+    // the underlying socket, we will emit a close event and mark
+    // the state as disconnected.
+    if (this.state === PeerState.Disconnecting) {
+      this.logger.debug("permanently disconnected");
+      this.emit("close");
+      this.state = PeerState.Disconnected;
+      return;
+    }
+
+    // If the disconnection was not intentional, we will initiate
+    // a reconnection event by creating a reconnection handle
+    // and delaying the connection event by the reconnectTimeoutMs
+    // value.
+    // This is likely to originate from two sources:
+    // 1) A reconnection was requeted by the ping/pong manager because
+    //    receipt of a pong message timed out
+    // 2) A network error occurred on a subsequent connection event
+    //    which triggered a socket close event. This can happen if a connection
+    //    is disrupted for a longer period of time. The reconnection logic
+    //    should continue to fire until a connection can be established.
+    this.logger.debug(`reconnecting in ${(this.reconnectTimeoutMs / 1000).toFixed(1)}s`);
+    this._reconnectHandle = setTimeout(() => {
+      this.connect();
+    }, this.reconnectTimeoutMs);
   }
 
   private _onSocketError(err) {
@@ -246,7 +280,7 @@ export class Peer extends EventEmitter implements IPeerMessageSender, IPeerMessa
 
   private _onSocketData(raw) {
     try {
-      if (this.state === PeerState.awaiting_peer_init) {
+      if (this.state === PeerState.AwaitingPeerInit) {
         this._processPeerInitMessage(raw);
       } else {
         this._processMessage(raw);
@@ -307,7 +341,7 @@ export class Peer extends EventEmitter implements IPeerMessageSender, IPeerMessa
     this.pingPongState.start();
 
     // transition state to ready
-    this.state = PeerState.ready;
+    this.state = PeerState.Ready;
 
     // emit ready event
     this.emit("ready");
