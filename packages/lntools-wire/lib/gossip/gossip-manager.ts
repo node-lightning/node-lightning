@@ -11,6 +11,7 @@ import { GossipFilter } from "./gossip-filter";
 import { IGossipFilterChainClient } from "./gossip-filter-chain-client";
 import { IGossipStore } from "./gossip-store";
 import { PeerGossipSynchronizer } from "./peer-gossip-synchronizer";
+import { MessageType } from "../message-type";
 
 // tslint:disable-next-line: interface-name
 export declare interface GossipManager {
@@ -127,13 +128,12 @@ export class GossipManager extends EventEmitter {
 
     // request historical sync
     if (this._peers.size === 1) {
-      const BLOCKS_PER_DAY = 144;
-      const ourFirstBlock = this.blockHeight;
-      const queryFirstBlock = Math.max(0, ourFirstBlock - BLOCKS_PER_DAY);
+      // handle reconnects
+      peer.on("ready", () => this._queryRangeForPeer(peer));
+
+      // if already ready then do a query range sync
       if (peer.state === PeerState.Ready) {
-        gossipSyncer.queryRange(queryFirstBlock);
-      } else {
-        peer.on("ready", () => gossipSyncer.queryRange(queryFirstBlock));
+        this._queryRangeForPeer(peer);
       }
     }
   }
@@ -205,11 +205,25 @@ export class GossipManager extends EventEmitter {
     }
   }
 
+  private _queryRangeForPeer(peer: Peer) {
+    const BLOCKS_PER_DAY = 144;
+    const ourFirstBlock = this.blockHeight;
+    const queryFirstBlock = Math.max(0, ourFirstBlock - BLOCKS_PER_DAY);
+    const gossipSyncer = this._gossipSyncers.get(peer);
+    gossipSyncer.queryRange(queryFirstBlock);
+  }
+
   private _onPeerMessage(msg: IWireMessage) {
     this._gossipFilter.enqueue(msg);
   }
 
   private _onFilterMessage(msg: IWireMessage) {
+    if (msg.type === MessageType.ChannelAnnouncement) {
+      this.blockHeight = Math.max(
+        this.blockHeight,
+        (msg as ChannelAnnouncementMessage).shortChannelId.block,
+      );
+    }
     this.emit("message", msg);
   }
 
