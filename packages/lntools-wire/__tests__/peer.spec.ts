@@ -6,6 +6,7 @@ import { EventEmitter } from "events";
 import sinon from "sinon";
 import { InitMessage } from "../lib/messages/init-message";
 import { Peer } from "../lib/peer";
+import { PeerState } from "../lib/peer-state";
 import { PingPongState } from "../lib/pingpong-state";
 import { createFakeLogger } from "./_test-utils";
 
@@ -58,7 +59,6 @@ describe("Peer", () => {
     beforeEach(() => {
       sandbox.stub(noise, "connect").returns(socket);
       sandbox.stub(sut, "_onSocketReady");
-      sandbox.stub(sut, "_onSocketEnd");
       sandbox.stub(sut, "_onSocketClose");
       sandbox.stub(sut, "_onSocketError");
       sandbox.stub(sut, "_onSocketData");
@@ -68,11 +68,6 @@ describe("Peer", () => {
     it("should bind to ready", () => {
       socket.emit("ready");
       expect((sut as any)._onSocketReady.called).to.be.true;
-    });
-
-    it("should bind end", () => {
-      socket.emit("end");
-      expect((sut as any)._onSocketEnd.called).to.be.true;
     });
 
     it("should bind close", () => {
@@ -98,14 +93,14 @@ describe("Peer", () => {
 
     it("should send the serialized message", () => {
       const input = new FakeMessage("test");
-      sut.state = Peer.states.ready;
+      sut.state = Peer.states.Ready;
       sut.sendMessage(input);
       expect((socket as any).write.args[0][0]).to.deep.equal(Buffer.from("test"));
     });
 
     it("should emit a sending message", done => {
       const input = new FakeMessage("test");
-      sut.state = Peer.states.ready;
+      sut.state = Peer.states.Ready;
       sut.on("sending", () => done());
       sut.sendMessage(input);
     });
@@ -116,12 +111,30 @@ describe("Peer", () => {
       sut.disconnect();
       expect((sut.socket as any).end.called).to.be.true;
     });
+
+    it("should change the peer state to disconnecting", () => {
+      sut.disconnect();
+      expect(sut.state).to.equal(PeerState.Disconnecting);
+    });
+  });
+
+  describe(".reconnect()", () => {
+    it("should stop the socket", () => {
+      sut.reconnect();
+      expect((sut.socket as any).end.called).to.be.true;
+    });
+
+    it("should retain the peer state", () => {
+      const beforeState = sut.state;
+      sut.reconnect();
+      expect(sut.state).to.equal(beforeState);
+    });
   });
 
   describe("._onSocketReady()", () => {
     it("should transition state to awaiting_peer_init", () => {
       (sut as any)._onSocketReady();
-      expect(sut.state).to.equal(Peer.states.awaiting_peer_init);
+      expect(sut.state).to.equal(Peer.states.AwaitingPeerInit);
     });
 
     it("should send the init message to the peer", () => {
@@ -130,22 +143,32 @@ describe("Peer", () => {
     });
   });
 
-  describe("_onSocketEnd", () => {
-    it("should emit the end event", done => {
-      sut.on("end", () => done());
-      (sut as any)._onSocketEnd();
-    });
-  });
-
   describe("_onSocketClose", () => {
     it("should stop the ping pong state", () => {
+      sut.state = PeerState.Disconnecting;
       (sut as any)._onSocketClose();
       expect((sut as any).pingPongState.onDisconnecting.called).to.be.true;
     });
 
-    it("should emit the close event", done => {
-      sut.on("close", () => done());
-      (sut as any)._onSocketClose();
+    describe("when disconnecting", () => {
+      it("should emit the close event", done => {
+        sut.state = PeerState.Disconnecting;
+        sut.on("close", () => done());
+        (sut as any)._onSocketClose();
+      });
+    });
+
+    describe("when initiator", () => {
+      it("should trigger reconnect", done => {
+        sut.state = PeerState.Ready;
+        sut.reconnectTimeoutMs = 0;
+        sut.connect = sandbox.stub(sut, "connect");
+        (sut as any)._onSocketClose();
+        setTimeout(() => {
+          expect((sut.connect as any).called).to.be.true;
+          done();
+        }, 50);
+      });
     });
   });
 
@@ -163,20 +186,20 @@ describe("Peer", () => {
     });
 
     it("should read peer init message when awaiting_peer_init state", () => {
-      sut.state = Peer.states.awaiting_peer_init;
+      sut.state = Peer.states.AwaitingPeerInit;
       (sut as any)._onSocketData("data");
       expect((sut as any)._processPeerInitMessage.called).to.be.true;
     });
 
     it("should process message when in ready state", () => {
-      sut.state = Peer.states.ready;
+      sut.state = Peer.states.Ready;
       (sut as any)._onSocketData("datat");
       expect((sut as any)._processMessage.called).to.be.true;
     });
 
     describe("on error", () => {
       it("should close the socket", () => {
-        sut.state = Peer.states.ready;
+        sut.state = Peer.states.Ready;
         (sut as any)._processMessage.throws(new Error("boom"));
         sut.on("error", () => {});
         (sut as any)._onSocketData("data");
@@ -184,7 +207,7 @@ describe("Peer", () => {
       });
 
       it("should emit an error event", done => {
-        sut.state = Peer.states.ready;
+        sut.state = Peer.states.Ready;
         (sut as any)._processMessage.throws(new Error("boom"));
         sut.on("error", () => done());
         (sut as any)._onSocketData("data");
@@ -223,7 +246,7 @@ describe("Peer", () => {
 
     it("should change the state to ready", () => {
       (sut as any)._processPeerInitMessage(input);
-      expect(sut.state).to.equal(Peer.states.ready);
+      expect(sut.state).to.equal(Peer.states.Ready);
     });
 
     it("should emit ready", done => {
