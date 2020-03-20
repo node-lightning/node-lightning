@@ -9,7 +9,7 @@ import { QueryChannelRangeMessage } from "@lntools/wire";
 import { Peer } from "@lntools/wire";
 
 // tslint:disable-next-line: no-var-requires
-const config = require("./config.json");
+const config = require("../config.json");
 
 const logger = new Logger("app");
 logger.transports.push(new ConsoleTransport(console));
