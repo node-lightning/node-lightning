@@ -24,7 +24,9 @@ LNTools is structured as a monorepo with individual packages existing inside of 
 
 Examples of usage can be found inside `examples`
 
-- [examples/graph](examples/graph) - full routing gossip synchronization
+- [examples/peer](examples/peer) - simple peer connectiono example
+- [examples/gossip](examples/gossip) - basic gossip example
+- [examples/graph](examples/graph) - full gossip, storage, and graph construction example
 
 ## BOLT Status
 
