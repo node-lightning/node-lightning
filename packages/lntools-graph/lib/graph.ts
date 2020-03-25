@@ -81,14 +81,4 @@ export class Graph {
     // detach from node 2
     n2.unlinkChannel(channel);
   }
-
-  // public toJSON() {
-  //   const channels = Array.from(this.channels.values());
-  //   const nodes = Array.from(this.nodes.values());
-  //   return {
-  //     syncHeight: this.syncHeight,
-  //     channels: channels.map(c => c.toJSON()),
-  //     nodes: nodes.map(n => n.toJSON()),
-  //   };
-  // }
 }
