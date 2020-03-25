@@ -11,15 +11,16 @@ import { Node } from "../node";
  * https://api.lightning.community/#simple-rpc-33
  */
 export class LndSerializer {
-  public serialize(g: Graph, format: boolean = false): string {
-    return JSON.stringify(
-      {
-        nodes: Array.from(g.nodes.values()).map(node => this.serializeNode(node)),
-        channels: Array.from(g.channels.values()).map(chan => this.serializeChannel(chan)),
-      },
-      null,
-      format ? 2 : undefined,
-    );
+  public toObject(g: Graph) {
+    return {
+      nodes: Array.from(g.nodes.values()).map(node => this.serializeNode(node)),
+      edges: Array.from(g.channels.values()).map(chan => this.serializeChannel(chan)),
+    };
+  }
+
+  public toJSON(g: Graph, format: boolean = true) {
+    const obj = this.toObject(g);
+    return format ? JSON.stringify(obj, null, 2) : JSON.stringify(obj);
   }
 
   public serializeNode(node: Node) {

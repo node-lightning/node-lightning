@@ -19,8 +19,8 @@ describe("LndSerializer", () => {
     sut = new LndSerializer();
   });
 
-  describe(".serialize()", () => {
-    it("should serialize a graph", () => {
+  describe(".toObject()", () => {
+    it("should construct a describeGraph equivalent object", () => {
       const graph = new Graph();
 
       const node1 = new Node();
@@ -58,61 +58,59 @@ describe("LndSerializer", () => {
       channel.node2Settings.disabled = false;
       graph.addChannel(channel);
 
-      const actual = sut.serialize(graph);
-      expect(actual).to.deep.equal(
-        JSON.stringify({
-          nodes: [
-            {
-              last_update: 1521516480,
-              pub_key: "02ece82b43452154392772d63c0a244f1592f0d29037c88020118889b76851173f",
-              alias: "htlc.me",
-              addresses: [
-                {
-                  network: "tcp",
-                  addr: "54.236.31.248:9735",
-                },
-              ],
-              color: "#3399ff",
-            },
-            {
-              last_update: 1584111068,
-              pub_key: "03933884aaf1d6b108397e5efe5c86bcf2d8ca8d2f700eda99db9214fc2712b134",
-              alias: "endurance",
-              addresses: [
-                {
-                  network: "tcp",
-                  addr: "13.248.222.197:9735",
-                },
-                {
-                  network: "tcp",
-                  addr: "iq7zhmhck54vcax2vlrdcavq2m32wao7ekh6jyeglmnuuvv3js57r4id.onion:9735",
-                },
-              ],
-              color: "#ffff00",
-            },
-          ],
-          channels: [
-            {
-              channel_id: "1416385381359943680",
-              chan_point: "b73b2b1d2c0a5235037991a3cfcf1d722428033c83c95d6394c3962cfe141a37:0",
-              last_update: 1584111074,
-              node1_pub: "02ece82b43452154392772d63c0a244f1592f0d29037c88020118889b76851173f",
-              node2_pub: "03933884aaf1d6b108397e5efe5c86bcf2d8ca8d2f700eda99db9214fc2712b134",
-              capacity: "15000000",
-              node1_policy: null,
-              node2_policy: {
-                time_lock_delta: 144,
-                min_htlc: "1000",
-                fee_base_msat: "10000",
-                fee_rate_milli_msat: "100",
-                disabled: false,
-                max_htlc_msat: "15000000000",
-                last_update: 1584111074,
+      const actual = sut.toObject(graph);
+      expect(actual).to.deep.equal({
+        nodes: [
+          {
+            last_update: 1521516480,
+            pub_key: "02ece82b43452154392772d63c0a244f1592f0d29037c88020118889b76851173f",
+            alias: "htlc.me",
+            addresses: [
+              {
+                network: "tcp",
+                addr: "54.236.31.248:9735",
               },
+            ],
+            color: "#3399ff",
+          },
+          {
+            last_update: 1584111068,
+            pub_key: "03933884aaf1d6b108397e5efe5c86bcf2d8ca8d2f700eda99db9214fc2712b134",
+            alias: "endurance",
+            addresses: [
+              {
+                network: "tcp",
+                addr: "13.248.222.197:9735",
+              },
+              {
+                network: "tcp",
+                addr: "iq7zhmhck54vcax2vlrdcavq2m32wao7ekh6jyeglmnuuvv3js57r4id.onion:9735",
+              },
+            ],
+            color: "#ffff00",
+          },
+        ],
+        edges: [
+          {
+            channel_id: "1416385381359943680",
+            chan_point: "b73b2b1d2c0a5235037991a3cfcf1d722428033c83c95d6394c3962cfe141a37:0",
+            last_update: 1584111074,
+            node1_pub: "02ece82b43452154392772d63c0a244f1592f0d29037c88020118889b76851173f",
+            node2_pub: "03933884aaf1d6b108397e5efe5c86bcf2d8ca8d2f700eda99db9214fc2712b134",
+            capacity: "15000000",
+            node1_policy: null,
+            node2_policy: {
+              time_lock_delta: 144,
+              min_htlc: "1000",
+              fee_base_msat: "10000",
+              fee_rate_milli_msat: "100",
+              disabled: false,
+              max_htlc_msat: "15000000000",
+              last_update: 1584111074,
             },
-          ],
-        }),
-      );
+          },
+        ],
+      });
     });
   });
 
