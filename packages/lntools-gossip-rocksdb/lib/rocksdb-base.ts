@@ -1,3 +1,4 @@
+import fs from "fs";
 import levelup, { LevelUp } from "levelup";
 import rocksdb from "rocksdb";
 
@@ -7,6 +8,7 @@ export abstract class RocksdbBase {
 
   constructor(path: string) {
     this._path = path;
+    fs.mkdirSync(this._path, { recursive: true });
     this._db = levelup(rocksdb(this._path));
   }
 

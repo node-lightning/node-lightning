@@ -31,7 +31,7 @@ describe("RocksdbGossipStore", () => {
 
   before(async () => {
     util.rmdir(".testdb");
-    sut = new RocksdbGossipStore(".testdb");
+    sut = new RocksdbGossipStore("./.testdb/nested/dir");
     await sut.open();
   });
 

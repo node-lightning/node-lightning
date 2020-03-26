@@ -11,7 +11,7 @@ export function rmdir(dir: string) {
   for (const file of files) {
     const filepath = path.join(dir, file);
     if (fs.lstatSync(filepath).isDirectory()) rmdir(filepath);
-    fs.unlinkSync(filepath);
+    else fs.unlinkSync(filepath);
   }
   fs.rmdirSync(dir);
 }
