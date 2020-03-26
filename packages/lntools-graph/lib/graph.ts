@@ -67,7 +67,7 @@ export class Graph {
   /**
    * Removes the node from the graph
    */
-  public removeChannel(channel) {
+  public removeChannel(channel: Channel) {
     const key = channel.shortChannelId.toNumber();
     const n1 = this.getNode(channel.nodeId1);
     const n2 = this.getNode(channel.nodeId2);
