@@ -1,5 +1,6 @@
 // tslint:disable: no-unused-expression
-import { AddressIPv4, Bitmask, ShortChannelId } from "@lntools/wire";
+import { AddressIPv4, Bitmask, OutPoint, ShortChannelId } from "@lntools/wire";
+import { ExtendedChannelAnnouncementMessage } from "@lntools/wire";
 import { IGossipEmitter } from "@lntools/wire";
 import { ChannelAnnouncementMessage } from "@lntools/wire";
 import { ChannelUpdateMessage } from "@lntools/wire";
@@ -177,6 +178,26 @@ describe("GraphManager", () => {
       msg.features = new Bitmask(BigInt(2));
       msg.addresses = [new AddressIPv4("1.1.1.1", 9735)];
       gossipEmitter.emit("message", msg);
+    });
+  });
+
+  describe("close channel", () => {
+    function createMsg() {
+      const msg = new ExtendedChannelAnnouncementMessage();
+      msg.shortChannelId = scid;
+      msg.outpoint = new OutPoint("1111111111111111111111111111111111111111111111111111111111111111", 0); // prettier-ignore
+      msg.capacity = BigInt(1000);
+      msg.nodeId1 = node1;
+      msg.nodeId2 = node2;
+      msg.features = new Bitmask();
+      return msg;
+    }
+
+    it("should remove a channel from the graph", () => {
+      gossipEmitter.emit("message", createMsg());
+      expect(sut.graph.channels.size).to.equal(1);
+      sut.removeChannel(new OutPoint("1111111111111111111111111111111111111111111111111111111111111111", 0)); // prettier-ignore
+      expect(sut.graph.channels.size).to.equal(0);
     });
   });
 });

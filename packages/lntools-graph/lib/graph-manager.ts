@@ -1,4 +1,4 @@
-import { IGossipEmitter, IWireMessage } from "@lntools/wire";
+import { IGossipEmitter, IWireMessage, OutPoint } from "@lntools/wire";
 import { ChannelAnnouncementMessage } from "@lntools/wire";
 import { ChannelUpdateMessage } from "@lntools/wire";
 import { NodeAnnouncementMessage } from "@lntools/wire";
@@ -34,6 +34,21 @@ export class GraphManager extends EventEmitter {
     this.graph = graph;
     this.gossipEmitter = gossipManager;
     this.gossipEmitter.on("message", this._onMessage.bind(this));
+  }
+
+  /**
+   * Closes channel via the outpoint
+   * @param outpoint
+   */
+  public removeChannel(outpoint: OutPoint) {
+    const outpointStr = outpoint.toString();
+    for (const channel of this.graph.channels.values()) {
+      if (outpointStr === channel.channelPoint.toString()) {
+        this.graph.removeChannel(channel);
+        this.emit("channel_closed", channel);
+        return;
+      }
+    }
   }
 
   private _onMessage(msg: IWireMessage) {
