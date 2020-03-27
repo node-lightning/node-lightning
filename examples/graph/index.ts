@@ -153,7 +153,7 @@ async function connectToPeer(peerInfo: { rpk: string; host: string; port: number
       `saving graph with ${graphManager.graph.nodes.size} nodes and ${graphManager.graph.channels.size} channels`,
     );
     const serializer = new LndSerializer();
-    const result = serializer.serialize(graphManager.graph, true);
+    const result = serializer.toJSON(graphManager.graph, true);
     fs.writeFileSync("./graph.json", result);
     dirtyGraph = false;
   }, 60000);
