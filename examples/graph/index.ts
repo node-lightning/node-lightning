@@ -68,9 +68,7 @@ async function connectToPeer(peerInfo: { rpk: string; host: string; port: number
   // We remove the outpoint from the routing table by deleting it from the
   // gossip manager.
   txWatcher.on("outpointspent", async (tx, outpoint) => {
-    const msg = await gossipStore.findChannelAnnouncementByOutpoint(outpoint);
-    await gossipManager.removeChannel(msg.shortChannelId);
-    logger.info("removed channel", outpoint.toString());
+    await gossipManager.removeChannelByOutpoint(outpoint);
   });
 
   // Construct a new graph manager. The graph manager is used to convert gossip
