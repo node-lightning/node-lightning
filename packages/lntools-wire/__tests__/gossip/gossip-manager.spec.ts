@@ -267,11 +267,17 @@ describe("GossipManager", () => {
       msg7.messageFlags.set(0);
       await gossipStore.saveChannelUpdate(msg7);
 
+      // orphaned node_ann
+      const msg8 = new NodeAnnouncementMessage();
+      msg8.nodeId = Buffer.alloc(32, 3);
+      await gossipStore.saveNodeAnnouncement(msg8);
+
       const actual = [];
       for await (const msg of sut.allMessages()) {
         actual.push(msg);
       }
-      expect(actual.length).to.equal(7);
+
+      expect(actual.length).to.equal(8);
       expect(actual[0]).to.be.instanceof(ChannelAnnouncementMessage);
       expect(actual[1]).to.be.instanceof(ChannelUpdateMessage);
       expect(actual[2]).to.be.instanceof(ChannelUpdateMessage);
@@ -279,6 +285,7 @@ describe("GossipManager", () => {
       expect(actual[4]).to.be.instanceof(NodeAnnouncementMessage);
       expect(actual[5]).to.be.instanceof(ChannelAnnouncementMessage);
       expect(actual[6]).to.be.instanceof(ChannelUpdateMessage);
+      expect(actual[7]).to.be.instanceOf(NodeAnnouncementMessage);
     });
   });
 });

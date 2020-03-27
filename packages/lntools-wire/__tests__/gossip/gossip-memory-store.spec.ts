@@ -69,12 +69,35 @@ describe("GossipMemoryStore", () => {
 
   describe(".saveNodeAnnouncement", () => {
     it("should store node_announcement", async () => {
-      const msg = new NodeAnnouncementMessage();
-      msg.nodeId = node1;
-      await sut.saveNodeAnnouncement(msg);
+      const msg1 = new NodeAnnouncementMessage();
+      msg1.nodeId = node1;
+      await sut.saveNodeAnnouncement(msg1);
+
+      const msg2 = new NodeAnnouncementMessage();
+      msg2.nodeId = node2;
+      await sut.saveNodeAnnouncement(msg2);
+
+      expect(sut.nodeAnnouncementCount).to.equal(2);
+    });
+  });
+
+  describe(".findNodeAnnouncement", () => {
+    it("should find a node by id", async () => {
       const result = await sut.findNodeAnnouncement(node1);
       expect(result.nodeId.toString("hex")).to.equal(node1.toString("hex"));
-      expect(sut.nodeAnnouncementCount).to.equal(1);
+    });
+
+    it("should return undefined for not found node", async () => {
+      const result = await sut.findNodeAnnouncement(Buffer.alloc(32));
+      expect(result).to.be.undefined;
+    });
+  });
+
+  describe(".findNodeAnnouncements", () => {
+    it("should return all node_ann messages", async () => {
+      const result = await sut.findNodeAnnouncements();
+      expect((result[0] as NodeAnnouncementMessage).nodeId).to.equal(node1);
+      expect((result[1] as NodeAnnouncementMessage).nodeId).to.equal(node2);
     });
   });
 
@@ -82,7 +105,25 @@ describe("GossipMemoryStore", () => {
     it("should delete the node_announcement", async () => {
       await sut.deleteNodeAnnouncement(node1);
       expect(await sut.findNodeAnnouncement(node1)).to.be.undefined;
-      expect(sut.nodeAnnouncementCount).to.equal(0);
+      expect(sut.nodeAnnouncementCount).to.equal(1);
+    });
+  });
+
+  describe(".findNodeAnnouncement", () => {
+    beforeEach(async () => {
+      const msg = new NodeAnnouncementMessage();
+      msg.nodeId = node1;
+      await sut.saveNodeAnnouncement(msg);
+    });
+
+    it("should find a node by id", async () => {
+      const result = await sut.findNodeAnnouncement(node1);
+      expect(result.nodeId.toString("hex")).to.equal(node1.toString("hex"));
+    });
+
+    it("should return undefined for not found node", async () => {
+      const result = await sut.findNodeAnnouncement(Buffer.alloc(32));
+      expect(result).to.be.undefined;
     });
   });
 
