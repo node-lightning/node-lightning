@@ -203,6 +203,14 @@ export class GossipManager extends EventEmitter {
         if (nodeAnn) yield nodeAnn;
       }
     }
+
+    // Broadcast unattached node announcements. These may have been orphaned
+    // from previously closed channels, or if the node allows node_ann messages
+    // without channels.
+    const nodeAnns = await this._gossipStore.findNodeAnnouncements();
+    for (const nodeAnn of nodeAnns) {
+      if (!seenNodeIds.has(nodeAnn.nodeId.toString("hex"))) yield nodeAnn;
+    }
   }
 
   private _queryRangeForPeer(peer: Peer) {

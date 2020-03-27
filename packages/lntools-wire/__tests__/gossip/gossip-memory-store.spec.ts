@@ -105,7 +105,7 @@ describe("GossipMemoryStore", () => {
     it("should delete the node_announcement", async () => {
       await sut.deleteNodeAnnouncement(node1);
       expect(await sut.findNodeAnnouncement(node1)).to.be.undefined;
-      expect(sut.nodeAnnouncementCount).to.equal(0);
+      expect(sut.nodeAnnouncementCount).to.equal(1);
     });
   });
 
