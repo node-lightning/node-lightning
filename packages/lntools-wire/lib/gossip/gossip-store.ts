@@ -11,6 +11,7 @@ export interface IGossipStore {
   findChannelAnnouncemnts(): Promise<ChannelAnnouncementMessage[]>;
   findChannelsForNode(nodeId: Buffer): Promise<ShortChannelId[]>;
   findNodeAnnouncement(nodeId: Buffer): Promise<NodeAnnouncementMessage>;
+  findNodeAnnouncements(): Promise<NodeAnnouncementMessage[]>;
   findChannelAnnouncement(scid: ShortChannelId): Promise<ChannelAnnouncementMessage>;
   findChannelAnnouncementByOutpoint(outpoint: OutPoint): Promise<ChannelAnnouncementMessage>;
   findChannelUpdate(scid: ShortChannelId, dir: number): Promise<ChannelUpdateMessage>;
