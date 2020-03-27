@@ -1,5 +1,7 @@
 import { ILogger } from "@lntools/logger";
 import { EventEmitter } from "events";
+import { OutPoint } from "../domain/outpoint";
+import { MessageType } from "../message-type";
 import { ChannelAnnouncementMessage } from "../messages/channel-announcement-message";
 import { ExtendedChannelAnnouncementMessage } from "../messages/extended-channel-announcement-message";
 import { IWireMessage } from "../messages/wire-message";
@@ -11,7 +13,6 @@ import { GossipFilter } from "./gossip-filter";
 import { IGossipFilterChainClient } from "./gossip-filter-chain-client";
 import { IGossipStore } from "./gossip-store";
 import { PeerGossipSynchronizer } from "./peer-gossip-synchronizer";
-import { MessageType } from "../message-type";
 
 // tslint:disable-next-line: interface-name
 export declare interface GossipManager {
@@ -154,6 +155,17 @@ export class GossipManager extends EventEmitter {
   public async removeChannel(scid: ShortChannelId) {
     this.logger.debug("removing channel %s", scid.toString());
     await this._gossipStore.deleteChannelAnnouncement(scid);
+  }
+
+  /**
+   * Removes the channel from storage by the gossip manager. This will
+   * likely be called by a chain-monitoring service.
+   * @param outpoint
+   */
+  public async removeChannelByOutpoint(outpoint: OutPoint) {
+    const chanAnn = await this._gossipStore.findChannelAnnouncementByOutpoint(outpoint);
+    if (!chanAnn) return;
+    await this.removeChannel(chanAnn.shortChannelId);
   }
 
   /**
