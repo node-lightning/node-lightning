@@ -56,7 +56,10 @@ export class TlvValueWriter {
   }
 
   public writeTUInt64(val: bigint) {
-    const buf = Buffer.from(val.toString(16), "hex");
+    if (val === BigInt(0)) return;
+    let valString = val.toString(16);
+    if (valString.length % 2 === 1) valString = "0" + valString;
+    const buf = Buffer.from(valString, "hex");
     this.writeBytes(buf);
   }
 
