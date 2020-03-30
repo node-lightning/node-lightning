@@ -1,6 +1,6 @@
 {
   "name": "@lntools/gossip-rocksdb",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Gossip store using RocksDB",
   "scripts": {
     "test": "../../node_modules/.bin/nyc --reporter=lcov --reporter=text --extension=.ts ../../node_modules/.bin/mocha --require ts-node/register --recursive \"__tests__/**/*.spec.*\"",
@@ -26,7 +26,7 @@
   },
   "dependencies": {
     "@lntools/buffer-cursor": "^0.5.0",
-    "@lntools/wire": "^0.13.1",
+    "@lntools/wire": "^0.13.2",
     "levelup": "^4.3.2",
     "rocksdb": "^4.1.0"
   },
