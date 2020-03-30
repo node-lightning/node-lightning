@@ -15,12 +15,12 @@ LNTools is structured as a monorepo with individual packages existing inside of 
 - [@lntools/bitcoind](packages/lntools-bitcoind) - bitcoind RPC and zeromq client
 - [@lntools/buffer-cursor](packages/lntools-buffer-cursor) - utility for reading and writing Buffers
 - [@lntools/crypto](packages/lntools-crypto) - common cryptography utilities
-- [@lntools/graph](packages/lntools-gossip-rocksdb) - stores gossip messages in RocksDB
-- [@lntools/graph](packages/lntools-graph) - maintains a Lightning Network P2P graph
+- [@lntools/gossip-rocksdb](packages/lntools-gossip-rocksdb) - stores gossip messages in RocksDB
+- [@lntools/graph](packages/lntools-graph) - builds and maintains a Lightning Network routing graph
 - [@lntools/invoice](packages/lntools-invoice) - encoding/decoding Lightning Network invoices
-- [@lntools/invoice](packages/lntools-logger) - logging utility
+- [@lntools/logger](packages/lntools-logger) - logging utility
 - [@lntools/noise](packages/lntools-noise) - Noise Protocol socket/server
-- [@lntools/wire](packages/lntools-wire) - wire protocol for the Lightning Network
+- [@lntools/wire](packages/lntools-wire) - wire protocol and gossipfor the Lightning Network
 
 Examples of usage can be found inside `examples`
 
