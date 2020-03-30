@@ -116,6 +116,7 @@ export class TlvValueReader {
 
   public readBytes(size?: number) {
     if (size === undefined) size = this._buffer.length - this._position;
+    if (this._position + size > this._buffer.length) throw new RangeError("Index out of range");
     const val = Buffer.from(this._buffer.slice(this._position, this._position + size));
     this._position += size;
     return val;

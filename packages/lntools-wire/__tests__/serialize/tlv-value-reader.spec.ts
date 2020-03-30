@@ -2,16 +2,121 @@ import { expect } from "chai";
 import { TlvValueReader } from "../../lib/serialize/tlv-value-reader";
 
 describe("TlvValueReader", () => {
+  describe(".readUInt8()", () => {
+    it("should read 0", () => {
+      const sut = new TlvValueReader(Buffer.from("00", "hex"));
+      const a = sut.readUInt8();
+      expect(a).to.equal(0);
+    });
+
+    it("should read 1", () => {
+      const sut = new TlvValueReader(Buffer.from("01", "hex"));
+      const a = sut.readUInt8();
+      expect(a).to.equal(1);
+    });
+
+    it("should read 255", () => {
+      const sut = new TlvValueReader(Buffer.from("ff", "hex"));
+      const a = sut.readUInt8();
+      expect(a).to.equal(255);
+    });
+
+    it("should throw range error", () => {
+      const sut = new TlvValueReader(Buffer.alloc(0));
+      expect(() => sut.readUInt8()).to.throw();
+    });
+  });
+
+  describe(".readUInt16()", () => {
+    it("should read 0", () => {
+      const sut = new TlvValueReader(Buffer.from("0000", "hex"));
+      const a = sut.readUInt16();
+      expect(a).to.equal(0);
+    });
+
+    it("should read 1", () => {
+      const sut = new TlvValueReader(Buffer.from("0001", "hex"));
+      const a = sut.readUInt16();
+      expect(a).to.equal(1);
+    });
+
+    it("should read 256", () => {
+      const sut = new TlvValueReader(Buffer.from("0100", "hex"));
+      const a = sut.readUInt16();
+      expect(a).to.equal(256);
+    });
+
+    it("should read 0xffff", () => {
+      const sut = new TlvValueReader(Buffer.from("ffff", "hex"));
+      const a = sut.readUInt16();
+      expect(a).to.equal(65535);
+    });
+
+    it("should throw range error", () => {
+      const sut = new TlvValueReader(Buffer.alloc(0));
+      expect(() => sut.readUInt16()).to.throw();
+    });
+  });
+
+  describe(".readUInt32()", () => {
+    it("should read 0", () => {
+      const sut = new TlvValueReader(Buffer.from("00000000", "hex"));
+      const a = sut.readUInt32();
+      expect(a).to.equal(0);
+    });
+
+    it("should read 0x00000001", () => {
+      const sut = new TlvValueReader(Buffer.from("00000001", "hex"));
+      const a = sut.readUInt32();
+      expect(a).to.equal(1);
+    });
+
+    it("should read 0x00000100", () => {
+      const sut = new TlvValueReader(Buffer.from("00000100", "hex"));
+      const a = sut.readUInt32();
+      expect(a).to.equal(256);
+    });
+
+    it("should read 0x00010000", () => {
+      const sut = new TlvValueReader(Buffer.from("00010000", "hex"));
+      const a = sut.readUInt32();
+      expect(a).to.equal(65536);
+    });
+
+    it("should read 0x01000000", () => {
+      const sut = new TlvValueReader(Buffer.from("01000000", "hex"));
+      const a = sut.readUInt32();
+      expect(a).to.equal(16777216);
+    });
+
+    it("should read 0xffffffff", () => {
+      const sut = new TlvValueReader(Buffer.from("ffffffff", "hex"));
+      const a = sut.readUInt32();
+      expect(a).to.equal(4294967295);
+    });
+
+    it("should throw range error", () => {
+      const sut = new TlvValueReader(Buffer.alloc(0));
+      expect(() => sut.readUInt32()).to.throw();
+    });
+  });
+
   describe(".readUInt64()", () => {
     it("should read 1", () => {
       const sut = new TlvValueReader(Buffer.from("0000000000000001", "hex"));
       const a = sut.readUInt64();
       expect(a).to.equal(BigInt(1));
     });
+
     it("should read 0x1000000000000000 (1152921504606846976)", () => {
       const sut = new TlvValueReader(Buffer.from("1000000000000000", "hex"));
       const a = sut.readUInt64();
       expect(a).to.equal(BigInt("0x1000000000000000"));
+    });
+
+    it("should throw range error", () => {
+      const sut = new TlvValueReader(Buffer.alloc(0));
+      expect(() => sut.readUInt64()).to.throw();
     });
   });
 
@@ -176,6 +281,116 @@ describe("TlvValueReader", () => {
       const sut = new TlvValueReader(Buffer.from("ffffffffffffffffff", "hex"));
       const a = sut.readBigSize();
       expect(a.toString(16)).to.equal("ffffffffffffffff");
+    });
+  });
+
+  describe(".readChanHash()", () => {
+    it("should read 32-bytes", () => {
+      const sut = new TlvValueReader(Buffer.alloc(32, 1));
+      const a = sut.readChainHash();
+      expect(a.toString("hex")).to.equal(
+        "0101010101010101010101010101010101010101010101010101010101010101",
+      );
+    });
+
+    it("should throw range error", () => {
+      const sut = new TlvValueReader(Buffer.alloc(0));
+      expect(() => sut.readChainHash()).to.throw();
+    });
+  });
+
+  describe(".readChannelId()", () => {
+    it("should read 32-bytes", () => {
+      const sut = new TlvValueReader(Buffer.alloc(32, 1));
+      const a = sut.readChannelId();
+      expect(a.toString("hex")).to.equal(
+        "0101010101010101010101010101010101010101010101010101010101010101",
+      );
+    });
+
+    it("should throw range error", () => {
+      const sut = new TlvValueReader(Buffer.alloc(0));
+      expect(() => sut.readChannelId()).to.throw();
+    });
+  });
+
+  describe(".readSha256()", () => {
+    it("should read 32-bytes", () => {
+      const sut = new TlvValueReader(Buffer.alloc(32, 1));
+      const a = sut.readSha256();
+      expect(a.toString("hex")).to.equal(
+        "0101010101010101010101010101010101010101010101010101010101010101",
+      );
+    });
+
+    it("should throw range error", () => {
+      const sut = new TlvValueReader(Buffer.alloc(0));
+      expect(() => sut.readSha256()).to.throw();
+    });
+  });
+
+  describe(".readSignature()", () => {
+    it("should read 64-bytes", () => {
+      const sut = new TlvValueReader(Buffer.alloc(64, 1));
+      const a = sut.readSignature();
+      expect(a.toString("hex")).to.equal(
+        "01010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101",
+      );
+    });
+
+    it("should throw range error", () => {
+      const sut = new TlvValueReader(Buffer.alloc(0));
+      expect(() => sut.readSignature()).to.throw();
+    });
+  });
+
+  describe(".readPoint()", () => {
+    it("should read 64-bytes", () => {
+      const sut = new TlvValueReader(Buffer.alloc(33, 1));
+      const a = sut.readPoint();
+      expect(a.toString("hex")).to.equal(
+        "010101010101010101010101010101010101010101010101010101010101010101",
+      );
+    });
+
+    it("should throw range error", () => {
+      const sut = new TlvValueReader(Buffer.alloc(0));
+      expect(() => sut.readPoint()).to.throw();
+    });
+  });
+
+  describe(".readShortChannelId()", () => {
+    it("should read 8-bytes", () => {
+      const sut = new TlvValueReader(Buffer.from("0000010000020003", "hex"));
+      const a = sut.readShortChannelId();
+      expect(a.block).to.equal(1);
+      expect(a.txIdx).to.equal(2);
+      expect(a.voutIdx).to.equal(3);
+    });
+
+    it("should throw range error", () => {
+      const sut = new TlvValueReader(Buffer.alloc(0));
+      expect(() => sut.readShortChannelId()).to.throw();
+    });
+  });
+
+  describe(".readBytes()", () => {
+    it("should read remaining bytes", () => {
+      const sut = new TlvValueReader(Buffer.from("0000010000020003", "hex"));
+      const a = sut.readBytes();
+      expect(a.toString("hex")).to.equal("0000010000020003");
+    });
+
+    it("should read requested bytes", () => {
+      const sut = new TlvValueReader(Buffer.from("0000010000020003", "hex"));
+      const a = sut.readBytes(3);
+      expect(a.toString("hex")).to.equal("000001");
+    });
+
+    it("should throw range error", () => {
+      const sut = new TlvValueReader(Buffer.from("0000010000020003", "hex"));
+      sut.readBytes();
+      expect(() => sut.readBytes(9)).to.throw();
     });
   });
 });
