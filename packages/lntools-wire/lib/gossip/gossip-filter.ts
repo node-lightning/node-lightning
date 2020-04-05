@@ -112,7 +112,7 @@ export class GossipFilter extends EventEmitter {
     const existing = await this._gossipStore.findNodeAnnouncement(msg.nodeId);
 
     // check if the message is newer than the last update
-    if (existing && msg.timestamp < existing.timestamp) return;
+    if (existing && existing.timestamp >= msg.timestamp) return;
 
     // queue node if we don't have any channels
     const scids = await this._gossipStore.findChannelsForNode(msg.nodeId);
@@ -139,6 +139,24 @@ export class GossipFilter extends EventEmitter {
    * and validating the transaction on chain work. This message will
    */
   private async _validateChannelAnnouncement(msg: ChannelAnnouncementMessage): Promise<boolean> {
+    // attempt to find the existing chan_ann message
+    const existing = await this._gossipStore.findChannelAnnouncement(msg.shortChannelId);
+
+    // If the message is an extended message and it has populated the outpoint and capacity we
+    // can skip message processing becuase there is nothing left to do.
+    if (existing && existing instanceof ExtendedChannelAnnouncementMessage) {
+      return;
+    }
+
+    // if there is an existing message and we don't have a chain_client then we want
+    // to abort processing to prevent from populating the gossip store with chan_ann
+    // messages that do not have a extended information. Alterntaively, if we DO have an
+    // an existing message that is just a chan_ann and not ext_chan_ann and there is a
+    // chain_client, we want to update the chan_ann with onchain information
+    if (existing && !this._chainClient) {
+      return;
+    }
+
     // validate signatures for message
     if (!ChannelAnnouncementMessage.verifySignatures(msg)) {
       this.emit("error", new WireError(WireErrorCode.chanAnnSigFailed, [msg]));
@@ -256,7 +274,7 @@ export class GossipFilter extends EventEmitter {
       msg.shortChannelId,
       msg.direction,
     );
-    if (existingUpdate && existingUpdate.timestamp > msg.timestamp) return;
+    if (existingUpdate && existingUpdate.timestamp >= msg.timestamp) return;
 
     // validate message signature for the node in
     const nodeId = msg.direction === 0 ? channelMessage.nodeId1 : channelMessage.nodeId2;
