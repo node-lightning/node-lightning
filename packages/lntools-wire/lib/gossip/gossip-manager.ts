@@ -130,11 +130,11 @@ export class GossipManager extends EventEmitter {
     // request historical sync
     if (this._peers.size === 1) {
       // handle reconnects
-      peer.on("ready", () => this._queryRangeForPeer(peer));
+      peer.on("ready", () => this._fullHistoricalSync(peer));
 
       // if already ready then do a query range sync
       if (peer.state === PeerState.Ready) {
-        this._queryRangeForPeer(peer);
+        this._fullHistoricalSync(peer);
       }
     }
   }
@@ -225,12 +225,10 @@ export class GossipManager extends EventEmitter {
     }
   }
 
-  private _queryRangeForPeer(peer: Peer) {
-    const BLOCKS_PER_DAY = 144;
-    const ourFirstBlock = this.blockHeight;
-    const queryFirstBlock = Math.max(0, ourFirstBlock - BLOCKS_PER_DAY);
+  private _fullHistoricalSync(peer: Peer) {
+    const firstBlock = 0; // always start at zero so we can get full updates
     const gossipSyncer = this._gossipSyncers.get(peer);
-    gossipSyncer.queryRange(queryFirstBlock);
+    gossipSyncer.queryRange(firstBlock);
   }
 
   private _onPeerMessage(msg: IWireMessage) {
