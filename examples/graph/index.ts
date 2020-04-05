@@ -64,6 +64,12 @@ async function connectToPeer(peerInfo: { rpk: string; host: string; port: number
     }
   });
 
+  // track when gossip messages have been completely flushed through the
+  // gossip processing pipeline.
+  gossipManager.on("flushed", () => {
+    logger.info("gossip flushed");
+  });
+
   // The transaction watcher will notify us of transactions that have been spent.
   // We remove the outpoint from the routing table by deleting it from the
   // gossip manager.
