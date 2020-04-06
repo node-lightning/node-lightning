@@ -68,5 +68,6 @@ test.bin
 test.json
 
 config.json
-.db
+config*.json
+.db*
 graph.json
