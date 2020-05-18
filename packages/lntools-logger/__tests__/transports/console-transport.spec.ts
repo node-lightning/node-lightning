@@ -8,7 +8,7 @@ describe("ConsoleTransport", () => {
       const stub = {
         log: sinon.stub(),
       };
-      const sut = new ConsoleTransport(stub as Console);
+      const sut = new ConsoleTransport(stub as any);
       sut.write("hello");
       expect(stub.log.args[0]).to.deep.equal(["hello"]);
     });

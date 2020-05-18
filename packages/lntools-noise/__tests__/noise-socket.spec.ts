@@ -328,7 +328,7 @@ describe("NoiseSocket", () => {
     describe("when data", () => {
       beforeEach(() => {
         socket.read.returns(Buffer.alloc(80));
-        noiseState.decryptMessage.returns("some message");
+        noiseState.decryptMessage.returns("some message" as any);
       });
 
       it("should increase the messagesReceived counter", () => {
@@ -362,7 +362,7 @@ describe("NoiseSocket", () => {
     describe("when data and read backpressure", () => {
       beforeEach(() => {
         socket.read.returns(Buffer.alloc(80));
-        noiseState.decryptMessage.returns("some message");
+        noiseState.decryptMessage.returns("some message" as any);
       });
 
       it("should transition to state BLOCKED", () => {
