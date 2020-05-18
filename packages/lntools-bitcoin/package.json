@@ -1,6 +1,6 @@
 {
   "name": "@lntools/bitcoin",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Bitcoin utilities",
   "keywords": [
     "bitcoin",
@@ -23,7 +23,7 @@
     "prepublish": "npm run build"
   },
   "dependencies": {
-    "@lntools/buffer-cursor": "^0.6.1",
+    "@lntools/buffer-cursor": "^0.7.0",
     "@lntools/crypto": "^0.7.1",
     "bitcoin-ops": "^1.4.1",
     "bn.js": "^4.11.8",

@@ -1,6 +1,6 @@
 {
   "name": "@lntools/chainmon",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Bitcoin on-chain transaction monitoring tool",
   "main": "dist/index.js",
   "scripts": {
@@ -18,7 +18,7 @@
     "url": "git+https://github.com/altangent/lntools.git"
   },
   "dependencies": {
-    "@lntools/bitcoin": "^0.2.1",
-    "@lntools/bitcoind": "^0.1.1"
+    "@lntools/bitcoin": "^0.3.0",
+    "@lntools/bitcoind": "^0.2.0"
   }
 }

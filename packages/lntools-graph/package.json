@@ -1,6 +1,6 @@
 {
   "name": "@lntools/graph",
-  "version": "0.3.3",
+  "version": "0.4.0",
   "description": "Lightning Network P2P Graph",
   "keywords": [
     "lightning network",
@@ -22,6 +22,6 @@
     "prepublish": "npm run build"
   },
   "dependencies": {
-    "@lntools/wire": "^0.13.3"
+    "@lntools/wire": "^0.14.0"
   }
 }
