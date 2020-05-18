@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import sinon from "sinon";
-import { ExponentialBackoff } from "../../lib/executil/exponential-backoff";
+import { ExponentialBackoff } from "../../lib/policies/exponential-backoff";
 
 describe("ExponentialBackoff", () => {
   it("single call", async () => {

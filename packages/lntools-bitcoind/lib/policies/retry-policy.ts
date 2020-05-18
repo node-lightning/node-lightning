@@ -9,7 +9,7 @@ export class RetryPolicy<T> implements IPolicy<T> {
     this.numFailures = 0;
   }
 
-  public async execute(fn: () => Promise<T>) {
+  public async execute(fn: () => Promise<T>): Promise<T> {
     while (this.numFailures < this.maxFailures) {
       try {
         return await fn();

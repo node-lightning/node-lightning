@@ -8,6 +8,7 @@
     "no-bitwise": false,
     "no-floating-promises": true,
     "object-literal-sort-keys": false,
+    "one-line": false,
     "prefer-for-of": false,
     "radix": false,
     "unified-signatures":false,

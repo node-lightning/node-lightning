@@ -1,25 +1,20 @@
 import { EventEmitter } from "events";
-import * as http from "http";
-import { Socket } from "net";
 import * as zmq from "zeromq";
+import { IBitcoindOptions } from "./bitcoind-options";
+import { jsonrpcRequest } from "./jsonrpc-request";
+import { BlockChainInfo } from "./types/block-chain-info";
 import { BlockSummary } from "./types/blocksummary";
 import { Transaction } from "./types/transaction";
 import { Utxo } from "./types/transaction";
-
-export interface IBitcoindOptions {
-  rpcuser?: string;
-  rpcpassword?: string;
-  host: string;
-  port: number;
-  zmqpubrawtx?: string;
-  zmqpubrawblock?: string;
-}
 
 export declare interface IBitcoindClient {
   on(event: "rawtx", listener: (rawtx: Buffer) => void): this;
   on(event: "rawblock", listener: (rawblock: Buffer) => void): this;
 }
 
+/**
+ * Bitcoind RPC and Zeromq client
+ */
 export class BitcoindClient extends EventEmitter {
   public opts: IBitcoindOptions;
   public id: number;
@@ -57,80 +52,83 @@ export class BitcoindClient extends EventEmitter {
     sock.on("message", (topic: string, message: Buffer) => this.emit("rawblock", message));
   }
 
-  public async getBlockchainInfo(): Promise<any> {
-    return this._request("getblockchaininfo");
+  /**
+   * Gets the BlockChaininfo using the `getblockchaininfo` RPC method
+   */
+  public async getBlockchainInfo(): Promise<BlockChainInfo> {
+    return this._jsonrpc<BlockChainInfo>("getblockchaininfo");
   }
 
+  /**
+   * Gets the block hash for a given block height. Hash is returned in RPC byte
+   * order using the `getblockhash` RPC method
+   * @param height
+   */
   public async getBlockHash(height: number): Promise<string> {
-    const result = await this._request("getblockhash", [height]);
-    return result as string;
+    return this._jsonrpc<string>("getblockhash", [height]);
   }
 
+  /**
+   * Gets a BlockSummary object, which only includes the transaction identifiers
+   * using the `getblock` RPC method
+   * @param hash
+   */
   public async getBlock(hash: string): Promise<BlockSummary> {
-    const result = await this._request("getblock", [hash]);
-    return result as BlockSummary;
+    return this._jsonrpc<BlockSummary>("getblock", [hash]);
   }
 
+  /**
+   * Gets a raw block as a Buffer use the `getblock` RPC method
+   * @param hash
+   */
   public async getRawBlock(hash: string): Promise<Buffer> {
-    const result = await this._request("getblock", [hash, 0]);
-    return Buffer.from(result as string, "hex");
+    const result = await this._jsonrpc<string>("getblock", [hash, 0]);
+    return Buffer.from(result, "hex");
   }
 
+  /**
+   * Gets a parsed transaction using the `getrawtransaction` method
+   * @param txid
+   */
   public async getTransaction(txid: string): Promise<Transaction> {
-    const result = await this._request("getrawtransaction", [txid, true]);
-    return result as Transaction;
+    return this._jsonrpc<Transaction>("getrawtransaction", [txid, true]);
   }
 
+  /**
+   * Gets a raw transaction as a buffer using the `getrawtransaction` RPC method
+   * @param txid
+   */
   public async getRawTransaction(txid: string): Promise<Buffer> {
-    const result = await this._request("getrawtransaction", [txid, false]);
-    return Buffer.from(result as string, "hex");
+    const result = await this._jsonrpc<string>("getrawtransaction", [txid, false]);
+    return Buffer.from(result, "hex");
   }
 
+  /**
+   * Retrieves the UTXO value using the gettxout rpc method
+   * @param txid
+   * @param n
+   */
   public async getUtxo(txid: string, n: number): Promise<Utxo> {
-    const result = await this._request("gettxout", [txid, n]);
-    return result as Utxo;
+    return await this._jsonrpc<Utxo>("gettxout", [txid, n]);
   }
 
-  public _request(method: string, params: any = []) {
-    return new Promise((resolve, reject) => {
-      const { host, port, rpcuser: rpcUser, rpcpassword: rpcPassword } = this.opts;
-      const body = JSON.stringify({
-        id: ++this.id,
-        jsonrpc: "1.0",
-        method,
-        params,
-      });
-      const req = http.request(
-        {
-          auth: `${rpcUser}:${rpcPassword}`,
-          headers: {
-            "content-length": body.length,
-            "content-type": "text/plain",
-          },
-          host,
-          method: "POST",
-          port,
-        },
-        res => {
-          const buffers = [];
-          res.on("error", reject);
-          res.on("data", buf => buffers.push(buf));
-          res.on("end", () => {
-            const ok = res.statusCode === 200 ? resolve : reject;
-            const isJson = res.headers["content-type"] === "application/json";
-            const raw = Buffer.concat(buffers).toString();
-            const result = isJson ? JSON.parse(raw) : raw;
-            // buf = buf.replace(/:[0-9]\.{0,1}[0-9]/)
-            if (ok) {
-              resolve(result.result);
-            } else {
-              reject(result);
-            }
-          });
-        },
-      );
-      req.on("error", reject);
-      req.end(body);
-    });
+  /**
+   * Performs a json-rpc requets using the configured options for the client.
+   * @param method
+   * @param args
+   */
+  private _jsonrpc<T>(method: string, args?: any): Promise<T> {
+    // constructs a request delegate that will be used for retries
+    const fn = () => jsonrpcRequest<T>(method, args, ++this.id, this.opts);
+
+    // if we have a retry policy specified in the options, we will build a
+    // new policy for this request and use it to execute our function delegate
+    if (this.opts.policyMaker) {
+      return this.opts.policyMaker<T>().execute(fn);
+    }
+    // otherwise just directly invoke our function request
+    else {
+      return fn();
+    }
   }
 }
