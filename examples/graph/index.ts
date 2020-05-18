@@ -1,4 +1,5 @@
 import { BitcoindClient } from "@lntools/bitcoind";
+import { ConstantBackoff, RetryPolicy } from "@lntools/bitcoind";
 import { TxWatcher } from "@lntools/chainmon";
 import { RocksdbGossipStore } from "@lntools/gossip-rocksdb";
 import { GraphManager } from "@lntools/graph";
@@ -30,7 +31,10 @@ async function connectToPeer(peerInfo: { rpk: string; host: string; port: number
   // configure the Bitcoind chain client that is used to
   // validate validatity of funding transactions associated
   // with channels inside the ChannelFilter
-  const chainClient = new BitcoindClient(config.bitcoind);
+  const chainClient = new BitcoindClient({
+    ...config.bitcoind,
+    policyMaker: () => new RetryPolicy(5, new ConstantBackoff(5000)),
+  });
 
   // constructs the gossip data storage and the manager for
   // controlling gossip requests with the peer.
