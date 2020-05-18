@@ -33,6 +33,6 @@ export function createFakePeer() {
 
 export function createFakeLogger() {
   const fake = sinon.createStubInstance(Logger);
-  fake.sub = createFakeLogger;
+  fake.sub = createFakeLogger as any;
   return fake;
 }

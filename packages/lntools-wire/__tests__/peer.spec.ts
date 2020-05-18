@@ -47,7 +47,7 @@ describe("Peer", () => {
     const logger = createFakeLogger();
     sut = new Peer({ ls, rpk, initMessageFactory, logger });
     sut.socket = socket = new FakeSocket() as any;
-    sut.pingPongState = sinon.createStubInstance(PingPongState);
+    sut.pingPongState = sinon.createStubInstance(PingPongState) as any;
     sandbox = sinon.createSandbox();
   });
 
@@ -58,10 +58,10 @@ describe("Peer", () => {
   describe(".connect()", () => {
     beforeEach(() => {
       sandbox.stub(noise, "connect").returns(socket);
-      sandbox.stub(sut, "_onSocketReady");
-      sandbox.stub(sut, "_onSocketClose");
-      sandbox.stub(sut, "_onSocketError");
-      sandbox.stub(sut, "_onSocketData");
+      sandbox.stub(sut, "_onSocketReady" as any);
+      sandbox.stub(sut, "_onSocketClose" as any);
+      sandbox.stub(sut, "_onSocketError" as any);
+      sandbox.stub(sut, "_onSocketData" as any);
       sut.connect();
     });
 
@@ -181,8 +181,8 @@ describe("Peer", () => {
 
   describe("_onSocketData", () => {
     beforeEach(() => {
-      sandbox.stub(sut, "_processPeerInitMessage");
-      sandbox.stub(sut, "_processMessage");
+      sandbox.stub(sut, "_processPeerInitMessage" as any);
+      sandbox.stub(sut, "_processMessage" as any);
     });
 
     it("should read peer init message when awaiting_peer_init state", () => {
