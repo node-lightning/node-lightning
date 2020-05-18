@@ -1,18 +1,23 @@
 {
   "name": "@lntools/logger",
   "version": "0.6.1",
-  "description": "",
+  "description": "Logging tool for LNTools applications",
   "main": "dist/index.js",
-  "directories": {
-    "lib": "lib"
-  },
   "scripts": {
     "test": "../../node_modules/.bin/nyc --reporter=lcov --reporter=text --extension=.ts ../../node_modules/.bin/mocha --require ts-node/register --recursive \"__tests__/**/*.spec.*\"",
     "lint": "../../node_modules/.bin/tslint --project tsconfig.json --config ../../tslint.json",
     "build": "../../node_modules/.bin/tsc --project tsconfig.json",
     "prepublish": "npm run build"
   },
-  "keywords": [],
+  "keywords": [
+    "lightning-network",
+    "logging"
+  ],
   "author": "Brian Mancini <bmancini@gmail.com>",
-  "license": "MIT"
+  "homepage": "https://github.com/altangent/lntools/tree/master/packages/lntools-logger",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/altangent/lntools.git"
+  }
 }

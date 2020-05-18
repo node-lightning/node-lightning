@@ -1,10 +1,20 @@
 {
   "name": "@lntools/bitcoin",
   "version": "0.2.1",
-  "description": "Bitcoin protocol",
-  "keywords": [],
+  "description": "Bitcoin utilities",
+  "keywords": [
+    "bitcoin",
+    "transaction building",
+    "transaction parser",
+    "block parser"
+  ],
   "author": "Brian Mancini <bmancini@gmail.com>",
+  "homepage": "https://github.com/altangent/lntools/tree/master/packages/lntools-bitcoin",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/altangent/lntools.git"
+  },
   "main": "dist/index.js",
   "scripts": {
     "test": "../../node_modules/.bin/nyc --reporter=lcov --reporter=text --extension=.ts ../../node_modules/.bin/mocha --require ts-node/register --recursive \"__tests__/**/*.spec.js\"",

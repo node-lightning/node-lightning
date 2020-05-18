@@ -1,18 +1,18 @@
 {
   "name": "@lntools/graph",
   "version": "0.3.3",
-  "description": "Peer graph tools",
+  "description": "Lightning Network P2P Graph",
   "keywords": [
     "lightning network",
     "graph",
     "bolt7"
   ],
   "author": "Brian Mancini <bmancini@gmail.com>",
-  "homepage": "https://github.com/altangent/lightnode#readme",
+  "homepage": "https://github.com/altangent/lntools/tree/master/packages/lntools-graph",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/altangent/lightnode.git"
+    "url": "git+https://github.com/altangent/lntools.git"
   },
   "main": "dist/index.js",
   "scripts": {

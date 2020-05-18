@@ -4,7 +4,12 @@
   "description": "Basic bitcoind JSONRPC and ZMQ client",
   "keywords": [],
   "author": "Brian Mancini <bmancini@gmail.com>",
+  "homepage": "https://github.com/altangent/lntools/tree/master/packages/lntools-bitcoind",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/altangent/lntools.git"
+  },
   "main": "dist/index.js",
   "scripts": {
     "xtest": "../../node_modules/.bin/nyc --reporter=lcov --reporter=text --extension=.ts ../../node_modules/.bin/mocha --require ts-node/register --recursive \"__tests__/**/*.spec.js\"",
