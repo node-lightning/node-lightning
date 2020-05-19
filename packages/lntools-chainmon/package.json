@@ -1,6 +1,6 @@
 {
   "name": "@lntools/chainmon",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Bitcoin on-chain transaction monitoring tool",
   "main": "dist/index.js",
   "scripts": {
@@ -19,6 +19,6 @@
   },
   "dependencies": {
     "@lntools/bitcoin": "^0.3.0",
-    "@lntools/bitcoind": "^0.2.0"
+    "@lntools/bitcoind": "^0.3.0"
   }
 }
