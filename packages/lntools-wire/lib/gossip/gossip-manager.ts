@@ -90,6 +90,14 @@ export class GossipManager extends EventEmitter {
    */
   public async start() {
     this.logger.info("starting gossip manager");
+
+    // wait for chain sync to complete
+    if (this._chainClient) {
+      this.logger.info("waiting for chain sync");
+      await this._chainClient.waitForSync();
+      this.logger.info("chain sync complete");
+    }
+
     await this._restoreState();
 
     // emit all restored messages

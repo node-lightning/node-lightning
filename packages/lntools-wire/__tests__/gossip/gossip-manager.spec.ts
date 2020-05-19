@@ -3,6 +3,7 @@
 import { expect } from "chai";
 import sinon from "sinon";
 import { Bitmask } from "../../lib/bitmask";
+import { OutPoint } from "../../lib/domain/outpoint";
 import { IGossipFilterChainClient } from "../../lib/gossip/gossip-filter-chain-client";
 import { GossipManager } from "../../lib/gossip/gossip-manager";
 import { GossipMemoryStore } from "../../lib/gossip/gossip-memory-store";
@@ -14,13 +15,13 @@ import { Peer } from "../../lib/peer";
 import { PeerState } from "../../lib/peer-state";
 import { ShortChannelId } from "../../lib/shortchanid";
 import { createFakeLogger, createFakePeer } from "../_test-utils";
-import { OutPoint } from "../../lib/domain/outpoint";
 
 function createFakeChainClient() {
   return {
     getBlockHash: sinon.stub(),
     getBlock: sinon.stub(),
     getUtxo: sinon.stub(),
+    waitForSync: sinon.stub(),
   };
 }
 
@@ -61,6 +62,28 @@ describe("GossipManager", () => {
       it("should restore to highest channel's block", async () => {
         await sut.start();
         expect(sut.blockHeight).to.equal(1288462);
+      });
+    });
+
+    describe("with chain_client and sync requird", () => {
+      it("waits for chain sync", async () => {
+        // delay sync for 100 s
+        chainClient.waitForSync = () => new Promise(resolve => setTimeout(resolve, 100));
+
+        sut = new GossipManager({
+          chainHash: Buffer.alloc(32),
+          logger: createFakeLogger(),
+          gossipStore,
+          pendingStore: new GossipMemoryStore(),
+          chainClient,
+        });
+
+        const start = Date.now();
+        await sut.start();
+        const end = Date.now();
+
+        // start should be delayed by 100ms
+        expect(end - start).to.be.gte(100);
       });
     });
 
