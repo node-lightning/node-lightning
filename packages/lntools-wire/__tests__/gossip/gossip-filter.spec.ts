@@ -30,6 +30,10 @@ class FakeChainClient implements IGossipFilterChainClient {
   public getUtxo(txId: string, voutIdx: number): Promise<HasScriptPubKey & HasValue> {
     throw new Error("");
   }
+
+  public async waitForSync(): Promise<boolean> {
+    return true;
+  }
 }
 
 describe("GossipFilter", () => {
