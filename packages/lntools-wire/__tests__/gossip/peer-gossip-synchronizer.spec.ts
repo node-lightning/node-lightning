@@ -14,6 +14,7 @@ import { ShortChannelId } from "../../lib/shortchanid";
 import { createFakeLogger, createFakePeer } from "../_test-utils";
 
 describe("PeerGossipSynchronizer", () => {
+  let chainHash: Buffer;
   let sut: PeerGossipSynchronizer;
   let peer: any;
   let logger: ILogger;
@@ -21,9 +22,10 @@ describe("PeerGossipSynchronizer", () => {
   let shortIdsQueryFailedEvent;
 
   beforeEach(() => {
+    chainHash = Buffer.alloc(32, 1);
     peer = createFakePeer();
     logger = createFakeLogger();
-    sut = new PeerGossipSynchronizer({ peer, chainHash: Buffer.alloc(32, 1), logger });
+    sut = new PeerGossipSynchronizer(chainHash, peer, logger);
 
     channelRangeFailedEvent = sinon.stub();
     sut.on("channel_range_failed", channelRangeFailedEvent);
