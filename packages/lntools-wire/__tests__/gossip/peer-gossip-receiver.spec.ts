@@ -2,18 +2,10 @@
 
 import { ILogger } from "@lntools/logger";
 import { expect } from "chai";
-import sinon from "sinon";
-import { PeerGossipReceiver } from "../../lib/gossip/peer-gossip-receiver";
-import { PeerGossipSynchronizer } from "../../lib/gossip/peer-gossip-synchronizer";
-import { GossipTimestampFilterMessage } from "../../lib/messages/gossip-timestamp-filter-message";
-import { QueryChannelRangeMessage } from "../../lib/messages/query-channel-range-message";
-import { QueryShortChannelIdsMessage } from "../../lib/messages/query-short-channel-ids-message";
-import { ReplyChannelRangeMessage } from "../../lib/messages/reply-channel-range-message";
-import { ReplyShortChannelIdsEndMessage } from "../../lib/messages/reply-short-channel-ids-end-message";
-import { IWireMessage } from "../../lib/messages/wire-message";
-import { ShortChannelId } from "../../lib/shortchanid";
-import { createFakeLogger, createFakePeer } from "../_test-utils";
 import { PeerGossipReceiveState } from "../../lib/gossip/peer-gossip-receive-state";
+import { PeerGossipReceiver } from "../../lib/gossip/peer-gossip-receiver";
+import { GossipTimestampFilterMessage } from "../../lib/messages/gossip-timestamp-filter-message";
+import { createFakeLogger, createFakePeer } from "../_test-utils";
 
 describe("PeerGossipSynchronizer", () => {
   let chainHash: Buffer;
