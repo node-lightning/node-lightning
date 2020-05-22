@@ -10,13 +10,15 @@ import { PeerOptions } from "./peer-options";
 import { PeerState } from "./peer-state";
 import { PingPongState } from "./pingpong-state";
 
-export declare interface IPeerMessageSender {
+export declare interface IMessageSender {
   sendMessage(msg: IWireMessage): void;
 }
 
-export declare interface IPeerMessageReceiver {
+export declare interface IMessageReceiver {
   on(event: "message", listener: (msg: IWireMessage) => void): this;
 }
+
+export type IMessageSenderReceiver = IMessageSender & IMessageReceiver;
 
 // tslint:disable-next-line: interface-name
 export declare interface Peer {
@@ -147,7 +149,7 @@ export declare interface Peer {
  *
  * @emits end emitted when the connection to the peer is ending.
  */
-export class Peer extends EventEmitter implements IPeerMessageSender, IPeerMessageReceiver {
+export class Peer extends EventEmitter implements IMessageSender, IMessageReceiver {
   public static states = PeerState;
 
   public state: PeerState = PeerState.Disconnected;
