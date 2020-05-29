@@ -20,7 +20,7 @@ export class ReplyChannelRangeMessage implements IWireMessage {
 
     instance.firstBlocknum = reader.readUInt32BE();
     instance.numberOfBlocks = reader.readUInt32BE();
-    instance.complete = reader.readUInt8() === 1;
+    instance.fullInformation = reader.readUInt8() === 1;
 
     // read encoded_short_ids
     const len = reader.readUInt16BE(); // encoded_short_channel_id bytes
@@ -47,7 +47,7 @@ export class ReplyChannelRangeMessage implements IWireMessage {
   public chainHash: Buffer;
   public firstBlocknum: number;
   public numberOfBlocks: number;
-  public complete: boolean;
+  public fullInformation: boolean;
   public shortChannelIds: ShortChannelId[] = [];
   public timestamps: ReplyChannelRangeTimestamps;
   public checksums: ReplyChannelRangeChecksums;
@@ -64,7 +64,7 @@ export class ReplyChannelRangeMessage implements IWireMessage {
       32 + // chain_hash
       4 + // first_blocknum
       4 + // number_of_blocks
-      1 + // complete
+      1 + // full_information
       2 + // len encoded_short_ids
       esids.length + // encoded_short_ids
       timestampsTlv.length +
@@ -76,7 +76,7 @@ export class ReplyChannelRangeMessage implements IWireMessage {
     writer.writeBytes(this.chainHash);
     writer.writeUInt32BE(this.firstBlocknum);
     writer.writeUInt32BE(this.numberOfBlocks);
-    writer.writeUInt8(this.complete ? 1 : 0);
+    writer.writeUInt8(this.fullInformation ? 1 : 0);
     writer.writeUInt16BE(esids.length);
     writer.writeBytes(esids);
 

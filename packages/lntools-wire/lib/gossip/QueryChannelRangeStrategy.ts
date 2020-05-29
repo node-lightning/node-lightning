@@ -41,7 +41,7 @@ import { IQueryShortIdsStrategy } from "./IQueryShortIdsStrategy";
  * This is functionality is a clarification from Legacy LND mode where
  * gossip_queries was implemented in a different manner.
  *
- * - the complete flag to indicate a multipart message that was incomplete
+ * - full_information indicated a multipart message that was incomplete
  * - first_blocknum+number_of_blocks matches the query for each reply message
  */
 export class QueryChannelRangeStrategy extends EventEmitter implements IQueryChannelRangeStrategy {
@@ -99,7 +99,7 @@ export class QueryChannelRangeStrategy extends EventEmitter implements IQueryCha
    */
   public isLegacyReply(msg: ReplyChannelRangeMessage, query: QueryChannelRangeMessage): boolean {
     return (
-      !msg.complete &&
+      !msg.fullInformation &&
       msg.shortChannelIds.length &&
       msg.firstBlocknum === query.firstBlocknum &&
       msg.numberOfBlocks === query.numberOfBlocks
@@ -180,8 +180,8 @@ export class QueryChannelRangeStrategy extends EventEmitter implements IQueryCha
    */
   private _handleReply(msg: ReplyChannelRangeMessage) {
     this.logger.debug(
-      "received reply_channel_range - complete=%d start_block=%d end_block=%d scid_count=%d",
-      msg.complete,
+      "received reply_channel_range - full_info=%d start_block=%d end_block=%d scid_count=%d",
+      msg.fullInformation,
       msg.firstBlocknum,
       msg.firstBlocknum + msg.numberOfBlocks - 1,
       msg.shortChannelIds.length,
@@ -194,7 +194,7 @@ export class QueryChannelRangeStrategy extends EventEmitter implements IQueryCha
 
     // The full_information flag should only return false when the remote peer
     // does not maintain up-to-date infromatino for the request chain_hash
-    if (!msg.complete) {
+    if (!msg.fullInformation) {
       this.emit("channel_range_failed", msg);
     }
 
@@ -227,8 +227,8 @@ export class QueryChannelRangeStrategy extends EventEmitter implements IQueryCha
    */
   private _handleLegacyReply(msg: ReplyChannelRangeMessage) {
     this.logger.debug(
-      "received reply_channel_range - complete=%d start_block=%d end_block=%d scid_count=%d",
-      msg.complete,
+      "received reply_channel_range - full_info=%d start_block=%d end_block=%d scid_count=%d",
+      msg.fullInformation,
       msg.firstBlocknum,
       msg.firstBlocknum + msg.numberOfBlocks - 1,
       msg.shortChannelIds.length,
@@ -242,7 +242,7 @@ export class QueryChannelRangeStrategy extends EventEmitter implements IQueryCha
     // Check the complete flag and the existance of SCIDs. Unfortunately,
     // non-confirming implementations are incorrectly using the completion
     // flag to a multi-message reply.
-    if (!msg.complete && !msg.shortChannelIds.length) {
+    if (!msg.fullInformation && !msg.shortChannelIds.length) {
       this.emit("channel_range_failed", msg);
     }
 

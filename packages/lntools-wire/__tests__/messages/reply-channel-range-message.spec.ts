@@ -49,7 +49,7 @@ describe("ReplyChannelRangeMessage", () => {
       expect(message.firstBlocknum).to.equal(1630000);
       expect(message.numberOfBlocks).to.equal(2000);
       // tslint:disable-next-line: no-unused-expression
-      expect(message.complete).to.be.true;
+      expect(message.fullInformation).to.be.true;
 
       expect(message.shortChannelIds.length).to.equal(21);
 
@@ -131,7 +131,7 @@ describe("ReplyChannelRangeMessage", () => {
       expect(message.firstBlocknum).to.equal(1630000);
       expect(message.numberOfBlocks).to.equal(2000);
       // tslint:disable-next-line: no-unused-expression
-      expect(message.complete).to.be.true;
+      expect(message.fullInformation).to.be.true;
 
       expect(message.shortChannelIds.length).to.equal(21);
 
@@ -175,7 +175,7 @@ describe("ReplyChannelRangeMessage", () => {
       expect(msg.firstBlocknum).to.equal(1630300);
       expect(msg.numberOfBlocks).to.equal(1218);
       // tslint:disable-next-line: no-unused-expression
-      expect(msg.complete).to.be.true;
+      expect(msg.fullInformation).to.be.true;
 
       expect(msg.shortChannelIds.length).to.equal(21);
 
@@ -217,7 +217,7 @@ describe("ReplyChannelRangeMessage", () => {
       expect(msg.firstBlocknum).to.equal(1630300);
       expect(msg.numberOfBlocks).to.equal(1218);
       // tslint:disable-next-line: no-unused-expression
-      expect(msg.complete).to.be.true;
+      expect(msg.fullInformation).to.be.true;
 
       expect(msg.shortChannelIds.length).to.equal(21);
 
@@ -321,7 +321,7 @@ describe("ReplyChannelRangeMessage", () => {
       );
       message.firstBlocknum = 1630000;
       message.numberOfBlocks = 2000;
-      message.complete = true;
+      message.fullInformation = true;
       message.shortChannelIds.push(new ShortChannelId(1630300, 1, 0)); // 18e05c0000010000
       message.shortChannelIds.push(new ShortChannelId(1631517, 4, 0)); // 18e51d0000040000
       expect(message.serialize(0).toString("hex")).to.equal(
@@ -337,7 +337,7 @@ describe("ReplyChannelRangeMessage", () => {
       );
       message.firstBlocknum = 1630000;
       message.numberOfBlocks = 2000;
-      message.complete = true;
+      message.fullInformation = true;
       message.shortChannelIds.push(new ShortChannelId(1630300, 1, 0));
       message.shortChannelIds.push(new ShortChannelId(1631034, 2, 0));
       message.shortChannelIds.push(new ShortChannelId(1631034, 3, 0));
@@ -396,7 +396,7 @@ describe("ReplyChannelRangeMessage", () => {
       );
       message.firstBlocknum = 1630300;
       message.numberOfBlocks = 1218;
-      message.complete = true;
+      message.fullInformation = true;
       message.shortChannelIds.push(new ShortChannelId(1630300, 1, 0));
       message.shortChannelIds.push(new ShortChannelId(1631034, 2, 0));
       message.shortChannelIds.push(new ShortChannelId(1631034, 3, 0));
@@ -432,7 +432,7 @@ describe("ReplyChannelRangeMessage", () => {
       );
       message.firstBlocknum = 1630300;
       message.numberOfBlocks = 1218;
-      message.complete = true;
+      message.fullInformation = true;
       message.shortChannelIds.push(new ShortChannelId(1630300, 1, 0));
       message.shortChannelIds.push(new ShortChannelId(1631034, 2, 0));
       message.shortChannelIds.push(new ShortChannelId(1631034, 3, 0));
@@ -491,7 +491,7 @@ describe("ReplyChannelRangeMessage", () => {
       );
       message.firstBlocknum = 1630000;
       message.numberOfBlocks = 2000;
-      message.complete = true;
+      message.fullInformation = true;
       message.shortChannelIds.push(new ShortChannelId(1630300, 1, 0)); // 18e05c0000010000
       message.shortChannelIds.push(new ShortChannelId(1631517, 4, 0)); // 18e51d0000040000
       message.checksums = new ReplyChannelRangeChecksums();

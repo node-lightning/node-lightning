@@ -141,7 +141,7 @@ describe("QueryChannelRangeStrategy", () => {
         sut.queryRange(0, 4294967295);
 
         const msg = new ReplyChannelRangeMessage();
-        msg.complete = true;
+        msg.fullInformation = true;
         msg.shortChannelIds.push(new ShortChannelId(1, 1, 1));
         msg.firstBlocknum = 0;
         msg.numberOfBlocks = 4294967295;
@@ -158,13 +158,13 @@ describe("QueryChannelRangeStrategy", () => {
       });
     });
 
-    describe("complete=true, with_scids=true, queued_query=true", () => {
+    describe("full_info=true, with_scids=true, queued_query=true", () => {
       beforeEach(() => {
         sut.queryRange(0, 4294967295);
         sut.queryRange(1000, 2000);
 
         const msg = new ReplyChannelRangeMessage();
-        msg.complete = true;
+        msg.fullInformation = true;
         msg.shortChannelIds.push(new ShortChannelId(1, 1, 1));
         msg.firstBlocknum = 0;
         msg.numberOfBlocks = 4294967295;
@@ -187,11 +187,11 @@ describe("QueryChannelRangeStrategy", () => {
       });
     });
 
-    describe("complete=true, with_scids=false, queued_query=false", () => {
+    describe("full_info=true, with_scids=false, queued_query=false", () => {
       beforeEach(() => {
         sut.queryRange(0, 4294967295);
         const msg = new ReplyChannelRangeMessage();
-        msg.complete = true;
+        msg.fullInformation = true;
         msg.firstBlocknum = 0;
         msg.numberOfBlocks = 4294967295;
         msg.shortChannelIds = [];
@@ -207,13 +207,13 @@ describe("QueryChannelRangeStrategy", () => {
       });
     });
 
-    describe("complete=true, with_scids=false, queued_query=true", () => {
+    describe("full_info=true, with_scids=false, queued_query=true", () => {
       beforeEach(() => {
         sut.queryRange(0, 4294967295);
         sut.queryRange(1000, 2000);
 
         const msg = new ReplyChannelRangeMessage();
-        msg.complete = true;
+        msg.fullInformation = true;
         msg.firstBlocknum = 0;
         msg.numberOfBlocks = 4294967295;
         msg.shortChannelIds = [];
@@ -237,11 +237,11 @@ describe("QueryChannelRangeStrategy", () => {
       });
     });
 
-    describe("complete=false, with_scids=true, queued_query=false", () => {
+    describe("full_info=false, with_scids=true, queued_query=false", () => {
       beforeEach(() => {
         sut.queryRange(0, 4294967295);
         const msg = new ReplyChannelRangeMessage();
-        msg.complete = false;
+        msg.fullInformation = false;
         msg.firstBlocknum = 0;
         msg.numberOfBlocks = 4294967295;
         msg.shortChannelIds.push(new ShortChannelId(1, 1, 1));
@@ -262,11 +262,11 @@ describe("QueryChannelRangeStrategy", () => {
       });
     });
 
-    describe("complete=false, with_scids=true, queued_query=false", () => {
+    describe("full_info=false, with_scids=true, queued_query=false", () => {
       beforeEach(() => {
         sut.queryRange(0, 4294967295);
         const msg = new ReplyChannelRangeMessage();
-        msg.complete = false;
+        msg.fullInformation = false;
         msg.firstBlocknum = 0;
         msg.numberOfBlocks = 4294967295;
         msg.shortChannelIds.push(new ShortChannelId(1, 1, 1));
@@ -287,13 +287,13 @@ describe("QueryChannelRangeStrategy", () => {
       });
     });
 
-    describe("complete=false, with_scids=true, queued_query=true", () => {
+    describe("full_info=false, with_scids=true, queued_query=true", () => {
       beforeEach(() => {
         sut.queryRange(0, 4294967295);
         sut.queryRange(1000, 2000);
 
         const msg = new ReplyChannelRangeMessage();
-        msg.complete = false;
+        msg.fullInformation = false;
         msg.firstBlocknum = 0;
         msg.numberOfBlocks = 4294967295;
         msg.shortChannelIds.push(new ShortChannelId(1, 1, 1));
@@ -330,7 +330,7 @@ describe("QueryChannelRangeStrategy", () => {
       sut.on("channel_range_failed", () => (hasError = true));
 
       const msg = new ReplyChannelRangeMessage();
-      msg.complete = false;
+      msg.fullInformation = false;
       msg.firstBlocknum = 0;
       msg.numberOfBlocks = 4294967295;
       msg.shortChannelIds = [];
@@ -354,7 +354,7 @@ describe("QueryChannelRangeStrategy", () => {
       sut.queryRange(1000, 2000);
 
       const msg = new ReplyChannelRangeMessage();
-      msg.complete = true;
+      msg.fullInformation = true;
       msg.firstBlocknum = 0;
       msg.numberOfBlocks = 1000;
       msg.shortChannelIds.push(new ShortChannelId(1, 1, 1));
@@ -379,7 +379,7 @@ describe("QueryChannelRangeStrategy", () => {
       sut.queryRange(1000, 2000);
 
       const msg = new ReplyChannelRangeMessage();
-      msg.complete = true;
+      msg.fullInformation = true;
       msg.firstBlocknum = 0;
       msg.numberOfBlocks = 500;
       msg.shortChannelIds.push(new ShortChannelId(1, 1, 1));
@@ -402,14 +402,14 @@ describe("QueryChannelRangeStrategy", () => {
       sut.queryRange(1000, 2000);
 
       const msg = new ReplyChannelRangeMessage();
-      msg.complete = true;
+      msg.fullInformation = true;
       msg.firstBlocknum = 0;
       msg.numberOfBlocks = 500;
       msg.shortChannelIds.push(new ShortChannelId(1, 1, 1));
       peer.emit("message", msg);
 
       const msg2 = new ReplyChannelRangeMessage();
-      msg2.complete = true;
+      msg2.fullInformation = true;
       msg2.firstBlocknum = 500;
       msg2.numberOfBlocks = 500;
       msg2.shortChannelIds.push(new ShortChannelId(500, 1, 1));
