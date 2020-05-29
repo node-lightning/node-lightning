@@ -31,7 +31,13 @@ export * from "./gossip/gossip-filter-chain-client";
 export * from "./gossip/gossip-manager";
 export * from "./gossip/gossip-memory-store";
 export * from "./gossip/gossip-store";
-export * from "./gossip/peer-gossip-synchronizer";
+export * from "./gossip/GossipReceiveState";
+export * from "./gossip/GossipTimestampFilterStrategy";
+export * from "./gossip/IGossipTimestampFilterStrategy";
+export * from "./gossip/IQueryChannelRangeStrategy";
+export * from "./gossip/IQueryShortIdsStrategy";
+export * from "./gossip/QueryChannelRangeStrategy";
+export * from "./gossip/QueryShortIdsStrategy";
 
 export * from "./messages/announcement-signatures-message";
 export * from "./messages/channel-announcement-message";

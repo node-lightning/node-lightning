@@ -12,8 +12,7 @@ import { WireError, WireErrorCode } from "../wire-error";
 import { GossipFilter } from "./gossip-filter";
 import { IGossipFilterChainClient } from "./gossip-filter-chain-client";
 import { IGossipStore } from "./gossip-store";
-import { PeerGossipReceiver } from "./peer-gossip-receiver";
-import { PeerGossipSynchronizer } from "./peer-gossip-synchronizer";
+import { PeerGossipReceiver } from "./PeerGossipReceiver";
 
 // tslint:disable-next-line: interface-name
 export declare interface GossipManager {
@@ -40,7 +39,7 @@ export class GossipManager extends EventEmitter {
   private _gossipStore: IGossipStore;
   private _pendingStore: IGossipStore;
   private _gossipFilter: GossipFilter;
-  private _gossipSyncers: Map<Peer, PeerGossipSynchronizer>;
+  private _gossipReceivers: Map<Peer, PeerGossipReceiver>;
   private _chainClient: IGossipFilterChainClient;
 
   constructor({
@@ -65,7 +64,7 @@ export class GossipManager extends EventEmitter {
     this._chainClient = chainClient;
 
     this._peers = new Set<Peer>();
-    this._gossipSyncers = new Map<Peer, PeerGossipSynchronizer>();
+    this._gossipReceivers = new Map<Peer, PeerGossipReceiver>();
 
     this._onPeerMessage = this._onPeerMessage.bind(this);
 
@@ -122,27 +121,17 @@ export class GossipManager extends EventEmitter {
     peer.on("close", () => this.removePeer(peer));
 
     // construct a gossip synchronizer for the peer
-    const gossipSyncer = new PeerGossipSynchronizer(
-      this.chainHash,
-      peer,
-      this.logger.sub("gossip_sync", peer.id),
-    );
-    this._gossipSyncers.set(peer, gossipSyncer);
-
-    // construct a gossip receiver
-    const gossipReceiver = new PeerGossipReceiver(
-      this.chainHash,
-      peer,
-      this.logger.sub("gossip_rcvr", peer.id),
-    );
+    const gossipReceiverLogger = this.logger.sub("gossip_rcvr", peer.id);
+    const gossipReceiver = new PeerGossipReceiver(this.chainHash, peer, gossipReceiverLogger);
+    this._gossipReceivers.set(peer, gossipReceiver);
 
     // active gossip for the peer
     if (peer.state === PeerState.Ready) {
       gossipReceiver.activate(); // enables gossip
-      gossipSyncer.queryRange(); // performs full historical sync
+      gossipReceiver.queryRange(); // performs full historical sync
     } else {
       peer.on("ready", () => gossipReceiver.activate());
-      peer.on("ready", () => gossipSyncer.queryRange());
+      peer.on("ready", () => gossipReceiver.queryRange());
     }
   }
 
