@@ -46,7 +46,7 @@ describe("QueryChannelRangeStrategy", () => {
       });
 
       it("should have awaiting_range_query_reply state", () => {
-        expect(sut.awaitingRangeQueryReply).to.be.true;
+        expect(sut.awaitingReply).to.be.true;
       });
     });
 
@@ -61,7 +61,7 @@ describe("QueryChannelRangeStrategy", () => {
       });
 
       it("should have awaiting_range_query_reply state", () => {
-        expect(sut.awaitingRangeQueryReply).to.be.true;
+        expect(sut.awaitingReply).to.be.true;
       });
     });
 
@@ -77,7 +77,7 @@ describe("QueryChannelRangeStrategy", () => {
       });
 
       it("should have awaiting_range_query_reply state", () => {
-        expect(sut.awaitingRangeQueryReply).to.be.true;
+        expect(sut.awaitingReply).to.be.true;
       });
     });
 
@@ -92,7 +92,7 @@ describe("QueryChannelRangeStrategy", () => {
       });
 
       it("should have awaiting_range_query_reply state", () => {
-        expect(sut.awaitingRangeQueryReply).to.be.true;
+        expect(sut.awaitingReply).to.be.true;
       });
     });
 
@@ -108,7 +108,7 @@ describe("QueryChannelRangeStrategy", () => {
       });
 
       it("should have awaiting_range_query_reply state", () => {
-        expect(sut.awaitingRangeQueryReply).to.be.true;
+        expect(sut.awaitingReply).to.be.true;
       });
     });
 
@@ -123,7 +123,7 @@ describe("QueryChannelRangeStrategy", () => {
       });
 
       it("should have awaiting_range_query_reply state", () => {
-        expect(sut.awaitingRangeQueryReply).to.be.true;
+        expect(sut.awaitingReply).to.be.true;
       });
     });
   });
@@ -154,7 +154,7 @@ describe("QueryChannelRangeStrategy", () => {
       });
 
       it("should not be awaiting range query reply", () => {
-        expect(sut.awaitingRangeQueryReply).to.be.false;
+        expect(sut.awaitingReply).to.be.false;
       });
     });
 
@@ -177,7 +177,7 @@ describe("QueryChannelRangeStrategy", () => {
       });
 
       it("should be awaiting range query reply", () => {
-        expect(sut.awaitingRangeQueryReply).to.be.true;
+        expect(sut.awaitingReply).to.be.true;
       });
 
       it("should send queued range_query", () => {
@@ -203,7 +203,7 @@ describe("QueryChannelRangeStrategy", () => {
       });
 
       it("should not be awaiting range query reply", () => {
-        expect(sut.awaitingRangeQueryReply).to.be.false;
+        expect(sut.awaitingReply).to.be.false;
       });
     });
 
@@ -227,7 +227,7 @@ describe("QueryChannelRangeStrategy", () => {
       });
 
       it("should be awaiting range query reply", () => {
-        expect(sut.awaitingRangeQueryReply).to.be.true;
+        expect(sut.awaitingReply).to.be.true;
       });
 
       it("should send queued range_query", () => {
@@ -254,7 +254,7 @@ describe("QueryChannelRangeStrategy", () => {
       });
 
       it("should not be awaiting range query reply", () => {
-        expect(sut.awaitingRangeQueryReply).to.be.false;
+        expect(sut.awaitingReply).to.be.false;
       });
 
       it("switches to legacy", () => {
@@ -279,7 +279,7 @@ describe("QueryChannelRangeStrategy", () => {
       });
 
       it("should not be awaiting range query reply", () => {
-        expect(sut.awaitingRangeQueryReply).to.be.false;
+        expect(sut.awaitingReply).to.be.false;
       });
 
       it("switches to legacy", () => {
@@ -306,7 +306,7 @@ describe("QueryChannelRangeStrategy", () => {
       });
 
       it("should be awaiting range query reply", () => {
-        expect(sut.awaitingRangeQueryReply).to.be.true;
+        expect(sut.awaitingReply).to.be.true;
       });
 
       it("should send queued range_query", () => {

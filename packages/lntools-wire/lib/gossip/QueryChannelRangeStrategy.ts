@@ -45,7 +45,7 @@ import { IQueryShortIdsStrategy } from "./IQueryShortIdsStrategy";
  * - first_blocknum+number_of_blocks matches the query for each reply message
  */
 export class QueryChannelRangeStrategy extends EventEmitter implements IQueryChannelRangeStrategy {
-  private _rangeQueryQueue: Array<[number, number]> = [];
+  private _queue: Array<[number, number]> = [];
   private _blocked: boolean = false;
   private _isLegacy = false;
   private _lastQuery: QueryChannelRangeMessage;
@@ -61,17 +61,25 @@ export class QueryChannelRangeStrategy extends EventEmitter implements IQueryCha
     this.peer.on("message", this._handlePeerMessage.bind(this));
   }
 
-  public get awaitingRangeQueryReply() {
+  /**
+   *
+   */
+  public get awaitingReply() {
     return this._blocked;
   }
 
+  /**
+   * Returns true if we detect this is using the legacy querying gossip_queries
+   * mechanism that was originally implemented in LND. This code may be able to
+   * be removed eventually.
+   */
   public get isLegacy() {
     return this._isLegacy;
   }
 
   public queryRange(firstBlocknum: number = 0, numberOfBlocks = 4294967295 - firstBlocknum) {
     // enqueue the range query
-    this._rangeQueryQueue.push([firstBlocknum, numberOfBlocks]);
+    this._queue.push([firstBlocknum, numberOfBlocks]);
 
     // Check if a range query has already been sent and if it has enqueue the
     // query until a reply is received from the peer. This is required to
@@ -83,16 +91,50 @@ export class QueryChannelRangeStrategy extends EventEmitter implements IQueryCha
     }
   }
 
+  /**
+   * Check if this has the signature of a legacy reply. We can detect this by
+   * looking at a complete=false, scids exist, and the first_blocknum and
+   * number_of_blocks matches the values in the target query.
+   * @param msg
+   */
+  public isLegacyReply(msg: ReplyChannelRangeMessage, query: QueryChannelRangeMessage): boolean {
+    return (
+      !msg.complete &&
+      msg.shortChannelIds.length &&
+      msg.firstBlocknum === query.firstBlocknum &&
+      msg.numberOfBlocks === query.numberOfBlocks
+    );
+  }
+
   private _handlePeerMessage(msg: IWireMessage) {
     if (msg instanceof ReplyChannelRangeMessage) {
-      this._onReplyChannelRange(msg);
+      // check the incoming message to see if we need to transaction to legacy
+      // mode. If it is determined to be in legacy mode, we will switch the
+      // strategy that is used to handle the reply.
+      if (!this._isLegacy && this.isLegacyReply(msg, this._lastQuery)) {
+        this._isLegacy = true;
+        this.logger.info("using legacy LND query_channel_range technique");
+      }
+
+      // handle the message according to which state the reply system is working
+      if (this._isLegacy) {
+        this._handleLegacyReply(msg);
+      } else {
+        this._handleReply(msg);
+      }
       return;
     }
   }
 
+  /**
+   * Sends a query message and caches the pending query results for use when
+   * a reply is received.
+   */
   private _sendQuery() {
-    // if no work to do, return
-    const query = this._rangeQueryQueue.shift();
+    // obtain the next queued item that should be sent
+    const query = this._queue.shift();
+
+    // abort if there is nothing to do
     if (!query) return;
 
     const [firstBlocknum, numberOfBlocks] = query;
@@ -102,7 +144,7 @@ export class QueryChannelRangeStrategy extends EventEmitter implements IQueryCha
       firstBlocknum + numberOfBlocks - 1,
     );
 
-    // lock on sending
+    // lock sending until this query completes
     this._blocked = true;
 
     // send message
@@ -112,17 +154,31 @@ export class QueryChannelRangeStrategy extends EventEmitter implements IQueryCha
     msg.numberOfBlocks = numberOfBlocks;
     this.peer.sendMessage(msg);
 
-    // capture the active query to see how the response stacks up
+    // capture the active query to see we can use it in the reply
     this._lastQuery = msg;
   }
 
   /**
-   * Handles the reply_chan_range message using loose rules. That is we take
-   * into account that complete=false only indicates a failure if there are
-   * not SCIDs attached to the message
+   * Handles a reply_channel_range message which ensures that the entire queried
+   * range has been received. The responder can reply with pre-sized ranges
+   * which means the reply range may not be the EXACT range requested but will
+   * include the queried range.
+   *
+   * For a query range with first_blocknum and number_of_blocks arguments,
+   * we can expect messages to have the following:
+   *
+   *  - first reply first_blocknum <= requested first_blocknum
+   *  - intermediate replies sequentially ordered so that first_blocknum is the
+   *    first_blocknum + number_of_blocks from previous reply (strictly ordered)
+   *  - last reply has fist_blocknum + number_of_blocks >= the queries
+   *    first_blocknum + number_of_blocks
+   *
+   * This ordering allows us to know when a message is complete. If a reply has
+   * full_information=false, then the remote peer does not maintain a
+   * up-to-date information for the supplied chain_hash.
    * @param msg
    */
-  private _onReplyChannelRange(msg: ReplyChannelRangeMessage) {
+  private _handleReply(msg: ReplyChannelRangeMessage) {
     this.logger.debug(
       "received reply_channel_range - complete=%d start_block=%d end_block=%d scid_count=%d",
       msg.complete,
@@ -131,72 +187,74 @@ export class QueryChannelRangeStrategy extends EventEmitter implements IQueryCha
       msg.shortChannelIds.length,
     );
 
-    // check if this has the signature of a legacy reply. We can detect this by
-    // looking at a false complete/full_information flag, scids exist,
-    // and the first_blocknum and number_of_blocks matches the values in the
-    // query.
-    if (
-      !this._isLegacy &&
-      !msg.complete &&
-      msg.shortChannelIds.length &&
-      msg.firstBlocknum === this._lastQuery.firstBlocknum &&
-      msg.numberOfBlocks === this._lastQuery.numberOfBlocks
-    ) {
-      this._isLegacy = true;
-      this.logger.info("using legacy LND query_channel_range technique");
-    }
-
+    // enqueues any scids to be processed by a query_short_chan_id message
     if (msg.shortChannelIds.length) {
-      // enqueues any scids to be processed by a query_short_chan_id message
       this.queryShortIdsStrategy.enqueue(...msg.shortChannelIds);
     }
 
-    // legacy operation
-    if (this._isLegacy) {
-      // Check the complete flag and the existance of SCIDs. Unfortunately,
-      // non-confirming implementations are incorrectly using the completion
-      // flag to a multi-message reply.
-      if (!msg.complete && !msg.shortChannelIds.length) {
-        this.emit("channel_range_failed", msg);
-      }
+    // The full_information flag should only return false when the remote peer
+    // does not maintain up-to-date infromatino for the request chain_hash
+    if (!msg.complete) {
+      this.emit("channel_range_failed", msg);
+    }
 
-      // indicate that we are okay to send another query message. We are doing
-      // this because we have no other way of knowing if the query has completed,
-      // which may piss some peers off.
+    // We can unblock when we have received a reply that covers the full range
+    // of requested data. We know the final block height will be the querie's
+    // first_blocknum + number_of_blocks. At this point, we can unblock
+    // sending and clear out the active query.
+    const currentHeight = msg.firstBlocknum + msg.numberOfBlocks;
+    const targetHeight = this._lastQuery.firstBlocknum + this._lastQuery.numberOfBlocks;
+    if (currentHeight >= targetHeight) {
       this._blocked = false;
+      this.logger.debug(
+        "received final reply_channel_range height %d >= query_channel_range height %d",
+        currentHeight,
+        targetHeight,
+      );
 
-      // clear out the active query
-      this._lastQuery = undefined;
-
-      // send the next query message if one exists
+      // send the next query message since we have successfully completed the query
       this._sendQuery();
     }
+  }
 
-    // normal operation
-    else {
-      // The full_information flag should only return false when the remote peer
-      // does not maintain up-to-date infromatino for the request chain_hash
-      if (!msg.complete) {
-        this.emit("channel_range_failed", msg);
-      }
+  /**
+   * Handles a reply_channel_range message using the legacy strategy where
+   * multiple techniques were used to signal the completion of a query. As a
+   * result, this code removes send blocking after receipt of the first reply
+   * message. We are also looser about the meaning of the full_information
+   * byte since it can indicate a failure OR a multipart message.
+   * @param msg
+   */
+  private _handleLegacyReply(msg: ReplyChannelRangeMessage) {
+    this.logger.debug(
+      "received reply_channel_range - complete=%d start_block=%d end_block=%d scid_count=%d",
+      msg.complete,
+      msg.firstBlocknum,
+      msg.firstBlocknum + msg.numberOfBlocks - 1,
+      msg.shortChannelIds.length,
+    );
 
-      // We can unblock when we have received a reply that covers the full range
-      // of requested data. We know the final block height will be the querie's
-      // first_blocknum + number_of_blocks. At this point, we can unblock
-      // sending and clear out the active query.
-      const currentHeight = msg.firstBlocknum + msg.numberOfBlocks;
-      const targetHeight = this._lastQuery.firstBlocknum + this._lastQuery.numberOfBlocks;
-      if (currentHeight >= targetHeight) {
-        this._blocked = false;
-        this.logger.debug(
-          "received final reply_channel_range height %d >= query_channel_range height %d",
-          currentHeight,
-          targetHeight,
-        );
-
-        // send the next query message since we have successfully completed the query
-        this._sendQuery();
-      }
+    // enqueues any scids to be processed by a query_short_chan_id message
+    if (msg.shortChannelIds.length) {
+      this.queryShortIdsStrategy.enqueue(...msg.shortChannelIds);
     }
+
+    // Check the complete flag and the existance of SCIDs. Unfortunately,
+    // non-confirming implementations are incorrectly using the completion
+    // flag to a multi-message reply.
+    if (!msg.complete && !msg.shortChannelIds.length) {
+      this.emit("channel_range_failed", msg);
+    }
+
+    // indicate that we are okay to send another query message. We are doing
+    // this because we have no other way of knowing if the query has completed,
+    // which may piss some peers off.
+    this._blocked = false;
+
+    // clear out the active query
+    this._lastQuery = undefined;
+
+    // send the next query message if one exists
+    this._sendQuery();
   }
 }
