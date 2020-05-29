@@ -1,7 +1,8 @@
 import { ILogger } from "@lntools/logger";
 import { GossipTimestampFilterMessage } from "../messages/gossip-timestamp-filter-message";
 import { IMessageSender } from "../peer";
-import { PeerGossipReceiveState } from "./peer-gossip-receive-state";
+import { PeerGossipReceiveState } from "./GossipReceiveState";
+import { IGossipTimestampFilterStrategy } from "./IGossipTimestampFilterStrategy";
 
 const uint32max = 4294967295;
 
@@ -9,7 +10,7 @@ const uint32max = 4294967295;
  * This class is used to activate / deactivate receiving of gossip messages
  * when the gossip_queries or gossip_queries_ex gossip sync strategies are used.
  */
-export class PeerGossipReceiver {
+export class GossipTimestampFilterStrategy implements IGossipTimestampFilterStrategy {
   private _receiveState: PeerGossipReceiveState;
   private _firstTimestamp: number;
   private _timestampRange: number;

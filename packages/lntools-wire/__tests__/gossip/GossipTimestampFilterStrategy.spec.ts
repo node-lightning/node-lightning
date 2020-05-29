@@ -2,14 +2,14 @@
 
 import { ILogger } from "@lntools/logger";
 import { expect } from "chai";
-import { PeerGossipReceiveState } from "../../lib/gossip/peer-gossip-receive-state";
-import { PeerGossipReceiver } from "../../lib/gossip/peer-gossip-receiver";
+import { PeerGossipReceiveState } from "../../lib/gossip/GossipReceiveState";
+import { GossipTimestampFilterStrategy } from "../../lib/gossip/GossipTimestampFilterStrategy";
 import { GossipTimestampFilterMessage } from "../../lib/messages/gossip-timestamp-filter-message";
 import { createFakeLogger, createFakePeer } from "../_test-utils";
 
-describe("PeerGossipSynchronizer", () => {
+describe("GossipTimestampFilterStrategry", () => {
   let chainHash: Buffer;
-  let sut: PeerGossipReceiver;
+  let sut: GossipTimestampFilterStrategy;
   let peer: any;
   let logger: ILogger;
 
@@ -17,7 +17,7 @@ describe("PeerGossipSynchronizer", () => {
     chainHash = Buffer.alloc(32, 1);
     peer = createFakePeer();
     logger = createFakeLogger();
-    sut = new PeerGossipReceiver(chainHash, peer, logger);
+    sut = new GossipTimestampFilterStrategy(chainHash, peer, logger);
   });
 
   describe("initial state", () => {
