@@ -25,8 +25,6 @@
   "dependencies": {
     "@lntools/buffer-cursor": "^0.7.0",
     "@lntools/crypto": "^0.7.1",
-    "bitcoin-ops": "^1.4.1",
-    "bn.js": "^4.11.8",
     "pushdata-bitcoin": "^1.0.1"
   }
 }
