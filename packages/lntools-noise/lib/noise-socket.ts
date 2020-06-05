@@ -243,6 +243,9 @@ export class NoiseSocket extends Duplex {
     // transition
     this._handshakeState = HANDSHAKE_STATE.READY;
 
+    // capture the rpk since it is now available
+    this.rpk = this._noiseState.rpk;
+
     // emit that we're ready!
     this.emit("connect");
     this.emit("ready");
