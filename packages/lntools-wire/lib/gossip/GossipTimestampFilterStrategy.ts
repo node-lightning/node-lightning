@@ -1,6 +1,6 @@
 import { ILogger } from "@lntools/logger";
 import { GossipTimestampFilterMessage } from "../messages/gossip-timestamp-filter-message";
-import { IMessageSender } from "../peer";
+import { IMessageSender } from "../Peer";
 import { PeerGossipReceiveState } from "./GossipReceiveState";
 import { IGossipTimestampFilterStrategy } from "./IGossipTimestampFilterStrategy";
 

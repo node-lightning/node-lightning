@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import sinon from "sinon";
-import { PingPongState } from "../lib/pingpong-state";
+import { PingPongState } from "../lib/PingPongState";
 
 function createAndStart({ PING_INTERVAL_MS, PONG_TIMEOUT_MS, PING_FLOOD_THRESHOLD }: any) {
   const peerClient = {

@@ -1,6 +1,6 @@
 import { ILogger } from "@lntools/logger";
 import { EventEmitter } from "events";
-import { IMessageSenderReceiver } from "../peer";
+import { IMessageSenderReceiver } from "../Peer";
 import { GossipTimestampFilterStrategy } from "./GossipTimestampFilterStrategy";
 import { IGossipTimestampFilterStrategy } from "./IGossipTimestampFilterStrategy";
 import { IQueryChannelRangeStrategy } from "./IQueryChannelRangeStrategy";

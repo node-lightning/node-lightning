@@ -1,6 +1,6 @@
 import { PingMessage } from "./messages/ping-message";
 import { PongMessage } from "./messages/pong-message";
-import { Peer } from "./peer";
+import { Peer } from "./Peer";
 
 export class PingPongState {
   public PING_INTERVAL_MS: number = 60000;

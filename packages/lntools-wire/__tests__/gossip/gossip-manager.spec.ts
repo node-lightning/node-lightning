@@ -11,8 +11,8 @@ import { ChannelAnnouncementMessage } from "../../lib/messages/channel-announcem
 import { ChannelUpdateMessage } from "../../lib/messages/channel-update-message";
 import { ExtendedChannelAnnouncementMessage } from "../../lib/messages/extended-channel-announcement-message";
 import { NodeAnnouncementMessage } from "../../lib/messages/node-announcement-message";
-import { Peer } from "../../lib/peer";
-import { PeerState } from "../../lib/peer-state";
+import { Peer } from "../../lib/Peer";
+import { PeerState } from "../../lib/PeerState";
 import { ShortChannelId } from "../../lib/shortchanid";
 import { createFakeLogger, createFakePeer } from "../_test-utils";
 

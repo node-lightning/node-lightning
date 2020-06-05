@@ -3,7 +3,7 @@ import { EventEmitter } from "events";
 import { QueryChannelRangeMessage } from "../messages/query-channel-range-message";
 import { ReplyChannelRangeMessage } from "../messages/reply-channel-range-message";
 import { IWireMessage } from "../messages/wire-message";
-import { IMessageSenderReceiver } from "../peer";
+import { IMessageSenderReceiver } from "../Peer";
 import { IQueryChannelRangeStrategy } from "./IQueryChannelRangeStrategy";
 import { IQueryShortIdsStrategy } from "./IQueryShortIdsStrategy";
 

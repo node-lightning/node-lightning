@@ -232,6 +232,15 @@ describe("NoiseSocket", () => {
         (sut as any)._processInitiatorReply();
       });
 
+      it("should attach rpk to the socket", () => {
+        const rpk = Buffer.alloc(33);
+        noiseState.rpk = rpk;
+        const sut = new NoiseSocket({ socket: socket as any, noiseState: noiseState as any });
+        expect(sut.rpk).to.be.undefined;
+        (sut as any)._processInitiatorReply();
+        expect(sut.rpk).to.equal(rpk);
+      });
+
       it("should return true to indicate data was processed", () => {
         const sut = new NoiseSocket({ socket: socket as any, noiseState: noiseState as any });
         expect((sut as any)._processInitiatorReply()).to.be.true;
