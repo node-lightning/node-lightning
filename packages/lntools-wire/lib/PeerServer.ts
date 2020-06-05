@@ -56,6 +56,6 @@ export class PeerServer extends EventEmitter {
     this.logger.info("peer connected");
     const peer = new Peer(this.localSecret, this.initMessageFactory, this.logger);
     peer.attach(socket);
-    this.emit("connected", peer);
+    this.emit("peer", peer);
   }
 }

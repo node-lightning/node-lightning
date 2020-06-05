@@ -35,7 +35,7 @@ describe("PeerServer", () => {
     server = createServer();
     client = createRemotePeer();
 
-    server.on("peer_connected", () => {
+    server.on("peer", () => {
       done();
     });
 
