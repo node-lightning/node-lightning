@@ -73,7 +73,7 @@ export type IMessageSenderReceiver = IMessageSender & IMessageReceiver;
  *
  * @emits end emitted when the connection to the peer is ending.
  */
-export class Peer extends EventEmitter implements IMessageSender, IMessageReceiver {
+export class Peer extends EventEmitter implements IMessageSenderReceiver {
   public static states = PeerState;
 
   public state: PeerState = PeerState.Disconnected;
@@ -89,23 +89,18 @@ export class Peer extends EventEmitter implements IMessageSender, IMessageReceiv
 
   private _id: string;
   private _rpk: Buffer;
-  private _ls: Buffer;
 
   private _host: string;
   private _port: number;
 
   private _reconnectHandle: NodeJS.Timeout;
 
-  constructor(ls: Buffer, rpk: Buffer, initMessageFactory: () => InitMessage, logger: ILogger) {
+  constructor(readonly ls: Buffer, initMessageFactory: () => InitMessage, logger: ILogger) {
     super();
 
     this.pingPongState = new PingPongState(this);
     this.initMessageFactory = initMessageFactory;
-
-    this._ls = ls;
-    this._rpk = rpk;
-    this._id = this._rpk.slice(0, 8).toString("hex");
-    this.logger = logger.sub("peer", this._id);
+    this.logger = logger;
   }
 
   public get id(): string {
@@ -117,13 +112,18 @@ export class Peer extends EventEmitter implements IMessageSender, IMessageReceiv
   }
 
   public get pubkeyHex(): string {
-    return this._rpk.toString("hex");
+    return this._rpk ? this._rpk.toString("hex") : undefined;
   }
 
   /**
    * Connect to the remote peer and binds socket events into the Peer.
    */
-  public connect(host: string, port: number) {
+  public connect(rpk: Buffer, host: string, port: number) {
+    // construct logger specific to the peer
+    this._rpk = rpk;
+    this._id = this._rpk.slice(0, 8).toString("hex");
+    this.logger = this.logger.sub("peer", this._id);
+
     this.logger.info("connecting to peer");
     this.isInitiator = true;
 
@@ -133,7 +133,7 @@ export class Peer extends EventEmitter implements IMessageSender, IMessageReceiv
 
     // create the socket and initiate the connection
     this.socket = noise.connect({
-      ls: this._ls,
+      ls: this.ls,
       host: this._host,
       port: this._port,
       rpk: this._rpk,
@@ -150,13 +150,22 @@ export class Peer extends EventEmitter implements IMessageSender, IMessageReceiv
    * @param socket
    */
   public attach(socket: NoiseSocket) {
-    this.logger.info("peer connected");
     this.isInitiator = false;
     this.socket = socket;
     this.socket.on("ready", this._onSocketReady.bind(this));
     this.socket.on("close", this._onSocketClose.bind(this));
     this.socket.on("error", this._onSocketError.bind(this));
     this.socket.on("data", this._onSocketData.bind(this));
+
+    // Once the socket is ready, we have performed the handshake which allows
+    // us to ascertain the identity of the connecting node. Now that we have
+    // that identity ascertained we can construct the instance specific logger
+    this.socket.once("ready", () => {
+      this._rpk = socket.rpk;
+      this._id = this._rpk.slice(0, 8).toString("hex");
+      this.logger = this.logger.sub("peer", this._id);
+      this.logger.info("peer connected");
+    });
   }
 
   /**
@@ -232,7 +241,7 @@ export class Peer extends EventEmitter implements IMessageSender, IMessageReceiv
     if (this.isInitiator) {
       this.logger.debug(`reconnecting in ${(this.reconnectTimeoutMs / 1000).toFixed(1)}s`);
       this._reconnectHandle = setTimeout(() => {
-        this.connect(this._host, this._port);
+        this.connect(this._rpk, this._host, this._port);
       }, this.reconnectTimeoutMs);
     }
   }

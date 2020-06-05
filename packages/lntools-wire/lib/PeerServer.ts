@@ -1,10 +1,11 @@
 import { ILogger } from "@lntools/logger";
 import { NoiseSocket } from "@lntools/noise";
 import { NoiseServer } from "@lntools/noise/lib/noise-server";
+import { EventEmitter } from "events";
 import { InitMessage } from "./messages/init-message";
 import { Peer } from "./Peer";
 
-export class PeerManager {
+export class PeerServer extends EventEmitter {
   public localSecret: Buffer;
   public logger: ILogger;
   public initMessageFactory: () => InitMessage;
@@ -12,7 +13,6 @@ export class PeerManager {
   public host: string;
 
   protected _server: NoiseServer;
-  protected _peers: Map<string, Peer>;
 
   constructor(
     host: string,
@@ -21,15 +21,31 @@ export class PeerManager {
     initMessageFactory: () => InitMessage,
     logger: ILogger,
   ) {
+    super();
     this.localSecret = localSecret;
     this.logger = logger;
     this.initMessageFactory = initMessageFactory;
     this.port = port;
     this.host = host;
 
-    this._peers = new Map();
     this._server = new NoiseServer({ ls: localSecret }, this._onSocket.bind(this));
-    this._server.listen({ port, host: "0.0.0.0" });
+    this._server.on("listening", () => this.emit("listening"));
+  }
+
+  /**
+   * Starts the peer manager listening
+   * @param host
+   * @param port
+   */
+  public listen() {
+    this._server.listen({ host: this.host, port: this.port });
+  }
+
+  /**
+   * Shuts down the server
+   */
+  public shutdown() {
+    this._server.close();
   }
 
   /**
@@ -38,8 +54,8 @@ export class PeerManager {
    */
   protected _onSocket(socket: NoiseSocket) {
     this.logger.info("peer connected");
-    const peer = new Peer(this.localSecret, socket.rpk, this.initMessageFactory, this.logger);
+    const peer = new Peer(this.localSecret, this.initMessageFactory, this.logger);
     peer.attach(socket);
-    this._peers.set(peer.pubkeyHex, peer);
+    this.emit("connected", peer);
   }
 }

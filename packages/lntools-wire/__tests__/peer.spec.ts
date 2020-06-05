@@ -18,6 +18,7 @@ class FakeSocket extends EventEmitter {
     super();
     this.write = sinon.stub();
     this.end = sinon.stub();
+    this.rpk = Buffer.alloc(33);
   }
 }
 
@@ -49,7 +50,7 @@ describe("Peer", () => {
     ls = Buffer.alloc(32, 0);
     rpk = Buffer.alloc(32, 1);
     logger = createFakeLogger();
-    sut = new Peer(ls, rpk, initMessageFactory, logger);
+    sut = new Peer(ls, initMessageFactory, logger);
     sut.socket = socket = new FakeSocket() as any;
     sut.pingPongState = sinon.createStubInstance(PingPongState) as any;
     sandbox = sinon.createSandbox();
@@ -66,7 +67,7 @@ describe("Peer", () => {
       sandbox.stub(sut, "_onSocketClose" as any);
       sandbox.stub(sut, "_onSocketError" as any);
       sandbox.stub(sut, "_onSocketData" as any);
-      sut.connect("127.0.0.1", 9735);
+      sut.connect(rpk, "127.0.0.1", 9735);
     });
 
     it("should be initiator", () => {

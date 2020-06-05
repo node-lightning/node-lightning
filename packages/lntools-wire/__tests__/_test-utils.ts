@@ -1,4 +1,4 @@
-import { Logger } from "@lntools/logger";
+import { Logger, ILogger } from "@lntools/logger";
 import sinon from "sinon";
 
 export function createFakePeer() {
@@ -31,7 +31,7 @@ export function createFakePeer() {
   } as any;
 }
 
-export function createFakeLogger() {
+export function createFakeLogger(): ILogger {
   const fake = sinon.createStubInstance(Logger);
   fake.sub = createFakeLogger as any;
   return fake;

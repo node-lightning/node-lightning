@@ -9,7 +9,7 @@ export * from "./linked-list";
 export * from "./linked-list-node";
 export * from "./message-type";
 export * from "./Peer";
-export * from "./PeerManager";
+export * from "./PeerServer";
 export * from "./PeerState";
 export * from "./PingPongState";
 export * from "./queue";
