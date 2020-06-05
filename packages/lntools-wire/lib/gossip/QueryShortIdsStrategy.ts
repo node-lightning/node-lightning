@@ -3,7 +3,7 @@ import { EventEmitter } from "events";
 import { QueryShortChannelIdsMessage } from "../messages/query-short-channel-ids-message";
 import { ReplyShortChannelIdsEndMessage } from "../messages/reply-short-channel-ids-end-message";
 import { IWireMessage } from "../messages/wire-message";
-import { IMessageSenderReceiver } from "../peer";
+import { IMessageSenderReceiver } from "../Peer";
 import { ShortChannelId } from "../shortchanid";
 import { IQueryShortIdsStrategy } from "./IQueryShortIdsStrategy";
 

@@ -6,9 +6,9 @@ import { expect } from "chai";
 import { EventEmitter } from "events";
 import sinon from "sinon";
 import { InitMessage } from "../lib/messages/init-message";
-import { Peer } from "../lib/peer";
-import { PeerState } from "../lib/peer-state";
-import { PingPongState } from "../lib/pingpong-state";
+import { Peer } from "../lib/Peer";
+import { PeerState } from "../lib/PeerState";
+import { PingPongState } from "../lib/PingPongState";
 import { createFakeLogger } from "./_test-utils";
 
 class FakeSocket extends EventEmitter {
