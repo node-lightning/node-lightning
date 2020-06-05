@@ -6,7 +6,6 @@ import { EventEmitter } from "events";
 import * as MessageFactory from "./message-factory";
 import { InitMessage } from "./messages/init-message";
 import { IWireMessage } from "./messages/wire-message";
-import { PeerOptions } from "./peer-options";
 import { PeerState } from "./peer-state";
 import { PingPongState } from "./pingpong-state";
 
@@ -163,19 +162,25 @@ export class Peer extends EventEmitter implements IMessageSender, IMessageReceiv
   public isInitiator: boolean = false;
   public reconnectTimeoutMs = 15000;
 
-  private _options: PeerOptions;
   private _id: string;
+  private _rpk: Buffer;
+  private _ls: Buffer;
+
+  private _host: string;
+  private _port: number;
+
   private _reconnectHandle: NodeJS.Timeout;
 
-  constructor(options: PeerOptions) {
+  constructor(ls: Buffer, rpk: Buffer, initMessageFactory: () => InitMessage, logger: ILogger) {
     super();
-    this._options = options;
 
     this.pingPongState = new PingPongState(this);
-    this.initMessageFactory = options.initMessageFactory;
+    this.initMessageFactory = initMessageFactory;
 
-    this._id = this._options.rpk.slice(0, 8).toString("hex");
-    this.logger = options.logger.sub("peer", this._id);
+    this._ls = ls;
+    this._rpk = rpk;
+    this._id = this._rpk.slice(0, 8).toString("hex");
+    this.logger = logger.sub("peer", this._id);
   }
 
   public get id(): string {
@@ -183,16 +188,46 @@ export class Peer extends EventEmitter implements IMessageSender, IMessageReceiv
   }
 
   public get pubkey(): Buffer {
-    return this._options.rpk;
+    return this._rpk;
+  }
+
+  public get pubkeyHex(): string {
+    return this._rpk.toString("hex");
   }
 
   /**
    * Connect to the remote peer and binds socket events into the Peer.
    */
-  public connect() {
-    this.logger.info("connecting");
+  public connect(host: string, port: number) {
+    this.logger.info("connecting to peer");
     this.isInitiator = true;
-    this.socket = noise.connect({ ...this._options, logger: this.logger });
+
+    // store these values if we need to use them for a reconnection event.
+    this._host = host;
+    this._port = port;
+
+    // create the socket and initiate the connection
+    this.socket = noise.connect({
+      ls: this._ls,
+      host: this._host,
+      port: this._port,
+      rpk: this._rpk,
+      logger: this.logger,
+    });
+    this.socket.on("ready", this._onSocketReady.bind(this));
+    this.socket.on("close", this._onSocketClose.bind(this));
+    this.socket.on("error", this._onSocketError.bind(this));
+    this.socket.on("data", this._onSocketData.bind(this));
+  }
+
+  /**
+   *
+   * @param socket
+   */
+  public attach(socket: NoiseSocket) {
+    this.logger.info("peer connected");
+    this.isInitiator = false;
+    this.socket = socket;
     this.socket.on("ready", this._onSocketReady.bind(this));
     this.socket.on("close", this._onSocketClose.bind(this));
     this.socket.on("error", this._onSocketError.bind(this));
@@ -269,10 +304,12 @@ export class Peer extends EventEmitter implements IMessageSender, IMessageReceiv
     //    which triggered a socket close event. This can happen if a connection
     //    is disrupted for a longer period of time. The reconnection logic
     //    should continue to fire until a connection can be established.
-    this.logger.debug(`reconnecting in ${(this.reconnectTimeoutMs / 1000).toFixed(1)}s`);
-    this._reconnectHandle = setTimeout(() => {
-      this.connect();
-    }, this.reconnectTimeoutMs);
+    if (this.isInitiator) {
+      this.logger.debug(`reconnecting in ${(this.reconnectTimeoutMs / 1000).toFixed(1)}s`);
+      this._reconnectHandle = setTimeout(() => {
+        this.connect(this._host, this._port);
+      }, this.reconnectTimeoutMs);
+    }
   }
 
   private _onSocketError(err) {

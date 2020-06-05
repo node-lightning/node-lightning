@@ -1,5 +1,6 @@
 // tslint:disable: max-classes-per-file
 // tslint:disable: no-unused-expression
+import { ILogger } from "@lntools/logger";
 import * as noise from "@lntools/noise";
 import { expect } from "chai";
 import { EventEmitter } from "events";
@@ -33,6 +34,9 @@ class FakeMessage {
 
 describe("Peer", () => {
   let sut: Peer;
+  let ls: Buffer;
+  let rpk: Buffer;
+  let logger: ILogger;
   let sandbox: sinon.SinonSandbox;
   let socket: noise.NoiseSocket;
 
@@ -42,10 +46,10 @@ describe("Peer", () => {
       msg.localDataLossProtect = true;
       return msg;
     };
-    const ls = Buffer.alloc(32, 0);
-    const rpk = Buffer.alloc(32, 1);
-    const logger = createFakeLogger();
-    sut = new Peer({ ls, rpk, initMessageFactory, logger });
+    ls = Buffer.alloc(32, 0);
+    rpk = Buffer.alloc(32, 1);
+    logger = createFakeLogger();
+    sut = new Peer(ls, rpk, initMessageFactory, logger);
     sut.socket = socket = new FakeSocket() as any;
     sut.pingPongState = sinon.createStubInstance(PingPongState) as any;
     sandbox = sinon.createSandbox();
@@ -62,7 +66,45 @@ describe("Peer", () => {
       sandbox.stub(sut, "_onSocketClose" as any);
       sandbox.stub(sut, "_onSocketError" as any);
       sandbox.stub(sut, "_onSocketData" as any);
-      sut.connect();
+      sut.connect("127.0.0.1", 9735);
+    });
+
+    it("should be initiator", () => {
+      expect(sut.isInitiator).to.equal(true);
+    });
+
+    it("should bind to ready", () => {
+      socket.emit("ready");
+      expect((sut as any)._onSocketReady.called).to.be.true;
+    });
+
+    it("should bind close", () => {
+      socket.emit("close");
+      expect((sut as any)._onSocketClose.called).to.be.true;
+    });
+
+    it("should bind error", () => {
+      socket.emit("error");
+      expect((sut as any)._onSocketError.called).to.be.true;
+    });
+
+    it("should bind data", () => {
+      socket.emit("data");
+      expect((sut as any)._onSocketData.called).to.be.true;
+    });
+  });
+
+  describe(".attach()", () => {
+    beforeEach(() => {
+      sandbox.stub(sut, "_onSocketReady" as any);
+      sandbox.stub(sut, "_onSocketClose" as any);
+      sandbox.stub(sut, "_onSocketError" as any);
+      sandbox.stub(sut, "_onSocketData" as any);
+      sut.attach(socket);
+    });
+
+    it("should not be initiator", () => {
+      expect(sut.isInitiator).to.equal(false);
     });
 
     it("should bind to ready", () => {
@@ -163,9 +205,24 @@ describe("Peer", () => {
         sut.state = PeerState.Ready;
         sut.reconnectTimeoutMs = 0;
         sut.connect = sandbox.stub(sut, "connect");
+        sut.isInitiator = true;
         (sut as any)._onSocketClose();
         setTimeout(() => {
           expect((sut.connect as any).called).to.be.true;
+          done();
+        }, 50);
+      });
+    });
+
+    describe("when not initiator", () => {
+      it("should not trigger reconnect", done => {
+        sut.state = PeerState.Ready;
+        sut.reconnectTimeoutMs = 0;
+        sut.connect = sandbox.stub(sut, "connect");
+        sut.isInitiator = false;
+        (sut as any)._onSocketClose();
+        setTimeout(() => {
+          expect((sut.connect as any).called).to.be.false;
           done();
         }, 50);
       });
