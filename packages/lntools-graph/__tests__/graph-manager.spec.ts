@@ -1,5 +1,5 @@
 // tslint:disable: no-unused-expression
-import { AddressIPv4, Bitmask, OutPoint, ShortChannelId } from "@lntools/wire";
+import { AddressIPv4, BitField, OutPoint, ShortChannelId } from "@lntools/wire";
 import { ExtendedChannelAnnouncementMessage } from "@lntools/wire";
 import { IGossipEmitter } from "@lntools/wire";
 import { ChannelAnnouncementMessage } from "@lntools/wire";
@@ -34,7 +34,7 @@ describe("GraphManager", () => {
         msg.shortChannelId = scid;
         msg.nodeId1 = node1;
         msg.nodeId2 = node2;
-        msg.features = new Bitmask();
+        msg.features = new BitField();
         return msg;
       }
 
@@ -74,7 +74,7 @@ describe("GraphManager", () => {
         msg.shortChannelId = scid;
         msg.nodeId1 = node1;
         msg.nodeId2 = node2;
-        msg.features = new Bitmask();
+        msg.features = new BitField();
         return msg;
       }
 
@@ -92,14 +92,14 @@ describe("GraphManager", () => {
       msg.shortChannelId = scid;
       msg.nodeId1 = node1;
       msg.nodeId2 = node2;
-      msg.features = new Bitmask();
+      msg.features = new BitField();
       return msg;
     }
 
     function createUpdateMsg(dir: number) {
       const msg = new ChannelUpdateMessage();
       msg.shortChannelId = scid;
-      msg.channelFlags = new Bitmask(BigInt(dir));
+      msg.channelFlags = new BitField(BigInt(dir));
       return msg;
     }
 
@@ -145,7 +145,7 @@ describe("GraphManager", () => {
     function createMsg() {
       const msg = new NodeAnnouncementMessage();
       msg.nodeId = node1;
-      msg.features = new Bitmask();
+      msg.features = new BitField();
       msg.timestamp = 1;
       return msg;
     }
@@ -175,7 +175,7 @@ describe("GraphManager", () => {
       msg.timestamp = 2;
       msg.alias = Buffer.from("test");
       msg.rgbColor = Buffer.from("111111", "hex");
-      msg.features = new Bitmask(BigInt(2));
+      msg.features = new BitField(BigInt(2));
       msg.addresses = [new AddressIPv4("1.1.1.1", 9735)];
       gossipEmitter.emit("message", msg);
     });
@@ -189,7 +189,7 @@ describe("GraphManager", () => {
       msg.capacity = BigInt(1000);
       msg.nodeId1 = node1;
       msg.nodeId2 = node2;
-      msg.features = new Bitmask();
+      msg.features = new BitField();
       return msg;
     }
 
