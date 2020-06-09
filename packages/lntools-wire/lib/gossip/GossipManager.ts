@@ -109,29 +109,24 @@ export class GossipManager extends EventEmitter {
   }
 
   /**
-   * Adds a new peer to the GossipManager and subscribes to
-   * events that will allow it to iteract with other sub-systems
-   * managed by the GossipManager.
+   * Adds a new peer to the GossipManager and subscribes to events that will
+   * allow it to iteract with other sub-systems managed by the GossipManager.
    */
   public addPeer(peer: Peer) {
     if (!this.started) throw new WireError(WireErrorCode.gossipManagerNotStarted);
-    this.logger.info("adding peer", peer.pubkey.toString("hex"));
     this._peers.add(peer);
     peer.on("message", this._onPeerMessage);
     peer.on("close", () => this.removePeer(peer));
 
-    // construct a gossip synchronizer for the peer
-    const gossipReceiverLogger = this.logger.sub("gossip_rcvr", peer.id);
-    const gossipReceiver = new PeerGossipReceiver(this.chainHash, peer, gossipReceiverLogger);
-    this._gossipReceivers.set(peer, gossipReceiver);
+    const onReady = () => {
+      const gossipReceiver = new PeerGossipReceiver(this.chainHash, peer, this.logger);
+      this._gossipReceivers.set(peer, gossipReceiver);
+    };
 
-    // active gossip for the peer
     if (peer.state === PeerState.Ready) {
-      gossipReceiver.activate(); // enables gossip
-      gossipReceiver.queryRange(); // performs full historical sync
+      onReady();
     } else {
-      peer.on("ready", () => gossipReceiver.activate());
-      peer.on("ready", () => gossipReceiver.queryRange());
+      peer.once("ready", () => onReady());
     }
   }
 

@@ -1,6 +1,7 @@
 import { ILogger } from "@lntools/logger";
 import { EventEmitter } from "events";
-import { IMessageSenderReceiver } from "../Peer";
+import { Peer } from "../Peer";
+import { PeerState } from "../PeerState";
 import { GossipTimestampFilterStrategy } from "./GossipTimestampFilterStrategy";
 import { IGossipTimestampFilterStrategy } from "./IGossipTimestampFilterStrategy";
 import { IQueryChannelRangeStrategy } from "./IQueryChannelRangeStrategy";
@@ -19,34 +20,57 @@ export class PeerGossipReceiver extends EventEmitter {
   public queryChannelRangeStrategy: IQueryChannelRangeStrategy;
   public queryShortIdsStrategy: IQueryShortIdsStrategy;
 
-  constructor(
-    readonly chainHash: Buffer,
-    readonly peer: IMessageSenderReceiver,
-    readonly logger: ILogger,
-  ) {
+  constructor(readonly chainHash: Buffer, readonly peer: Peer, readonly logger: ILogger) {
     super();
+    this.logger = logger.sub("gossip_rcvr", peer.id);
 
-    this.gossipTimeStampFilterStrategy = new GossipTimestampFilterStrategy(chainHash, peer, logger);
+    // If the peer has gossip_queries enabled we can use the corresponding
+    // strategies
+    if (peer.remoteInit.localGossipQueries) {
+      this.logger.info("using gossip_queries strategies");
+      this.gossipTimeStampFilterStrategy = new GossipTimestampFilterStrategy(
+        chainHash,
+        peer,
+        logger,
+      );
 
-    this.queryShortIdsStrategy = new QueryShortIdsStrategy(chainHash, peer, logger);
+      this.queryShortIdsStrategy = new QueryShortIdsStrategy(chainHash, peer, logger);
 
-    this.queryChannelRangeStrategy = new QueryChannelRangeStrategy(
-      this.chainHash,
-      this.peer,
-      this.logger,
-      this.queryShortIdsStrategy,
-    );
+      this.queryChannelRangeStrategy = new QueryChannelRangeStrategy(
+        this.chainHash,
+        this.peer,
+        this.logger,
+        this.queryShortIdsStrategy,
+      );
+    } else {
+      this.logger.info("using legacy gossip");
+    }
+
+    // enable gossip activation
+    this.activate();
+
+    // perform historical gossip sync
+    this.queryRange();
+
+    // ensure gossip activation is enabled on reconnects
+    peer.on("ready", () => this.activate());
   }
 
   public activate(start?: number, range?: number) {
-    this.gossipTimeStampFilterStrategy.activate(start, range);
+    if (this.gossipTimeStampFilterStrategy) {
+      this.gossipTimeStampFilterStrategy.activate(start, range);
+    }
   }
 
   public deactivate() {
-    this.gossipTimeStampFilterStrategy.deactivate();
+    if (this.gossipTimeStampFilterStrategy) {
+      this.gossipTimeStampFilterStrategy.deactivate();
+    }
   }
 
   public queryRange(firstBlockNum?: number, numberOfBlocks?: number) {
-    this.queryChannelRangeStrategy.queryRange(firstBlockNum, numberOfBlocks);
+    if (this.queryChannelRangeStrategy) {
+      this.queryChannelRangeStrategy.queryRange(firstBlockNum, numberOfBlocks);
+    }
   }
 }
