@@ -1,6 +1,6 @@
 import { BufferCursor } from "@lntools/buffer-cursor";
 import { Bitmask } from "../bitmask";
-import { Feature } from "../features/FeatureBit";
+import { FeatureFlags } from "../flags/FeatureFlags";
 import { MessageType } from "../message-type";
 import { IWireMessage } from "./wire-message";
 
@@ -97,15 +97,15 @@ export class InitMessage implements IWireMessage {
    */
   get localDataLossProtect(): boolean {
     return (
-      this.localFeatures.isSet(Feature.optionDataLossProtectRequired) ||
-      this.localFeatures.isSet(Feature.optionDataLossProtectOptional)
+      this.localFeatures.isSet(FeatureFlags.optionDataLossProtectRequired) ||
+      this.localFeatures.isSet(FeatureFlags.optionDataLossProtectOptional)
     );
   }
 
   set localDataLossProtect(val: boolean) {
-    this.localFeatures.unset(Feature.optionDataLossProtectRequired);
-    if (val) this.localFeatures.set(Feature.optionDataLossProtectOptional);
-    else this.localFeatures.unset(Feature.optionDataLossProtectOptional);
+    this.localFeatures.unset(FeatureFlags.optionDataLossProtectRequired);
+    if (val) this.localFeatures.set(FeatureFlags.optionDataLossProtectOptional);
+    else this.localFeatures.unset(FeatureFlags.optionDataLossProtectOptional);
   }
 
   /**
@@ -118,12 +118,12 @@ export class InitMessage implements IWireMessage {
    * Sets the initial_routing_sync local flag.
    */
   get localInitialRoutingSync(): boolean {
-    return this.localFeatures.isSet(Feature.initialRoutingSyncOptional);
+    return this.localFeatures.isSet(FeatureFlags.initialRoutingSyncOptional);
   }
 
   set localInitialRoutingSync(val: boolean) {
-    if (val) this.localFeatures.set(Feature.initialRoutingSyncOptional);
-    else this.localFeatures.unset(Feature.initialRoutingSyncOptional);
+    if (val) this.localFeatures.set(FeatureFlags.initialRoutingSyncOptional);
+    else this.localFeatures.unset(FeatureFlags.initialRoutingSyncOptional);
   }
 
   /**
@@ -137,15 +137,15 @@ export class InitMessage implements IWireMessage {
    */
   get localUpfrontShutdownScript(): boolean {
     return (
-      this.localFeatures.isSet(Feature.optionUpfrontShutdownScriptRequired) ||
-      this.localFeatures.isSet(Feature.optionUpfrontShutdownScriptOptional)
+      this.localFeatures.isSet(FeatureFlags.optionUpfrontShutdownScriptRequired) ||
+      this.localFeatures.isSet(FeatureFlags.optionUpfrontShutdownScriptOptional)
     );
   }
 
   set localUpfrontShutdownScript(val: boolean) {
-    this.localFeatures.unset(Feature.optionUpfrontShutdownScriptRequired);
-    if (val) this.localFeatures.set(Feature.optionUpfrontShutdownScriptOptional);
-    else this.localFeatures.unset(Feature.optionUpfrontShutdownScriptOptional);
+    this.localFeatures.unset(FeatureFlags.optionUpfrontShutdownScriptRequired);
+    if (val) this.localFeatures.set(FeatureFlags.optionUpfrontShutdownScriptOptional);
+    else this.localFeatures.unset(FeatureFlags.optionUpfrontShutdownScriptOptional);
   }
 
   /**
@@ -159,27 +159,27 @@ export class InitMessage implements IWireMessage {
    */
   get localGossipQueries(): boolean {
     return (
-      this.localFeatures.isSet(Feature.gossipQueriesRequired) ||
-      this.localFeatures.isSet(Feature.gossipQueriesOptional)
+      this.localFeatures.isSet(FeatureFlags.gossipQueriesRequired) ||
+      this.localFeatures.isSet(FeatureFlags.gossipQueriesOptional)
     );
   }
 
   set localGossipQueries(val: boolean) {
-    this.localFeatures.unset(Feature.gossipQueriesRequired);
-    if (val) this.localFeatures.set(Feature.gossipQueriesOptional);
-    else this.localFeatures.unset(Feature.gossipQueriesOptional);
+    this.localFeatures.unset(FeatureFlags.gossipQueriesRequired);
+    if (val) this.localFeatures.set(FeatureFlags.gossipQueriesOptional);
+    else this.localFeatures.unset(FeatureFlags.gossipQueriesOptional);
   }
 
   get localGossipQueriesEx(): boolean {
     return (
-      this.localFeatures.isSet(Feature.gossipQueriesExRequired) ||
-      this.localFeatures.isSet(Feature.gossipQueriesExOptional)
+      this.localFeatures.isSet(FeatureFlags.gossipQueriesExRequired) ||
+      this.localFeatures.isSet(FeatureFlags.gossipQueriesExOptional)
     );
   }
 
   set localGossipQueriesEx(val: boolean) {
-    this.localFeatures.unset(Feature.gossipQueriesExRequired);
-    if (val) this.localFeatures.set(Feature.gossipQueriesExOptional);
-    else this.localFeatures.unset(Feature.gossipQueriesExOptional);
+    this.localFeatures.unset(FeatureFlags.gossipQueriesExRequired);
+    if (val) this.localFeatures.set(FeatureFlags.gossipQueriesExOptional);
+    else this.localFeatures.unset(FeatureFlags.gossipQueriesExOptional);
   }
 }

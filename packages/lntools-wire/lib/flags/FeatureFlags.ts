@@ -1,4 +1,4 @@
-export enum Feature {
+export enum FeatureFlags {
   optionDataLossProtectRequired = 0,
   optionDataLossProtectOptional = 1,
 
