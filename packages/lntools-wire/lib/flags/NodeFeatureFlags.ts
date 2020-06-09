@@ -1,8 +1,6 @@
-export enum FeatureFlags {
+export enum NodeFeatureFlags {
   optionDataLossProtectRequired = 0,
   optionDataLossProtectOptional = 1,
-
-  initialRoutingSyncOptional = 3,
 
   optionUpfrontShutdownScriptRequired = 4,
   optionUpfrontShutdownScriptOptional = 5,

@@ -2,6 +2,8 @@ import { BufferCursor } from "@lntools/buffer-cursor";
 import * as crypto from "@lntools/crypto";
 import { BitField } from "../BitField";
 import { Checksum } from "../domain/checksum";
+import { ChannelUpdateChannelFlags } from "../flags/ChanneUpdateChannelFlags";
+import { ChannelUpdateMessageFlags } from "../flags/ChannelUpdateMessageFlags";
 import { MessageType } from "../message-type";
 import { shortChannelIdFromBuffer } from "../shortchanid";
 import { ShortChannelId } from "../shortchanid";
@@ -99,7 +101,7 @@ export class ChannelUpdateMessage implements IWireMessage {
    *   bit, field
    *   0, htlc_maximum_msat
    */
-  public messageFlags: BitField = new BitField();
+  public messageFlags: BitField<ChannelUpdateMessageFlags> = new BitField();
 
   /**
    * Indicates the direction of the channel: it identifies the node that this
@@ -109,7 +111,7 @@ export class ChannelUpdateMessage implements IWireMessage {
    *   0, direction
    *   1, disabled
    */
-  public channelFlags: BitField = new BitField();
+  public channelFlags: BitField<ChannelUpdateChannelFlags> = new BitField();
 
   /**
    * The number of blocks the channel will subtract from an incoming

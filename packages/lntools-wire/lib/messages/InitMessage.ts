@@ -1,6 +1,6 @@
 import { BufferCursor } from "@lntools/buffer-cursor";
 import { BitField } from "../BitField";
-import { FeatureFlags } from "../flags/FeatureFlags";
+import { InitFeatureFlags } from "../flags/InitFeatureFlags";
 import { MessageType } from "../message-type";
 import { IWireMessage } from "./IWireMessage";
 
@@ -42,8 +42,8 @@ export class InitMessage implements IWireMessage {
    * Message type 16
    */
   public type: MessageType = MessageType.Init;
-  public globalFeatures: BitField = new BitField();
-  public localFeatures: BitField = new BitField();
+  public globalFeatures: BitField<InitFeatureFlags> = new BitField();
+  public localFeatures: BitField<InitFeatureFlags> = new BitField();
 
   /**
    * Serialize will construct a properly formatted message
@@ -97,15 +97,15 @@ export class InitMessage implements IWireMessage {
    */
   get localDataLossProtect(): boolean {
     return (
-      this.localFeatures.isSet(FeatureFlags.optionDataLossProtectRequired) ||
-      this.localFeatures.isSet(FeatureFlags.optionDataLossProtectOptional)
+      this.localFeatures.isSet(InitFeatureFlags.optionDataLossProtectRequired) ||
+      this.localFeatures.isSet(InitFeatureFlags.optionDataLossProtectOptional)
     );
   }
 
   set localDataLossProtect(val: boolean) {
-    this.localFeatures.unset(FeatureFlags.optionDataLossProtectRequired);
-    if (val) this.localFeatures.set(FeatureFlags.optionDataLossProtectOptional);
-    else this.localFeatures.unset(FeatureFlags.optionDataLossProtectOptional);
+    this.localFeatures.unset(InitFeatureFlags.optionDataLossProtectRequired);
+    if (val) this.localFeatures.set(InitFeatureFlags.optionDataLossProtectOptional);
+    else this.localFeatures.unset(InitFeatureFlags.optionDataLossProtectOptional);
   }
 
   /**
@@ -118,12 +118,12 @@ export class InitMessage implements IWireMessage {
    * Sets the initial_routing_sync local flag.
    */
   get localInitialRoutingSync(): boolean {
-    return this.localFeatures.isSet(FeatureFlags.initialRoutingSyncOptional);
+    return this.localFeatures.isSet(InitFeatureFlags.initialRoutingSyncOptional);
   }
 
   set localInitialRoutingSync(val: boolean) {
-    if (val) this.localFeatures.set(FeatureFlags.initialRoutingSyncOptional);
-    else this.localFeatures.unset(FeatureFlags.initialRoutingSyncOptional);
+    if (val) this.localFeatures.set(InitFeatureFlags.initialRoutingSyncOptional);
+    else this.localFeatures.unset(InitFeatureFlags.initialRoutingSyncOptional);
   }
 
   /**
@@ -137,15 +137,15 @@ export class InitMessage implements IWireMessage {
    */
   get localUpfrontShutdownScript(): boolean {
     return (
-      this.localFeatures.isSet(FeatureFlags.optionUpfrontShutdownScriptRequired) ||
-      this.localFeatures.isSet(FeatureFlags.optionUpfrontShutdownScriptOptional)
+      this.localFeatures.isSet(InitFeatureFlags.optionUpfrontShutdownScriptRequired) ||
+      this.localFeatures.isSet(InitFeatureFlags.optionUpfrontShutdownScriptOptional)
     );
   }
 
   set localUpfrontShutdownScript(val: boolean) {
-    this.localFeatures.unset(FeatureFlags.optionUpfrontShutdownScriptRequired);
-    if (val) this.localFeatures.set(FeatureFlags.optionUpfrontShutdownScriptOptional);
-    else this.localFeatures.unset(FeatureFlags.optionUpfrontShutdownScriptOptional);
+    this.localFeatures.unset(InitFeatureFlags.optionUpfrontShutdownScriptRequired);
+    if (val) this.localFeatures.set(InitFeatureFlags.optionUpfrontShutdownScriptOptional);
+    else this.localFeatures.unset(InitFeatureFlags.optionUpfrontShutdownScriptOptional);
   }
 
   /**
@@ -159,27 +159,27 @@ export class InitMessage implements IWireMessage {
    */
   get localGossipQueries(): boolean {
     return (
-      this.localFeatures.isSet(FeatureFlags.gossipQueriesRequired) ||
-      this.localFeatures.isSet(FeatureFlags.gossipQueriesOptional)
+      this.localFeatures.isSet(InitFeatureFlags.gossipQueriesRequired) ||
+      this.localFeatures.isSet(InitFeatureFlags.gossipQueriesOptional)
     );
   }
 
   set localGossipQueries(val: boolean) {
-    this.localFeatures.unset(FeatureFlags.gossipQueriesRequired);
-    if (val) this.localFeatures.set(FeatureFlags.gossipQueriesOptional);
-    else this.localFeatures.unset(FeatureFlags.gossipQueriesOptional);
+    this.localFeatures.unset(InitFeatureFlags.gossipQueriesRequired);
+    if (val) this.localFeatures.set(InitFeatureFlags.gossipQueriesOptional);
+    else this.localFeatures.unset(InitFeatureFlags.gossipQueriesOptional);
   }
 
   get localGossipQueriesEx(): boolean {
     return (
-      this.localFeatures.isSet(FeatureFlags.gossipQueriesExRequired) ||
-      this.localFeatures.isSet(FeatureFlags.gossipQueriesExOptional)
+      this.localFeatures.isSet(InitFeatureFlags.gossipQueriesExRequired) ||
+      this.localFeatures.isSet(InitFeatureFlags.gossipQueriesExOptional)
     );
   }
 
   set localGossipQueriesEx(val: boolean) {
-    this.localFeatures.unset(FeatureFlags.gossipQueriesExRequired);
-    if (val) this.localFeatures.set(FeatureFlags.gossipQueriesExOptional);
-    else this.localFeatures.unset(FeatureFlags.gossipQueriesExOptional);
+    this.localFeatures.unset(InitFeatureFlags.gossipQueriesExRequired);
+    if (val) this.localFeatures.set(InitFeatureFlags.gossipQueriesExOptional);
+    else this.localFeatures.unset(InitFeatureFlags.gossipQueriesExOptional);
   }
 }

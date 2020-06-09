@@ -1,4 +1,5 @@
 import { BitField } from "../../BitField";
+import { QueryScidFlags } from "../../flags/QueryScidFlags";
 import { Encoder } from "../../serialize/encoder";
 import { EncodingType } from "../../serialize/encoding-type";
 import { TlvValueReader } from "../../serialize/tlv-value-reader";
@@ -23,9 +24,9 @@ export class QueryShortChannelIdsFlags extends Tlv {
   }
 
   public type: bigint = BigInt(1);
-  public flags: BitField[] = [];
+  public flags: Array<BitField<QueryScidFlags>> = [];
 
-  public addFlags(...flags: BitField[]) {
+  public addFlags(...flags: Array<BitField<QueryScidFlags>>) {
     this.flags.push(...flags);
     return this;
   }

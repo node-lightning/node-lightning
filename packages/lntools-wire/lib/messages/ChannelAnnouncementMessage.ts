@@ -1,6 +1,7 @@
 import { BufferCursor } from "@lntools/buffer-cursor";
 import * as crypto from "@lntools/crypto";
 import { BitField } from "../BitField";
+import { ChannelFeatureFlags } from "../flags/ChannelFeatureFlags";
 import { MessageType } from "../message-type";
 import { shortChannelIdFromBuffer } from "../shortchanid";
 import { ShortChannelId } from "../shortchanid";
@@ -110,7 +111,7 @@ export class ChannelAnnouncementMessage implements IWireMessage {
   /**
    * The channel features are a bitmask
    */
-  public features: BitField;
+  public features: BitField<ChannelFeatureFlags>;
 
   /**
    * Must set chain_hash to a 32-byte hash that uniquely identifies

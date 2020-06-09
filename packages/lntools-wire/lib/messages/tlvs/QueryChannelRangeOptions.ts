@@ -1,4 +1,5 @@
 import { BitField } from "../../BitField";
+import { QueryChannelRangeFlags } from "../../flags/QueryChannelRangeFlags";
 import { TlvValueReader } from "../../serialize/tlv-value-reader";
 import { TlvValueWriter } from "../../serialize/tlv-value-writer";
 import { Tlv } from "./Tlv";
@@ -29,7 +30,7 @@ export class QueryChannelRangeOptions extends Tlv {
 
   public type: bigint = QueryChannelRangeOptions.type;
 
-  public options: BitField;
+  public options: BitField<QueryChannelRangeFlags>;
 
   constructor(options?: bigint) {
     super();
@@ -37,21 +38,21 @@ export class QueryChannelRangeOptions extends Tlv {
   }
 
   public get timestamp() {
-    return this.options.isSet(0);
+    return this.options.isSet(QueryChannelRangeFlags.timestamps);
   }
 
   public set timestamp(val: boolean) {
-    if (val) this.options.set(0);
-    else this.options.unset(0);
+    if (val) this.options.set(QueryChannelRangeFlags.timestamps);
+    else this.options.unset(QueryChannelRangeFlags.timestamps);
   }
 
   public get checksum() {
-    return this.options.isSet(1);
+    return this.options.isSet(QueryChannelRangeFlags.checksums);
   }
 
   public set checksum(val: boolean) {
-    if (val) this.options.set(1);
-    else this.options.unset(1);
+    if (val) this.options.set(QueryChannelRangeFlags.checksums);
+    else this.options.unset(QueryChannelRangeFlags.checksums);
   }
 
   public serializeValue(): Buffer {
