@@ -1,4 +1,4 @@
-import { Address, Bitmask } from "@lntools/wire";
+import { Address, BitField } from "@lntools/wire";
 import { Channel } from "./channel";
 
 /**
@@ -10,7 +10,7 @@ export class Node {
   public alias: Buffer;
   public addresses: Address[] = [];
   public rgbColor: Buffer;
-  public features: Bitmask;
+  public features: BitField;
 
   /**
    * Channels that the node belongs to

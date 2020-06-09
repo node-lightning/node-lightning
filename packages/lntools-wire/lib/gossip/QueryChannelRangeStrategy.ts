@@ -1,8 +1,8 @@
 import { ILogger } from "@lntools/logger";
 import { EventEmitter } from "events";
-import { QueryChannelRangeMessage } from "../messages/query-channel-range-message";
-import { ReplyChannelRangeMessage } from "../messages/reply-channel-range-message";
-import { IWireMessage } from "../messages/wire-message";
+import { QueryChannelRangeMessage } from "../messages/QueryChannelRangeMessage";
+import { ReplyChannelRangeMessage } from "../messages/ReplyChannelRangeMessage";
+import { IWireMessage } from "../messages/IWireMessage";
 import { IMessageSenderReceiver } from "../Peer";
 import { IQueryChannelRangeStrategy } from "./IQueryChannelRangeStrategy";
 import { IQueryShortIdsStrategy } from "./IQueryShortIdsStrategy";

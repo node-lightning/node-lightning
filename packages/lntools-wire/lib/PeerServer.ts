@@ -2,7 +2,7 @@ import { ILogger } from "@lntools/logger";
 import { NoiseSocket } from "@lntools/noise";
 import { NoiseServer } from "@lntools/noise/lib/noise-server";
 import { EventEmitter } from "events";
-import { InitMessage } from "./messages/init-message";
+import { InitMessage } from "./messages/InitMessage";
 import { Peer } from "./Peer";
 
 export class PeerServer extends EventEmitter {

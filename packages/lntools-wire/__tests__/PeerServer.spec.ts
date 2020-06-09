@@ -1,5 +1,5 @@
 import * as crypto from "@lntools/crypto";
-import { InitMessage } from "../lib/messages/init-message";
+import { InitMessage } from "../lib/messages/InitMessage";
 import { Peer } from "../lib/Peer";
 import { PeerServer } from "../lib/PeerServer";
 import { createFakeLogger } from "./_test-utils";

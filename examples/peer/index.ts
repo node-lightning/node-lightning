@@ -4,7 +4,6 @@ import { QueryChannelRangeOptions } from "@lntools/wire";
 import { QueryShortChannelIdsMessage } from "@lntools/wire";
 import { ShortChannelId } from "@lntools/wire";
 import { QueryShortChannelIdsFlags } from "@lntools/wire";
-import { Bitmask } from "@lntools/wire";
 import { QueryChannelRangeMessage } from "@lntools/wire";
 import { Peer } from "@lntools/wire";
 
@@ -36,14 +35,7 @@ async function connectToPeer(peerInfo: { rpk: string; host: string; port: number
   };
 
   // constructs the peer and attaches a logger for tthe peer.
-  const peer = new Peer({
-    ls,
-    rpk: Buffer.from(peerInfo.rpk, "hex"),
-    host: peerInfo.host,
-    port: peerInfo.port,
-    logger,
-    initMessageFactory,
-  });
+  const peer = new Peer(ls, initMessageFactory, logger);
   peer.on("open", () => logger.info("connecting"));
   peer.on("error", err => logger.error("%s", err.stack));
   peer.on("sending", buf => logger.info("send", buf.toString("hex")));
@@ -111,7 +103,7 @@ async function connectToPeer(peerInfo: { rpk: string; host: string; port: number
   });
 
   // connect to the remote peer using the local secret provided in our config file
-  peer.connect();
+  peer.connect(Buffer.from(peerInfo.rpk, "hex"), peerInfo.host, peerInfo.port);
 }
 
 connectToPeer(config.peers[0])

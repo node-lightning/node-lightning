@@ -3,9 +3,9 @@ import * as noise from "@lntools/noise";
 import { NoiseSocket } from "@lntools/noise";
 import assert from "assert";
 import { EventEmitter } from "events";
-import * as MessageFactory from "./message-factory";
-import { InitMessage } from "./messages/init-message";
-import { IWireMessage } from "./messages/wire-message";
+import * as MessageFactory from "./MessageFactory";
+import { InitMessage } from "./messages/InitMessage";
+import { IWireMessage } from "./messages/IWireMessage";
 import { PeerState } from "./PeerState";
 import { PingPongState } from "./PingPongState";
 

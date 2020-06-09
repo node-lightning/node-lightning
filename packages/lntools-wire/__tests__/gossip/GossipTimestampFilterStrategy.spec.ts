@@ -4,7 +4,7 @@ import { ILogger } from "@lntools/logger";
 import { expect } from "chai";
 import { PeerGossipReceiveState } from "../../lib/gossip/GossipReceiveState";
 import { GossipTimestampFilterStrategy } from "../../lib/gossip/GossipTimestampFilterStrategy";
-import { GossipTimestampFilterMessage } from "../../lib/messages/gossip-timestamp-filter-message";
+import { GossipTimestampFilterMessage } from "../../lib/messages/GossipTimestampFilterMessage";
 import { createFakeLogger, createFakePeer } from "../_test-utils";
 
 describe("GossipTimestampFilterStrategry", () => {

@@ -1,4 +1,4 @@
-import { Bitmask, ShortChannelId } from "@lntools/wire";
+import { BitField, ShortChannelId } from "@lntools/wire";
 import { OutPoint } from "@lntools/wire";
 import { ChannelSettings } from "./channel-settings";
 
@@ -30,7 +30,7 @@ export class Channel {
   /**
    * Channel features
    */
-  public features: Bitmask;
+  public features: BitField;
 
   /**
    * Routing policy for the first node

@@ -4,8 +4,8 @@ import { ILogger } from "@lntools/logger";
 import { expect } from "chai";
 import sinon from "sinon";
 import { QueryShortIdsStrategy } from "../../lib/gossip/QueryShortIdsStrategy";
-import { QueryShortChannelIdsMessage } from "../../lib/messages/query-short-channel-ids-message";
-import { ReplyShortChannelIdsEndMessage } from "../../lib/messages/reply-short-channel-ids-end-message";
+import { QueryShortChannelIdsMessage } from "../../lib/messages/QueryShortChannelIdsMessage";
+import { ReplyShortChannelIdsEndMessage } from "../../lib/messages/ReplyShortChannelIdsEndMessage";
 import { ShortChannelId } from "../../lib/shortchanid";
 import { createFakeLogger, createFakePeer } from "../_test-utils";
 
