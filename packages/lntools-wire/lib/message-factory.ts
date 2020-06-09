@@ -3,7 +3,7 @@ import { ChannelAnnouncementMessage } from "./messages/channel-announcement-mess
 import { ChannelUpdateMessage } from "./messages/channel-update-message";
 import { ErrorMessage } from "./messages/error-message";
 import { GossipTimestampFilterMessage } from "./messages/gossip-timestamp-filter-message";
-import { InitMessage } from "./messages/init-message";
+import { InitMessage } from "./messages/InitMessage";
 import { NodeAnnouncementMessage } from "./messages/node-announcement-message";
 import { PingMessage } from "./messages/ping-message";
 import { PongMessage } from "./messages/pong-message";

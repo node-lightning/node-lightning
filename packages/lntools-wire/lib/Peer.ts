@@ -4,7 +4,7 @@ import { NoiseSocket } from "@lntools/noise";
 import assert from "assert";
 import { EventEmitter } from "events";
 import * as MessageFactory from "./message-factory";
-import { InitMessage } from "./messages/init-message";
+import { InitMessage } from "./messages/InitMessage";
 import { IWireMessage } from "./messages/wire-message";
 import { PeerState } from "./PeerState";
 import { PingPongState } from "./PingPongState";

@@ -1,6 +1,6 @@
 // tslint:disable: no-unused-expression
 import { expect } from "chai";
-import { InitMessage } from "../../lib/messages/init-message";
+import { InitMessage } from "../../lib/messages/InitMessage";
 
 describe("InitMessage", () => {
   it("should have correct default values", () => {

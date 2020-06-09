@@ -5,7 +5,8 @@ import * as noise from "@lntools/noise";
 import { expect } from "chai";
 import { EventEmitter } from "events";
 import sinon from "sinon";
-import { InitMessage } from "../lib/messages/init-message";
+import { Feature } from "../lib/features/FeatureBit";
+import { InitMessage } from "../lib/messages/InitMessage";
 import { Peer } from "../lib/Peer";
 import { PeerState } from "../lib/PeerState";
 import { PingPongState } from "../lib/PingPongState";
@@ -44,7 +45,7 @@ describe("Peer", () => {
   beforeEach(() => {
     const initMessageFactory = () => {
       const msg = new InitMessage();
-      msg.localDataLossProtect = true;
+      msg.localFeatures.set(Feature.optionDataLossProtectOptional);
       return msg;
     };
     ls = Buffer.alloc(32, 0);

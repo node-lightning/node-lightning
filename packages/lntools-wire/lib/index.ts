@@ -45,7 +45,7 @@ export * from "./messages/channel-update-message";
 export * from "./messages/error-message";
 export * from "./messages/extended-channel-announcement-message";
 export * from "./messages/gossip-timestamp-filter-message";
-export * from "./messages/init-message";
+export * from "./messages/InitMessage";
 export * from "./messages/node-announcement-message";
 export * from "./messages/ping-message";
 export * from "./messages/pong-message";
