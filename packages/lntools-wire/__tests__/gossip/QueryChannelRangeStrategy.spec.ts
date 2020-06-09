@@ -5,9 +5,9 @@ import { expect } from "chai";
 import sinon from "sinon";
 import { IQueryShortIdsStrategy } from "../../lib";
 import { QueryChannelRangeStrategy } from "../../lib/gossip/QueryChannelRangeStrategy";
-import { QueryChannelRangeMessage } from "../../lib/messages/query-channel-range-message";
-import { ReplyChannelRangeMessage } from "../../lib/messages/reply-channel-range-message";
-import { IWireMessage } from "../../lib/messages/wire-message";
+import { IWireMessage } from "../../lib/messages/IWireMessage";
+import { QueryChannelRangeMessage } from "../../lib/messages/QueryChannelRangeMessage";
+import { ReplyChannelRangeMessage } from "../../lib/messages/ReplyChannelRangeMessage";
 import { ShortChannelId } from "../../lib/shortchanid";
 import { createFakeLogger, createFakePeer } from "../_test-utils";
 

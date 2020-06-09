@@ -1,5 +1,5 @@
-import { PingMessage } from "./messages/ping-message";
-import { PongMessage } from "./messages/pong-message";
+import { PingMessage } from "./messages/PingMessage";
+import { PongMessage } from "./messages/PongMessage";
 import { Peer } from "./Peer";
 
 export class PingPongState {

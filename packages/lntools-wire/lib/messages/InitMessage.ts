@@ -1,8 +1,8 @@
 import { BufferCursor } from "@lntools/buffer-cursor";
-import { Bitmask } from "../bitmask";
+import { BitField } from "../BitField";
 import { FeatureFlags } from "../flags/FeatureFlags";
 import { MessageType } from "../message-type";
-import { IWireMessage } from "./wire-message";
+import { IWireMessage } from "./IWireMessage";
 
 /**
  * InitMessage is defined in BOLT #1. Once authentication is complete,
@@ -29,11 +29,11 @@ export class InitMessage implements IWireMessage {
 
     // Read the global length and parse into a BN value.
     const gflen = reader.readUInt16BE();
-    instance.globalFeatures = Bitmask.fromBuffer(reader.readBytes(gflen));
+    instance.globalFeatures = BitField.fromBuffer(reader.readBytes(gflen));
 
     // Read the local length and parse into a BN value.
     const lflen = reader.readUInt16BE();
-    instance.localFeatures = Bitmask.fromBuffer(reader.readBytes(lflen));
+    instance.localFeatures = BitField.fromBuffer(reader.readBytes(lflen));
 
     return instance;
   }
@@ -42,8 +42,8 @@ export class InitMessage implements IWireMessage {
    * Message type 16
    */
   public type: MessageType = MessageType.Init;
-  public globalFeatures: Bitmask = new Bitmask();
-  public localFeatures: Bitmask = new Bitmask();
+  public globalFeatures: BitField = new BitField();
+  public localFeatures: BitField = new BitField();
 
   /**
    * Serialize will construct a properly formatted message

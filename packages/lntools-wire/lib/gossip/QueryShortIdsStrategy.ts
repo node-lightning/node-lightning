@@ -1,8 +1,8 @@
 import { ILogger } from "@lntools/logger";
 import { EventEmitter } from "events";
-import { QueryShortChannelIdsMessage } from "../messages/query-short-channel-ids-message";
-import { ReplyShortChannelIdsEndMessage } from "../messages/reply-short-channel-ids-end-message";
-import { IWireMessage } from "../messages/wire-message";
+import { QueryShortChannelIdsMessage } from "../messages/QueryShortChannelIdsMessage";
+import { ReplyShortChannelIdsEndMessage } from "../messages/ReplyShortChannelIdsEndMessage";
+import { IWireMessage } from "../messages/IWireMessage";
 import { IMessageSenderReceiver } from "../Peer";
 import { ShortChannelId } from "../shortchanid";
 import { IQueryShortIdsStrategy } from "./IQueryShortIdsStrategy";
