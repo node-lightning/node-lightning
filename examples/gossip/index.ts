@@ -77,14 +77,7 @@ async function connectToPeer(peerInfo: { rpk: string; host: string; port: number
   };
 
   // constructs the peer and attaches a logger for tthe peer.
-  const peer = new Peer({
-    ls,
-    rpk: Buffer.from(peerInfo.rpk, "hex"),
-    host: peerInfo.host,
-    port: peerInfo.port,
-    logger,
-    initMessageFactory,
-  });
+  const peer = new Peer(ls, initMessageFactory, logger);
   peer.on("open", () => logger.info("connecting"));
   peer.on("error", err => logger.error("%s", err.stack));
   peer.on("ready", () => logger.info("peer is ready"));
@@ -96,7 +89,7 @@ async function connectToPeer(peerInfo: { rpk: string; host: string; port: number
 
   // connect to the remote peer using the local secret provided
   // in our config file
-  peer.connect();
+  peer.connect(Buffer.from(peerInfo.rpk, "hex"), peerInfo.host, peerInfo.port);
 }
 
 connectToPeer(config.peers[0])
