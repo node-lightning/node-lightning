@@ -1,5 +1,6 @@
 import { BufferCursor } from "@lntools/buffer-cursor";
 import { Bitmask } from "../bitmask";
+import { Feature } from "../features/FeatureBit";
 import { MessageType } from "../message-type";
 import { IWireMessage } from "./wire-message";
 
@@ -25,16 +26,6 @@ export class InitMessage implements IWireMessage {
     reader.readUInt16BE(); // read off type
 
     const instance = new InitMessage();
-
-    // We will use BN to store our values and perform bitwise
-    // operations to ensure we don't overflow the
-    // JavaScript number which limits our bitwise operations to
-    // 32-bits. Refer to https://mzl.la/1lt09c4
-    //
-    // While it would be nice to use native operators, for the
-    // purposes of this library we need to assume that a
-    // malicious actor could send an init packet with any length
-    // feature.
 
     // Read the global length and parse into a BN value.
     const gflen = reader.readUInt16BE();
@@ -105,13 +96,16 @@ export class InitMessage implements IWireMessage {
    * setter will ensure that only the odd bit is set.
    */
   get localDataLossProtect(): boolean {
-    return this.localFeatures.isSet(0) || this.localFeatures.isSet(1);
+    return (
+      this.localFeatures.isSet(Feature.optionDataLossProtectRequired) ||
+      this.localFeatures.isSet(Feature.optionDataLossProtectOptional)
+    );
   }
 
   set localDataLossProtect(val: boolean) {
-    this.localFeatures.unset(0);
-    if (val) this.localFeatures.set(1);
-    else this.localFeatures.unset(1);
+    this.localFeatures.unset(Feature.optionDataLossProtectRequired);
+    if (val) this.localFeatures.set(Feature.optionDataLossProtectOptional);
+    else this.localFeatures.unset(Feature.optionDataLossProtectOptional);
   }
 
   /**
@@ -124,12 +118,12 @@ export class InitMessage implements IWireMessage {
    * Sets the initial_routing_sync local flag.
    */
   get localInitialRoutingSync(): boolean {
-    return this.localFeatures.isSet(3);
+    return this.localFeatures.isSet(Feature.initialRoutingSyncOptional);
   }
 
   set localInitialRoutingSync(val: boolean) {
-    if (val) this.localFeatures.set(3);
-    else this.localFeatures.unset(3);
+    if (val) this.localFeatures.set(Feature.initialRoutingSyncOptional);
+    else this.localFeatures.unset(Feature.initialRoutingSyncOptional);
   }
 
   /**
@@ -142,13 +136,16 @@ export class InitMessage implements IWireMessage {
    * to ensure both are not set.
    */
   get localUpfrontShutdownScript(): boolean {
-    return this.localFeatures.isSet(4) || this.localFeatures.isSet(5);
+    return (
+      this.localFeatures.isSet(Feature.optionUpfrontShutdownScriptRequired) ||
+      this.localFeatures.isSet(Feature.optionUpfrontShutdownScriptOptional)
+    );
   }
 
   set localUpfrontShutdownScript(val: boolean) {
-    this.localFeatures.unset(4);
-    if (val) this.localFeatures.set(5);
-    else this.localFeatures.unset(5);
+    this.localFeatures.unset(Feature.optionUpfrontShutdownScriptRequired);
+    if (val) this.localFeatures.set(Feature.optionUpfrontShutdownScriptOptional);
+    else this.localFeatures.unset(Feature.optionUpfrontShutdownScriptOptional);
   }
 
   /**
@@ -161,39 +158,28 @@ export class InitMessage implements IWireMessage {
    * of the setter will set 7 and unset 6 to ensure both are not set.
    */
   get localGossipQueries(): boolean {
-    return this.localFeatures.isSet(6) || this.localFeatures.isSet(7);
+    return (
+      this.localFeatures.isSet(Feature.gossipQueriesRequired) ||
+      this.localFeatures.isSet(Feature.gossipQueriesOptional)
+    );
   }
 
   set localGossipQueries(val: boolean) {
-    this.localFeatures.unset(6);
-    if (val) this.localFeatures.set(7);
-    else this.localFeatures.unset(7);
+    this.localFeatures.unset(Feature.gossipQueriesRequired);
+    if (val) this.localFeatures.set(Feature.gossipQueriesOptional);
+    else this.localFeatures.unset(Feature.gossipQueriesOptional);
   }
 
   get localGossipQueriesEx(): boolean {
-    return this.localFeatures.isSet(10) || this.localFeatures.isSet(11);
+    return (
+      this.localFeatures.isSet(Feature.gossipQueriesExRequired) ||
+      this.localFeatures.isSet(Feature.gossipQueriesExOptional)
+    );
   }
 
   set localGossipQueriesEx(val: boolean) {
-    this.localFeatures.unset(10);
-    if (val) this.localFeatures.set(11);
-    else this.localFeatures.unset(11);
-  }
-
-  public toJSON() {
-    return {
-      globalFeatures: this.globalFeatures.toString(),
-      localFeatures: {
-        raw: this.localFeatures.toString(),
-        dataLossProtect: this.localDataLossProtect,
-        initialRoutingSync: this.localInitialRoutingSync,
-        upfrontShutdownScript: this.localUpfrontShutdownScript,
-        gossipQueries: this.localGossipQueries,
-      },
-    };
-  }
-
-  public toString() {
-    return this.serialize().toString("hex");
+    this.localFeatures.unset(Feature.gossipQueriesExRequired);
+    if (val) this.localFeatures.set(Feature.gossipQueriesExOptional);
+    else this.localFeatures.unset(Feature.gossipQueriesExOptional);
   }
 }
