@@ -1,9 +1,10 @@
-import { OutPoint } from "../domain/outpoint";
+import { OutPoint } from "../domain/OutPoint";
 import { ChannelAnnouncementMessage } from "../messages/ChannelAnnouncementMessage";
 import { ChannelUpdateMessage } from "../messages/ChannelUpdateMessage";
 import { ExtendedChannelAnnouncementMessage } from "../messages/ExtendedChannelAnnouncementMessage";
 import { NodeAnnouncementMessage } from "../messages/NodeAnnouncementMessage";
-import { ShortChannelId, shortChannelIdFromNumber } from "../shortchanid";
+import { ShortChannelId } from "../ShortChannelId";
+import { shortChannelIdFromNumber } from "../ShortChannelIdUtils";
 import { IGossipStore } from "./GossipStore";
 
 /**

@@ -3,7 +3,8 @@
 import { expect } from "chai";
 import sinon from "sinon";
 import { BitField } from "../../lib/BitField";
-import { OutPoint } from "../../lib/domain/outpoint";
+import { OutPoint } from "../../lib/domain/OutPoint";
+import { InitFeatureFlags } from "../../lib/flags/InitFeatureFlags";
 import { GossipManager } from "../../lib/gossip/GossipManager";
 import { GossipMemoryStore } from "../../lib/gossip/GossipMemoryStore";
 import { IGossipFilterChainClient } from "../../lib/gossip/IGossipFilterChainClient";
@@ -13,9 +14,8 @@ import { ExtendedChannelAnnouncementMessage } from "../../lib/messages/ExtendedC
 import { NodeAnnouncementMessage } from "../../lib/messages/NodeAnnouncementMessage";
 import { Peer } from "../../lib/Peer";
 import { PeerState } from "../../lib/PeerState";
-import { ShortChannelId } from "../../lib/shortchanid";
+import { ShortChannelId } from "../../lib/ShortChannelId";
 import { createFakeLogger, createFakePeer } from "../_test-utils";
-import { InitMessage } from "../../lib/messages/InitMessage";
 
 function createFakeChainClient() {
   return {
@@ -157,8 +157,8 @@ describe("GossipManager", () => {
     describe("first peer that is `ready`", () => {
       it("should start gossip_sync process", () => {
         peer1.state = PeerState.Ready;
-        peer1.remoteInit = new InitMessage();
-        peer1.remoteInit.localGossipQueries = true;
+        peer1.remoteFeatures = new BitField<InitFeatureFlags>();
+        peer1.remoteFeatures.set(InitFeatureFlags.gossipQueriesOptional);
         sut.addPeer(peer1);
         const msg = (peer1.sendMessage as any).args[1][0];
         expect(msg.type).to.equal(263);
@@ -175,8 +175,8 @@ describe("GossipManager", () => {
           expect(msg.numberOfBlocks).to.equal(4294967295);
         });
         peer1.state = PeerState.Ready;
-        peer1.remoteInit = new InitMessage();
-        peer1.remoteInit.localGossipQueries = true;
+        peer1.remoteFeatures = new BitField<InitFeatureFlags>();
+        peer1.remoteFeatures.set(InitFeatureFlags.gossipQueriesOptional);
         peer1.emit("ready");
       });
     });
@@ -191,8 +191,8 @@ describe("GossipManager", () => {
           expect(msg.numberOfBlocks).to.equal(4294967295);
         });
         peer1.state = PeerState.Ready;
-        peer1.remoteInit = new InitMessage();
-        peer1.remoteInit.localGossipQueries = true;
+        peer1.remoteFeatures = new BitField<InitFeatureFlags>();
+        peer1.remoteFeatures.set(InitFeatureFlags.gossipQueriesOptional);
         peer1.emit("ready");
       });
     });
@@ -200,8 +200,8 @@ describe("GossipManager", () => {
     describe("peer that is `ready`", () => {
       it("send a gossip_timestamp_filter to activate", () => {
         peer1.state = PeerState.Ready;
-        peer1.remoteInit = new InitMessage();
-        peer1.remoteInit.localGossipQueries = true;
+        peer1.remoteFeatures = new BitField<InitFeatureFlags>();
+        peer1.remoteFeatures.set(InitFeatureFlags.gossipQueriesOptional);
         sut.addPeer(peer1);
         const msg = (peer1.sendMessage as any).args[0][0];
         expect(msg.type).to.equal(265);
@@ -220,8 +220,8 @@ describe("GossipManager", () => {
           expect(msg.timestampRange).to.equal(4294967295);
         });
         peer1.state = PeerState.Ready;
-        peer1.remoteInit = new InitMessage();
-        peer1.remoteInit.localGossipQueries = true;
+        peer1.remoteFeatures = new BitField<InitFeatureFlags>();
+        peer1.remoteFeatures.set(InitFeatureFlags.gossipQueriesOptional);
         peer1.emit("ready");
       });
     });

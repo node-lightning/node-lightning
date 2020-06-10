@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { BitField } from "../../../lib/BitField";
 import { QueryShortChannelIdsFlags } from "../../../lib/messages/tlvs/QueryShortChannelIdsFlags";
-import { TlvValueReader } from "../../../lib/serialize/tlv-value-reader";
+import { TlvValueReader } from "../../../lib/serialize/TlvValueReader";
 
 describe("QueryShortChannelIdsFlags", () => {
   describe(".serialize()", () => {

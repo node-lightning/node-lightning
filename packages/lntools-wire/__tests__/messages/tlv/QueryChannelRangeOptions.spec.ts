@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { QueryChannelRangeOptions } from "../../../lib/messages/tlvs/QueryChannelRangeOptions";
-import { TlvValueReader } from "../../../lib/serialize/tlv-value-reader";
+import { TlvValueReader } from "../../../lib/serialize/TlvValueReader";
 
 describe("QueryChannelRangeOptions", () => {
   describe("no initial options", () => {

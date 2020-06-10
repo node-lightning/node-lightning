@@ -1,7 +1,7 @@
 import { BitField } from "../../BitField";
 import { QueryChannelRangeFlags } from "../../flags/QueryChannelRangeFlags";
-import { TlvValueReader } from "../../serialize/tlv-value-reader";
-import { TlvValueWriter } from "../../serialize/tlv-value-writer";
+import { TlvValueReader } from "../../serialize/TlvValueReader";
+import { TlvValueWriter } from "../../serialize/TlvValueWriter";
 import { Tlv } from "./Tlv";
 
 /**

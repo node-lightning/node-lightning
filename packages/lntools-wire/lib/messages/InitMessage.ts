@@ -1,7 +1,7 @@
 import { BufferCursor } from "@lntools/buffer-cursor";
 import { BitField } from "../BitField";
 import { InitFeatureFlags } from "../flags/InitFeatureFlags";
-import { MessageType } from "../message-type";
+import { MessageType } from "../MessageType";
 import { IWireMessage } from "./IWireMessage";
 
 /**

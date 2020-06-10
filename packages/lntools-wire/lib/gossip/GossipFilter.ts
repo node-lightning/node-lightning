@@ -1,14 +1,14 @@
 import { EventEmitter } from "events";
-import { AsyncProcessingQueue } from "../async-processing-queue";
-import { OutPoint } from "../domain/outpoint";
-import { MessageType } from "../message-type";
+import { AsyncProcessingQueue } from "../AsyncProcessingQueue";
+import { OutPoint } from "../domain/OutPoint";
 import { ChannelAnnouncementMessage } from "../messages/ChannelAnnouncementMessage";
 import { ChannelUpdateMessage } from "../messages/ChannelUpdateMessage";
 import { ExtendedChannelAnnouncementMessage } from "../messages/ExtendedChannelAnnouncementMessage";
 import { IWireMessage } from "../messages/IWireMessage";
 import { NodeAnnouncementMessage } from "../messages/NodeAnnouncementMessage";
-import { fundingScript } from "../script-utils";
-import { WireError, WireErrorCode } from "../wire-error";
+import { MessageType } from "../MessageType";
+import { fundingScript } from "../ScriptUtils";
+import { WireError, WireErrorCode } from "../WireError";
 import { IGossipStore } from "./GossipStore";
 import { IGossipFilterChainClient } from "./IGossipFilterChainClient";
 

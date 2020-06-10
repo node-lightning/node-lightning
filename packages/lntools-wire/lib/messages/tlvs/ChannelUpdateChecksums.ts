@@ -1,4 +1,4 @@
-import { Checksum } from "../../domain/checksum";
+import { Checksum } from "../../domain/Checksum";
 import { ChannelUpdateMessage } from "../ChannelUpdateMessage";
 
 export class ChannelUpdateChecksums {

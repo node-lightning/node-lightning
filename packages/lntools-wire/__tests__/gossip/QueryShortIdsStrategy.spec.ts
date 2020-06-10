@@ -6,7 +6,7 @@ import sinon from "sinon";
 import { QueryShortIdsStrategy } from "../../lib/gossip/QueryShortIdsStrategy";
 import { QueryShortChannelIdsMessage } from "../../lib/messages/QueryShortChannelIdsMessage";
 import { ReplyShortChannelIdsEndMessage } from "../../lib/messages/ReplyShortChannelIdsEndMessage";
-import { ShortChannelId } from "../../lib/shortchanid";
+import { ShortChannelId } from "../../lib/ShortChannelId";
 import { createFakeLogger, createFakePeer } from "../_test-utils";
 
 describe("PeerGossipSynchronizer", () => {

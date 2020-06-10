@@ -3,6 +3,8 @@ import * as noise from "@lntools/noise";
 import { NoiseSocket } from "@lntools/noise";
 import assert from "assert";
 import { EventEmitter } from "events";
+import { BitField } from "./BitField";
+import { InitFeatureFlags } from "./flags/InitFeatureFlags";
 import * as MessageFactory from "./MessageFactory";
 import { InitMessage } from "./messages/InitMessage";
 import { IWireMessage } from "./messages/IWireMessage";
@@ -81,9 +83,8 @@ export class Peer extends EventEmitter implements IMessageSenderReceiver {
   public messageCounter: number = 0;
   public pingPongState: PingPongState;
   public logger: ILogger;
-  public remoteInit: InitMessage;
-  public localInit: InitMessage;
-  public initMessageFactory: () => InitMessage;
+  public remoteFeatures: BitField<InitFeatureFlags>;
+  public localFeatures: BitField<InitFeatureFlags>;
   public isInitiator: boolean = false;
   public reconnectTimeoutMs = 15000;
 
@@ -95,11 +96,11 @@ export class Peer extends EventEmitter implements IMessageSenderReceiver {
 
   private _reconnectHandle: NodeJS.Timeout;
 
-  constructor(readonly ls: Buffer, initMessageFactory: () => InitMessage, logger: ILogger) {
+  constructor(readonly ls: Buffer, localFeatures: BitField<InitFeatureFlags>, logger: ILogger) {
     super();
 
     this.pingPongState = new PingPongState(this);
-    this.initMessageFactory = initMessageFactory;
+    this.localFeatures = localFeatures;
     this.logger = logger;
   }
 
@@ -274,10 +275,8 @@ export class Peer extends EventEmitter implements IMessageSenderReceiver {
    */
   private _sendInitMessage() {
     // construct the init message
-    const msg = this.initMessageFactory();
-
-    // capture local init message for future use
-    this.localInit = msg;
+    const msg = new InitMessage();
+    msg.localFeatures = this.localFeatures;
 
     // fire off the init message to the peer
     const payload = msg.serialize();
@@ -308,7 +307,7 @@ export class Peer extends EventEmitter implements IMessageSenderReceiver {
     assert.ok(m instanceof InitMessage, new Error("Expecting InitMessage"));
 
     // store the init messagee in case we need to refer to it
-    this.remoteInit = m;
+    this.remoteFeatures = m.localFeatures;
 
     // start other state now that peer is initialized
     this.pingPongState.start();

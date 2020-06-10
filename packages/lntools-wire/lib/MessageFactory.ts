@@ -1,4 +1,3 @@
-import { MessageType } from "./message-type";
 import { ChannelAnnouncementMessage } from "./messages/ChannelAnnouncementMessage";
 import { ChannelUpdateMessage } from "./messages/ChannelUpdateMessage";
 import { ErrorMessage } from "./messages/ErrorMessage";
@@ -12,6 +11,7 @@ import { QueryChannelRangeMessage } from "./messages/QueryChannelRangeMessage";
 import { QueryShortChannelIdsMessage } from "./messages/QueryShortChannelIdsMessage";
 import { ReplyChannelRangeMessage } from "./messages/ReplyChannelRangeMessage";
 import { ReplyShortChannelIdsEndMessage } from "./messages/ReplyShortChannelIdsEndMessage";
+import { MessageType } from "./MessageType";
 
 export function deserialize(buffer: Buffer): IWireMessage {
   const type = buffer.readUInt16BE(0);

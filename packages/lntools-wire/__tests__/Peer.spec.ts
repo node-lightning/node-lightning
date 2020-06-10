@@ -5,6 +5,7 @@ import * as noise from "@lntools/noise";
 import { expect } from "chai";
 import { EventEmitter } from "events";
 import sinon from "sinon";
+import { BitField } from "../lib/BitField";
 import { InitFeatureFlags } from "../lib/flags/InitFeatureFlags";
 import { InitMessage } from "../lib/messages/InitMessage";
 import { Peer } from "../lib/Peer";
@@ -41,17 +42,15 @@ describe("Peer", () => {
   let logger: ILogger;
   let sandbox: sinon.SinonSandbox;
   let socket: noise.NoiseSocket;
+  let localFeatures: BitField<InitFeatureFlags>;
 
   beforeEach(() => {
-    const initMessageFactory = () => {
-      const msg = new InitMessage();
-      msg.localFeatures.set(InitFeatureFlags.optionDataLossProtectOptional);
-      return msg;
-    };
+    localFeatures = new BitField<InitFeatureFlags>();
+    localFeatures.set(InitFeatureFlags.optionDataLossProtectOptional);
     ls = Buffer.alloc(32, 0);
     rpk = Buffer.alloc(32, 1);
     logger = createFakeLogger();
-    sut = new Peer(ls, initMessageFactory, logger);
+    sut = new Peer(ls, localFeatures, logger);
     sut.socket = socket = new FakeSocket() as any;
     sut.pingPongState = sinon.createStubInstance(PingPongState) as any;
     sandbox = sinon.createSandbox();
@@ -260,7 +259,9 @@ describe("Peer", () => {
       it("should close the socket", () => {
         sut.state = Peer.states.Ready;
         (sut as any)._processMessage.throws(new Error("boom"));
-        sut.on("error", () => {});
+        sut.on("error", () => {
+          //
+        });
         (sut as any)._onSocketData("data");
         expect((socket as any).end.called).to.be.true;
       });
@@ -293,11 +294,6 @@ describe("Peer", () => {
       expect(() => (sut as any)._processPeerInitMessage(input)).to.throw();
     });
 
-    it("should store the init message", () => {
-      (sut as any)._processPeerInitMessage(input);
-      expect(sut.remoteInit).to.be.instanceof(InitMessage);
-    });
-
     it("should start ping state", () => {
       (sut as any)._processPeerInitMessage(input);
       expect((sut as any).pingPongState.start.called).to.be.true;
@@ -306,6 +302,14 @@ describe("Peer", () => {
     it("should change the state to ready", () => {
       (sut as any)._processPeerInitMessage(input);
       expect(sut.state).to.equal(Peer.states.Ready);
+    });
+
+    it("should capture the init features", () => {
+      input = Buffer.from("00100000000109", "hex");
+      (sut as any)._processPeerInitMessage(input);
+      expect(sut.remoteFeatures).to.be.instanceof(BitField);
+      expect(sut.remoteFeatures.isSet(InitFeatureFlags.optionDataLossProtectRequired));
+      expect(sut.remoteFeatures.isSet(InitFeatureFlags.initialRoutingSyncOptional));
     });
 
     it("should emit ready", done => {

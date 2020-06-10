@@ -8,7 +8,7 @@ import { QueryChannelRangeStrategy } from "../../lib/gossip/QueryChannelRangeStr
 import { IWireMessage } from "../../lib/messages/IWireMessage";
 import { QueryChannelRangeMessage } from "../../lib/messages/QueryChannelRangeMessage";
 import { ReplyChannelRangeMessage } from "../../lib/messages/ReplyChannelRangeMessage";
-import { ShortChannelId } from "../../lib/shortchanid";
+import { ShortChannelId } from "../../lib/ShortChannelId";
 import { createFakeLogger, createFakePeer } from "../_test-utils";
 
 describe("QueryChannelRangeStrategy", () => {

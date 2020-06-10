@@ -2,7 +2,7 @@
 import { expect } from "chai";
 import { BitField } from "../../lib/BitField";
 import { ChannelAnnouncementMessage } from "../../lib/messages/ChannelAnnouncementMessage";
-import { ShortChannelId } from "../../lib/shortchanid";
+import { ShortChannelId } from "../../lib/ShortChannelId";
 
 describe("ChannelAnnouncementMessage", () => {
   describe(".deserialize", () => {

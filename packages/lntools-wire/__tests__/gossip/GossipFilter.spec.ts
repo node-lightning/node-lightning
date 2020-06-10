@@ -15,8 +15,8 @@ import fs from "fs";
 import path from "path";
 import { GossipMemoryStore } from "../../lib/gossip/GossipMemoryStore";
 import * as MessageFactory from "../../lib/MessageFactory";
-import { ShortChannelId } from "../../lib/shortchanid";
-import { WireErrorCode } from "../../lib/wire-error";
+import { ShortChannelId } from "../../lib/ShortChannelId";
+import { WireErrorCode } from "../../lib/WireError";
 
 class FakeChainClient implements IGossipFilterChainClient {
   public getBlockHash(height: number): Promise<string> {

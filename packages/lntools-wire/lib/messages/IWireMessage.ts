@@ -1,4 +1,4 @@
-import { MessageType } from "../message-type";
+import { MessageType } from "../MessageType";
 
 export interface IWireMessage {
   type: MessageType;

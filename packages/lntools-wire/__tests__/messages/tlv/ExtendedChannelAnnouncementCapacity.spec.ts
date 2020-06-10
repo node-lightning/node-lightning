@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { ExtendedChannelAnnouncementCapacity } from "../../../lib/messages/tlvs/ExtendedChannelAnnouncementCapacity";
-import { TlvValueReader } from "../../../lib/serialize/tlv-value-reader";
+import { TlvValueReader } from "../../../lib/serialize/TlvValueReader";
 
 describe("ExtendedChannelAnnouncementCapacity", () => {
   describe(".serializeValue()", () => {

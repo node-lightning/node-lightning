@@ -1,8 +1,8 @@
 import { BufferCursor } from "@lntools/buffer-cursor";
 import { BitField } from "../BitField";
-import { OutPoint } from "../domain/outpoint";
-import { TlvStreamReader } from "../serialize/tlv-stream-reader";
-import { shortChannelIdFromBuffer } from "../shortchanid";
+import { OutPoint } from "../domain/OutPoint";
+import { TlvStreamReader } from "../serialize/TlvStreamReader";
+import { shortChannelIdFromBuffer } from "../ShortChannelIdUtils";
 import { ChannelAnnouncementMessage } from "./ChannelAnnouncementMessage";
 import { ExtendedChannelAnnouncementCapacity } from "./tlvs/ExtendedChannelAnnouncementCapacity";
 import { ExtendedChannelAnnouncementOutpoint } from "./tlvs/ExtendedChannelAnnouncementOutpoint";

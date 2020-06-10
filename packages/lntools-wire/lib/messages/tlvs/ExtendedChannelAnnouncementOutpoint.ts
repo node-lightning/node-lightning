@@ -1,6 +1,6 @@
-import { OutPoint } from "../../domain/outpoint";
-import { TlvValueReader } from "../../serialize/tlv-value-reader";
-import { TlvValueWriter } from "../../serialize/tlv-value-writer";
+import { OutPoint } from "../../domain/OutPoint";
+import { TlvValueReader } from "../../serialize/TlvValueReader";
+import { TlvValueWriter } from "../../serialize/TlvValueWriter";
 import { Tlv } from "./Tlv";
 
 export class ExtendedChannelAnnouncementOutpoint extends Tlv {
