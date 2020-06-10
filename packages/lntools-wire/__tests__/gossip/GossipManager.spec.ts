@@ -3,7 +3,7 @@
 import { expect } from "chai";
 import sinon from "sinon";
 import { BitField } from "../../lib/BitField";
-import { OutPoint } from "../../lib/domain/outpoint";
+import { OutPoint } from "../../lib/domain/OutPoint";
 import { InitFeatureFlags } from "../../lib/flags/InitFeatureFlags";
 import { GossipManager } from "../../lib/gossip/GossipManager";
 import { GossipMemoryStore } from "../../lib/gossip/GossipMemoryStore";

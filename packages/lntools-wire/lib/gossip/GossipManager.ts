@@ -1,6 +1,6 @@
 import { ILogger } from "@lntools/logger";
 import { EventEmitter } from "events";
-import { OutPoint } from "../domain/outpoint";
+import { OutPoint } from "../domain/OutPoint";
 import { ChannelAnnouncementMessage } from "../messages/ChannelAnnouncementMessage";
 import { ExtendedChannelAnnouncementMessage } from "../messages/ExtendedChannelAnnouncementMessage";
 import { IWireMessage } from "../messages/IWireMessage";

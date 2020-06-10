@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { OutPoint } from "../../../lib/domain/outpoint";
 import { ExtendedChannelAnnouncementOutpoint } from "../../../lib/messages/tlvs/ExtendedChannelAnnouncementOutpoint";
-import { TlvValueReader } from "../../../lib/serialize/tlv-value-reader";
+import { TlvValueReader } from "../../../lib/serialize/TlvValueReader";
 
 describe("ExtendedChannelAnnouncementOutpoint", () => {
   describe(".serializeValue()", () => {

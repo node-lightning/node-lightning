@@ -1,6 +1,6 @@
-import { Encoder } from "../../serialize/encoder";
-import { TlvValueReader } from "../../serialize/tlv-value-reader";
-import { TlvValueWriter } from "../../serialize/tlv-value-writer";
+import { Encoder } from "../../serialize/Encoder";
+import { TlvValueReader } from "../../serialize/TlvValueReader";
+import { TlvValueWriter } from "../../serialize/TlvValueWriter";
 import { Tlv } from "./Tlv";
 
 export class ReplyChannelRangeTimestamps extends Tlv {

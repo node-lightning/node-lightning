@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { ReplyChannelRangeTimestamps } from "../../../lib/messages/tlvs/ReplyChannelRangeTimestamps";
-import { TlvValueReader } from "../../../lib/serialize/tlv-value-reader";
+import { TlvValueReader } from "../../../lib/serialize/TlvValueReader";
 
 describe("ReplyChannelRangeTimestamps", () => {
   describe(".deserialize()", () => {

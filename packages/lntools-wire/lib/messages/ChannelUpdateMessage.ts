@@ -1,7 +1,7 @@
 import { BufferCursor } from "@lntools/buffer-cursor";
 import * as crypto from "@lntools/crypto";
 import { BitField } from "../BitField";
-import { Checksum } from "../domain/checksum";
+import { Checksum } from "../domain/Checksum";
 import { ChannelUpdateMessageFlags } from "../flags/ChannelUpdateMessageFlags";
 import { ChannelUpdateChannelFlags } from "../flags/ChanneUpdateChannelFlags";
 import { MessageType } from "../MessageType";

@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { ReplyChannelRangeChecksums } from "../../../lib/messages/tlvs/ReplyChannelRangeChecksums";
-import { TlvValueReader } from "../../../lib/serialize/tlv-value-reader";
+import { TlvValueReader } from "../../../lib/serialize/TlvValueReader";
 
 describe("ReplyChannelRangeChecksums", () => {
   describe(".deserialize()", () => {

@@ -1,7 +1,7 @@
 // tslint:disable: no-unused-expression
 import { expect } from "chai";
 import { BitField } from "../../lib/BitField";
-import { OutPoint } from "../../lib/domain/outpoint";
+import { OutPoint } from "../../lib/domain/OutPoint";
 import { ExtendedChannelAnnouncementMessage } from "../../lib/messages/ExtendedChannelAnnouncementMessage";
 import { ShortChannelId } from "../../lib/ShortChannelId";
 

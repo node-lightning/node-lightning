@@ -16,14 +16,14 @@ export * from "./Queue";
 export * from "./ShortChannelId";
 export * from "./WireError";
 
-export * from "./domain/address";
-export * from "./domain/address-ipv4";
-export * from "./domain/address-ipv6";
-export * from "./domain/address-tor2";
-export * from "./domain/address-tor3";
-export * from "./domain/address-type";
-export * from "./domain/network-type";
-export * from "./domain/outpoint";
+export * from "./domain/Address";
+export * from "./domain/AddressIPv4";
+export * from "./domain/AddressIPv6";
+export * from "./domain/AddressTor2";
+export * from "./domain/AddressTor3";
+export * from "./domain/AddressType";
+export * from "./domain/NetworkType";
+export * from "./domain/OutPoint";
 
 export * from "./flags/ChanneUpdateChannelFlags";
 export * from "./flags/ChannelFeatureFlags";

@@ -1,7 +1,7 @@
 // tslint:disable: no-unused-expression
 import { expect } from "chai";
 import { BitField } from "../../lib/BitField";
-import { AddressIPv4 } from "../../lib/domain/address-ipv4";
+import { AddressIPv4 } from "../../lib/domain/AddressIPv4";
 import { NodeAnnouncementMessage } from "../../lib/messages/NodeAnnouncementMessage";
 
 describe("NodeAnnouncementMessage", () => {

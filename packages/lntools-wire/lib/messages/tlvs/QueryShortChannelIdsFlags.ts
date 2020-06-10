@@ -1,9 +1,9 @@
 import { BitField } from "../../BitField";
 import { QueryScidFlags } from "../../flags/QueryScidFlags";
-import { Encoder } from "../../serialize/encoder";
-import { EncodingType } from "../../serialize/encoding-type";
-import { TlvValueReader } from "../../serialize/tlv-value-reader";
-import { TlvValueWriter } from "../../serialize/tlv-value-writer";
+import { Encoder } from "../../serialize/Encoder";
+import { EncodingType } from "../../serialize/EncodingType";
+import { TlvValueReader } from "../../serialize/TlvValueReader";
+import { TlvValueWriter } from "../../serialize/TlvValueWriter";
 import { Tlv } from "./Tlv";
 
 export class QueryShortChannelIdsFlags extends Tlv {

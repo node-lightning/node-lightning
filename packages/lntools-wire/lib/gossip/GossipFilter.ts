@@ -1,6 +1,6 @@
 import { EventEmitter } from "events";
 import { AsyncProcessingQueue } from "../AsyncProcessingQueue";
-import { OutPoint } from "../domain/outpoint";
+import { OutPoint } from "../domain/OutPoint";
 import { ChannelAnnouncementMessage } from "../messages/ChannelAnnouncementMessage";
 import { ChannelUpdateMessage } from "../messages/ChannelUpdateMessage";
 import { ExtendedChannelAnnouncementMessage } from "../messages/ExtendedChannelAnnouncementMessage";

@@ -1,8 +1,8 @@
 import { BufferCursor } from "@lntools/buffer-cursor";
 import { MessageType } from "../MessageType";
-import { Encoder } from "../serialize/encoder";
-import { EncodingType } from "../serialize/encoding-type";
-import { TlvStreamReader } from "../serialize/tlv-stream-reader";
+import { Encoder } from "../serialize/Encoder";
+import { EncodingType } from "../serialize/EncodingType";
+import { TlvStreamReader } from "../serialize/TlvStreamReader";
 import { ShortChannelId } from "../ShortChannelId";
 import { shortChannelIdFromBuffer } from "../ShortChannelIdUtils";
 import { IWireMessage } from "./IWireMessage";

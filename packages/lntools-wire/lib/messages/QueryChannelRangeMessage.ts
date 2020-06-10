@@ -1,6 +1,6 @@
 import { BufferCursor } from "@lntools/buffer-cursor";
 import { MessageType } from "../MessageType";
-import { TlvStreamReader } from "../serialize/tlv-stream-reader";
+import { TlvStreamReader } from "../serialize/TlvStreamReader";
 import { IWireMessage } from "./IWireMessage";
 import { QueryChannelRangeOptions } from "./tlvs/QueryChannelRangeOptions";
 
