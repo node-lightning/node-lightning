@@ -1,7 +1,7 @@
 import { ILogger } from "@lntools/logger";
 import { EventEmitter } from "events";
+import { InitFeatureFlags } from "../flags/InitFeatureFlags";
 import { Peer } from "../Peer";
-import { PeerState } from "../PeerState";
 import { GossipTimestampFilterStrategy } from "./GossipTimestampFilterStrategy";
 import { IGossipTimestampFilterStrategy } from "./IGossipTimestampFilterStrategy";
 import { IQueryChannelRangeStrategy } from "./IQueryChannelRangeStrategy";
@@ -26,7 +26,10 @@ export class PeerGossipReceiver extends EventEmitter {
 
     // If the peer has gossip_queries enabled we can use the corresponding
     // strategies
-    if (peer.remoteInit.localGossipQueries) {
+    const gossipQueriesOpt = peer.remoteFeatures.isSet(InitFeatureFlags.gossipQueriesExOptional);
+    const gossipQueriesReq = peer.remoteFeatures.isSet(InitFeatureFlags.gossipQueriesRequired);
+
+    if (gossipQueriesOpt || gossipQueriesReq) {
       this.logger.info("using gossip_queries strategies");
       this.gossipTimeStampFilterStrategy = new GossipTimestampFilterStrategy(
         chainHash,

@@ -1,4 +1,6 @@
 import * as crypto from "@lntools/crypto";
+import { BitField } from "../lib/BitField";
+import { InitFeatureFlags } from "../lib/flags/InitFeatureFlags";
 import { InitMessage } from "../lib/messages/InitMessage";
 import { Peer } from "../lib/Peer";
 import { PeerServer } from "../lib/PeerServer";
@@ -10,16 +12,18 @@ const serverPubKey = crypto.getPublicKey(serverSecret, true);
 const clientSecret = Buffer.alloc(32, 2);
 const clientPubKey = crypto.getPublicKey(clientSecret, true);
 
-const initFactory = () => new InitMessage();
+const localFeatures = new BitField<InitFeatureFlags>();
 
 function createRemotePeer() {
-  return new Peer(clientSecret, initFactory, createFakeLogger());
+  localFeatures.set(InitFeatureFlags.optionDataLossProtectRequired);
+  localFeatures.set(InitFeatureFlags.initialRoutingSyncOptional);
+  return new Peer(clientSecret, localFeatures, createFakeLogger());
 }
 
 function createServer() {
   const ls = Buffer.alloc(32, 1);
   const logger = createFakeLogger();
-  return new PeerServer("127.0.0.1", 10000, ls, initFactory, logger);
+  return new PeerServer("127.0.0.1", 10000, ls, localFeatures, logger);
 }
 
 describe("PeerServer", () => {
