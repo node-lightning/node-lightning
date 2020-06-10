@@ -2,7 +2,7 @@ import { OutPoint } from "../domain/outpoint";
 import { ChannelAnnouncementMessage } from "../messages/ChannelAnnouncementMessage";
 import { ChannelUpdateMessage } from "../messages/ChannelUpdateMessage";
 import { NodeAnnouncementMessage } from "../messages/NodeAnnouncementMessage";
-import { ShortChannelId } from "../shortchanid";
+import { ShortChannelId } from "../ShortChannelId";
 
 /**
  * Interface for storing, finding, and deleting gossip messages.

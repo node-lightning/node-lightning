@@ -2,19 +2,19 @@ import * as MF from "./MessageFactory";
 
 // tslint:disable-next-line: variable-name
 export const MessageFactory = MF;
-export * from "./async-processing-queue";
-export * from "./constants";
+export * from "./AsyncProcessingQueue";
+export * from "./Constants";
 export * from "./BitField";
-export * from "./linked-list";
-export * from "./linked-list-node";
-export * from "./message-type";
+export * from "./LinkedList";
+export * from "./LinkedListNode";
+export * from "./MessageType";
 export * from "./Peer";
 export * from "./PeerServer";
 export * from "./PeerState";
 export * from "./PingPongState";
-export * from "./queue";
-export * from "./shortchanid";
-export * from "./wire-error";
+export * from "./Queue";
+export * from "./ShortChannelId";
+export * from "./WireError";
 
 export * from "./domain/address";
 export * from "./domain/address-ipv4";
@@ -24,6 +24,14 @@ export * from "./domain/address-tor3";
 export * from "./domain/address-type";
 export * from "./domain/network-type";
 export * from "./domain/outpoint";
+
+export * from "./flags/ChanneUpdateChannelFlags";
+export * from "./flags/ChannelFeatureFlags";
+export * from "./flags/ChannelUpdateMessageFlags";
+export * from "./flags/InitFeatureFlags";
+export * from "./flags/NodeFeatureFlags";
+export * from "./flags/QueryChannelRangeFlags";
+export * from "./flags/QueryScidFlags";
 
 export * from "./gossip/GossipEmitter";
 export * from "./gossip/GossipFilter";

@@ -2,7 +2,7 @@
 import { expect } from "chai";
 import { BitField } from "../../lib/BitField";
 import { ChannelUpdateMessage } from "../../lib/messages/ChannelUpdateMessage";
-import { ShortChannelId } from "../../lib/shortchanid";
+import { ShortChannelId } from "../../lib/ShortChannelId";
 
 describe("ChannelUpdateMessage", () => {
   let input: Buffer;

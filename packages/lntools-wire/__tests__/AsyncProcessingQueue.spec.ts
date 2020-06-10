@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { AsyncProcessingQueue } from "../lib/async-processing-queue";
+import { AsyncProcessingQueue } from "../lib/AsyncProcessingQueue";
 
 function wait(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));

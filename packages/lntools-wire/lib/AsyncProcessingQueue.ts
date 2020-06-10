@@ -1,5 +1,5 @@
 import { EventEmitter } from "events";
-import { Queue } from "./queue";
+import { Queue } from "./Queue";
 
 /**
  * Serializes execution of events. This class is constructed with

@@ -1,14 +1,14 @@
 import { ILogger } from "@lntools/logger";
 import { EventEmitter } from "events";
 import { OutPoint } from "../domain/outpoint";
-import { MessageType } from "../message-type";
 import { ChannelAnnouncementMessage } from "../messages/ChannelAnnouncementMessage";
 import { ExtendedChannelAnnouncementMessage } from "../messages/ExtendedChannelAnnouncementMessage";
 import { IWireMessage } from "../messages/IWireMessage";
+import { MessageType } from "../MessageType";
 import { Peer } from "../Peer";
 import { PeerState } from "../PeerState";
-import { ShortChannelId } from "../shortchanid";
-import { WireError, WireErrorCode } from "../wire-error";
+import { ShortChannelId } from "../ShortChannelId";
+import { WireError, WireErrorCode } from "../WireError";
 import { GossipFilter } from "./GossipFilter";
 import { IGossipStore } from "./GossipStore";
 import { IGossipFilterChainClient } from "./IGossipFilterChainClient";

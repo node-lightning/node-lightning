@@ -1,11 +1,12 @@
 import { BufferCursor } from "@lntools/buffer-cursor";
-import { MessageType } from "../message-type";
+import { MessageType } from "../MessageType";
 import { Encoder } from "../serialize/encoder";
 import { EncodingType } from "../serialize/encoding-type";
 import { TlvStreamReader } from "../serialize/tlv-stream-reader";
-import { ShortChannelId, shortChannelIdFromBuffer } from "../shortchanid";
-import { QueryShortChannelIdsFlags } from "./tlvs/QueryShortChannelIdsFlags";
+import { ShortChannelId } from "../ShortChannelId";
+import { shortChannelIdFromBuffer } from "../ShortChannelIdUtils";
 import { IWireMessage } from "./IWireMessage";
+import { QueryShortChannelIdsFlags } from "./tlvs/QueryShortChannelIdsFlags";
 
 export class QueryShortChannelIdsMessage implements IWireMessage {
   public static deserialize(payload: Buffer): QueryShortChannelIdsMessage {

@@ -1,4 +1,4 @@
-import { LinkedListNode } from "./linked-list-node";
+import { LinkedListNode } from "./LinkedListNode";
 
 /**
  * Implementation of a doubly linked-list that maintains both head and tail.

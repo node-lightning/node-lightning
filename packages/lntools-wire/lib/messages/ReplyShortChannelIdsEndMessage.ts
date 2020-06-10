@@ -1,6 +1,5 @@
 import { BufferCursor } from "@lntools/buffer-cursor";
-import { MessageType } from "../message-type";
-import { ShortChannelId, shortChannelIdFromBuffer } from "../shortchanid";
+import { MessageType } from "../MessageType";
 import { IWireMessage } from "./IWireMessage";
 
 export class ReplyShortChannelIdsEndMessage implements IWireMessage {

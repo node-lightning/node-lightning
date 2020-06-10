@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { fundingScript } from "../lib/script-utils";
+import { fundingScript } from "../lib/ScriptUtils";
 
 describe("fundingScript", () => {
   it("funding script 1 < 2", () => {

@@ -1,6 +1,6 @@
 // tslint:disable: no-unused-expression
 import { expect } from "chai";
-import { LinkedList } from "../lib/linked-list";
+import { LinkedList } from "../lib/LinkedList";
 
 describe("LinkedList", () => {
   let sut: LinkedList<number>;

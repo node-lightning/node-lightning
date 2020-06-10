@@ -4,7 +4,7 @@ import { BitField } from "../BitField";
 import { deserializeAddress } from "../deserialize/address/deserialize-address";
 import { Address } from "../domain/address";
 import { NodeFeatureFlags } from "../flags/NodeFeatureFlags";
-import { MessageType } from "../message-type";
+import { MessageType } from "../MessageType";
 import { serializeAddress } from "../serialize/address/serialize-address";
 import { IWireMessage } from "./IWireMessage";
 

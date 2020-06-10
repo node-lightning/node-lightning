@@ -3,7 +3,7 @@ import { expect } from "chai";
 import { BitField } from "../../lib/BitField";
 import { OutPoint } from "../../lib/domain/outpoint";
 import { ExtendedChannelAnnouncementMessage } from "../../lib/messages/ExtendedChannelAnnouncementMessage";
-import { ShortChannelId } from "../../lib/shortchanid";
+import { ShortChannelId } from "../../lib/ShortChannelId";
 
 describe("ExtendedChannelAnnouncementMessage", () => {
   describe(".deserialize", () => {

@@ -2,7 +2,7 @@ import { expect } from "chai";
 import { BitField } from "../../lib/BitField";
 import { QueryShortChannelIdsMessage } from "../../lib/messages/QueryShortChannelIdsMessage";
 import { QueryShortChannelIdsFlags } from "../../lib/messages/tlvs/QueryShortChannelIdsFlags";
-import { ShortChannelId } from "../../lib/shortchanid";
+import { ShortChannelId } from "../../lib/ShortChannelId";
 
 describe("QueryShortChannelIdsMessage", () => {
   describe(".deserialize", () => {

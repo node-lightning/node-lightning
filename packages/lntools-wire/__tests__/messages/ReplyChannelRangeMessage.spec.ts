@@ -2,7 +2,7 @@ import { expect } from "chai";
 import { ReplyChannelRangeMessage } from "../../lib/messages/ReplyChannelRangeMessage";
 import { ReplyChannelRangeChecksums } from "../../lib/messages/tlvs/ReplyChannelRangeChecksums";
 import { ReplyChannelRangeTimestamps } from "../../lib/messages/tlvs/ReplyChannelRangeTimestamps";
-import { ShortChannelId } from "../../lib/shortchanid";
+import { ShortChannelId } from "../../lib/ShortChannelId";
 
 describe("ReplyChannelRangeMessage", () => {
   describe(".deserialize", () => {

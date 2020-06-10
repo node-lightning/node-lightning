@@ -1,5 +1,4 @@
-import assert from "assert";
-import { ShortChannelId, shortChannelIdFromBuffer } from "../shortchanid";
+import { ShortChannelId } from "../ShortChannelId";
 
 export class TlvValueWriter {
   private _buffer: Buffer;

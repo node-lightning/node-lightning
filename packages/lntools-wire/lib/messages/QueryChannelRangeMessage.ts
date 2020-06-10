@@ -1,8 +1,8 @@
 import { BufferCursor } from "@lntools/buffer-cursor";
-import { MessageType } from "../message-type";
+import { MessageType } from "../MessageType";
 import { TlvStreamReader } from "../serialize/tlv-stream-reader";
-import { QueryChannelRangeOptions } from "./tlvs/QueryChannelRangeOptions";
 import { IWireMessage } from "./IWireMessage";
+import { QueryChannelRangeOptions } from "./tlvs/QueryChannelRangeOptions";
 
 export class QueryChannelRangeMessage implements IWireMessage {
   public static deserialize(payload: Buffer): QueryChannelRangeMessage {

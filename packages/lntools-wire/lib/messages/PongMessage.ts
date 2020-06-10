@@ -1,5 +1,5 @@
 import { BufferCursor } from "@lntools/buffer-cursor";
-import { MessageType } from "../message-type";
+import { MessageType } from "../MessageType";
 import { IWireMessage } from "./IWireMessage";
 
 export class PongMessage implements IWireMessage {

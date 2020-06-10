@@ -4,7 +4,7 @@ import { GossipMemoryStore } from "../../lib/gossip/GossipMemoryStore";
 import { ChannelAnnouncementMessage } from "../../lib/messages/ChannelAnnouncementMessage";
 import { ChannelUpdateMessage } from "../../lib/messages/ChannelUpdateMessage";
 import { NodeAnnouncementMessage } from "../../lib/messages/NodeAnnouncementMessage";
-import { ShortChannelId } from "../../lib/shortchanid";
+import { ShortChannelId } from "../../lib/ShortChannelId";
 
 describe("GossipMemoryStore", () => {
   const sut = new GossipMemoryStore();

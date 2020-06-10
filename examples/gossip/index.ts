@@ -1,5 +1,5 @@
 import { ConsoleTransport, Logger, LogLevel } from "@lntools/logger";
-import { ChannelAnnouncementMessage } from "@lntools/wire";
+import { ChannelAnnouncementMessage, BitField } from "@lntools/wire";
 import { InitMessage } from "@lntools/wire";
 import { ChannelUpdateMessage } from "@lntools/wire";
 import { NodeAnnouncementMessage } from "@lntools/wire";
@@ -67,6 +67,7 @@ async function connectToPeer(peerInfo: { rpk: string; host: string; port: number
   // peer the capabilities of the current node. This
   // method is called by the peer when a valid noise
   // connection has been established.
+  const localFeatures = new BitField() < Init;
   const initMessageFactory = () => {
     const initMessage = new InitMessage();
     initMessage.localInitialRoutingSync = false;

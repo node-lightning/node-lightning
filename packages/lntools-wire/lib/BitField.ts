@@ -1,4 +1,4 @@
-import * as bigintutil from "./bigint-util";
+import * as bigintutil from "./BigIntUtils";
 
 /**
  * BitField assists with using bit flags to set or unset values in the bit

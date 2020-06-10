@@ -1,6 +1,6 @@
 import { BufferCursor } from "@lntools/buffer-cursor";
-import { PONG_BYTE_THRESHOLD } from "../constants";
-import { MessageType } from "../message-type";
+import { PONG_BYTE_THRESHOLD } from "../Constants";
+import { MessageType } from "../MessageType";
 import { IWireMessage } from "./IWireMessage";
 
 /**

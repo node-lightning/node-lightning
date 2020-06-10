@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { TlvValueWriter } from "../../lib/serialize/tlv-value-writer";
-import { ShortChannelId } from "../../lib/shortchanid";
+import { ShortChannelId } from "../../lib/ShortChannelId";
 
 describe("TlvValueWriter", () => {
   describe(".writeUInt8()", () => {

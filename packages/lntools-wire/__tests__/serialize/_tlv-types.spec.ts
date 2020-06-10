@@ -1,6 +1,6 @@
 import { TlvValueReader } from "../../lib/serialize/tlv-value-reader";
 import { TlvValueWriter } from "../../lib/serialize/tlv-value-writer";
-import { ShortChannelId } from "../../lib/shortchanid";
+import { ShortChannelId } from "../../lib/ShortChannelId";
 
 export class N1Type1 {
   public static type: bigint = BigInt(1);

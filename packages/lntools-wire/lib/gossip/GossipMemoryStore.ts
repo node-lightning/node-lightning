@@ -3,7 +3,8 @@ import { ChannelAnnouncementMessage } from "../messages/ChannelAnnouncementMessa
 import { ChannelUpdateMessage } from "../messages/ChannelUpdateMessage";
 import { ExtendedChannelAnnouncementMessage } from "../messages/ExtendedChannelAnnouncementMessage";
 import { NodeAnnouncementMessage } from "../messages/NodeAnnouncementMessage";
-import { ShortChannelId, shortChannelIdFromNumber } from "../shortchanid";
+import { ShortChannelId } from "../ShortChannelId";
+import { shortChannelIdFromNumber } from "../ShortChannelIdUtils";
 import { IGossipStore } from "./GossipStore";
 
 /**
