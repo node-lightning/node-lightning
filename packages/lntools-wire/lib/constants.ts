@@ -1,1 +1,0 @@
-export const PONG_BYTE_THRESHOLD = 65532;
