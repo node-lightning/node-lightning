@@ -14,6 +14,7 @@ export * from "./PeerState";
 export * from "./PingPongState";
 export * from "./Queue";
 export * from "./ShortChannelId";
+export * from "./ShortChannelIdUtils";
 export * from "./WireError";
 
 export * from "./domain/Address";

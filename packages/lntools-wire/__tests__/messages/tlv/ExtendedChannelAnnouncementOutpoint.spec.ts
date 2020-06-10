@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { OutPoint } from "../../../lib/domain/outpoint";
+import { OutPoint } from "../../../lib/domain/OutPoint";
 import { ExtendedChannelAnnouncementOutpoint } from "../../../lib/messages/tlvs/ExtendedChannelAnnouncementOutpoint";
 import { TlvValueReader } from "../../../lib/serialize/TlvValueReader";
 
