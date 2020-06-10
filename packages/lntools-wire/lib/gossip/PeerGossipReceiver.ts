@@ -26,8 +26,10 @@ export class PeerGossipReceiver extends EventEmitter {
 
     // If the peer has gossip_queries enabled we can use the corresponding
     // strategies
-    const gossipQueriesOpt = peer.remoteFeatures.isSet(InitFeatureFlags.gossipQueriesExOptional);
+    const gossipQueriesOpt = peer.remoteFeatures.isSet(InitFeatureFlags.gossipQueriesOptional);
     const gossipQueriesReq = peer.remoteFeatures.isSet(InitFeatureFlags.gossipQueriesRequired);
+
+    console.log("remoteFeatures", peer.remoteFeatures.value, gossipQueriesOpt, gossipQueriesReq);
 
     if (gossipQueriesOpt || gossipQueriesReq) {
       this.logger.info("using gossip_queries strategies");

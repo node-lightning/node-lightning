@@ -158,7 +158,7 @@ describe("GossipManager", () => {
       it("should start gossip_sync process", () => {
         peer1.state = PeerState.Ready;
         peer1.remoteFeatures = new BitField<InitFeatureFlags>();
-        peer1.remoteFeatures.set(InitFeatureFlags.gossipQueriesExOptional);
+        peer1.remoteFeatures.set(InitFeatureFlags.gossipQueriesOptional);
         sut.addPeer(peer1);
         const msg = (peer1.sendMessage as any).args[1][0];
         expect(msg.type).to.equal(263);
@@ -176,7 +176,7 @@ describe("GossipManager", () => {
         });
         peer1.state = PeerState.Ready;
         peer1.remoteFeatures = new BitField<InitFeatureFlags>();
-        peer1.remoteFeatures.set(InitFeatureFlags.gossipQueriesExOptional);
+        peer1.remoteFeatures.set(InitFeatureFlags.gossipQueriesOptional);
         peer1.emit("ready");
       });
     });
@@ -192,7 +192,7 @@ describe("GossipManager", () => {
         });
         peer1.state = PeerState.Ready;
         peer1.remoteFeatures = new BitField<InitFeatureFlags>();
-        peer1.remoteFeatures.set(InitFeatureFlags.gossipQueriesExOptional);
+        peer1.remoteFeatures.set(InitFeatureFlags.gossipQueriesOptional);
         peer1.emit("ready");
       });
     });
@@ -201,7 +201,7 @@ describe("GossipManager", () => {
       it("send a gossip_timestamp_filter to activate", () => {
         peer1.state = PeerState.Ready;
         peer1.remoteFeatures = new BitField<InitFeatureFlags>();
-        peer1.remoteFeatures.set(InitFeatureFlags.gossipQueriesExOptional);
+        peer1.remoteFeatures.set(InitFeatureFlags.gossipQueriesOptional);
         sut.addPeer(peer1);
         const msg = (peer1.sendMessage as any).args[0][0];
         expect(msg.type).to.equal(265);
@@ -221,7 +221,7 @@ describe("GossipManager", () => {
         });
         peer1.state = PeerState.Ready;
         peer1.remoteFeatures = new BitField<InitFeatureFlags>();
-        peer1.remoteFeatures.set(InitFeatureFlags.gossipQueriesExOptional);
+        peer1.remoteFeatures.set(InitFeatureFlags.gossipQueriesOptional);
         peer1.emit("ready");
       });
     });
