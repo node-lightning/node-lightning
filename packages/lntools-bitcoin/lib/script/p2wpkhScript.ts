@@ -1,13 +1,13 @@
 // tslint:disable-next-line: no-var-requires
-const OPS = require("bitcoin-ops");
 import { compileScript } from "./compile-script";
+import { OpCode } from "./OpCodes";
 
 /**
- * Create a p2wshScript
+ * Create a p2wpkh locking script
  */
-export function p2wshScript(hash160Script: Buffer): Buffer {
+export function p2wpkScript(hash160Script: Buffer): Buffer {
   return compileScript([
-    OPS.OP_0,
+    OpCode.OP_0,
     hash160Script,
   ]); // prettier-ignore
 }

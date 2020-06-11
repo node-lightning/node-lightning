@@ -1,6 +1,6 @@
 // tslint:disable-next-line: no-var-requires
-const OPS = require("bitcoin-ops");
 import pushdata from "pushdata-bitcoin";
+import { OpCode } from "./OpCodes";
 
 /**
  * Compiles the array of chunks into a valid script
@@ -66,8 +66,8 @@ export function compileScript(chunks: Buffer | number | any): Buffer {
  * @returns opcode value
  */
 function asMinimalOP(buffer: Buffer) {
-  if (buffer.length === 0) return OPS.OP_0;
+  if (buffer.length === 0) return OpCode.OP_0;
   if (buffer.length !== 1) return;
-  if (buffer[0] >= 1 && buffer[0] <= 16) return OPS.OP_RESERVED + buffer[0];
-  if (buffer[0] === 0x81) return OPS.OP_1NEGATE;
+  if (buffer[0] >= 1 && buffer[0] <= 16) return 0x50 + buffer[0];
+  if (buffer[0] === 0x81) return OpCode.OP_1NEGATE;
 }

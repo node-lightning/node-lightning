@@ -1,6 +1,6 @@
 // tslint:disable-next-line: no-var-requires
-const OPS = require("bitcoin-ops");
 import { compileScript } from "./compile-script";
+import { OpCode } from "./OpCodes";
 
 /**
  * Creates a standard Pay to MultiSig script by accepting a
@@ -13,9 +13,9 @@ import { compileScript } from "./compile-script";
  */
 export function p2msScript(m: number, n: number, pubkeys: Buffer[]): Buffer {
   return compileScript([
-    80 + m,
+    0x50 + m,
     ...pubkeys,
-    80 + n,
-    OPS.OP_CHECKMULTISIG,
+    0x50 + n,
+    OpCode.OP_CHECKMULTISIG,
   ]); // prettier-ignore
 }

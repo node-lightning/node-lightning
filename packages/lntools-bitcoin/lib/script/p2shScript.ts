@@ -1,6 +1,6 @@
 // tslint:disable-next-line: no-var-requires
-const OPS = require("bitcoin-ops");
 import { compileScript } from "./compile-script";
+import { OpCode } from "./OpCodes";
 
 /**
  * Creates a standard Pay to Script Hash script by accepting a
@@ -15,8 +15,8 @@ export function p2shScript(hash160Script: Buffer): Buffer {
   // TODO: validate buffer
   // prettier-ignore
   return compileScript([
-    OPS.OP_HASH160,
+    OpCode.OP_HASH160,
     hash160Script,
-    OPS.OP_EQUAL,
+    OpCode.OP_EQUAL,
   ]);
 }

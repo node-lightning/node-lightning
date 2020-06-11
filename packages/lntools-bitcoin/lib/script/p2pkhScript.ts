@@ -1,6 +1,6 @@
 // tslint:disable-next-line: no-var-requires
-const OPS = require("bitcoin-ops");
 import { compileScript } from "./compile-script";
+import { OpCode } from "./OpCodes";
 
 /**
  * Creates a standard Pay to Public Key Hash script by accepting a
@@ -15,10 +15,10 @@ import { compileScript } from "./compile-script";
 export function p2pkhScript(hash160PubKey: Buffer): Buffer {
   // TODO: validate buffer
   return compileScript([
-    OPS.OP_DUP,
-    OPS.OP_HASH160,
+    OpCode.OP_DUP,
+    OpCode.OP_HASH160,
     hash160PubKey,
-    OPS.OP_EQUALVERIFY,
-    OPS.OP_CHECKSIG,
+    OpCode.OP_EQUALVERIFY,
+    OpCode.OP_CHECKSIG,
   ]); // prettier-ignore
 }
