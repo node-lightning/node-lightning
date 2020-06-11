@@ -9,57 +9,57 @@ import { IWireMessage } from "./IWireMessage";
 import { QueryShortChannelIdsFlags } from "./tlvs/QueryShortChannelIdsFlags";
 
 export class QueryShortChannelIdsMessage implements IWireMessage {
-  public static deserialize(payload: Buffer): QueryShortChannelIdsMessage {
-    const reader = new BufferCursor(payload);
-    reader.readUInt16BE(); // read off type
+    public static deserialize(payload: Buffer): QueryShortChannelIdsMessage {
+        const reader = new BufferCursor(payload);
+        reader.readUInt16BE(); // read off type
 
-    const instance = new QueryShortChannelIdsMessage();
-    instance.chainHash = reader.readBytes(32);
+        const instance = new QueryShortChannelIdsMessage();
+        instance.chainHash = reader.readBytes(32);
 
-    const len = reader.readUInt16BE();
-    const esidBuffer = reader.readBytes(len);
+        const len = reader.readUInt16BE();
+        const esidBuffer = reader.readBytes(len);
 
-    const rawShortIdBuffer = new Encoder().decode(esidBuffer);
-    const reader2 = new BufferCursor(rawShortIdBuffer);
-    while (!reader2.eof) {
-      instance.shortChannelIds.push(shortChannelIdFromBuffer(reader2.readBytes(8)));
+        const rawShortIdBuffer = new Encoder().decode(esidBuffer);
+        const reader2 = new BufferCursor(rawShortIdBuffer);
+        while (!reader2.eof) {
+            instance.shortChannelIds.push(shortChannelIdFromBuffer(reader2.readBytes(8)));
+        }
+
+        const tlvStreamReader = new TlvStreamReader();
+        tlvStreamReader.register(QueryShortChannelIdsFlags);
+        const tlvs = tlvStreamReader.read(reader);
+
+        instance.flags = tlvs.find(p => p.type === QueryShortChannelIdsFlags.type);
+
+        return instance;
     }
 
-    const tlvStreamReader = new TlvStreamReader();
-    tlvStreamReader.register(QueryShortChannelIdsFlags);
-    const tlvs = tlvStreamReader.read(reader);
+    /**
+     * Type 261
+     */
+    public type: MessageType = MessageType.QueryShortChannelIds;
 
-    instance.flags = tlvs.find(p => p.type === QueryShortChannelIdsFlags.type);
+    /**
+     * 32-byte chain hash
+     */
+    public chainHash: Buffer;
 
-    return instance;
-  }
+    /**
+     * List of channels to query
+     */
+    public shortChannelIds: ShortChannelId[] = [];
 
-  /**
-   * Type 261
-   */
-  public type: MessageType = MessageType.QueryShortChannelIds;
+    /**
+     * Optional flags that can be set when gossip_queries_ex is enabled.
+     */
+    public flags: QueryShortChannelIdsFlags;
 
-  /**
-   * 32-byte chain hash
-   */
-  public chainHash: Buffer;
+    public serialize(encoding: EncodingType = EncodingType.ZlibDeflate): Buffer {
+        const rawIdsBuffer = Buffer.concat(this.shortChannelIds.map(p => p.toBuffer()));
+        const esids = new Encoder().encode(encoding, rawIdsBuffer);
+        const flags = this.flags ? this.flags.serialize(encoding) : Buffer.alloc(0);
 
-  /**
-   * List of channels to query
-   */
-  public shortChannelIds: ShortChannelId[] = [];
-
-  /**
-   * Optional flags that can be set when gossip_queries_ex is enabled.
-   */
-  public flags: QueryShortChannelIdsFlags;
-
-  public serialize(encoding: EncodingType = EncodingType.ZlibDeflate): Buffer {
-    const rawIdsBuffer = Buffer.concat(this.shortChannelIds.map(p => p.toBuffer()));
-    const esids = new Encoder().encode(encoding, rawIdsBuffer);
-    const flags = this.flags ? this.flags.serialize(encoding) : Buffer.alloc(0);
-
-    const buffer = Buffer.alloc(
+        const buffer = Buffer.alloc(
       2 + // type
       32 + // chain_hash
       2 + // encoded_short_ids len
@@ -67,16 +67,16 @@ export class QueryShortChannelIdsMessage implements IWireMessage {
       flags.length,
     ); // prettier-ignore
 
-    const writer = new BufferCursor(buffer);
-    writer.writeUInt16BE(this.type);
-    writer.writeBytes(this.chainHash);
-    writer.writeUInt16BE(esids.length);
-    writer.writeBytes(esids);
+        const writer = new BufferCursor(buffer);
+        writer.writeUInt16BE(this.type);
+        writer.writeBytes(this.chainHash);
+        writer.writeUInt16BE(esids.length);
+        writer.writeBytes(esids);
 
-    if (flags.length) {
-      writer.writeBytes(flags);
+        if (flags.length) {
+            writer.writeBytes(flags);
+        }
+
+        return buffer;
     }
-
-    return buffer;
-  }
 }

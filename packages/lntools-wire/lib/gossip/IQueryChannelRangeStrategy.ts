@@ -1,3 +1,3 @@
 export interface IQueryChannelRangeStrategy {
-  queryRange(firstBlocknum: number, numberOfBlocks: number): void;
+    queryRange(firstBlocknum: number, numberOfBlocks: number): void;
 }

@@ -1,3 +1,3 @@
 export interface IBufferSerializable<T> {
-  serialize(instance: T): Buffer;
+    serialize(instance: T): Buffer;
 }

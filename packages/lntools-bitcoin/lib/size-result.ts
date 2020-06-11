@@ -1,5 +1,5 @@
 export type SizeResult = {
-  size: number;
-  vsize: number;
-  weight: number;
+    size: number;
+    vsize: number;
+    weight: number;
 };

@@ -7,14 +7,14 @@ import { torStringToBuffer } from "./torStringToBuffer";
  * over the wire.
  */
 export function serializeTor2(address: AddressTor2): Buffer {
-  const result = Buffer.alloc(13);
-  const writer = new BufferCursor(result);
+    const result = Buffer.alloc(13);
+    const writer = new BufferCursor(result);
 
-  const hostBytes = torStringToBuffer(address.host);
+    const hostBytes = torStringToBuffer(address.host);
 
-  writer.writeUInt8(address.type);
-  writer.writeBytes(hostBytes);
-  writer.writeUInt16BE(address.port);
+    writer.writeUInt8(address.type);
+    writer.writeBytes(hostBytes);
+    writer.writeUInt16BE(address.port);
 
-  return result;
+    return result;
 }

@@ -13,14 +13,14 @@ import { deserializeTor3 } from "./deserializeTor3";
  * an instance of Address as a polymorphic type.
  */
 export function deserializeAddress(type: AddressType, reader: BufferCursor): Address {
-  switch (type) {
-    case AddressType.IPv4:
-      return deserializeIPv4(reader);
-    case AddressType.IPv6:
-      return deserializeIPv6(reader);
-    case AddressType.TOR2:
-      return deserializeTor2(reader);
-    case AddressType.TOR3:
-      return deserializeTor3(reader);
-  }
+    switch (type) {
+        case AddressType.IPv4:
+            return deserializeIPv4(reader);
+        case AddressType.IPv6:
+            return deserializeIPv6(reader);
+        case AddressType.TOR2:
+            return deserializeTor2(reader);
+        case AddressType.TOR3:
+            return deserializeTor3(reader);
+    }
 }

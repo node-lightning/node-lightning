@@ -1,5 +1,5 @@
 export type Signature = {
-  r: Buffer;
-  s: Buffer;
-  recoveryFlag: number;
+    r: Buffer;
+    s: Buffer;
+    recoveryFlag: number;
 };

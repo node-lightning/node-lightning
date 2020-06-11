@@ -15,10 +15,10 @@ const tests: Array<[string, Buffer, string]> = [
 ]; // prettier-ignore
 
 describe("torStringFromBuffer", () => {
-  for (const [title, input, expected] of tests) {
-    it(title, () => {
-      const actual = torStringFromBuffer(input);
-      expect(actual).to.equal(expected);
-    });
-  }
+    for (const [title, input, expected] of tests) {
+        it(title, () => {
+            const actual = torStringFromBuffer(input);
+            expect(actual).to.equal(expected);
+        });
+    }
 });

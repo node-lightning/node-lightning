@@ -7,9 +7,9 @@ import crypto from "crypto";
  * @returns 32-byte buffer
  */
 export function sha256(data: Buffer): Buffer {
-  const hash = crypto.createHash("sha256");
-  hash.update(data);
-  return hash.digest();
+    const hash = crypto.createHash("sha256");
+    hash.update(data);
+    return hash.digest();
 }
 
 /**
@@ -19,9 +19,9 @@ export function sha256(data: Buffer): Buffer {
  * @returns 20-byte buffer
  */
 export function hash160(data: Buffer): Buffer {
-  const hash = crypto.createHash("ripemd160");
-  hash.update(sha256(data));
-  return hash.digest();
+    const hash = crypto.createHash("ripemd160");
+    hash.update(sha256(data));
+    return hash.digest();
 }
 
 /**
@@ -31,5 +31,5 @@ export function hash160(data: Buffer): Buffer {
  * @returns 32-byte buffer
  */
 export function hash256(data: Buffer): Buffer {
-  return sha256(sha256(data));
+    return sha256(sha256(data));
 }

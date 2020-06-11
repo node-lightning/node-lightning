@@ -7,10 +7,10 @@ import { AesKey } from "./aes-key";
  * @param buffer plaintext to encrypt
  */
 export function aesEncrypt({ key, buffer }: { key: Buffer; buffer: Buffer }): Buffer {
-  const cipher = crypto.createCipher("aes256", key);
-  let result = cipher.update(buffer);
-  result = Buffer.concat([result, cipher.final()]);
-  return result;
+    const cipher = crypto.createCipher("aes256", key);
+    let result = cipher.update(buffer);
+    result = Buffer.concat([result, cipher.final()]);
+    return result;
 }
 
 /**
@@ -19,10 +19,10 @@ export function aesEncrypt({ key, buffer }: { key: Buffer; buffer: Buffer }): Bu
  * @param buffer ciphertext to decrypt
  */
 export function aesDecrypt({ key, buffer }: { key: Buffer; buffer: Buffer }): Buffer {
-  const decipher = crypto.createDecipher("aes256", key);
-  let result = decipher.update(buffer);
-  result = Buffer.concat([result, decipher.final()]);
-  return result;
+    const decipher = crypto.createDecipher("aes256", key);
+    let result = decipher.update(buffer);
+    result = Buffer.concat([result, decipher.final()]);
+    return result;
 }
 
 /**
@@ -34,12 +34,12 @@ export function aesDecrypt({ key, buffer }: { key: Buffer; buffer: Buffer }): Bu
  * @param [salt] 16-byte buffer or more
  */
 export function createAesKey({ passphrase, salt }: { passphrase: string; salt?: Buffer }): AesKey {
-  if (!salt) {
-    salt = crypto.randomBytes(16);
-  }
-  const key = crypto.pbkdf2Sync(passphrase, salt, 100000, 128, "sha512");
-  return {
-    key,
-    salt,
-  };
+    if (!salt) {
+        salt = crypto.randomBytes(16);
+    }
+    const key = crypto.pbkdf2Sync(passphrase, salt, 100000, 128, "sha512");
+    return {
+        key,
+        salt,
+    };
 }

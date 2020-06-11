@@ -6,7 +6,7 @@ import { OpCode } from "./OpCodes";
  * Create a p2wpkh locking script
  */
 export function p2wpkScript(hash160Script: Buffer): Buffer {
-  return compileScript([
+    return compileScript([
     OpCode.OP_0,
     hash160Script,
   ]); // prettier-ignore

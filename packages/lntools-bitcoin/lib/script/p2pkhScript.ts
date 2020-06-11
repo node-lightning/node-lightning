@@ -13,8 +13,8 @@ import { OpCode } from "./OpCodes";
  * https://github.com/bitcoinjs/bitcoinjs-lib/blob/master/src/payments/p2pkh.js#L58
  */
 export function p2pkhScript(hash160PubKey: Buffer): Buffer {
-  // TODO: validate buffer
-  return compileScript([
+    // TODO: validate buffer
+    return compileScript([
     OpCode.OP_DUP,
     OpCode.OP_HASH160,
     hash160PubKey,

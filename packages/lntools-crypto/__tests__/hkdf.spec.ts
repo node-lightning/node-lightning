@@ -2,14 +2,14 @@ import { expect } from "chai";
 import { hkdf } from "../lib/hkdf";
 
 describe("hkdf", () => {
-  describe("general", () => {
-    it("should not overflow on length", () => {
-      expect(() => hkdf(Buffer.alloc(32, 1), 8192)).to.throw();
+    describe("general", () => {
+        it("should not overflow on length", () => {
+            expect(() => hkdf(Buffer.alloc(32, 1), 8192)).to.throw();
+        });
     });
-  });
 
-  describe("rfc5869 vectors", () => {
-    const vectors = [
+    describe("rfc5869 vectors", () => {
+        const vectors = [
       {
         title: "1. Basic test case with SHA-256",
         hash: "sha256",
@@ -57,22 +57,22 @@ describe("hkdf", () => {
       },
     ]; // prettier-ignore
 
-    for (const vector of vectors) {
-      it(vector.title, () => {
-        const actual = hkdf(
-          Buffer.from(vector.ikm, "hex"),
-          vector.len,
-          Buffer.from(vector.salt, "hex"),
-          Buffer.from(vector.info, "hex"),
-          vector.hash,
-        );
-        expect(actual.toString("hex")).to.equal(vector.output);
-      });
-    }
-  });
+        for (const vector of vectors) {
+            it(vector.title, () => {
+                const actual = hkdf(
+                    Buffer.from(vector.ikm, "hex"),
+                    vector.len,
+                    Buffer.from(vector.salt, "hex"),
+                    Buffer.from(vector.info, "hex"),
+                    vector.hash,
+                );
+                expect(actual.toString("hex")).to.equal(vector.output);
+            });
+        }
+    });
 
-  describe("BOLT #8 vectors", () => {
-    const vectors = [
+    describe("BOLT #8 vectors", () => {
+        const vectors = [
       {
         title: "Noise initiator act 1",
         salt: "2640f52eebcd9e882958951c794250eedb28002c05d7dc2ea0f195406042caf1",
@@ -117,15 +117,15 @@ describe("hkdf", () => {
       },
     ]; // prettier-ignore
 
-    for (const vector of vectors) {
-      it(vector.title, () => {
-        const actual = hkdf(
-          Buffer.from(vector.ikm, "hex"),
-          vector.len,
-          Buffer.from(vector.salt, "hex"),
-        );
-        expect(actual.toString("hex")).to.equal(vector.output);
-      });
-    }
-  });
+        for (const vector of vectors) {
+            it(vector.title, () => {
+                const actual = hkdf(
+                    Buffer.from(vector.ikm, "hex"),
+                    vector.len,
+                    Buffer.from(vector.salt, "hex"),
+                );
+                expect(actual.toString("hex")).to.equal(vector.output);
+            });
+        }
+    });
 });

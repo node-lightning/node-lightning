@@ -7,8 +7,8 @@ import { torStringFromBuffer } from "./torStringFromBuffer";
  * returns an instance of a AddressTor2.
  */
 export function deserializeTor2(reader: BufferCursor): AddressTor2 {
-  const hostBytes = reader.readBytes(10);
-  const port = reader.readUInt16BE();
-  const host = torStringFromBuffer(hostBytes);
-  return new AddressTor2(host, port);
+    const hostBytes = reader.readBytes(10);
+    const port = reader.readUInt16BE();
+    const host = torStringFromBuffer(hostBytes);
+    return new AddressTor2(host, port);
 }

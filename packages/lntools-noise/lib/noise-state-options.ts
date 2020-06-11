@@ -1,18 +1,18 @@
 import { ILogger } from "@lntools/logger";
 
 export type NoiseStateOptions = {
-  /**
-   * Local private key as a 32-byte buffer
-   */
-  ls: Buffer;
+    /**
+     * Local private key as a 32-byte buffer
+     */
+    ls: Buffer;
 
-  /**
-   * Ephemeral private key as a 32-byte
-   */
-  es: Buffer;
+    /**
+     * Ephemeral private key as a 32-byte
+     */
+    es: Buffer;
 
-  /**
-   * Logger to use for NoiseState
-   */
-  logger?: ILogger;
+    /**
+     * Logger to use for NoiseState
+     */
+    logger?: ILogger;
 };

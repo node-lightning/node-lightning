@@ -1,4 +1,4 @@
 export enum PeerGossipReceiveState {
-  Inactive = "inactive",
-  Receiving = "receiving",
+    Inactive = "inactive",
+    Receiving = "receiving",
 }

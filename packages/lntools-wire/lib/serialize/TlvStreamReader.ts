@@ -3,42 +3,42 @@ import { ITlvDeserializable } from "./ITlvDeserializable";
 import { TlvValueReader } from "./TlvValueReader";
 
 export class TlvStreamReader {
-  private _deserializers: Map<bigint, ITlvDeserializable<any>> = new Map();
-  private _lastType: bigint;
+    private _deserializers: Map<bigint, ITlvDeserializable<any>> = new Map();
+    private _lastType: bigint;
 
-  public register(type: ITlvDeserializable<any>) {
-    this._deserializers.set(type.type, type);
-  }
-
-  public read(reader: BufferCursor): any[] {
-    const results = [];
-    while (!reader.eof) {
-      const result = this.readRecord(reader);
-      if (result) results.push(result);
+    public register(type: ITlvDeserializable<any>) {
+        this._deserializers.set(type.type, type);
     }
-    return results;
-  }
 
-  public readRecord(reader: BufferCursor): any {
-    if (reader.eof) return;
-
-    const type = reader.readBigSize();
-    const len = reader.readBigSize();
-    const bytes = reader.readBytes(Number(len));
-
-    if (type <= this._lastType) {
-      throw new Error("Invalid TLV stream");
+    public read(reader: BufferCursor): any[] {
+        const results = [];
+        while (!reader.eof) {
+            const result = this.readRecord(reader);
+            if (result) results.push(result);
+        }
+        return results;
     }
-    this._lastType = type;
 
-    const deserType = this._deserializers.get(type);
-    if (deserType) {
-      const valueReader = new TlvValueReader(bytes);
-      const result = deserType.deserialize(valueReader);
-      valueReader.done();
-      return result;
-    } else if (type % BigInt(2) === BigInt(0)) {
-      throw new Error("Unknown even type");
+    public readRecord(reader: BufferCursor): any {
+        if (reader.eof) return;
+
+        const type = reader.readBigSize();
+        const len = reader.readBigSize();
+        const bytes = reader.readBytes(Number(len));
+
+        if (type <= this._lastType) {
+            throw new Error("Invalid TLV stream");
+        }
+        this._lastType = type;
+
+        const deserType = this._deserializers.get(type);
+        if (deserType) {
+            const valueReader = new TlvValueReader(bytes);
+            const result = deserType.deserialize(valueReader);
+            valueReader.done();
+            return result;
+        } else if (type % BigInt(2) === BigInt(0)) {
+            throw new Error("Unknown even type");
+        }
     }
-  }
 }

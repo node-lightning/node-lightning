@@ -12,31 +12,31 @@
  * @return converted words
  */
 export function convertWords(
-  data: number[] | Buffer,
-  inBits: number,
-  outBits: number,
-  pad: boolean,
+    data: number[] | Buffer,
+    inBits: number,
+    outBits: number,
+    pad: boolean,
 ): number[] {
-  let value = 0;
-  let bits = 0;
-  const maxV = (1 << outBits) - 1;
+    let value = 0;
+    let bits = 0;
+    const maxV = (1 << outBits) - 1;
 
-  const result = [];
-  for (let i = 0; i < data.length; ++i) {
-    value = (value << inBits) | data[i];
-    bits += inBits;
+    const result = [];
+    for (let i = 0; i < data.length; ++i) {
+        value = (value << inBits) | data[i];
+        bits += inBits;
 
-    while (bits >= outBits) {
-      bits -= outBits;
-      result.push((value >> bits) & maxV);
+        while (bits >= outBits) {
+            bits -= outBits;
+            result.push((value >> bits) & maxV);
+        }
     }
-  }
 
-  if (pad && bits > 0) {
-    result.push((value << (outBits - bits)) & maxV);
-  }
+    if (pad && bits > 0) {
+        result.push((value << (outBits - bits)) & maxV);
+    }
 
-  return result;
+    return result;
 }
 
 /**
@@ -49,7 +49,7 @@ export function convertWords(
  * @returns number of words
  */
 export function sizeofNum(num: number): number {
-  return Math.ceil(Math.log2(num) / 5);
+    return Math.ceil(Math.log2(num) / 5);
 }
 
 /**
@@ -61,7 +61,7 @@ export function sizeofNum(num: number): number {
  * @returns number of words
  */
 export function sizeofBits(bits: number): number {
-  return Math.ceil(bits / 5);
+    return Math.ceil(bits / 5);
 }
 
 /**
@@ -74,5 +74,5 @@ export function sizeofBits(bits: number): number {
  * @returns number of words
  */
 export function sizeofBytes(bytes: number): number {
-  return sizeofBits(bytes * 8);
+    return sizeofBits(bytes * 8);
 }

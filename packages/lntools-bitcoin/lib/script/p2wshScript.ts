@@ -6,7 +6,7 @@ import { OpCode } from "./OpCodes";
  * Create a p2wshScript
  */
 export function p2wshScript(sha256Script: Buffer): Buffer {
-  return compileScript([
+    return compileScript([
     OpCode.OP_0,
     sha256Script,
   ]); // prettier-ignore

@@ -1,4 +1,4 @@
 export type TxIdResult = {
-  txId: Buffer;
-  hash: Buffer;
+    txId: Buffer;
+    hash: Buffer;
 };

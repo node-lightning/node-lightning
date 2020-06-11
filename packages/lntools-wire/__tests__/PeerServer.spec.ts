@@ -15,38 +15,38 @@ const clientPubKey = crypto.getPublicKey(clientSecret, true);
 const localFeatures = new BitField<InitFeatureFlags>();
 
 function createRemotePeer() {
-  localFeatures.set(InitFeatureFlags.optionDataLossProtectRequired);
-  localFeatures.set(InitFeatureFlags.initialRoutingSyncOptional);
-  return new Peer(clientSecret, localFeatures, createFakeLogger());
+    localFeatures.set(InitFeatureFlags.optionDataLossProtectRequired);
+    localFeatures.set(InitFeatureFlags.initialRoutingSyncOptional);
+    return new Peer(clientSecret, localFeatures, createFakeLogger());
 }
 
 function createServer() {
-  const ls = Buffer.alloc(32, 1);
-  const logger = createFakeLogger();
-  return new PeerServer("127.0.0.1", 10000, ls, localFeatures, logger);
+    const ls = Buffer.alloc(32, 1);
+    const logger = createFakeLogger();
+    return new PeerServer("127.0.0.1", 10000, ls, localFeatures, logger);
 }
 
 describe("PeerServer", () => {
-  let server: PeerServer;
-  let client: Peer;
+    let server: PeerServer;
+    let client: Peer;
 
-  after(() => {
-    client.disconnect();
-    server.shutdown();
-  });
-
-  it("emits a peer when connected", done => {
-    server = createServer();
-    client = createRemotePeer();
-
-    server.on("peer", () => {
-      done();
+    after(() => {
+        client.disconnect();
+        server.shutdown();
     });
 
-    server.on("listening", () => {
-      client.connect(serverPubKey, "127.0.0.1", 10000);
-    });
+    it("emits a peer when connected", done => {
+        server = createServer();
+        client = createRemotePeer();
 
-    server.listen();
-  });
+        server.on("peer", () => {
+            done();
+        });
+
+        server.on("listening", () => {
+            client.connect(serverPubKey, "127.0.0.1", 10000);
+        });
+
+        server.listen();
+    });
 });

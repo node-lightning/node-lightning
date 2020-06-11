@@ -1,4 +1,4 @@
 export enum ChannelUpdateChannelFlags {
-  direction = 0,
-  disabled = 1,
+    direction = 0,
+    disabled = 1,
 }

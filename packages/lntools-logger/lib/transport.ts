@@ -1,3 +1,3 @@
 export interface ITransport {
-  write(line: string): void;
+    write(line: string): void;
 }

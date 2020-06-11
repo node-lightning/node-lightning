@@ -1,4 +1,4 @@
 export type AesKey = {
-  salt: Buffer;
-  key: Buffer;
+    salt: Buffer;
+    key: Buffer;
 };

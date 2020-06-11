@@ -14,10 +14,10 @@ import { Node } from "./node";
 
 // tslint:disable-next-line: interface-name
 export declare interface GraphManager {
-  on(event: "node", fn: (node: Node) => void): this;
-  on(event: "channel", fn: (channel: Channel) => void): this;
-  on(event: "channel_update", fn: (channel: Channel, settings: ChannelSettings) => void): this;
-  on(event: "error", fn: (err: GraphError) => void): this;
+    on(event: "node", fn: (node: Node) => void): this;
+    on(event: "channel", fn: (channel: Channel) => void): this;
+    on(event: "channel_update", fn: (channel: Channel, settings: ChannelSettings) => void): this;
+    on(event: "error", fn: (err: GraphError) => void): this;
 }
 
 /**
@@ -26,105 +26,105 @@ export declare interface GraphManager {
  * can also be removed by monitoring the block chain via a chainmon object.
  */
 export class GraphManager extends EventEmitter {
-  public graph: Graph;
-  public gossipEmitter: IGossipEmitter;
+    public graph: Graph;
+    public gossipEmitter: IGossipEmitter;
 
-  constructor(gossipManager: IGossipEmitter, graph = new Graph()) {
-    super();
-    this.graph = graph;
-    this.gossipEmitter = gossipManager;
-    this.gossipEmitter.on("message", this._onMessage.bind(this));
-  }
-
-  /**
-   * Closes channel via the outpoint
-   * @param outpoint
-   */
-  public removeChannel(outpoint: OutPoint) {
-    const outpointStr = outpoint.toString();
-    for (const channel of this.graph.channels.values()) {
-      if (outpointStr === channel.channelPoint.toString()) {
-        this.graph.removeChannel(channel);
-        this.emit("channel_closed", channel);
-        return;
-      }
-    }
-  }
-
-  private _onMessage(msg: IWireMessage) {
-    // channel_announcement messages are processed by:
-    // First ensuring that we don't already have a duplicate channel.
-    // We then check to see if we need to insert node
-    // references. Inserting temporary node's is required because we
-    // may receieve a channel_announcement without ever receiving
-    // node_announcement messages.
-
-    if (msg instanceof ChannelAnnouncementMessage) {
-      const channel = channelFromMessage(msg);
-
-      // abort processing if the channel already exists
-      if (this.graph.getChannel(msg.shortChannelId)) {
-        return;
-      }
-
-      // construct node1 if required
-      if (!this.graph.getNode(msg.nodeId1)) {
-        const node1 = new Node();
-        node1.nodeId = msg.nodeId1;
-        this.graph.addNode(node1);
-        this.emit("node", node1);
-      }
-
-      // construct node2 if required
-      if (!this.graph.getNode(msg.nodeId2)) {
-        const node2 = new Node();
-        node2.nodeId = msg.nodeId2;
-        this.graph.addNode(node2);
-        this.emit("node", node2);
-      }
-
-      // finally attach the channel
-      this.graph.addChannel(channel);
-      this.emit("channel", channel);
-      return;
+    constructor(gossipManager: IGossipEmitter, graph = new Graph()) {
+        super();
+        this.graph = graph;
+        this.gossipEmitter = gossipManager;
+        this.gossipEmitter.on("message", this._onMessage.bind(this));
     }
 
-    // channel_update messages are processed by:
-    // * looking for the existing channel, if it doesn't then an error is thrown.
-    // * updating the existing channel
-    // The GossipFilter in Wire should ensure that channel_announcement messages
-    // are always transmitted prior to channel_update messages being announced.
-    if (msg instanceof ChannelUpdateMessage) {
-      // first validate we have a channel
-      const channel = this.graph.getChannel(msg.shortChannelId);
-      if (!channel) {
-        this.emit("error", new ChannelNotFoundError(msg.shortChannelId));
-        return;
-      }
-
-      // construct the settings and update the channel
-      const settings = channelSettingsFromMessage(msg);
-      channel.updateSettings(settings);
-      this.emit("channel_update", channel, settings);
-      return;
+    /**
+     * Closes channel via the outpoint
+     * @param outpoint
+     */
+    public removeChannel(outpoint: OutPoint) {
+        const outpointStr = outpoint.toString();
+        for (const channel of this.graph.channels.values()) {
+            if (outpointStr === channel.channelPoint.toString()) {
+                this.graph.removeChannel(channel);
+                this.emit("channel_closed", channel);
+                return;
+            }
+        }
     }
 
-    // node_announcement messages are processed by:
-    // * finding or creating the node (if it doesn't exist)
-    // * updating the node with values from the announcement
-    if (msg instanceof NodeAnnouncementMessage) {
-      let node = this.graph.getNode(msg.nodeId);
-      if (!node) {
-        node = new Node();
-        node.nodeId = msg.nodeId;
-        this.graph.addNode(node);
-      }
-      node.features = msg.features;
-      node.lastUpdate = msg.timestamp;
-      node.alias = msg.alias;
-      node.rgbColor = msg.rgbColor;
-      node.addresses = msg.addresses;
-      this.emit("node", node);
+    private _onMessage(msg: IWireMessage) {
+        // channel_announcement messages are processed by:
+        // First ensuring that we don't already have a duplicate channel.
+        // We then check to see if we need to insert node
+        // references. Inserting temporary node's is required because we
+        // may receieve a channel_announcement without ever receiving
+        // node_announcement messages.
+
+        if (msg instanceof ChannelAnnouncementMessage) {
+            const channel = channelFromMessage(msg);
+
+            // abort processing if the channel already exists
+            if (this.graph.getChannel(msg.shortChannelId)) {
+                return;
+            }
+
+            // construct node1 if required
+            if (!this.graph.getNode(msg.nodeId1)) {
+                const node1 = new Node();
+                node1.nodeId = msg.nodeId1;
+                this.graph.addNode(node1);
+                this.emit("node", node1);
+            }
+
+            // construct node2 if required
+            if (!this.graph.getNode(msg.nodeId2)) {
+                const node2 = new Node();
+                node2.nodeId = msg.nodeId2;
+                this.graph.addNode(node2);
+                this.emit("node", node2);
+            }
+
+            // finally attach the channel
+            this.graph.addChannel(channel);
+            this.emit("channel", channel);
+            return;
+        }
+
+        // channel_update messages are processed by:
+        // * looking for the existing channel, if it doesn't then an error is thrown.
+        // * updating the existing channel
+        // The GossipFilter in Wire should ensure that channel_announcement messages
+        // are always transmitted prior to channel_update messages being announced.
+        if (msg instanceof ChannelUpdateMessage) {
+            // first validate we have a channel
+            const channel = this.graph.getChannel(msg.shortChannelId);
+            if (!channel) {
+                this.emit("error", new ChannelNotFoundError(msg.shortChannelId));
+                return;
+            }
+
+            // construct the settings and update the channel
+            const settings = channelSettingsFromMessage(msg);
+            channel.updateSettings(settings);
+            this.emit("channel_update", channel, settings);
+            return;
+        }
+
+        // node_announcement messages are processed by:
+        // * finding or creating the node (if it doesn't exist)
+        // * updating the node with values from the announcement
+        if (msg instanceof NodeAnnouncementMessage) {
+            let node = this.graph.getNode(msg.nodeId);
+            if (!node) {
+                node = new Node();
+                node.nodeId = msg.nodeId;
+                this.graph.addNode(node);
+            }
+            node.features = msg.features;
+            node.lastUpdate = msg.timestamp;
+            node.alias = msg.alias;
+            node.rgbColor = msg.rgbColor;
+            node.addresses = msg.addresses;
+            this.emit("node", node);
+        }
     }
-  }
 }
