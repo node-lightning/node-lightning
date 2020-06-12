@@ -1,5 +1,5 @@
-import { SessionKeyChain } from "../lib/SessionKeyChain";
 import { expect } from "chai";
+import { SharedSecretGenerator } from "../lib/SharedSecretGenerator";
 
 describe("SessionKeyChain", () => {
     it("should generate shared secrets", () => {
@@ -11,7 +11,7 @@ describe("SessionKeyChain", () => {
             Buffer.from("032c0b7cf95324a07d05398b240174dc0c2be444d96b159aa6c7f7b1e668680991", "hex"),
             Buffer.from("02edabbd16b41c8371b92ef2f04c1185b4f03b6dcd52ba9b78d9d7c89c8f221145", "hex"),
         ]; // prettier-ignore
-        const sut = new SessionKeyChain(sessionKey, ...hops);
+        const sut = new SharedSecretGenerator(sessionKey, ...hops);
         expect(sut.sharedSecrets[0].toString("hex")).to.equal("53eb63ea8a3fec3b3cd433b85cd62a4b145e1dda09391b348c4e1cd36a03ea66"); // prettier-ignore
         expect(sut.sharedSecrets[1].toString("hex")).to.equal("a6519e98832a0b179f62123b3567c106db99ee37bef036e783263602f3488fae"); // prettier-ignore
         expect(sut.sharedSecrets[2].toString("hex")).to.equal("3a6b412548762f0dbccce5c7ae7bb8147d1caf9b5471c34120b30bc9c04891cc"); // prettier-ignore

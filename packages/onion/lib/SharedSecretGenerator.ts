@@ -1,9 +1,9 @@
 import * as crypto from "@lntools/crypto";
 
 /**
- *
+ * Generates blinded shared secret between each hop in an onion packet.
  */
-export class SessionKeyChain {
+export class SharedSecretGenerator {
     public readonly sessionPubKey: Buffer;
     public readonly sharedSecrets: Buffer[];
 
