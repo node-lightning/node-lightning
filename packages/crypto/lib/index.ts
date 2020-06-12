@@ -7,3 +7,4 @@ export * from "./hkdf";
 export * from "./hmac";
 export * from "./key";
 export * from "./secp256k1";
+export * from "./xor";
