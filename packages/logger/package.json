@@ -14,7 +14,7 @@
     "logging"
   ],
   "author": "Brian Mancini <bmancini@gmail.com>",
-  "homepage": "https://github.com/altangent/lntools/tree/master/packages/lntools-logger",
+  "homepage": "https://github.com/altangent/lntools/tree/master/packages/logger",
   "license": "MIT",
   "repository": {
     "type": "git",

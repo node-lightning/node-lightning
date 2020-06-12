@@ -8,7 +8,7 @@
     "bolt7"
   ],
   "author": "Brian Mancini <bmancini@gmail.com>",
-  "homepage": "https://github.com/altangent/lntools/tree/master/packages/lntools-graph",
+  "homepage": "https://github.com/altangent/lntools/tree/master/packages/graph",
   "license": "MIT",
   "repository": {
     "type": "git",

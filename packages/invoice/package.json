@@ -9,7 +9,7 @@
     "build": "../../node_modules/.bin/tsc --project tsconfig.json",
     "prepublish": "npm run build"
   },
-  "homepage": "https://github.com/altangent/lntools/tree/master/packages/lntools-invoice",
+  "homepage": "https://github.com/altangent/lntools/tree/master/packages/invoice",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/altangent/lntools.git"

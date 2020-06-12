@@ -11,7 +11,7 @@
   },
   "keywords": [],
   "author": "Brian Mancini <bmancini@gmail.com>",
-  "homepage": "https://github.com/altangent/lntools/tree/master/packages/lntools-chainmon",
+  "homepage": "https://github.com/altangent/lntools/tree/master/packages/chainmon",
   "license": "MIT",
   "repository": {
     "type": "git",

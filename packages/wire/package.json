@@ -17,7 +17,7 @@
     "lightning-network"
   ],
   "author": "Brian Mancini <bmancini@gmail.com>",
-  "homepage": "https://github.com/altangent/lntools/tree/master/packages/lntools-wire",
+  "homepage": "https://github.com/altangent/lntools/tree/master/packages/wire",
   "license": "MIT",
   "main": "dist/index.js",
   "repository": {

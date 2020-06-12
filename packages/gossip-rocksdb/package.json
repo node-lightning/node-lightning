@@ -17,7 +17,7 @@
     "rocksdb"
   ],
   "author": "Brian Mancini <bmancini@gmail.com>",
-  "homepage": "https://github.com/altangent/lntools/tree/master/packages/lntools-gossip-rocksdb",
+  "homepage": "https://github.com/altangent/lntools/tree/master/packages/gossip-rocksdb",
   "license": "MIT",
   "main": "dist/index.js",
   "repository": {

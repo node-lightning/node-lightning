@@ -9,7 +9,7 @@
     "block parser"
   ],
   "author": "Brian Mancini <bmancini@gmail.com>",
-  "homepage": "https://github.com/altangent/lntools/tree/master/packages/lntools-bitcoin",
+  "homepage": "https://github.com/altangent/lntools/tree/master/packages/bitcoin",
   "license": "MIT",
   "repository": {
     "type": "git",
