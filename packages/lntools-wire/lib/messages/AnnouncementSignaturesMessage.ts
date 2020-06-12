@@ -17,67 +17,67 @@ import { IWireMessage } from "./IWireMessage";
  * bitcoin_key.
  */
 export class AnnouncementSignaturesMessage implements IWireMessage {
-  /**
-   * Deserializes a Buffer into an AnnouncementSignaturesMessage.
-   */
-  public static deserialize(payload: Buffer): AnnouncementSignaturesMessage {
-    const reader = new BufferCursor(payload);
-    reader.readUInt16BE(); // read off type
+    /**
+     * Deserializes a Buffer into an AnnouncementSignaturesMessage.
+     */
+    public static deserialize(payload: Buffer): AnnouncementSignaturesMessage {
+        const reader = new BufferCursor(payload);
+        reader.readUInt16BE(); // read off type
 
-    const instance = new AnnouncementSignaturesMessage();
-    instance.channelId = reader.readBytes(32);
-    instance.shortChannelId = shortChannelIdFromBuffer(reader.readBytes(8));
-    instance.nodeSignature = reader.readBytes(64);
-    instance.bitcoinSignature = reader.readBytes(64);
-    return instance;
-  }
+        const instance = new AnnouncementSignaturesMessage();
+        instance.channelId = reader.readBytes(32);
+        instance.shortChannelId = shortChannelIdFromBuffer(reader.readBytes(8));
+        instance.nodeSignature = reader.readBytes(64);
+        instance.bitcoinSignature = reader.readBytes(64);
+        return instance;
+    }
 
-  /**
-   * Message type - 259
-   */
-  public type: MessageType = MessageType.AnnouncementSignatures;
+    /**
+     * Message type - 259
+     */
+    public type: MessageType = MessageType.AnnouncementSignatures;
 
-  /**
-   * Buffer of the channel_id for the message.
-   */
-  public channelId: Buffer = Buffer.alloc(0);
+    /**
+     * Buffer of the channel_id for the message.
+     */
+    public channelId: Buffer = Buffer.alloc(0);
 
-  /**
-   * ShortChannelId is a unique reference to the funding output of
-   * the channel.
-   */
-  public shortChannelId: ShortChannelId;
+    /**
+     * ShortChannelId is a unique reference to the funding output of
+     * the channel.
+     */
+    public shortChannelId: ShortChannelId;
 
-  /**
-   * Buffer containing the signature of the channel_announcement message
-   * signed by the endpoint's node_id.
-   */
-  public nodeSignature: Buffer = Buffer.alloc(0);
+    /**
+     * Buffer containing the signature of the channel_announcement message
+     * signed by the endpoint's node_id.
+     */
+    public nodeSignature: Buffer = Buffer.alloc(0);
 
-  /**
-   * Buffer containing the signaturee of the channel_announcment message
-   * signed by the endpoint's bitcoin_key.
-   */
-  public bitcoinSignature: Buffer = Buffer.alloc(0);
+    /**
+     * Buffer containing the signaturee of the channel_announcment message
+     * signed by the endpoint's bitcoin_key.
+     */
+    public bitcoinSignature: Buffer = Buffer.alloc(0);
 
-  /**
-   * Serializes the instance into a Buffer suitable for
-   * transmission on the wire.
-   */
-  public serialize(): Buffer {
-    const buffer = Buffer.alloc(
-      2 + // type
-      32 + // channel_id
-      8 + // short_channel_id
-      64 + // node_signature
-        64, // bitcoin_signaturee
-    );
-    const writer = new BufferCursor(buffer);
-    writer.writeUInt16BE(this.type);
-    writer.writeBytes(this.channelId);
-    writer.writeBytes(this.shortChannelId.toBuffer());
-    writer.writeBytes(this.nodeSignature);
-    writer.writeBytes(this.bitcoinSignature);
-    return buffer;
-  }
+    /**
+     * Serializes the instance into a Buffer suitable for
+     * transmission on the wire.
+     */
+    public serialize(): Buffer {
+        const buffer = Buffer.alloc(
+            2 + // type
+            32 + // channel_id
+            8 + // short_channel_id
+            64 + // node_signature
+                64, // bitcoin_signaturee
+        );
+        const writer = new BufferCursor(buffer);
+        writer.writeUInt16BE(this.type);
+        writer.writeBytes(this.channelId);
+        writer.writeBytes(this.shortChannelId.toBuffer());
+        writer.writeBytes(this.nodeSignature);
+        writer.writeBytes(this.bitcoinSignature);
+        return buffer;
+    }
 }

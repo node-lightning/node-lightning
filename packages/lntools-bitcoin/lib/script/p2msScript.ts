@@ -12,7 +12,7 @@ import { OpCode } from "./OpCodes";
  * https://github.com/bitcoinjs/bitcoinjs-lib/blob/master/src/payments/p2ms.js#L58
  */
 export function p2msScript(m: number, n: number, pubkeys: Buffer[]): Buffer {
-  return compileScript([
+    return compileScript([
     0x50 + m,
     ...pubkeys,
     0x50 + n,

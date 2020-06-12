@@ -1,4 +1,4 @@
 export enum QueryChannelRangeFlags {
-  timestamps = 0,
-  checksums = 1,
+    timestamps = 0,
+    checksums = 1,
 }

@@ -6,24 +6,24 @@
  * by the GossipFilter.
  */
 export interface IGossipFilterChainClient {
-  getBlockHash(height: number): Promise<string>;
-  getBlock(hash: string): Promise<HasTxStrings>;
-  getUtxo(txId: string, voutIdx: number): Promise<HasScriptPubKey & HasValue>;
-  waitForSync(): Promise<boolean>;
+    getBlockHash(height: number): Promise<string>;
+    getBlock(hash: string): Promise<HasTxStrings>;
+    getUtxo(txId: string, voutIdx: number): Promise<HasScriptPubKey & HasValue>;
+    waitForSync(): Promise<boolean>;
 }
 
 export type HasTxStrings = {
-  tx: string[];
+    tx: string[];
 };
 
 export type HasScriptPubKey = {
-  scriptPubKey: HasHex;
+    scriptPubKey: HasHex;
 };
 
 export type HasValue = {
-  value: number;
+    value: number;
 };
 
 export type HasHex = {
-  hex: string;
+    hex: string;
 };

@@ -1,8 +1,8 @@
-const { expect } = require('chai');
-const sut = require('../../lib/tx-decoder/decode-tx-id');
+const { expect } = require("chai");
+const sut = require("../../lib/tx-decoder/decode-tx-id");
 
-describe('decodeTxId', () => {
-  let fixtures = [
+describe("decodeTxId", () => {
+    let fixtures = [
     {
       assertion: 'legacy transaction',
       input: '0100000001055794064fa88dec7d18b40eef7344dc36b9f45130d51a299341ae571bca56e4010000006a47304402204ea3dd49155908c537fb25b8c4107bb7c358233e347f43aa0eeb6db3f23efcdc02207509e90de86097b39125529e7ea715c4caf7f642d9f3312e04a478867b14250a01210377ddc2de5af3f3f2b8f45cf89ee9e1089cecf01a1d492b3ef6107269c5537506ffffffff029d60dc01000000001976a91463979b23ad714e3bac76ea7f23481ea74f225ebf88ac80110a00000000001976a9146454923514a78f310f3cde44cdf025058c47f35088ac00000000',
@@ -21,11 +21,11 @@ describe('decodeTxId', () => {
     },
   ]; // prettier-ignore
 
-  for (let fixture of fixtures) {
-    it(fixture.assertion, () => {
-      let actual = sut.decodeTxId(Buffer.from(fixture.input, 'hex'));
-      expect(actual.txId.toString('hex')).to.equal(fixture.expected.txId);
-      expect(actual.hash.toString('hex')).to.equal(fixture.expected.hash);
-    });
-  }
+    for (let fixture of fixtures) {
+        it(fixture.assertion, () => {
+            let actual = sut.decodeTxId(Buffer.from(fixture.input, "hex"));
+            expect(actual.txId.toString("hex")).to.equal(fixture.expected.txId);
+            expect(actual.hash.toString("hex")).to.equal(fixture.expected.hash);
+        });
+    }
 });

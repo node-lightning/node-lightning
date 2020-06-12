@@ -11,7 +11,7 @@ import secp256k1 from "secp256k1";
  * @returns 32-byte sha256 of the point multiple
  */
 export function ecdh(rk: Buffer, k: Buffer): Buffer {
-  return secp256k1.ecdh(rk, k);
+    return secp256k1.ecdh(rk, k);
 }
 
 /**
@@ -24,5 +24,5 @@ export function ecdh(rk: Buffer, k: Buffer): Buffer {
  * @returns true when signature is valid
  */
 export function verifySig(msg: Buffer, sig: Buffer, pubkey: Buffer): boolean {
-  return secp256k1.verify(msg, sig, pubkey);
+    return secp256k1.verify(msg, sig, pubkey);
 }

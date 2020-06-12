@@ -42,10 +42,10 @@ const tests: Array<[string, any, Address]> = [
 ]; // prettier-ignore
 
 describe("deserializeAddress", () => {
-  for (const [title, input, expected] of tests) {
-    it(title, () => {
-      const actual = sut.apply(this, input);
-      expect(actual).to.deep.equal(expected);
-    });
-  }
+    for (const [title, input, expected] of tests) {
+        it(title, () => {
+            const actual = sut.apply(this, input);
+            expect(actual).to.deep.equal(expected);
+        });
+    }
 });

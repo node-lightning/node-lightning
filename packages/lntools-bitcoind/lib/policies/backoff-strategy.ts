@@ -1,3 +1,3 @@
 export interface IBackoffStrategy {
-  backoff(): Promise<void>;
+    backoff(): Promise<void>;
 }

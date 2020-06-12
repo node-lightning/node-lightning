@@ -12,11 +12,11 @@ const maxPrivateKey = BigInt("0xfffffffffffffffffffffffffffffffebaaedce6af48a03b
  * @param privKey 32-byte/256-bit buffer
  */
 export function validPrivateKey(privKey: Buffer): boolean {
-  if (!Buffer.isBuffer(privKey)) return false;
-  if (privKey.length !== 32) return false;
+    if (!Buffer.isBuffer(privKey)) return false;
+    if (privKey.length !== 32) return false;
 
-  const val = BigInt("0x" + privKey.toString("hex"));
-  return val >= minPrivateKey && val <= maxPrivateKey;
+    const val = BigInt("0x" + privKey.toString("hex"));
+    return val >= minPrivateKey && val <= maxPrivateKey;
 }
 
 /**
@@ -30,11 +30,11 @@ export function validPrivateKey(privKey: Buffer): boolean {
  * @returns the 32-byte/256-bit private key
  */
 export function createPrivateKey(): Buffer {
-  let result: Buffer;
-  do {
-    result = crypto.randomBytes(32);
-  } while (!validPrivateKey(result));
-  return result;
+    let result: Buffer;
+    do {
+        result = crypto.randomBytes(32);
+    } while (!validPrivateKey(result));
+    return result;
 }
 
 /**
@@ -46,5 +46,5 @@ export function createPrivateKey(): Buffer {
  * 65-byte buffer for uncompressed
  */
 export function getPublicKey(privKey: Buffer, compressed = true): Buffer {
-  return secp256k1.publicKeyCreate(privKey, compressed);
+    return secp256k1.publicKeyCreate(privKey, compressed);
 }

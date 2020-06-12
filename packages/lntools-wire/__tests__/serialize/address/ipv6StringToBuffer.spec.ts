@@ -70,10 +70,10 @@ const tests: Array<[string, string, Buffer]> = [
 ]; // prettier-ignore
 
 describe("ipv6StringToBuffer", () => {
-  for (const [title, input, expected] of tests) {
-    it(title, () => {
-      const actual = ipv6StringToBuffer(input);
-      expect(actual).to.deep.equal(expected);
-    });
-  }
+    for (const [title, input, expected] of tests) {
+        it(title, () => {
+            const actual = ipv6StringToBuffer(input);
+            expect(actual).to.deep.equal(expected);
+        });
+    }
 });

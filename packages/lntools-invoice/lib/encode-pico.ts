@@ -14,10 +14,10 @@ import { hrpToPico } from "./hrp-pico";
  * This means that 1msat is 10p and 1sat is 10n.
  */
 export function encodePico(pico: string): string {
-  if (!pico) return;
-  const lsdIndex = _lsdIndex(pico);
-  const hrpMultiplier = _minimumHrpMultiplier(lsdIndex);
-  return (BigInt(pico) / hrpToPico(hrpMultiplier)).toString() + hrpMultiplier;
+    if (!pico) return;
+    const lsdIndex = _lsdIndex(pico);
+    const hrpMultiplier = _minimumHrpMultiplier(lsdIndex);
+    return (BigInt(pico) / hrpToPico(hrpMultiplier)).toString() + hrpMultiplier;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -33,10 +33,10 @@ export function encodePico(pico: string): string {
  * @return the index the least significant digit
  */
 function _lsdIndex(msatStr: string): number {
-  for (let i = msatStr.length - 1; i >= 0; i--) {
-    if (Number(msatStr[i]) !== 0) return msatStr.length - i - 1;
-  }
-  throw new Error("Cannot encode 0");
+    for (let i = msatStr.length - 1; i >= 0; i--) {
+        if (Number(msatStr[i]) !== 0) return msatStr.length - i - 1;
+    }
+    throw new Error("Cannot encode 0");
 }
 
 /**
@@ -51,9 +51,9 @@ function _lsdIndex(msatStr: string): number {
  * @return returns the string multiplier
  */
 function _minimumHrpMultiplier(lsdIndex: number): string {
-  if (lsdIndex < 3) return "p";
-  else if (lsdIndex < 6) return "n";
-  else if (lsdIndex < 9) return "u";
-  else if (lsdIndex < 12) return "m";
-  else return "";
+    if (lsdIndex < 3) return "p";
+    else if (lsdIndex < 6) return "n";
+    else if (lsdIndex < 9) return "u";
+    else if (lsdIndex < 12) return "m";
+    else return "";
 }

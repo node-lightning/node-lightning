@@ -1,3 +1,3 @@
 export enum ChannelUpdateMessageFlags {
-  htlcMaximumMsat = 0,
+    htlcMaximumMsat = 0,
 }

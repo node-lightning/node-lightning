@@ -41,10 +41,10 @@ const tests: Array<[string, Address, Buffer]> = [
 ]; // prettier-ignore
 
 describe("serializeAddress", () => {
-  for (const [title, input, expected] of tests) {
-    it(title, () => {
-      const actual = sut(input);
-      expect(actual).to.deep.equal(expected);
-    });
-  }
+    for (const [title, input, expected] of tests) {
+        it(title, () => {
+            const actual = sut(input);
+            expect(actual).to.deep.equal(expected);
+        });
+    }
 });

@@ -1,3 +1,3 @@
 export interface IBufferDeserializable<T> {
-  deserialize(buf: Buffer): T;
+    deserialize(buf: Buffer): T;
 }

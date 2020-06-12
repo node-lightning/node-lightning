@@ -7,7 +7,7 @@ import { TlvValueReader } from "./TlvValueReader";
  * processed.
  */
 export interface ITlvDeserializable<T> {
-  type: bigint;
-  new (): T;
-  deserialize(reader: TlvValueReader): T;
+    type: bigint;
+    new (): T;
+    deserialize(reader: TlvValueReader): T;
 }

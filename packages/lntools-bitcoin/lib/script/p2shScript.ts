@@ -12,9 +12,9 @@ import { OpCode } from "./OpCodes";
  * https://github.com/bitcoinjs/bitcoinjs-lib/blob/master/src/payments/p2pkh.js#L58
  */
 export function p2shScript(hash160Script: Buffer): Buffer {
-  // TODO: validate buffer
-  // prettier-ignore
-  return compileScript([
+    // TODO: validate buffer
+    // prettier-ignore
+    return compileScript([
     OpCode.OP_HASH160,
     hash160Script,
     OpCode.OP_EQUAL,

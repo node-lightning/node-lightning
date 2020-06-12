@@ -6,5 +6,5 @@
  * count and can never be 0.
  */
 export function isSegWitTx(raw: Buffer): boolean {
-  return raw[4] === 0x00 && raw[5] === 0x01;
+    return raw[4] === 0x00 && raw[5] === 0x01;
 }

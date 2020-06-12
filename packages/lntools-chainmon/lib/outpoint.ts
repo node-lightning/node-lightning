@@ -1,5 +1,5 @@
 export type Outpoint = {
-  txId: string;
-  voutIdx: number;
-  toString(): string;
+    txId: string;
+    voutIdx: number;
+    toString(): string;
 };

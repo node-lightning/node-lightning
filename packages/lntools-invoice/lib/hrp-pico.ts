@@ -9,17 +9,17 @@
  * @return returns the BN pico bitcoin value
  */
 export function hrpToPico(hrpMultiplier: string): bigint {
-  if (!hrpMultiplier) return BigInt(1e12);
-  switch (hrpMultiplier) {
-    case "m":
-      return BigInt(1e9);
-    case "u":
-      return BigInt(1e6);
-    case "n":
-      return BigInt(1e3);
-    case "p":
-      return BigInt(1);
-    default:
-      throw new Error("Invalid multiplier");
-  }
+    if (!hrpMultiplier) return BigInt(1e12);
+    switch (hrpMultiplier) {
+        case "m":
+            return BigInt(1e9);
+        case "u":
+            return BigInt(1e6);
+        case "n":
+            return BigInt(1e3);
+        case "p":
+            return BigInt(1);
+        default:
+            throw new Error("Invalid multiplier");
+    }
 }

@@ -13,8 +13,8 @@ import secp256k1 from "secp256k1";
  * @returns 32-byte buffer
  */
 export function derivePubKey(perCommitmentPoint: Buffer, basePoint: Buffer): Buffer {
-  const tweak = sha256(Buffer.concat([perCommitmentPoint, basePoint]));
-  return secp256k1.publicKeyTweakAdd(basePoint, tweak, true);
+    const tweak = sha256(Buffer.concat([perCommitmentPoint, basePoint]));
+    return secp256k1.publicKeyTweakAdd(basePoint, tweak, true);
 }
 
 /**
@@ -29,9 +29,9 @@ export function derivePubKey(perCommitmentPoint: Buffer, basePoint: Buffer): Buf
  * @return 32-byte buffer
  */
 export function derivePrivKey(perCommitmentPoint: Buffer, basePointSecret: Buffer): Buffer {
-  const basePoint = secp256k1.publicKeyCreate(basePointSecret, true);
-  const tweak = sha256(Buffer.concat([perCommitmentPoint, basePoint]));
-  return secp256k1.privateKeyTweakAdd(basePointSecret, tweak);
+    const basePoint = secp256k1.publicKeyCreate(basePointSecret, true);
+    const tweak = sha256(Buffer.concat([perCommitmentPoint, basePoint]));
+    return secp256k1.privateKeyTweakAdd(basePointSecret, tweak);
 }
 
 /**
@@ -46,13 +46,13 @@ export function derivePrivKey(perCommitmentPoint: Buffer, basePointSecret: Buffe
  * @returns 32-byte buffer
  */
 export function deriveRevocationPubKey(perCommitmentPoint: Buffer, basePoint: Buffer): Buffer {
-  const tweakA = sha256(Buffer.concat([basePoint, perCommitmentPoint]));
-  const a = secp256k1.publicKeyTweakMul(basePoint, tweakA, true);
+    const tweakA = sha256(Buffer.concat([basePoint, perCommitmentPoint]));
+    const a = secp256k1.publicKeyTweakMul(basePoint, tweakA, true);
 
-  const tweakB = sha256(Buffer.concat([perCommitmentPoint, basePoint]));
-  const b = secp256k1.publicKeyTweakMul(perCommitmentPoint, tweakB, true);
+    const tweakB = sha256(Buffer.concat([perCommitmentPoint, basePoint]));
+    const b = secp256k1.publicKeyTweakMul(perCommitmentPoint, tweakB, true);
 
-  return secp256k1.publicKeyCombine([a, b], true);
+    return secp256k1.publicKeyCombine([a, b], true);
 }
 
 /**

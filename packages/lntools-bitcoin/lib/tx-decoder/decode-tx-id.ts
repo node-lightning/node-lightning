@@ -16,25 +16,25 @@ import { isSegWitTx } from "./is-segwit-tx";
  * sha256 hash of the data minus segwit data and markers.
  */
 export function decodeTxId(raw: Buffer): TxIdResult {
-  let hash: Buffer;
-  let txId: Buffer;
-  if (isSegWitTx(raw)) {
-    const witnessIdx = indexOfWitness(raw);
-    const lhash = Buffer.alloc(raw.length - 2 - (raw.length - witnessIdx - 4));
-    raw.copy(lhash, 0, 0, 4); // copy the version (2 bytes)
-    raw.copy(lhash, 4, 6, witnessIdx); // copy inputs/outputs
-    raw.copy(lhash, lhash.length - 4, raw.length - 4); // copy the locktime (4 bytes)
+    let hash: Buffer;
+    let txId: Buffer;
+    if (isSegWitTx(raw)) {
+        const witnessIdx = indexOfWitness(raw);
+        const lhash = Buffer.alloc(raw.length - 2 - (raw.length - witnessIdx - 4));
+        raw.copy(lhash, 0, 0, 4); // copy the version (2 bytes)
+        raw.copy(lhash, 4, 6, witnessIdx); // copy inputs/outputs
+        raw.copy(lhash, lhash.length - 4, raw.length - 4); // copy the locktime (4 bytes)
 
-    const txidHash = sha256(sha256(lhash));
-    txId = Buffer.alloc(txidHash.length, txidHash).reverse();
-    hash = sha256(sha256(raw)).reverse();
-  } else {
-    const rawhash = sha256(sha256(raw));
-    txId = Buffer.alloc(rawhash.length, rawhash).reverse();
-    hash = Buffer.alloc(rawhash.length, rawhash).reverse();
-  }
-  return {
-    hash,
-    txId,
-  };
+        const txidHash = sha256(sha256(lhash));
+        txId = Buffer.alloc(txidHash.length, txidHash).reverse();
+        hash = sha256(sha256(raw)).reverse();
+    } else {
+        const rawhash = sha256(sha256(raw));
+        txId = Buffer.alloc(rawhash.length, rawhash).reverse();
+        hash = Buffer.alloc(rawhash.length, rawhash).reverse();
+    }
+    return {
+        hash,
+        txId,
+    };
 }
