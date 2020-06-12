@@ -1,5 +1,6 @@
 export * from "./aes";
 export * from "./aes-key";
+export * from "./chacha";
 export * from "./chachapoly";
 export * from "./hash";
 export * from "./hkdf";
