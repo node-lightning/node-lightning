@@ -1,0 +1,35 @@
+{
+  "name": "@lntools/wire",
+  "version": "0.15.0",
+  "description": "Lightning Network Wire Protocol",
+  "scripts": {
+    "test": "../../node_modules/.bin/nyc --reporter=lcov --reporter=text --extension=.ts ../../node_modules/.bin/mocha --require ts-node/register --recursive \"__tests__/**/*.spec.*\"",
+    "lint": "../../node_modules/.bin/tslint --project tsconfig.json --config ../../tslint.json",
+    "build": "../../node_modules/.bin/tsc --project tsconfig.json",
+    "prepublish": "npm run build"
+  },
+  "keywords": [
+    "lightning",
+    "network",
+    "bolt2",
+    "bolt7",
+    "wire protocol",
+    "lightning-network"
+  ],
+  "author": "Brian Mancini <bmancini@gmail.com>",
+  "homepage": "https://github.com/altangent/lntools/tree/master/packages/wire",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/altangent/lntools.git"
+  },
+  "dependencies": {
+    "@lntools/buffer-cursor": "^0.7.0",
+    "@lntools/crypto": "^0.7.1",
+    "@lntools/logger": "^0.7.0",
+    "@lntools/noise": "^0.12.0",
+    "rfc4648": "^1.2.1",
+    "sse4_crc32": "^6.0.1"
+  }
+}

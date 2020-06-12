@@ -9,15 +9,15 @@
   "author": "Brian Mancini <bmancini@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "@lntools/bitcoin": "file:../../packages/lntools-bitcoin",
-    "@lntools/bitcoind": "file:../../packages/lntools-bitcoind",
-    "@lntools/buffer-cursor": "file:../../packages/lntools-buffer-cursor",
-    "@lntools/chainmon": "file:../../packages/lntools-chainmon",
-    "@lntools/crypto": "file:../../packages/lntools-crypto",
-    "@lntools/gossip-rocksdb": "file:../../packages/lntools-gossip-rocksdb",
-    "@lntools/graph": "file:../../packages/lntools-graph",
-    "@lntools/logger": "file:../../packages/lntools-logger",
-    "@lntools/noise": "file:../../packages/lntools-noise",
-    "@lntools/wire": "file:/../../packages/lntools-wire"
+    "@lntools/bitcoin": "file:../../packages/bitcoin",
+    "@lntools/bitcoind": "file:../../packages/bitcoind",
+    "@lntools/buffer-cursor": "file:../../packages/buffer-cursor",
+    "@lntools/chainmon": "file:../../packages/chainmon",
+    "@lntools/crypto": "file:../../packages/crypto",
+    "@lntools/gossip-rocksdb": "file:../../packages/gossip-rocksdb",
+    "@lntools/graph": "file:../../packages/graph",
+    "@lntools/logger": "file:../../packages/logger",
+    "@lntools/noise": "file:../../packages/noise",
+    "@lntools/wire": "file:/../../packages/wire"
   }
 }

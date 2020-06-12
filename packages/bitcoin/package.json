@@ -1,0 +1,30 @@
+{
+  "name": "@lntools/bitcoin",
+  "version": "0.3.0",
+  "description": "Bitcoin utilities",
+  "keywords": [
+    "bitcoin",
+    "transaction building",
+    "transaction parser",
+    "block parser"
+  ],
+  "author": "Brian Mancini <bmancini@gmail.com>",
+  "homepage": "https://github.com/altangent/lntools/tree/master/packages/bitcoin",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/altangent/lntools.git"
+  },
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "../../node_modules/.bin/nyc --reporter=lcov --reporter=text --extension=.ts ../../node_modules/.bin/mocha --require ts-node/register --recursive \"__tests__/**/*.spec.js\"",
+    "lint": "../../node_modules/.bin/tslint --project tsconfig.json --config ../../tslint.json",
+    "build": "../../node_modules/.bin/tsc --project tsconfig.json",
+    "prepublish": "npm run build"
+  },
+  "dependencies": {
+    "@lntools/buffer-cursor": "^0.7.0",
+    "@lntools/crypto": "^0.7.1",
+    "pushdata-bitcoin": "^1.0.1"
+  }
+}

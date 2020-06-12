@@ -1,0 +1,24 @@
+{
+  "name": "@lntools/chainmon",
+  "version": "0.3.0",
+  "description": "Bitcoin on-chain transaction monitoring tool",
+  "main": "dist/index.js",
+  "scripts": {
+    "xtest": "../../node_modules/.bin/nyc --reporter=lcov --reporter=text --extension=.ts ../../node_modules/.bin/mocha --require ts-node/register --recursive \"__tests__/**/*.spec.js\"",
+    "lint": "../../node_modules/.bin/tslint --project tsconfig.json --config ../../tslint.json",
+    "build": "../../node_modules/.bin/tsc --project tsconfig.json",
+    "prepublish": "npm run build"
+  },
+  "keywords": [],
+  "author": "Brian Mancini <bmancini@gmail.com>",
+  "homepage": "https://github.com/altangent/lntools/tree/master/packages/chainmon",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/altangent/lntools.git"
+  },
+  "dependencies": {
+    "@lntools/bitcoin": "^0.3.0",
+    "@lntools/bitcoind": "^0.3.0"
+  }
+}
