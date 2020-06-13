@@ -23,7 +23,7 @@ export class Logger implements ILogger {
     private _level: LogLevel;
     private _root: Logger;
 
-    constructor(area: string = "root", instance?: string) {
+    constructor(area: string = "", instance?: string) {
         this._root = this;
         this.area = area;
         this.instance = instance;
@@ -116,10 +116,14 @@ export class Logger implements ILogger {
 
     private _format(level: LogLevel, area: string, instance: string, args: any[]): string {
         const date = new Date().toISOString();
-        const formattedArea = area;
+        const formattedArea = area ? " " + area : "";
         const instanceFmt = instance ? " " + instance : "";
+
+        // convert buffers to hex encodings
+        args = args.map(arg => (Buffer.isBuffer(arg) ? arg.toString("hex") : arg));
+
         const msg = util.format(args[0], ...args.slice(1));
-        return `${date} [${level}] ${formattedArea}${instanceFmt}: ${msg}`;
+        return `${date} [${level}]${formattedArea}${instanceFmt}: ${msg}`;
     }
 
     private _write(msg: string) {
