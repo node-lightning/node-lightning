@@ -17,12 +17,12 @@ describe("xor", () => {
     it("shorter a", () => {
         const a = Buffer.from("ff", "hex");
         const b = Buffer.from("0000", "hex");
-        expect(xor(a, b).toString("hex")).to.equal("ff00");
+        expect(xor(a, b).toString("hex")).to.equal("ff");
     });
 
     it("shorter b", () => {
         const a = Buffer.from("ffff", "hex");
         const b = Buffer.from("00", "hex");
-        expect(xor(a, b).toString("hex")).to.equal("ffff");
+        expect(xor(a, b).toString("hex")).to.equal("ff");
     });
 });
