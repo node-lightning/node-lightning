@@ -13,8 +13,14 @@ function sut(val: number | string) {
 }
 
 const tests = [
-    [".readBytes()", () => sut(4).readBytes(4), Buffer.from([1, 2, 3, 4])],
+    [".readBytes() all values", () => sut(4).readBytes(4), Buffer.from([1, 2, 3, 4])],
+    [".readBytes() zero", () => sut(4).readBytes(0), Buffer.from([])],
     [".readBytes() RangeError", () => sut(4).readBytes(5), RangeError],
+    [".readBytes() remaining bytes", () => sut(4).readBytes(), Buffer.from([1, 2, 3, 4])],
+    [".readBytes() zero remaining", () => sut(0).readBytes(), Buffer.from([])],
+
+    [".readUIntLE()", () => sut(4).readUIntLE(2), 513],
+    [".readUIntBE()", () => sut(4).readUIntBE(2), 258],
 
     [".readUInt8()", () => sut(1).readUInt8(), 1],
     [".readUInt8() RangeError", () => sut(0).readUInt8(), RangeError],
