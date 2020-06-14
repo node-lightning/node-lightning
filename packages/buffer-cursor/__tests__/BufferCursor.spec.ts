@@ -2,7 +2,7 @@
 /* eslint-disable no-undef */
 
 import { expect } from "chai";
-import { BufferCursor } from "../lib";
+import { BufferCursor } from "../lib/BufferCursor";
 
 const readTests = [
     {
