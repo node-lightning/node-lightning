@@ -24,7 +24,6 @@
   },
   "dependencies": {
     "@lntools/buffer-cursor": "^0.7.0",
-    "@lntools/crypto": "^0.7.1",
-    "pushdata-bitcoin": "^1.0.1"
+    "@lntools/crypto": "^0.7.1"
   }
 }
