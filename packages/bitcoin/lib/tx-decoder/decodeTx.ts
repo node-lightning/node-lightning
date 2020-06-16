@@ -2,9 +2,9 @@ import { BufferCursor } from "@lntools/buffer-cursor";
 import { Tx } from "../tx";
 import { TxIn } from "../tx";
 import { TxOut } from "../tx";
-import { decodeTxId } from "./decode-tx-id";
-import { decodeTxSize } from "./decode-tx-size";
-import { isSegWitTx } from "./is-segwit-tx";
+import { decodeTxId } from "./decodeTxId";
+import { decodeTxSize } from "./decodeTxSize";
+import { isSegWitTx } from "./isSegwitTx";
 
 /**
  * Decodes a raw transaction from a buffer into a Tx object.

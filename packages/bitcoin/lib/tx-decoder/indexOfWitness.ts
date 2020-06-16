@@ -1,7 +1,5 @@
-// @ts-check
-
 import { BufferCursor } from "@lntools/buffer-cursor";
-import { isSegWitTx } from "./is-segwit-tx";
+import { isSegWitTx } from "./isSegwitTx";
 
 /**
  * Finds the index of the witness data in the raw Buffer.

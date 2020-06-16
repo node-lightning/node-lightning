@@ -1,6 +1,6 @@
 import { BufferCursor } from "@lntools/buffer-cursor";
-import { SizeResult } from "../size-result";
-import { isSegWitTx } from "./is-segwit-tx";
+import { SizeResult } from "../SizeResult";
+import { isSegWitTx } from "./isSegwitTx";
 
 /**
  * Decodes the size, virtual size, and weight properties from the raw

@@ -1,7 +1,7 @@
 import { sha256 } from "@lntools/crypto";
 import { TxIdResult } from "../txid-result";
-import { indexOfWitness } from "./index-of-witness";
-import { isSegWitTx } from "./is-segwit-tx";
+import { indexOfWitness } from "./indexOfWitness";
+import { isSegWitTx } from "./isSegwitTx";
 
 /**
  * Decodes the txId and hash from the Buffer.
