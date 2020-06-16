@@ -1,4 +1,4 @@
-import { Tx } from "./tx";
+import { Tx } from "./Tx";
 
 export type Block = {
     hash: string;

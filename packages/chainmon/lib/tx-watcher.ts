@@ -1,5 +1,5 @@
 import { decodeTx } from "@lntools/bitcoin";
-import { Tx } from "@lntools/bitcoin/dist/tx";
+import { Tx } from "@lntools/bitcoin";
 import { BitcoindClient } from "@lntools/bitcoind";
 import { EventEmitter } from "events";
 import { Outpoint } from "./outpoint";

@@ -1,7 +1,7 @@
 import { BufferCursor } from "@lntools/buffer-cursor";
-import { Tx } from "../tx";
-import { TxIn } from "../tx";
-import { TxOut } from "../tx";
+import { Tx } from "../Tx";
+import { TxIn } from "../Tx";
+import { TxOut } from "../Tx";
 import { decodeTxId } from "./decodeTxId";
 import { decodeTxSize } from "./decodeTxSize";
 import { isSegWitTx } from "./isSegwitTx";

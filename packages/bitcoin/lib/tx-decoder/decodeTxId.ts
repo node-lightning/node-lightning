@@ -1,5 +1,5 @@
 import { sha256 } from "@lntools/crypto";
-import { TxIdResult } from "../txid-result";
+import { TxIdResult } from "../TxIdResult";
 import { indexOfWitness } from "./indexOfWitness";
 import { isSegWitTx } from "./isSegwitTx";
 
