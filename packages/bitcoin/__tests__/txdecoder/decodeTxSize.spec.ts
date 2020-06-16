@@ -1,8 +1,8 @@
-const { expect } = require("chai");
-const sut = require("../../lib/tx-decoder/decode-tx-size");
+import { expect } from "chai";
+import { decodeTxSize } from "../../lib/tx-decoder/decodeTxSize";
 
 describe("decodeTxSize", () => {
-    let fixtures = [
+    const fixtures = [
         {
             assertion: "legacy transaction",
             input:
@@ -25,9 +25,9 @@ describe("decodeTxSize", () => {
         },
     ];
 
-    for (let fixture of fixtures) {
+    for (const fixture of fixtures) {
         it(fixture.assertion, () => {
-            let actual = sut.decodeTxSize(Buffer.from(fixture.input, "hex"));
+            const actual = decodeTxSize(Buffer.from(fixture.input, "hex"));
             expect(actual.size).to.equal(fixture.expected.size);
             expect(actual.vsize).to.equal(fixture.expected.vsize);
             expect(actual.weight).to.equal(fixture.expected.weight);

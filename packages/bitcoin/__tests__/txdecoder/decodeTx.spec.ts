@@ -1,8 +1,8 @@
-const { expect } = require("chai");
-const sut = require("../../lib/tx-decoder/decode-tx");
+import { expect } from "chai";
+import { decodeTx } from "../../lib/tx-decoder/decodeTx";
 
 describe("decodeTx", () => {
-    let fixtures = [
+    const fixtures = [
         {
             assertion: "legacy transaction",
             input:
@@ -25,6 +25,7 @@ describe("decodeTx", () => {
                             hex:
                                 "47304402204ea3dd49155908c537fb25b8c4107bb7c358233e347f43aa0eeb6db3f23efcdc02207509e90de86097b39125529e7ea715c4caf7f642d9f3312e04a478867b14250a01210377ddc2de5af3f3f2b8f45cf89ee9e1089cecf01a1d492b3ef6107269c5537506",
                         },
+                        txinwitness: undefined,
                         sequence: 4294967295,
                     },
                 ],
@@ -117,10 +118,10 @@ describe("decodeTx", () => {
         },
     ];
 
-    for (let fixture of fixtures) {
+    for (const fixture of fixtures) {
         it(fixture.assertion, () => {
-            let result = sut.decodeTx(Buffer.from(fixture.input, "hex"));
-            let expected = fixture.expected;
+            const result = decodeTx(Buffer.from(fixture.input, "hex"));
+            const expected = fixture.expected;
             expect(result.version).to.equal(expected.version);
             expect(result.txId.toString("hex")).to.equal(expected.txid);
             expect(result.hash.toString("hex")).to.equal(expected.hash);
@@ -129,7 +130,7 @@ describe("decodeTx", () => {
             expect(result.weight).to.equal(expected.weight);
             expect(result.vin.length).to.equal(expected.vin.length);
             for (let i = 0; i < result.vin.length; i++) {
-                let vin = result.vin[i];
+                const vin = result.vin[i];
                 expect(vin.txId.toString("hex")).to.equal(expected.vin[i].txid);
                 expect(vin.vout).to.equal(expected.vin[i].vout);
                 expect(vin.scriptSig.toString("hex")).to.equal(expected.vin[i].scriptSig.hex);
@@ -145,7 +146,7 @@ describe("decodeTx", () => {
             }
             expect(result.vout.length).to.equal(expected.vout.length);
             for (let i = 0; i < result.vout.length; i++) {
-                let vout = result.vout[i];
+                const vout = result.vout[i];
                 expect(Number(vout.value)).to.equal(expected.vout[i].value * 10 ** 8);
                 expect(vout.pubKeyScript.toString("hex")).to.equal(
                     expected.vout[i].scriptPubKey.hex,
