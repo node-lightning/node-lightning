@@ -1,3 +1,3 @@
-import { OpCode } from "./script/OpCodes";
+import { OpCode } from "./OpCodes";
 
 export type ScriptCmd = OpCode | Buffer;

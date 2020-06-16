@@ -3,13 +3,81 @@ import { encodeVarInt } from "@lntools/buffer-cursor";
 import { BufferCursor } from "@lntools/buffer-cursor";
 import { StreamReader } from "@lntools/buffer-cursor";
 import { Readable } from "stream";
-import { OpCode } from "./script/OpCodes";
+import { OpCode } from "./OpCodes";
 import { ScriptCmd } from "./ScriptCmd";
 
 /**
- * BitcoinScrpt
+ * Bitcoin Script
  */
 export class Script {
+    /**
+     * Creates a standard Pay-to-Public-Key-Hash scriptPubKey by accepting a
+     * hash of a public key as input and generating the script in the standand
+     * P2PKH script format:
+     *   OP_DUP OP_HASH160 <hash160pubkey> OP_EQUALVERIFY OP_CHECKSIG
+     */
+    public static p2pkhLock(hash160PubKey: Buffer): Script {
+        return new Script(
+            OpCode.OP_DUP,
+            OpCode.OP_HASH160,
+            hash160PubKey,
+            OpCode.OP_EQUALVERIFY,
+            OpCode.OP_CHECKSIG,
+        );
+    }
+
+    /**
+     * Creates a standard Pay-to-Script-Hash scriptPubKey by accepting a hash of
+     * the redeem script as input and generating the P2SH script:
+     *   OP_HASH160 <hashScript> OP_EQUAL
+     */
+    public static p2shLock(hash160Script: Buffer): Script {
+        return new Script(
+            OpCode.OP_HASH160,
+            hash160Script,
+            OpCode.OP_EQUAL,
+        ); // prettier-ignore
+    }
+
+    /**
+     * Creates a standard Pay-to-MultiSig scriptPubKey by accepting m of n
+     * public keys as inputs in the format:
+     *   OP_<m> <pubkey1> <pubkey2> <pubkey..m> OP_<n> OP_CHECKMULTISIG
+     */
+    public static p2msLock(m: number, n: number, pubkeys: Buffer[]): Script {
+        return new Script(
+            0x50 + m,
+            ...pubkeys,
+            0x50 + n,
+            OpCode.OP_CHECKMULTISIG,
+        ); // prettier-ignore
+    }
+
+    /**
+     * Create a standard Pay-to-Witness-PubKey-Hash scriptPubKey by accepting
+     * the hash160 of a compressed public key point as input. It is of the
+     * format:
+     *   OP_0 <hash160_pubkey>
+     */
+    public static p2wpkhLock(hash160Script: Buffer): Script {
+        return new Script(
+            OpCode.OP_0,
+            hash160Script,
+        ); // prettier-ignore
+    }
+
+    /**
+     * Create a standard Pay-to-Witness-Script-Hash scriptPubKey by accepting
+     * the sha256 of the witness script as input. It is of the format:
+     *   OP_0 <sha256_redeem_script>
+     */
+    public static p2wshScript(sha256Script: Buffer): Script {
+        return new Script(
+            OpCode.OP_0,
+            sha256Script,
+        ); // prettier-ignore
+    }
+
     /**
      * Parses a stream of bytes representing a Script. The stream must start
      * with a Varint length of Script data. The Script data is then parsed into
@@ -101,9 +169,9 @@ export class Script {
      * [varint]: length
      * [length]: script_cmds
      */
-    public toBuffer(): Buffer {
+    public serialize(): Buffer {
         // first obtain the length of all commands in the script
-        const cmdBuf = this.toCmdBuffer();
+        const cmdBuf = this.serializeCmds();
 
         // capture the length of cmd buffer
         const len = encodeVarInt(cmdBuf.length);
@@ -116,7 +184,7 @@ export class Script {
      * Serializes the commands to a buffer. This information is the raw
      * serialization and can be directly parsed with the `parseCmds` method.
      */
-    public toCmdBuffer(): Buffer {
+    public serializeCmds(): Buffer {
         const results: Buffer[] = [];
         for (const op of this.cmds) {
             // OP_CODES are just an integers and can just be pushed directly onto

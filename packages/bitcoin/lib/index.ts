@@ -1,4 +1,4 @@
-export * from "./script/OpCodes";
+export * from "./OpCodes";
 export * from "./tx-decoder/decode-tx";
 export * from "./tx-decoder/decode-tx-id";
 export * from "./tx-decoder/decode-tx-size";
