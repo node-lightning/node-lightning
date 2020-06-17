@@ -29,13 +29,6 @@ export class PeerGossipReceiver extends EventEmitter {
         const gossipQueriesOpt = peer.remoteFeatures.isSet(InitFeatureFlags.gossipQueriesOptional);
         const gossipQueriesReq = peer.remoteFeatures.isSet(InitFeatureFlags.gossipQueriesRequired);
 
-        console.log(
-            "remoteFeatures",
-            peer.remoteFeatures.value,
-            gossipQueriesOpt,
-            gossipQueriesReq,
-        );
-
         if (gossipQueriesOpt || gossipQueriesReq) {
             this.logger.info("using gossip_queries strategies");
             this.gossipTimeStampFilterStrategy = new GossipTimestampFilterStrategy(

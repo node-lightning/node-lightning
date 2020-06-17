@@ -3,37 +3,62 @@ import { BitField } from "../BitField";
 import { InitFeatureFlags } from "../flags/InitFeatureFlags";
 import { MessageType } from "../MessageType";
 import { IWireMessage } from "./IWireMessage";
+import { TlvValueReader } from "../serialize/TlvValueReader";
 
 /**
- * InitMessage is defined in BOLT #1. Once authentication is complete,
- * the first message reveals the features supported or required by
- * the node sending the message. This message is sent even on
- * a reconnection.
+ * InitMessage is defined in BOLT #1. Once authentication is complete, the first
+ * message reveals the features supported or required by the node sending the
+ * message. This message is sent even on a reconnection.
  *
- * This message contains two fields; globalfeatures and localfeatures,
- * that are used to signal how the message should operate. The values
- * of are defined in the BOLT #9.
+ * This message contains two fields; global features and local features, that
+ * are used to signal how the message should operate. The values of are defined
+ * in the BOLT #9.
  */
 export class InitMessage implements IWireMessage {
     /**
-     * Deserializes a Buffer containing the message information. This
-     * method will capture the arbitrary length global and local
+     * Processes a buffer containing the message information. This method
+     * will capture the arbitrary length global and local
      * features into two internal properties of the newly constructed
      * init message object.
      */
-    public static deserialize(payload: Buffer): InitMessage {
-        const reader = new BufferCursor(payload);
-        reader.readUInt16BE(); // read off type
-
+    public static deserialize(buffer: Buffer): InitMessage {
         const instance = new InitMessage();
+        const reader = new BufferCursor(buffer);
 
-        // Read the global length and parse into a BN value.
+        // read the type bytes
+        reader.readUInt16BE();
+
+        // read the global features and per the specification, the global
+        // features should not exceed features greater than 13.
         const gflen = reader.readUInt16BE();
-        instance.globalFeatures = BitField.fromBuffer(reader.readBytes(gflen));
+        const gf = BitField.fromBuffer(reader.readBytes(gflen));
 
         // Read the local length and parse into a BN value.
         const lflen = reader.readUInt16BE();
-        instance.localFeatures = BitField.fromBuffer(reader.readBytes(lflen));
+        const lf = BitField.fromBuffer(reader.readBytes(lflen));
+
+        // construct a single features object by bitwise or of the global and
+        // local features.
+        instance.features = new BitField().or(gf).or(lf);
+
+        // process TLVs
+        while (!reader.eof) {
+            const type = reader.readBigSize();
+            const length = reader.readBigSize();
+            const value = reader.readBytes(Number(length));
+            const valueReader = new BufferCursor(value);
+
+            switch (Number(type)) {
+                // networks
+                case 1: {
+                    while (!valueReader.eof) {
+                        const chainHash = valueReader.readBytes(32);
+                        instance.chainHashes.push(chainHash);
+                    }
+                    break;
+                }
+            }
+        }
 
         return instance;
     }
@@ -42,28 +67,43 @@ export class InitMessage implements IWireMessage {
      * Message type 16
      */
     public type: MessageType = MessageType.Init;
-    public globalFeatures: BitField<InitFeatureFlags> = new BitField();
-    public localFeatures: BitField<InitFeatureFlags> = new BitField();
 
     /**
-     * Serialize will construct a properly formatted message
-     * based on the properties of the configured message.
+     * BitField containing the features provided in by the local or remote node
+     */
+    public features: BitField<InitFeatureFlags> = new BitField();
+
+    /**
+     * Supported chain_hashes for the remote peer
+     */
+    public chainHashes: Buffer[] = [];
+
+    /**
+     * Serialize will construct a properly formatted message based on the
+     * properties of the configured message.
      */
     public serialize() {
-        const gf = this.globalFeatures.toBuffer();
-        const lf = this.localFeatures.toBuffer();
-        const gflen = gf.length;
-        const lflen = lf.length;
+        const gflen = 0;
+        const features = this.features.toBuffer();
+        const featuresLen = features.length;
+        const hasChainHashTlv = this.chainHashes.length > 0;
+        const chainHashesLen = this.chainHashes.length * 32;
+        const chainHashTlvLen = hasChainHashTlv
+            ? chainHashesLen +
+              BufferCursor.bigSizeBytes(1n) +
+              BufferCursor.bigSizeBytes(BigInt(chainHashesLen))
+            : 0;
 
         // create a Buffer of the correct length that will
         // be returned after all data is written to the buffer.
         const buffer = Buffer.alloc(
             2 + // type (uint16be)
             2 + // length of glfen (uint16be)
-            gflen +
+            0 + // length of global features
             2 + // length of lflen (uint16be)
-                lflen,
-        );
+            featuresLen + // length of features
+            chainHashTlvLen
+        ); // prettier-ignore
 
         // use BufferCursor to make writing easier
         const cursor = new BufferCursor(buffer);
@@ -74,112 +114,19 @@ export class InitMessage implements IWireMessage {
         // write gflen
         cursor.writeUInt16BE(gflen);
 
-        // write gf
-        cursor.writeBytes(gf);
-
         // write lflen
-        cursor.writeUInt16BE(lflen);
+        cursor.writeUInt16BE(featuresLen);
 
         // write lf
-        cursor.writeBytes(lf);
+        cursor.writeBytes(features);
+
+        // write chainhash tlv
+        if (hasChainHashTlv) {
+            cursor.writeBigSize(1n); // type
+            cursor.writeBigSize(BigInt(chainHashesLen)); // length
+            cursor.writeBytes(Buffer.concat(this.chainHashes)); // value
+        }
 
         return buffer;
-    }
-
-    /**
-     * Gets if the option_data_loss_protect local flag is set. This
-     * flag enables / requires the support of the extra
-     * channel_reestablish fields defined in BOLT #2.
-     *
-     * Sets the option_data_loss_protect odd bit to the value
-     * specified. option_data_loss_protect can use 0/1 flags. This
-     * setter will ensure that only the odd bit is set.
-     */
-    get localDataLossProtect(): boolean {
-        return (
-            this.localFeatures.isSet(InitFeatureFlags.optionDataLossProtectRequired) ||
-            this.localFeatures.isSet(InitFeatureFlags.optionDataLossProtectOptional)
-        );
-    }
-
-    set localDataLossProtect(val: boolean) {
-        this.localFeatures.unset(InitFeatureFlags.optionDataLossProtectRequired);
-        if (val) this.localFeatures.set(InitFeatureFlags.optionDataLossProtectOptional);
-        else this.localFeatures.unset(InitFeatureFlags.optionDataLossProtectOptional);
-    }
-
-    /**
-     * Gets the initial_routing_sync local flag. This flag asks
-     * the remote node to send a complete routing information dump.
-     * The initial_routing_sync feature is overridden (and should be
-     * considered equal to 0) by the gossip_queries feature if the
-     * latter is negotiated via init.
-     *
-     * Sets the initial_routing_sync local flag.
-     */
-    get localInitialRoutingSync(): boolean {
-        return this.localFeatures.isSet(InitFeatureFlags.initialRoutingSyncOptional);
-    }
-
-    set localInitialRoutingSync(val: boolean) {
-        if (val) this.localFeatures.set(InitFeatureFlags.initialRoutingSyncOptional);
-        else this.localFeatures.unset(InitFeatureFlags.initialRoutingSyncOptional);
-    }
-
-    /**
-     * Gets the option_upfront_shutdown_script location flag. This flag
-     * asks to commit to a shutdown scriptpubkey when opening a channel
-     * as defined in BOLT #2.
-     *
-     * Sets the option_upfront_shutdown_script local flag. This flag
-     * can be either 4 or 5. Use of the setter will set 5 and unset 4
-     * to ensure both are not set.
-     */
-    get localUpfrontShutdownScript(): boolean {
-        return (
-            this.localFeatures.isSet(InitFeatureFlags.optionUpfrontShutdownScriptRequired) ||
-            this.localFeatures.isSet(InitFeatureFlags.optionUpfrontShutdownScriptOptional)
-        );
-    }
-
-    set localUpfrontShutdownScript(val: boolean) {
-        this.localFeatures.unset(InitFeatureFlags.optionUpfrontShutdownScriptRequired);
-        if (val) this.localFeatures.set(InitFeatureFlags.optionUpfrontShutdownScriptOptional);
-        else this.localFeatures.unset(InitFeatureFlags.optionUpfrontShutdownScriptOptional);
-    }
-
-    /**
-     * Gets the gossip_queries local flag. This flag signals that the node
-     * wishes to use more advanced gossip control. When negotiated, this
-     * flag will override the initial_routing_sync flag. Advanced
-     * querying is defined in BOLT #7.
-     *
-     * Sets the gossip_queries flag. This flag can be either 6 or 7. Use
-     * of the setter will set 7 and unset 6 to ensure both are not set.
-     */
-    get localGossipQueries(): boolean {
-        return (
-            this.localFeatures.isSet(InitFeatureFlags.gossipQueriesRequired) ||
-            this.localFeatures.isSet(InitFeatureFlags.gossipQueriesOptional)
-        );
-    }
-
-    set localGossipQueries(val: boolean) {
-        this.localFeatures.unset(InitFeatureFlags.gossipQueriesRequired);
-        if (val) this.localFeatures.set(InitFeatureFlags.gossipQueriesOptional);
-        else this.localFeatures.unset(InitFeatureFlags.gossipQueriesOptional);
-    }
-
-    get localGossipQueriesEx(): boolean {
-        return (
-            this.localFeatures.isSet(InitFeatureFlags.gossipQueriesExRequired) ||
-            this.localFeatures.isSet(InitFeatureFlags.gossipQueriesExOptional)
-        );
-    }
-
-    set localGossipQueriesEx(val: boolean) {
-        this.localFeatures.unset(InitFeatureFlags.gossipQueriesExRequired);
-        if (val) this.localFeatures.set(InitFeatureFlags.gossipQueriesExOptional);
-        else this.localFeatures.unset(InitFeatureFlags.gossipQueriesExOptional);
     }
 }
