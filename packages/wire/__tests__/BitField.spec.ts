@@ -117,4 +117,77 @@ describe("BitField", () => {
             expect(sut.msb()).to.equal(12);
         });
     });
+
+    describe(".and()", () => {
+        it("same length", () => {
+            const a = new BitField(0b00111100n);
+            const b = new BitField(0b11111111n);
+            const result = a.and(b);
+            expect(result.value.toString(2)).to.equal("111100");
+        });
+
+        it("a shorter", () => {
+            const a = new BitField(0b111100n);
+            const b = new BitField(0b11111111n);
+            const result = a.and(b);
+            expect(result.value.toString(2)).to.equal("111100");
+        });
+
+        it("b shorter", () => {
+            const a = new BitField(0b00111100n);
+            const b = new BitField(0b111111n);
+            const result = a.and(b);
+            expect(result.value.toString(2)).to.equal("111100");
+        });
+    });
+
+    describe(".or()", () => {
+        it("same length", () => {
+            const a = new BitField(0b00111100n);
+            const b = new BitField(0b11111111n);
+            const result = a.or(b);
+            expect(result.value.toString(2)).to.equal("11111111");
+        });
+
+        it("a shorter", () => {
+            const a = new BitField(0b111100n);
+            const b = new BitField(0b11111111n);
+            const result = a.or(b);
+            expect(result.value.toString(2)).to.equal("11111111");
+        });
+
+        it("b shorter", () => {
+            const a = new BitField(0b00111100n);
+            const b = new BitField(0b111111n);
+            const result = a.or(b);
+            expect(result.value.toString(2)).to.equal("111111");
+        });
+    });
+
+    describe(".xor()", () => {
+        it("same length", () => {
+            const a = new BitField(0b00111100n);
+            const b = new BitField(0b11111111n);
+            const result = a.xor(b);
+            expect(result.value.toString(2)).to.equal("11000011");
+        });
+
+        it("a shorter", () => {
+            const a = new BitField(0b111100n);
+            const b = new BitField(0b11111111n);
+            const result = a.xor(b);
+            expect(result.value.toString(2)).to.equal("11000011");
+        });
+
+        it("b shorter", () => {
+            const a = new BitField(0b00111100n);
+            const b = new BitField(0b111111n);
+            const result = a.xor(b);
+            expect(result.value.toString(2)).to.equal("11");
+        });
+    });
+
+    describe(".or()", () => {});
+
+    describe(".xor()", () => {});
 });
