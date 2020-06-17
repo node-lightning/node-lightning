@@ -84,7 +84,7 @@ export class Peer extends EventEmitter implements IMessageSenderReceiver {
     public pingPongState: PingPongState;
     public logger: ILogger;
     public remoteFeatures: BitField<InitFeatureFlags>;
-    public localFeatures: BitField<InitFeatureFlags>;
+    public features: BitField<InitFeatureFlags>;
     public isInitiator: boolean = false;
     public reconnectTimeoutMs = 15000;
 
@@ -100,7 +100,7 @@ export class Peer extends EventEmitter implements IMessageSenderReceiver {
         super();
 
         this.pingPongState = new PingPongState(this);
-        this.localFeatures = localFeatures;
+        this.features = localFeatures;
         this.logger = logger;
     }
 
@@ -276,7 +276,7 @@ export class Peer extends EventEmitter implements IMessageSenderReceiver {
     private _sendInitMessage() {
         // construct the init message
         const msg = new InitMessage();
-        msg.localFeatures = this.localFeatures;
+        msg.features = this.features;
 
         // fire off the init message to the peer
         const payload = msg.serialize();
@@ -293,21 +293,15 @@ export class Peer extends EventEmitter implements IMessageSenderReceiver {
         // deserialize message
         const m = MessageFactory.deserialize(raw) as InitMessage;
         if (this.logger) {
-            this.logger.info(
-                "peer initialized",
-                `init_routing_sync: ${m.localInitialRoutingSync}`,
-                `data_loss_protection: ${m.localDataLossProtect}`,
-                `gossip_queries: ${m.localGossipQueries}`,
-                `gossip_queries_ex: ${m.localGossipQueriesEx}`,
-                `upfront_shutdown_script: ${m.localUpfrontShutdownScript}`,
-            );
+            const features: InitFeatureFlags[] = m.features.flags();
+            this.logger.info("peer initialized with features", features);
         }
 
         // ensure we got an InitMessagee
         assert.ok(m instanceof InitMessage, new Error("Expecting InitMessage"));
 
         // store the init messagee in case we need to refer to it
-        this.remoteFeatures = m.localFeatures;
+        this.remoteFeatures = m.features;
 
         // start other state now that peer is initialized
         this.pingPongState.start();
