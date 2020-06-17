@@ -47,6 +47,24 @@ export class BitField<T = number> {
         this.value ^= BigInt(1) << BigInt(bit);
     }
 
+    /**
+     * Returns the full list of set flags for the bit field
+     */
+    public flags(): T[] {
+        const bits: T[] = [];
+        let bit = 0;
+        let val = 1n;
+        while (val < this.value) {
+            if (this.value & val) bits.push(bit as any);
+            bit += 1;
+            val <<= 1n;
+        }
+        return bits;
+    }
+
+    /**
+     * Returns the index of the most-significant bit that is set
+     */
     public msb(): number {
         let num = this.value;
         let bit = 0;
@@ -55,6 +73,30 @@ export class BitField<T = number> {
             bit += 1;
         }
         return bit;
+    }
+
+    /**
+     * Returns a new BitField with the bitwise AND of the two BitFields
+     * @param bitfield
+     */
+    public and(bitfield: BitField): BitField {
+        return new BitField(this.value & bitfield.value);
+    }
+
+    /**
+     * Returns a new BitField with the bitwise OR of the two BitFields
+     * @param bitfield
+     */
+    public or(bitfield: BitField): BitField {
+        return new BitField(this.value | bitfield.value);
+    }
+
+    /**
+     * Returns a new BitField with the bitwise XOR of the two BitFields
+     * @param bitfield
+     */
+    public xor(bitfield: BitField): BitField {
+        return new BitField(this.value ^ bitfield.value);
     }
 
     public toBigInt() {

@@ -1,6 +1,7 @@
 // tslint:disable: no-unused-expression
 import { expect } from "chai";
 import { BitField } from "../lib/BitField";
+import { InitFeatureFlags } from "../lib/flags/InitFeatureFlags";
 
 describe("BitField", () => {
     describe(".set()", () => {
@@ -115,6 +116,92 @@ describe("BitField", () => {
         it("0b0001000100010001 => 25", () => {
             const sut = new BitField(0b0001000100010001n);
             expect(sut.msb()).to.equal(12);
+        });
+    });
+
+    describe(".and()", () => {
+        it("same length", () => {
+            const a = new BitField(0b00111100n);
+            const b = new BitField(0b11111111n);
+            const result = a.and(b);
+            expect(result.value.toString(2)).to.equal("111100");
+        });
+
+        it("a shorter", () => {
+            const a = new BitField(0b111100n);
+            const b = new BitField(0b11111111n);
+            const result = a.and(b);
+            expect(result.value.toString(2)).to.equal("111100");
+        });
+
+        it("b shorter", () => {
+            const a = new BitField(0b00111100n);
+            const b = new BitField(0b111111n);
+            const result = a.and(b);
+            expect(result.value.toString(2)).to.equal("111100");
+        });
+    });
+
+    describe(".or()", () => {
+        it("same length", () => {
+            const a = new BitField(0b00111100n);
+            const b = new BitField(0b11111111n);
+            const result = a.or(b);
+            expect(result.value.toString(2)).to.equal("11111111");
+        });
+
+        it("a shorter", () => {
+            const a = new BitField(0b111100n);
+            const b = new BitField(0b11111111n);
+            const result = a.or(b);
+            expect(result.value.toString(2)).to.equal("11111111");
+        });
+
+        it("b shorter", () => {
+            const a = new BitField(0b00111100n);
+            const b = new BitField(0b111111n);
+            const result = a.or(b);
+            expect(result.value.toString(2)).to.equal("111111");
+        });
+    });
+
+    describe(".xor()", () => {
+        it("same length", () => {
+            const a = new BitField(0b00111100n);
+            const b = new BitField(0b11111111n);
+            const result = a.xor(b);
+            expect(result.value.toString(2)).to.equal("11000011");
+        });
+
+        it("a shorter", () => {
+            const a = new BitField(0b111100n);
+            const b = new BitField(0b11111111n);
+            const result = a.xor(b);
+            expect(result.value.toString(2)).to.equal("11000011");
+        });
+
+        it("b shorter", () => {
+            const a = new BitField(0b00111100n);
+            const b = new BitField(0b111111n);
+            const result = a.xor(b);
+            expect(result.value.toString(2)).to.equal("11");
+        });
+    });
+
+    describe(".flags()", () => {
+        it("no flags", () => {
+            const a = new BitField<InitFeatureFlags>();
+            expect(a.flags()).to.deep.equal([]);
+        });
+
+        it("with flags", () => {
+            const a = new BitField<InitFeatureFlags>();
+            a.set(InitFeatureFlags.initialRoutingSyncOptional);
+            a.set(InitFeatureFlags.gossipQueriesOptional);
+            expect(a.flags()).to.deep.equal([
+                InitFeatureFlags.initialRoutingSyncOptional,
+                InitFeatureFlags.gossipQueriesOptional,
+            ]);
         });
     });
 });
