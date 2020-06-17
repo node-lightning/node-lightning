@@ -48,6 +48,21 @@ export class BitField<T = number> {
     }
 
     /**
+     * Returns the full list of set flags for the bit field
+     */
+    public flags(): T[] {
+        const bits: T[] = [];
+        let bit = 0;
+        let val = 1n;
+        while (val < this.value) {
+            if (this.value & val) bits.push(bit as any);
+            bit += 1;
+            val <<= 1n;
+        }
+        return bits;
+    }
+
+    /**
      * Returns the index of the most-significant bit that is set
      */
     public msb(): number {

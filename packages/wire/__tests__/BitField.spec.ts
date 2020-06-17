@@ -1,6 +1,7 @@
 // tslint:disable: no-unused-expression
 import { expect } from "chai";
 import { BitField } from "../lib/BitField";
+import { InitFeatureFlags } from "../lib/flags/InitFeatureFlags";
 
 describe("BitField", () => {
     describe(".set()", () => {
@@ -187,7 +188,20 @@ describe("BitField", () => {
         });
     });
 
-    describe(".or()", () => {});
+    describe(".flags()", () => {
+        it("no flags", () => {
+            const a = new BitField<InitFeatureFlags>();
+            expect(a.flags()).to.deep.equal([]);
+        });
 
-    describe(".xor()", () => {});
+        it("with flags", () => {
+            const a = new BitField<InitFeatureFlags>();
+            a.set(InitFeatureFlags.initialRoutingSyncOptional);
+            a.set(InitFeatureFlags.gossipQueriesOptional);
+            expect(a.flags()).to.deep.equal([
+                InitFeatureFlags.initialRoutingSyncOptional,
+                InitFeatureFlags.gossipQueriesOptional,
+            ]);
+        });
+    });
 });
