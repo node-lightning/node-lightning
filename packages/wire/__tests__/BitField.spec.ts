@@ -90,4 +90,31 @@ describe("BitField", () => {
             expect(sut.toBuffer()).to.deep.equal(Buffer.from("01e229", "hex"));
         });
     });
+
+    describe(".msb()", () => {
+        it("0 => 0", () => {
+            const sut = new BitField();
+            expect(sut.msb()).to.equal(0);
+        });
+
+        it("0x01 => 0", () => {
+            const sut = new BitField();
+            expect(sut.msb()).to.equal(0);
+        });
+
+        it("0b11111111 => 7", () => {
+            const sut = new BitField(0b11111111n);
+            expect(sut.msb()).to.equal(7);
+        });
+
+        it("0b0000000100010001 => 8", () => {
+            const sut = new BitField(0b0000000100010001n);
+            expect(sut.msb()).to.equal(8);
+        });
+
+        it("0b0001000100010001 => 25", () => {
+            const sut = new BitField(0b0001000100010001n);
+            expect(sut.msb()).to.equal(12);
+        });
+    });
 });

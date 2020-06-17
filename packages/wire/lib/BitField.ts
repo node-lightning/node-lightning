@@ -47,6 +47,16 @@ export class BitField<T = number> {
         this.value ^= BigInt(1) << BigInt(bit);
     }
 
+    public msb(): number {
+        let num = this.value;
+        let bit = 0;
+        while (num > 1) {
+            num = num >> 1n;
+            bit += 1;
+        }
+        return bit;
+    }
+
     public toBigInt() {
         return this.value;
     }
