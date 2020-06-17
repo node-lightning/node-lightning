@@ -36,6 +36,7 @@ class FakeMessage {
 }
 
 describe("Peer", () => {
+    let chainHashes: Buffer[];
     let sut: Peer;
     let ls: Buffer;
     let rpk: Buffer;
@@ -45,12 +46,13 @@ describe("Peer", () => {
     let localFeatures: BitField<InitFeatureFlags>;
 
     beforeEach(() => {
+        chainHashes = [Buffer.alloc(32, 0xff)];
         localFeatures = new BitField<InitFeatureFlags>();
         localFeatures.set(InitFeatureFlags.optionDataLossProtectOptional);
         ls = Buffer.alloc(32, 0);
         rpk = Buffer.alloc(32, 1);
         logger = createFakeLogger();
-        sut = new Peer(ls, localFeatures, logger);
+        sut = new Peer(ls, localFeatures, chainHashes, logger);
         sut.socket = socket = new FakeSocket() as any;
         sut.pingPongState = sinon.createStubInstance(PingPongState) as any;
         sandbox = sinon.createSandbox();
@@ -183,7 +185,10 @@ describe("Peer", () => {
         it("should send the init message to the peer", () => {
             (sut as any)._onSocketReady();
             expect((socket as any).write.args[0][0]).to.deep.equal(
-                Buffer.from("00100000000102", "hex"),
+                Buffer.from(
+                    "001000000001020120ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+                    "hex",
+                ),
             );
         });
     });
@@ -281,7 +286,10 @@ describe("Peer", () => {
         it("should send the initialization message", () => {
             (sut as any)._sendInitMessage();
             expect((socket as any).write.args[0][0]).to.deep.equal(
-                Buffer.from("00100000000102", "hex"),
+                Buffer.from(
+                    "001000000001020120ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+                    "hex",
+                ),
             );
         });
     });
@@ -319,6 +327,48 @@ describe("Peer", () => {
         it("should emit ready", done => {
             sut.on("ready", () => done());
             (sut as any)._processPeerInitMessage(input);
+        });
+
+        it("should be ok with no remote chainhash", () => {
+            input = Buffer.from("00100000000109", "hex");
+            (sut as any)._processPeerInitMessage(input);
+        });
+
+        it("should be ok with single chain_hash", () => {
+            input = Buffer.from(
+                "00100000000109" +
+                    "0120" +
+                    "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+                "hex",
+            );
+            (sut as any)._processPeerInitMessage(input);
+            expect(sut.remoteChains.length).to.equal(1);
+            expect(sut.remoteChains[0].toString("hex")).to.equal("ff".repeat(32));
+        });
+
+        it("should be ok with multiple chain_hashes", () => {
+            input = Buffer.from(
+                "00100000000109" +
+                    "0140" +
+                    "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" +
+                    "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+                "hex",
+            );
+            (sut as any)._processPeerInitMessage(input);
+            expect(sut.remoteChains.length).to.equal(2);
+            expect(sut.remoteChains[0].toString("hex")).to.equal("ff".repeat(32));
+            expect(sut.remoteChains[1].toString("hex")).to.equal("ee".repeat(32));
+        });
+
+        it("should disconnect with no chainhash match", () => {
+            input = Buffer.from(
+                "00100000000109" +
+                    "0120" +
+                    "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+                "hex",
+            );
+            (sut as any)._processPeerInitMessage(input);
+            expect(sut.state).to.equal(PeerState.Disconnecting);
         });
     });
 

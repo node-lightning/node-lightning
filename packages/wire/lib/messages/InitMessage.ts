@@ -86,8 +86,7 @@ export class InitMessage implements IWireMessage {
         const gflen = 0;
         const features = this.features.toBuffer();
         const featuresLen = features.length;
-
-        const hasChainHashTlv = this.chainHashes.length;
+        const hasChainHashTlv = this.chainHashes.length > 0;
         const chainHashesLen = this.chainHashes.length * 32;
         const chainHashTlvLen = hasChainHashTlv
             ? chainHashesLen +

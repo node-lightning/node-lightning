@@ -15,6 +15,7 @@ export class PeerServer extends EventEmitter {
         readonly port: number,
         readonly localSecret: Buffer,
         readonly localFeatures: BitField<InitFeatureFlags>,
+        readonly localChains: Buffer[],
         readonly logger: ILogger,
     ) {
         super();
@@ -44,7 +45,7 @@ export class PeerServer extends EventEmitter {
      */
     protected _onSocket(socket: NoiseSocket) {
         this.logger.info("peer connected");
-        const peer = new Peer(this.localSecret, this.localFeatures, this.logger);
+        const peer = new Peer(this.localSecret, this.localFeatures, this.localChains, this.logger);
         peer.attach(socket);
         this.emit("peer", peer);
     }

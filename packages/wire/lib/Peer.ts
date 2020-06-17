@@ -84,7 +84,7 @@ export class Peer extends EventEmitter implements IMessageSenderReceiver {
     public pingPongState: PingPongState;
     public logger: ILogger;
     public remoteFeatures: BitField<InitFeatureFlags>;
-    public features: BitField<InitFeatureFlags>;
+    public remoteChains: Buffer[];
     public isInitiator: boolean = false;
     public reconnectTimeoutMs = 15000;
 
@@ -96,11 +96,15 @@ export class Peer extends EventEmitter implements IMessageSenderReceiver {
 
     private _reconnectHandle: NodeJS.Timeout;
 
-    constructor(readonly ls: Buffer, localFeatures: BitField<InitFeatureFlags>, logger: ILogger) {
+    constructor(
+        readonly ls: Buffer,
+        readonly localFeatures: BitField<InitFeatureFlags>,
+        readonly localChains: Buffer[],
+        logger: ILogger,
+    ) {
         super();
 
         this.pingPongState = new PingPongState(this);
-        this.features = localFeatures;
         this.logger = logger;
     }
 
@@ -276,7 +280,8 @@ export class Peer extends EventEmitter implements IMessageSenderReceiver {
     private _sendInitMessage() {
         // construct the init message
         const msg = new InitMessage();
-        msg.features = this.features;
+        msg.features = this.localFeatures;
+        msg.chainHashes = this.localChains;
 
         // fire off the init message to the peer
         const payload = msg.serialize();
@@ -302,6 +307,27 @@ export class Peer extends EventEmitter implements IMessageSenderReceiver {
 
         // store the init messagee in case we need to refer to it
         this.remoteFeatures = m.features;
+
+        // capture the local chains
+        this.remoteChains = m.chainHashes;
+
+        // validate remote chains and if we are unawares of any. We do this by
+        // first looking to see if there is any match on the chains. If there is
+        // no match and both the remote and our local node declare that we are
+        // monitoring a specific chain then we will abort the connnection
+        let hasChain = false;
+        for (const remoteChain of this.remoteChains) {
+            for (const localChain of this.localChains) {
+                if (remoteChain.equals(localChain)) hasChain = true;
+            }
+        }
+        if (!hasChain && this.remoteChains.length && this.localChains.length) {
+            this.logger.trace("remote chains", ...this.remoteChains);
+            this.logger.trace("local chains", ...this.localChains);
+            this.logger.warn("remote node does not support any known chains, aborting");
+            this.disconnect();
+            return;
+        }
 
         // start other state now that peer is initialized
         this.pingPongState.start();
