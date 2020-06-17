@@ -3,6 +3,7 @@ import { BitField } from "../BitField";
 import { InitFeatureFlags } from "../flags/InitFeatureFlags";
 import { MessageType } from "../MessageType";
 import { IWireMessage } from "./IWireMessage";
+import { TlvValueReader } from "../serialize/TlvValueReader";
 
 /**
  * InitMessage is defined in BOLT #1. Once authentication is complete, the first
@@ -21,6 +22,7 @@ export class InitMessage implements IWireMessage {
      * init message object.
      */
     public static deserialize(buffer: Buffer): InitMessage {
+        const instance = new InitMessage();
         const reader = new BufferCursor(buffer);
 
         // read the type bytes
@@ -37,11 +39,27 @@ export class InitMessage implements IWireMessage {
 
         // construct a single features object by bitwise or of the global and
         // local features.
-        const features = new BitField().or(gf).or(lf);
+        instance.features = new BitField().or(gf).or(lf);
 
-        // finally return the instance of the InitMessage
-        const instance = new InitMessage();
-        instance.features = features;
+        // process TLVs
+        while (!reader.eof) {
+            const type = reader.readBigSize();
+            const length = reader.readBigSize();
+            const value = reader.readBytes(Number(length));
+            const valueReader = new BufferCursor(value);
+
+            switch (Number(type)) {
+                // networks
+                case 1: {
+                    while (!valueReader.eof) {
+                        const chainHash = valueReader.readBytes(32);
+                        instance.chainHashes.push(chainHash);
+                    }
+                    break;
+                }
+            }
+        }
+
         return instance;
     }
 
@@ -51,9 +69,14 @@ export class InitMessage implements IWireMessage {
     public type: MessageType = MessageType.Init;
 
     /**
-     * BitF
+     * BitField containing the features provided in by the local or remote node
      */
     public features: BitField<InitFeatureFlags> = new BitField();
+
+    /**
+     * Supported chain_hashes for the remote peer
+     */
+    public chainHashes: Buffer[] = [];
 
     /**
      * Serialize will construct a properly formatted message based on the
@@ -64,6 +87,14 @@ export class InitMessage implements IWireMessage {
         const features = this.features.toBuffer();
         const featuresLen = features.length;
 
+        const hasChainHashTlv = this.chainHashes.length;
+        const chainHashesLen = this.chainHashes.length * 32;
+        const chainHashTlvLen = hasChainHashTlv
+            ? chainHashesLen +
+              BufferCursor.bigSizeBytes(1n) +
+              BufferCursor.bigSizeBytes(BigInt(chainHashesLen))
+            : 0;
+
         // create a Buffer of the correct length that will
         // be returned after all data is written to the buffer.
         const buffer = Buffer.alloc(
@@ -71,8 +102,9 @@ export class InitMessage implements IWireMessage {
             2 + // length of glfen (uint16be)
             0 + // length of global features
             2 + // length of lflen (uint16be)
-                featuresLen, // length of features
-        );
+            featuresLen + // length of features
+            chainHashTlvLen
+        ); // prettier-ignore
 
         // use BufferCursor to make writing easier
         const cursor = new BufferCursor(buffer);
@@ -88,6 +120,13 @@ export class InitMessage implements IWireMessage {
 
         // write lf
         cursor.writeBytes(features);
+
+        // write chainhash tlv
+        if (hasChainHashTlv) {
+            cursor.writeBigSize(1n); // type
+            cursor.writeBigSize(BigInt(chainHashesLen)); // length
+            cursor.writeBytes(Buffer.concat(this.chainHashes)); // value
+        }
 
         return buffer;
     }
