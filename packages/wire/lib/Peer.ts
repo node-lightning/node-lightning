@@ -329,6 +329,22 @@ export class Peer extends EventEmitter implements IMessageSenderReceiver {
             return;
         }
 
+        // we need to be sure that the remote node supports required features
+        // that we care about. If the remote node does not support these feature
+        // we will disconnect.
+        for (const feature of this.localFeatures.flags()) {
+            // we can skip odd features since they are optional
+            if (feature % 2 === 1) continue;
+
+            // for even (compulsory) features, we check if the remote node is
+            // signalling either optional or compulsory support. This code
+            // makes the assumption that the even features are always first
+            if (!(this.remoteFeatures.isSet(feature) || this.remoteFeatures.isSet(feature + 1))) {
+                this.disconnect();
+                return;
+            }
+        }
+
         // start other state now that peer is initialized
         this.pingPongState.start();
 

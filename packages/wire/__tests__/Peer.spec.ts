@@ -370,6 +370,47 @@ describe("Peer", () => {
             (sut as any)._processPeerInitMessage(input);
             expect(sut.state).to.equal(PeerState.Disconnecting);
         });
+
+        it("should stay connected when local odd no remote feature", () => {
+            // enable compulsory (bit 0)
+            (sut as any).localFeatures = new BitField<InitFeatureFlags>();
+            sut.localFeatures.set(InitFeatureFlags.optionDataLossProtectOptional);
+
+            // remote optional (bit 1)
+            input = Buffer.from("00100000000100", "hex");
+            (sut as any)._processPeerInitMessage(input);
+            expect(sut.state).to.equal(PeerState.Ready);
+        });
+
+        it("should stay connected when local even/remote even feature", () => {
+            // enable compulsory (bit 0)
+            sut.localFeatures.set(InitFeatureFlags.optionDataLossProtectRequired);
+
+            // remote optional (bit 1)
+            input = Buffer.from("00100000000102", "hex");
+            (sut as any)._processPeerInitMessage(input);
+            expect(sut.state).to.equal(PeerState.Ready);
+        });
+
+        it("should stay connected with local even/remote even feature", () => {
+            // enable compulsory (bit 0)
+            sut.localFeatures.set(InitFeatureFlags.optionDataLossProtectRequired);
+
+            // remote optional (bit 1)
+            input = Buffer.from("00100000000101", "hex");
+            (sut as any)._processPeerInitMessage(input);
+            expect(sut.state).to.equal(PeerState.Ready);
+        });
+
+        it("should disconnect with local even missing remote feature", () => {
+            // enable compulsory (bit 0)
+            sut.localFeatures.set(InitFeatureFlags.optionDataLossProtectRequired);
+
+            // remote optional (bit 1)
+            input = Buffer.from("00100000000100", "hex");
+            (sut as any)._processPeerInitMessage(input);
+            expect(sut.state).to.equal(PeerState.Disconnecting);
+        });
     });
 
     describe("_processMessage", () => {
