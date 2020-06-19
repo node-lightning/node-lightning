@@ -1,4 +1,4 @@
-import { BufferCursor } from "@lntools/buffer-cursor";
+import { BufferReader } from "@lntools/buffer-cursor";
 import { Tx } from "../Tx";
 import { TxIn } from "../Tx";
 import { TxOut } from "../Tx";
@@ -16,7 +16,7 @@ import { isSegWitTx } from "./isSegwitTx";
  * @param raw raw transaction data
  */
 export function decodeTx(raw: Buffer): Tx {
-    const cursor = new BufferCursor(raw);
+    const cursor = new BufferReader(raw);
     const vins: TxIn[] = [];
     const vouts: TxOut[] = [];
 

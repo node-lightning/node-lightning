@@ -1,6 +1,6 @@
 import { bigToBufLE } from "@lntools/buffer-cursor";
 import { encodeVarInt } from "@lntools/buffer-cursor";
-import { BufferCursor } from "@lntools/buffer-cursor";
+import { BufferReader } from "@lntools/buffer-cursor";
 import { StreamReader } from "@lntools/buffer-cursor";
 import { Readable } from "stream";
 import { OpCode } from "./OpCodes";
@@ -105,7 +105,7 @@ export class Script {
      * @param buf
      */
     public static parseCmds(buf: Buffer): ScriptCmd[] {
-        const br = new BufferCursor(buf);
+        const br = new BufferReader(buf);
 
         // commands that were read off the stack
         const cmds: ScriptCmd[] = [];

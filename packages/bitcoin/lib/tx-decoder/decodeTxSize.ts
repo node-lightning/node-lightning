@@ -1,4 +1,4 @@
-import { BufferCursor } from "@lntools/buffer-cursor";
+import { BufferReader } from "@lntools/buffer-cursor";
 import { SizeResult } from "../SizeResult";
 import { isSegWitTx } from "./isSegwitTx";
 
@@ -12,7 +12,7 @@ import { isSegWitTx } from "./isSegwitTx";
  * `vsize` is the weight divided by four.
  */
 export function decodeTxSize(raw: Buffer): SizeResult {
-    const cursor = new BufferCursor(raw);
+    const cursor = new BufferReader(raw);
     const hasWitness = isSegWitTx(raw);
 
     let nwBytes = 0;
