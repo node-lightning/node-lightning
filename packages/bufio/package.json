@@ -1,7 +1,7 @@
 {
-  "name": "@lntools/buffer-cursor",
-  "version": "0.7.0",
-  "description": "Buffer reader/writer utility ",
+  "name": "@lntools/bufio",
+  "version": "0.8.0",
+  "description": "Buffer IO utilities ",
   "keywords": [],
   "author": "Brian Mancini <bmancini@gmail.com>",
   "homepage": "https://github.com/altangent/lntools/tree/master/packages/buffer-cursor",
