@@ -1,4 +1,4 @@
-import { BufferCursor } from "@lntools/buffer-cursor";
+import { BufferWriter } from "@lntools/buffer-cursor";
 import { AddressTor2 } from "../../domain/AddressTor2";
 import { torStringToBuffer } from "./torStringToBuffer";
 
@@ -7,8 +7,7 @@ import { torStringToBuffer } from "./torStringToBuffer";
  * over the wire.
  */
 export function serializeTor2(address: AddressTor2): Buffer {
-    const result = Buffer.alloc(13);
-    const writer = new BufferCursor(result);
+    const writer = new BufferWriter(Buffer.alloc(13));
 
     const hostBytes = torStringToBuffer(address.host);
 
@@ -16,5 +15,5 @@ export function serializeTor2(address: AddressTor2): Buffer {
     writer.writeBytes(hostBytes);
     writer.writeUInt16BE(address.port);
 
-    return result;
+    return writer.toBuffer();
 }

@@ -1,4 +1,4 @@
-import { BufferCursor } from "@lntools/buffer-cursor";
+import { BufferWriter } from "@lntools/buffer-cursor";
 import { AddressIPv6 } from "../../domain/AddressIPv6";
 import { ipv6StringToBuffer } from "./ipv6StringToBuffer";
 
@@ -7,8 +7,7 @@ import { ipv6StringToBuffer } from "./ipv6StringToBuffer";
  * over the wire.
  */
 export function serializeIPv6(address: AddressIPv6): Buffer {
-    const result = Buffer.alloc(19);
-    const writer = new BufferCursor(result);
+    const writer = new BufferWriter(Buffer.alloc(19));
 
     const hostBytes = ipv6StringToBuffer(address.host);
 
@@ -16,5 +15,5 @@ export function serializeIPv6(address: AddressIPv6): Buffer {
     writer.writeBytes(hostBytes);
     writer.writeUInt16BE(address.port);
 
-    return result;
+    return writer.toBuffer();
 }

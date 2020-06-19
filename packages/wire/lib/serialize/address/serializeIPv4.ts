@@ -1,4 +1,4 @@
-import { BufferCursor } from "@lntools/buffer-cursor";
+import { BufferWriter } from "@lntools/buffer-cursor";
 import { AddressIPv4 } from "../../domain/AddressIPv4";
 import { ipv4StringToBuffer } from "./ipv4StringToBuffer";
 
@@ -7,8 +7,7 @@ import { ipv4StringToBuffer } from "./ipv4StringToBuffer";
  * over the wire.
  */
 export function serializeIPv4(address: AddressIPv4): Buffer {
-    const result = Buffer.alloc(7); // 8 bytes total
-    const writer = new BufferCursor(result);
+    const writer = new BufferWriter(Buffer.alloc(7));
 
     const hostBytes = ipv4StringToBuffer(address.host);
 
@@ -16,5 +15,5 @@ export function serializeIPv4(address: AddressIPv4): Buffer {
     writer.writeBytes(hostBytes);
     writer.writeUInt16BE(address.port);
 
-    return result;
+    return writer.toBuffer();
 }

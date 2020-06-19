@@ -1,4 +1,4 @@
-import { BufferCursor } from "@lntools/buffer-cursor";
+import { BufferReader, BufferWriter } from "@lntools/buffer-cursor";
 import { MessageType } from "../MessageType";
 import { IWireMessage } from "./IWireMessage";
 
@@ -10,7 +10,7 @@ export class PongMessage implements IWireMessage {
     public static deserialize(payload: Buffer): PongMessage {
         const instance = new PongMessage();
 
-        const reader = new BufferCursor(payload);
+        const reader = new BufferReader(payload);
         reader.readUInt16BE(); // read off type
 
         const byteslen = reader.readUInt16BE();
@@ -50,15 +50,15 @@ export class PongMessage implements IWireMessage {
      * streamed on the wire.
      */
     public serialize(): Buffer {
-        const buffer = Buffer.alloc(
+        const len =
             2 + // type
             2 + // byteslen
-                +this.ignored.length,
-        );
-        const writer = new BufferCursor(buffer);
+            +this.ignored.length;
+
+        const writer = new BufferWriter(Buffer.alloc(len));
         writer.writeUInt16BE(this.type);
         writer.writeUInt16BE(this.ignored.length);
         writer.writeBytes(this.ignored);
-        return buffer;
+        return writer.toBuffer();
     }
 }

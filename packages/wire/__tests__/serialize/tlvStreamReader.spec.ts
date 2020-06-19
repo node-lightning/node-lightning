@@ -1,4 +1,4 @@
-import { BufferCursor } from "@lntools/buffer-cursor";
+import { BufferReader } from "@lntools/buffer-cursor";
 import { expect } from "chai";
 import { TlvStreamReader } from "../../lib/serialize/TlvStreamReader";
 import { N1Type1, N1Type2, N1Type254, N1Type3, N2Type0, N2Type11 } from "./_tlvTypes.spec";
@@ -8,7 +8,7 @@ function readRecord(factory: () => TlvStreamReader, tests: any[], title: string)
         it(`${title} ${test.input}`, () => {
             const streamReader = factory();
             const input = Buffer.from(test.input.replace(/ /g, ""), "hex");
-            const reader = new BufferCursor(input);
+            const reader = new BufferReader(input);
             if (test.failure) {
                 expect(() => streamReader.readRecord(reader)).to.throw();
             } else {
@@ -24,7 +24,7 @@ function read(factory: () => TlvStreamReader, tests: any[]) {
         it(`${test.input}`, () => {
             const streamReader = factory();
             const input = Buffer.from(test.input.replace(/ /g, ""), "hex");
-            const reader = new BufferCursor(input);
+            const reader = new BufferReader(input);
             if (test.failure) {
                 expect(() => streamReader.read(reader)).to.throw();
             } else {

@@ -1,4 +1,4 @@
-import { BufferCursor } from "@lntools/buffer-cursor";
+import { BufferReader } from "@lntools/buffer-cursor";
 import { ITlvDeserializable } from "./ITlvDeserializable";
 import { TlvValueReader } from "./TlvValueReader";
 
@@ -10,7 +10,7 @@ export class TlvStreamReader {
         this._deserializers.set(type.type, type);
     }
 
-    public read(reader: BufferCursor): any[] {
+    public read(reader: BufferReader): any[] {
         const results = [];
         while (!reader.eof) {
             const result = this.readRecord(reader);
@@ -19,7 +19,7 @@ export class TlvStreamReader {
         return results;
     }
 
-    public readRecord(reader: BufferCursor): any {
+    public readRecord(reader: BufferReader): any {
         if (reader.eof) return;
 
         const type = reader.readBigSize();

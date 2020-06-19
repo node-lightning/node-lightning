@@ -1,4 +1,4 @@
-import { BufferCursor } from "@lntools/buffer-cursor";
+import { BufferReader, BufferWriter } from "@lntools/buffer-cursor";
 import { MessageType } from "../MessageType";
 import { ShortChannelId } from "../ShortChannelId";
 import { shortChannelIdFromBuffer } from "../ShortChannelIdUtils";
@@ -21,7 +21,7 @@ export class AnnouncementSignaturesMessage implements IWireMessage {
      * Deserializes a Buffer into an AnnouncementSignaturesMessage.
      */
     public static deserialize(payload: Buffer): AnnouncementSignaturesMessage {
-        const reader = new BufferCursor(payload);
+        const reader = new BufferReader(payload);
         reader.readUInt16BE(); // read off type
 
         const instance = new AnnouncementSignaturesMessage();
@@ -65,19 +65,18 @@ export class AnnouncementSignaturesMessage implements IWireMessage {
      * transmission on the wire.
      */
     public serialize(): Buffer {
-        const buffer = Buffer.alloc(
+        const len =
             2 + // type
             32 + // channel_id
             8 + // short_channel_id
             64 + // node_signature
-                64, // bitcoin_signaturee
-        );
-        const writer = new BufferCursor(buffer);
+            64; // bitcoin_signaturee
+        const writer = new BufferWriter(Buffer.alloc(len));
         writer.writeUInt16BE(this.type);
         writer.writeBytes(this.channelId);
         writer.writeBytes(this.shortChannelId.toBuffer());
         writer.writeBytes(this.nodeSignature);
         writer.writeBytes(this.bitcoinSignature);
-        return buffer;
+        return writer.toBuffer();
     }
 }

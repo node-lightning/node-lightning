@@ -1,4 +1,4 @@
-import { BufferCursor } from "@lntools/buffer-cursor";
+import { BufferReader, BufferWriter } from "@lntools/buffer-cursor";
 import { PONG_BYTE_THRESHOLD } from "../Constants";
 import { MessageType } from "../MessageType";
 import { IWireMessage } from "./IWireMessage";
@@ -18,7 +18,7 @@ export class PingMessage implements IWireMessage {
      * PingMessage type.
      */
     public static deserialize(payload: Buffer): PingMessage {
-        const cursor = new BufferCursor(payload);
+        const cursor = new BufferReader(payload);
         cursor.readUInt16BE();
 
         const instance = new PingMessage();
@@ -56,18 +56,18 @@ export class PingMessage implements IWireMessage {
      * Serialize the PingMessage and return a Buffer
      */
     public serialize(): Buffer {
-        const buffer = Buffer.alloc(
+        const len =
             2 + // type
             2 + // num_pong_bytes
             2 + // byteslen
-                this.ignored.length,
-        );
-        const cursor = new BufferCursor(buffer);
-        cursor.writeUInt16BE(this.type);
-        cursor.writeUInt16BE(this.numPongBytes);
-        cursor.writeUInt16BE(this.ignored.length);
-        cursor.writeBytes(this.ignored);
-        return buffer;
+            this.ignored.length;
+
+        const br = new BufferWriter(Buffer.alloc(len));
+        br.writeUInt16BE(this.type);
+        br.writeUInt16BE(this.numPongBytes);
+        br.writeUInt16BE(this.ignored.length);
+        br.writeBytes(this.ignored);
+        return br.toBuffer();
     }
 
     /**

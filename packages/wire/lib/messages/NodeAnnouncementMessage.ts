@@ -1,4 +1,4 @@
-import { BufferCursor } from "@lntools/buffer-cursor";
+import { BufferReader, BufferWriter } from "@lntools/buffer-cursor";
 import * as crypto from "@lntools/crypto";
 import { BitField } from "../BitField";
 import { deserializeAddress } from "../deserialize/address/deserializeAddress";
@@ -16,7 +16,7 @@ import { IWireMessage } from "./IWireMessage";
 export class NodeAnnouncementMessage implements IWireMessage {
     public static deserialize(payload: Buffer) {
         const instance = new NodeAnnouncementMessage();
-        const reader = new BufferCursor(payload);
+        const reader = new BufferReader(payload);
         reader.readUInt16BE(); // read off type
 
         instance.signature = reader.readBytes(64);
@@ -111,19 +111,19 @@ export class NodeAnnouncementMessage implements IWireMessage {
         // obtain total address length
         const addressBytes = addressBuffers.map(b => b.length).reduce((sum, val) => sum + val, 0);
 
-        const result = Buffer.alloc(
-      2 +   // type
-      64 +  // signature
-      2 +   // flen
-      featuresLen + // features length
-      4 +   // timestamp
-      33 +  // node_id
-      3 +   // rgb_color
-      32 +  // alias
-      2 +   // addresses
-      addressBytes, // cumulative addr bytes
-    ); // prettier-ignore
-        const writer = new BufferCursor(result);
+        const len =
+            2 + // type
+            64 + // signature
+            2 + // flen
+            featuresLen + // features length
+            4 + // timestamp
+            33 + // node_id
+            3 + // rgb_color
+            32 + // alias
+            2 + // addresses
+            addressBytes; // cumulative addr bytes
+        const writer = new BufferWriter(Buffer.alloc(len));
+
         writer.writeUInt16BE(this.type);
         writer.writeBytes(this.signature);
         writer.writeUInt16BE(featuresLen);
@@ -137,6 +137,6 @@ export class NodeAnnouncementMessage implements IWireMessage {
             writer.writeBytes(addressBuffer);
         }
 
-        return result;
+        return writer.toBuffer();
     }
 }
