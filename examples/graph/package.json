@@ -11,7 +11,7 @@
   "dependencies": {
     "@lntools/bitcoin": "file:../../packages/bitcoin",
     "@lntools/bitcoind": "file:../../packages/bitcoind",
-    "@lntools/buffer-cursor": "file:../../packages/buffer-cursor",
+    "@lntools/bufio": "file:../../packages/bufio",
     "@lntools/chainmon": "file:../../packages/chainmon",
     "@lntools/crypto": "file:../../packages/crypto",
     "@lntools/gossip-rocksdb": "file:../../packages/gossip-rocksdb",

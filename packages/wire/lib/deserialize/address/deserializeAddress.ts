@@ -1,6 +1,4 @@
-// @ts-check
-
-import { BufferCursor } from "@lntools/buffer-cursor";
+import { BufferReader } from "@lntools/bufio";
 import { Address } from "../../domain/Address";
 import { AddressType } from "../../domain/AddressType";
 import { deserializeIPv4 } from "./deserializeIPv4";
@@ -12,7 +10,7 @@ import { deserializeTor3 } from "./deserializeTor3";
  * Deserializes an address based on the type and returns
  * an instance of Address as a polymorphic type.
  */
-export function deserializeAddress(type: AddressType, reader: BufferCursor): Address {
+export function deserializeAddress(type: AddressType, reader: BufferReader): Address {
     switch (type) {
         case AddressType.IPv4:
             return deserializeIPv4(reader);

@@ -1,9 +1,8 @@
-import { BufferCursor } from "@lntools/buffer-cursor";
+import { BufferReader, BufferWriter } from "@lntools/bufio";
 import { BitField } from "../BitField";
 import { InitFeatureFlags } from "../flags/InitFeatureFlags";
 import { MessageType } from "../MessageType";
 import { IWireMessage } from "./IWireMessage";
-import { TlvValueReader } from "../serialize/TlvValueReader";
 
 /**
  * InitMessage is defined in BOLT #1. Once authentication is complete, the first
@@ -23,7 +22,7 @@ export class InitMessage implements IWireMessage {
      */
     public static deserialize(buffer: Buffer): InitMessage {
         const instance = new InitMessage();
-        const reader = new BufferCursor(buffer);
+        const reader = new BufferReader(buffer);
 
         // read the type bytes
         reader.readUInt16BE();
@@ -46,7 +45,7 @@ export class InitMessage implements IWireMessage {
             const type = reader.readBigSize();
             const length = reader.readBigSize();
             const value = reader.readBytes(Number(length));
-            const valueReader = new BufferCursor(value);
+            const valueReader = new BufferReader(value);
 
             switch (Number(type)) {
                 // networks
@@ -83,50 +82,29 @@ export class InitMessage implements IWireMessage {
      * properties of the configured message.
      */
     public serialize() {
-        const gflen = 0;
-        const features = this.features.toBuffer();
-        const featuresLen = features.length;
-        const hasChainHashTlv = this.chainHashes.length > 0;
-        const chainHashesLen = this.chainHashes.length * 32;
-        const chainHashTlvLen = hasChainHashTlv
-            ? chainHashesLen +
-              BufferCursor.bigSizeBytes(1n) +
-              BufferCursor.bigSizeBytes(BigInt(chainHashesLen))
-            : 0;
-
-        // create a Buffer of the correct length that will
-        // be returned after all data is written to the buffer.
-        const buffer = Buffer.alloc(
-            2 + // type (uint16be)
-            2 + // length of glfen (uint16be)
-            0 + // length of global features
-            2 + // length of lflen (uint16be)
-            featuresLen + // length of features
-            chainHashTlvLen
-        ); // prettier-ignore
-
-        // use BufferCursor to make writing easier
-        const cursor = new BufferCursor(buffer);
+        const writer = new BufferWriter();
 
         // write the type
-        cursor.writeUInt16BE(this.type);
+        writer.writeUInt16BE(this.type);
 
         // write gflen
-        cursor.writeUInt16BE(gflen);
+        const gflen = 0;
+        writer.writeUInt16BE(gflen);
 
-        // write lflen
-        cursor.writeUInt16BE(featuresLen);
-
-        // write lf
-        cursor.writeBytes(features);
+        // write features
+        const features = this.features.toBuffer();
+        const featuresLen = features.length;
+        writer.writeUInt16BE(featuresLen);
+        writer.writeBytes(features);
 
         // write chainhash tlv
-        if (hasChainHashTlv) {
-            cursor.writeBigSize(1n); // type
-            cursor.writeBigSize(BigInt(chainHashesLen)); // length
-            cursor.writeBytes(Buffer.concat(this.chainHashes)); // value
+        const chainHashesLen = this.chainHashes.length * 32;
+        if (chainHashesLen) {
+            writer.writeBigSize(1n); // type
+            writer.writeBigSize(BigInt(chainHashesLen)); // length
+            writer.writeBytes(Buffer.concat(this.chainHashes)); // value
         }
 
-        return buffer;
+        return writer.toBuffer();
     }
 }

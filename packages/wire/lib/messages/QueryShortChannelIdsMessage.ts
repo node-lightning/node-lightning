@@ -1,4 +1,4 @@
-import { BufferCursor } from "@lntools/buffer-cursor";
+import { BufferReader, BufferWriter } from "@lntools/bufio";
 import { MessageType } from "../MessageType";
 import { Encoder } from "../serialize/Encoder";
 import { EncodingType } from "../serialize/EncodingType";
@@ -10,7 +10,7 @@ import { QueryShortChannelIdsFlags } from "./tlvs/QueryShortChannelIdsFlags";
 
 export class QueryShortChannelIdsMessage implements IWireMessage {
     public static deserialize(payload: Buffer): QueryShortChannelIdsMessage {
-        const reader = new BufferCursor(payload);
+        const reader = new BufferReader(payload);
         reader.readUInt16BE(); // read off type
 
         const instance = new QueryShortChannelIdsMessage();
@@ -20,7 +20,7 @@ export class QueryShortChannelIdsMessage implements IWireMessage {
         const esidBuffer = reader.readBytes(len);
 
         const rawShortIdBuffer = new Encoder().decode(esidBuffer);
-        const reader2 = new BufferCursor(rawShortIdBuffer);
+        const reader2 = new BufferReader(rawShortIdBuffer);
         while (!reader2.eof) {
             instance.shortChannelIds.push(shortChannelIdFromBuffer(reader2.readBytes(8)));
         }
@@ -59,15 +59,14 @@ export class QueryShortChannelIdsMessage implements IWireMessage {
         const esids = new Encoder().encode(encoding, rawIdsBuffer);
         const flags = this.flags ? this.flags.serialize(encoding) : Buffer.alloc(0);
 
-        const buffer = Buffer.alloc(
-      2 + // type
-      32 + // chain_hash
-      2 + // encoded_short_ids len
-      esids.length + // encoded_short_ids
-      flags.length,
-    ); // prettier-ignore
+        const len =
+            2 + // type
+            32 + // chain_hash
+            2 + // encoded_short_ids len
+            esids.length + // encoded_short_ids
+            flags.length;
 
-        const writer = new BufferCursor(buffer);
+        const writer = new BufferWriter(Buffer.alloc(len));
         writer.writeUInt16BE(this.type);
         writer.writeBytes(this.chainHash);
         writer.writeUInt16BE(esids.length);
@@ -77,6 +76,6 @@ export class QueryShortChannelIdsMessage implements IWireMessage {
             writer.writeBytes(flags);
         }
 
-        return buffer;
+        return writer.toBuffer();
     }
 }

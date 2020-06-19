@@ -1,4 +1,4 @@
-import { bufToStream } from "@lntools/buffer-cursor";
+import { bufToStream } from "@lntools/bufio";
 import { hash160 } from "@lntools/crypto";
 import { expect } from "chai";
 import { OpCode } from "../lib/OpCodes";

@@ -1,4 +1,4 @@
-import { BufferCursor } from "@lntools/buffer-cursor";
+import { BufferReader, BufferWriter } from "@lntools/bufio";
 import * as crypto from "@lntools/crypto";
 import { BitField } from "../BitField";
 import { ChannelFeatureFlags } from "../flags/ChannelFeatureFlags";
@@ -26,7 +26,7 @@ export class ChannelAnnouncementMessage implements IWireMessage {
      */
     public static deserialize(payload: Buffer): ChannelAnnouncementMessage {
         const instance = new ChannelAnnouncementMessage();
-        const reader = new BufferCursor(payload);
+        const reader = new BufferReader(payload);
         reader.readUInt16BE(); // read off type
 
         instance.nodeSignature1 = reader.readBytes(64);
@@ -158,22 +158,21 @@ export class ChannelAnnouncementMessage implements IWireMessage {
     public serialize(): Buffer {
         const featuresBuffer = this.features.toBuffer();
         const featuresLen = featuresBuffer.length;
-        const result = Buffer.alloc(
-      2 +   // type
-      64 +  // node_signature_1
-      64 +  // node_signature_2
-      64 +  // bitcoin_signature_1
-      64 +  // bitcoin_signature_2
-      2 +   // len
-      featuresLen +
-      32 +  // chain_hash
-      8 +   // short_channel_id
-      33 +  // node_id_1
-      33 +  // node_id_2
-      33 +  // bitcoin_key_1
-      33,    // bitcoin_key_2
-    ); // prettier-ignore
-        const writer = new BufferCursor(result);
+        const len =
+            2 + // type
+            64 + // node_signature_1
+            64 + // node_signature_2
+            64 + // bitcoin_signature_1
+            64 + // bitcoin_signature_2
+            2 + // len
+            featuresLen +
+            32 + // chain_hash
+            8 + // short_channel_id
+            33 + // node_id_1
+            33 + // node_id_2
+            33 + // bitcoin_key_1
+            33; // bitcoin_key_2
+        const writer = new BufferWriter(Buffer.alloc(len));
         writer.writeUInt16BE(this.type);
         writer.writeBytes(this.nodeSignature1);
         writer.writeBytes(this.nodeSignature2);
@@ -187,6 +186,6 @@ export class ChannelAnnouncementMessage implements IWireMessage {
         writer.writeBytes(this.nodeId2);
         writer.writeBytes(this.bitcoinKey1);
         writer.writeBytes(this.bitcoinKey2);
-        return result;
+        return writer.toBuffer();
     }
 }

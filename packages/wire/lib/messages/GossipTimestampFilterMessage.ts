@@ -1,11 +1,11 @@
-import { BufferCursor } from "@lntools/buffer-cursor";
+import { BufferReader, BufferWriter } from "@lntools/bufio";
 import { MessageType } from "../MessageType";
 import { IWireMessage } from "./IWireMessage";
 
 export class GossipTimestampFilterMessage implements IWireMessage {
     public static deserialize(payload: Buffer): GossipTimestampFilterMessage {
         const instance = new GossipTimestampFilterMessage();
-        const reader = new BufferCursor(payload);
+        const reader = new BufferReader(payload);
         reader.readUInt16BE(); // read off type
         instance.chainHash = reader.readBytes(32);
         instance.firstTimestamp = reader.readUInt32BE();
@@ -19,18 +19,18 @@ export class GossipTimestampFilterMessage implements IWireMessage {
     public timestampRange: number;
 
     public serialize(): Buffer {
-        const buffer = Buffer.alloc(
-      2 + // type
-      32 + // chain_hash
-      4 + // first_timestamp
-      4, // timestamp_range
-    ); // prettier-ignore
-        const writer = new BufferCursor(buffer);
+        const len =
+            2 + // type
+            32 + // chain_hash
+            4 + // first_timestamp
+            4; // timestamp_range
+
+        const writer = new BufferWriter(Buffer.alloc(len));
 
         writer.writeUInt16BE(this.type);
         writer.writeBytes(this.chainHash);
         writer.writeUInt32BE(this.firstTimestamp);
         writer.writeUInt32BE(this.timestampRange);
-        return buffer;
+        return writer.toBuffer();
     }
 }

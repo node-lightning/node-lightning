@@ -9,7 +9,7 @@
   "author": "Brian Mancini <bmancini@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "@lntools/buffer-cursor": "file:../../packages/buffer-cursor",
+    "@lntools/bufio": "file:../../packages/bufio",
     "@lntools/chainmon": "file:../../packages/chainmon",
     "@lntools/crypto": "file:../../packages/crypto",
     "@lntools/logger": "file:../../packages/logger",

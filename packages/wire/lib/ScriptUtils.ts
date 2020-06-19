@@ -1,4 +1,4 @@
-import { BufferCursor } from "@lntools/buffer-cursor";
+import { BufferWriter } from "@lntools/bufio";
 import { sha256 } from "@lntools/crypto";
 
 const OP_0 = 0;
@@ -41,7 +41,7 @@ function compileScript(chunks: Array<Buffer | number>): Buffer {
     }
 
     const buffer = Buffer.alloc(bufferSize);
-    const writer = new BufferCursor(buffer);
+    const writer = new BufferWriter(buffer);
 
     for (const chunk of chunks) {
         if (Buffer.isBuffer(chunk)) {

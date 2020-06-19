@@ -1,4 +1,4 @@
-import { BufferCursor } from "@lntools/buffer-cursor";
+import { BufferReader, BufferWriter } from "@lntools/bufio";
 import { MessageType } from "../MessageType";
 import { IWireMessage } from "./IWireMessage";
 
@@ -18,7 +18,7 @@ export class ErrorMessage implements IWireMessage {
      * instance.
      */
     public static deserialize(payload: Buffer): ErrorMessage {
-        const reader = new BufferCursor(payload);
+        const reader = new BufferReader(payload);
         reader.readUInt16BE(); // read type
 
         const instance = new ErrorMessage();
@@ -59,17 +59,17 @@ export class ErrorMessage implements IWireMessage {
      * can be send on the wire.
      */
     public serialize(): Buffer {
-        const buffer = Buffer.alloc(
+        const len =
             2 + // type
             4 + // channel_id
             2 + // len
-                this.data.length,
-        );
-        const writer = new BufferCursor(buffer);
+            this.data.length;
+
+        const writer = new BufferWriter(Buffer.alloc(len));
         writer.writeUInt16BE(this.type);
         writer.writeUInt32BE(this.channelId);
         writer.writeUInt16BE(this.data.length);
         writer.writeBytes(this.data);
-        return buffer;
+        return writer.toBuffer();
     }
 }

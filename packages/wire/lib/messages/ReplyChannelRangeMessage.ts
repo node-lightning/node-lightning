@@ -1,4 +1,4 @@
-import { BufferCursor } from "@lntools/buffer-cursor";
+import { BufferReader, BufferWriter } from "@lntools/bufio";
 import { MessageType } from "../MessageType";
 import { Encoder } from "../serialize/Encoder";
 import { EncodingType } from "../serialize/EncodingType";
@@ -12,7 +12,7 @@ import { ReplyChannelRangeTimestamps } from "./tlvs/ReplyChannelRangeTimestamps"
 export class ReplyChannelRangeMessage implements IWireMessage {
     public static deserialize(payload: Buffer): ReplyChannelRangeMessage {
         const instance = new ReplyChannelRangeMessage();
-        const reader = new BufferCursor(payload);
+        const reader = new BufferReader(payload);
 
         // read type bytes
         reader.readUInt16BE();
@@ -27,7 +27,7 @@ export class ReplyChannelRangeMessage implements IWireMessage {
         const len = reader.readUInt16BE(); // encoded_short_channel_id bytes
         const encodedShortIds = reader.readBytes(len);
         const rawShortIds = new Encoder().decode(encodedShortIds);
-        const reader2 = new BufferCursor(rawShortIds);
+        const reader2 = new BufferReader(rawShortIds);
         while (!reader2.eof) {
             instance.shortChannelIds.push(shortChannelIdFromBuffer(reader2.readBytes(8)));
         }
@@ -62,19 +62,18 @@ export class ReplyChannelRangeMessage implements IWireMessage {
             ? this.timestamps.serialize(encoding)
             : Buffer.alloc(0);
         const checksumsTlv = this.checksums ? this.checksums.serialize() : Buffer.alloc(0);
-        const buffer = Buffer.alloc(
-      2 + // type
-      32 + // chain_hash
-      4 + // first_blocknum
-      4 + // number_of_blocks
-      1 + // full_information
-      2 + // len encoded_short_ids
-      esids.length + // encoded_short_ids
-      timestampsTlv.length +
-      checksumsTlv.length,
-    ); // prettier-ignore
+        const len =
+            2 + // type
+            32 + // chain_hash
+            4 + // first_blocknum
+            4 + // number_of_blocks
+            1 + // full_information
+            2 + // len encoded_short_ids
+            esids.length + // encoded_short_ids
+            timestampsTlv.length +
+            checksumsTlv.length;
 
-        const writer = new BufferCursor(buffer);
+        const writer = new BufferWriter(Buffer.alloc(len));
         writer.writeUInt16BE(this.type);
         writer.writeBytes(this.chainHash);
         writer.writeUInt32BE(this.firstBlocknum);
@@ -90,6 +89,6 @@ export class ReplyChannelRangeMessage implements IWireMessage {
             writer.writeBytes(checksumsTlv);
         }
 
-        return buffer;
+        return writer.toBuffer();
     }
 }

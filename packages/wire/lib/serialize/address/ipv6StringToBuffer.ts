@@ -1,4 +1,4 @@
-import { BufferCursor } from "@lntools/buffer-cursor";
+import { BufferWriter } from "@lntools/bufio";
 
 /**
  * Converts an IPv6 address in string notation to the
@@ -14,8 +14,7 @@ export function ipv6StringToBuffer(host: string): Buffer {
 
     const parts = host.split(":");
 
-    const result = Buffer.alloc(16);
-    const writer = new BufferCursor(result);
+    const writer = new BufferWriter(Buffer.alloc(16));
 
     const expandBy = 8 - parts.length;
     let needsExpansion = expandBy > 0;
@@ -31,7 +30,7 @@ export function ipv6StringToBuffer(host: string): Buffer {
         }
     }
 
-    return result;
+    return writer.toBuffer();
 }
 
 function expandZeros(part: string): string {

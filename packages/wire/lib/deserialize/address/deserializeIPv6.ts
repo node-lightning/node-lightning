@@ -1,12 +1,12 @@
-import { BufferCursor } from "@lntools/buffer-cursor";
+import { BufferReader } from "@lntools/bufio";
 import { AddressIPv6 } from "../../domain/AddressIPv6";
 import { ipv6StringFromBuffer } from "./ipv6StringFromBuffer";
 
 /**
- * Deserializes an IPv6 address from a BufferCursor and
+ * Deserializes an IPv6 address from a reader and
  * returns an instance of an IPv6 Address.
  */
-export function deserializeIPv6(reader: BufferCursor): AddressIPv6 {
+export function deserializeIPv6(reader: BufferReader): AddressIPv6 {
     const hostBytes = reader.readBytes(16);
     const port = reader.readUInt16BE();
     const host = ipv6StringFromBuffer(hostBytes);

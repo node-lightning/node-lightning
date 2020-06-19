@@ -1,4 +1,4 @@
-import { BufferCursor } from "@lntools/buffer-cursor";
+import { BufferReader, BufferWriter } from "@lntools/bufio";
 import { BitField } from "../BitField";
 import { OutPoint } from "../domain/OutPoint";
 import { TlvStreamReader } from "../serialize/TlvStreamReader";
@@ -43,7 +43,7 @@ export class ExtendedChannelAnnouncementMessage extends ChannelAnnouncementMessa
 
     public static deserialize(payload: Buffer): ExtendedChannelAnnouncementMessage {
         const instance = new ExtendedChannelAnnouncementMessage();
-        const reader = new BufferCursor(payload);
+        const reader = new BufferReader(payload);
         reader.readUInt16BE(); // read off type
 
         instance.nodeSignature1 = reader.readBytes(64);

@@ -1,4 +1,4 @@
-import { BufferCursor } from "@lntools/buffer-cursor";
+import { BufferReader } from "@lntools/bufio";
 import { isSegWitTx } from "./isSegwitTx";
 
 /**
@@ -12,7 +12,7 @@ import { isSegWitTx } from "./isSegwitTx";
 export function indexOfWitness(raw: Buffer): number {
     if (!isSegWitTx(raw)) return -1;
 
-    const cursor = new BufferCursor(raw);
+    const cursor = new BufferReader(raw);
     cursor.position += 4; // version
     cursor.position += 2; // segwit marker and version
 

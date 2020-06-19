@@ -1,4 +1,4 @@
-import { BufferCursor } from "@lntools/buffer-cursor";
+import { BufferReader, BufferWriter } from "@lntools/bufio";
 import * as crypto from "@lntools/crypto";
 import { BitField } from "../BitField";
 import { Checksum } from "../domain/Checksum";
@@ -21,7 +21,7 @@ export class ChannelUpdateMessage implements IWireMessage {
      */
     public static deserialize(payload: Buffer): ChannelUpdateMessage {
         const instance = new ChannelUpdateMessage();
-        const reader = new BufferCursor(payload);
+        const reader = new BufferReader(payload);
         reader.readUInt16BE(); // read off type
 
         instance.signature = reader.readBytes(64);
@@ -194,7 +194,7 @@ export class ChannelUpdateMessage implements IWireMessage {
      * transmitted over the wire
      */
     public serialize() {
-        const result = Buffer.alloc(
+        const len =
             2 + // type
             64 + // signature
             32 + // chain_hash
@@ -206,10 +206,9 @@ export class ChannelUpdateMessage implements IWireMessage {
             8 + // htlc_minimum_msat
             4 + // fee_base_msat
             4 + // fee_proportional_millionths
-                (this.hasHtlcMaximumMsatFlag ? 8 : 0),
-        );
+            (this.hasHtlcMaximumMsatFlag ? 8 : 0);
 
-        const writer = new BufferCursor(result);
+        const writer = new BufferWriter(Buffer.alloc(len));
         writer.writeUInt16BE(this.type);
         writer.writeBytes(this.signature);
         writer.writeBytes(this.chainHash);
@@ -224,7 +223,7 @@ export class ChannelUpdateMessage implements IWireMessage {
         if (this.hasHtlcMaximumMsatFlag) {
             writer.writeUInt64BE(this.htlcMaximumMsat);
         }
-        return result;
+        return writer.toBuffer();
     }
 
     /**
@@ -237,7 +236,7 @@ export class ChannelUpdateMessage implements IWireMessage {
      *
      */
     public checksum(): Checksum {
-        const buffer = Buffer.alloc(
+        const len =
             2 + // type
             32 + // chain_hash
             8 + // short_channel_id
@@ -247,10 +246,9 @@ export class ChannelUpdateMessage implements IWireMessage {
             8 + // htlc_minimum_msat
             4 + // fee_base_msat
             4 + // fee_proportional_millionths
-                (this.hasHtlcMaximumMsatFlag ? 8 : 0),
-        );
+            (this.hasHtlcMaximumMsatFlag ? 8 : 0);
 
-        const writer = new BufferCursor(buffer);
+        const writer = new BufferWriter(Buffer.alloc(len));
         writer.writeUInt16BE(this.type);
         writer.writeBytes(this.chainHash);
         writer.writeBytes(this.shortChannelId.toBuffer());
@@ -263,6 +261,6 @@ export class ChannelUpdateMessage implements IWireMessage {
         if (this.hasHtlcMaximumMsatFlag) {
             writer.writeUInt64BE(this.htlcMaximumMsat);
         }
-        return Checksum.fromBuffer(buffer);
+        return Checksum.fromBuffer(writer.toBuffer());
     }
 }
