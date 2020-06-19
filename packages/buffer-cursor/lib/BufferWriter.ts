@@ -5,21 +5,22 @@
  */
 export class BufferWriter {
     private _position: number;
-    private _fixedLength: number;
+    private _fixed: boolean;
     private _buffer: Buffer;
 
     /**
-     * Constructs a BufferWriter that optionally includes a fixed length. When
-     * the fixed length is set, any write that results in expansion beyond the
-     * fixed length will throw an error. The fixed length can be used to
-     * preallocate a BufferWriter and ensure that the Buffer always returns
-     * with the required number of bytes.
-     * @param fixedLength
+     * Constructs a BufferWriter that can optionally wrap an existing Buffer.
+     * If no buffer is provided, the BufferWriter will internally manage an
+     * exponentially growing Buffer to allow writing of data of an unknown size.
+     *
+     * If a Buffer is provided, writing that would overflow will throw an
+     * exception.
+     * @param buffer
      */
-    constructor(fixedLength?: number) {
+    constructor(buffer?: Buffer) {
         this._position = 0;
-        this._fixedLength = fixedLength;
-        this._buffer = Buffer.alloc(fixedLength || 0);
+        this._fixed = !!buffer;
+        this._buffer = buffer || Buffer.alloc(0);
     }
 
     /**
@@ -30,10 +31,12 @@ export class BufferWriter {
     }
 
     /**
-     * Returns the Buffer constructed from the written data
+     * Returns the Buffer which will be either the full Buffer if this was a
+     * fixed Buffer or will be the expandable Buffer sliced to the current
+     * position
      */
     public toBuffer(): Buffer {
-        if (this._fixedLength) return this._buffer;
+        if (this._fixed) return this._buffer;
         else return this._buffer.slice(0, this._position);
     }
 
@@ -179,11 +182,9 @@ export class BufferWriter {
     private _expand(needed: number) {
         const required = this._position + needed;
 
-        // Ensure that the BufferWriter with a fixed length is not violated
-        if (this._fixedLength && required > this._fixedLength) {
-            throw new RangeError(
-                `Fixed length Buffer(${this._fixedLength}) exceeded with ${required} bytes`,
-            );
+        // Ensure that a fixed Buffer length is not violated
+        if (this._fixed && required > this._buffer.length) {
+            throw new RangeError("Out of range");
         }
 
         // expand the buffer if the current buffer is insufficiently lengthed

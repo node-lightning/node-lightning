@@ -190,7 +190,7 @@ describe("BufferWriter", () => {
                 expect(writeTest.instance.toBuffer()).to.deep.equal(writeTest.assertions[2]);
             });
             it("should throw when out of bounds", () => {
-                const instance = new BufferWriter(1);
+                const instance = new BufferWriter(Buffer.alloc(1));
                 expect(() => {
                     instance[writeTest.method](0);
                     instance[writeTest.method](0);
@@ -218,7 +218,7 @@ describe("BufferWriter", () => {
     describe("writeBytes", () => {
         let br: BufferWriter;
         before(() => {
-            br = new BufferWriter(8);
+            br = new BufferWriter(Buffer.alloc(8));
         });
         it("should ignore writing a null", () => {
             br.writeBytes(null);
