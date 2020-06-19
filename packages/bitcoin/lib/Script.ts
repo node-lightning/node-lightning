@@ -1,7 +1,7 @@
-import { bigToBufLE } from "@lntools/buffer-cursor";
-import { encodeVarInt } from "@lntools/buffer-cursor";
-import { BufferReader } from "@lntools/buffer-cursor";
-import { StreamReader } from "@lntools/buffer-cursor";
+import { bigToBufLE } from "@lntools/bufio";
+import { encodeVarInt } from "@lntools/bufio";
+import { BufferReader } from "@lntools/bufio";
+import { StreamReader } from "@lntools/bufio";
 import { Readable } from "stream";
 import { OpCode } from "./OpCodes";
 import { ScriptCmd } from "./ScriptCmd";

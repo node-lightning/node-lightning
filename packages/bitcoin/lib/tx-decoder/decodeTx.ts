@@ -1,4 +1,4 @@
-import { BufferReader } from "@lntools/buffer-cursor";
+import { BufferReader } from "@lntools/bufio";
 import { Tx } from "../Tx";
 import { TxIn } from "../Tx";
 import { TxOut } from "../Tx";

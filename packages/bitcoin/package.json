@@ -23,7 +23,7 @@
     "prepublish": "npm run build"
   },
   "dependencies": {
-    "@lntools/buffer-cursor": "^0.7.0",
+    "@lntools/bufio": "^0.7.0",
     "@lntools/crypto": "^0.7.1"
   }
 }

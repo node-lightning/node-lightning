@@ -1,4 +1,4 @@
-import { BufferReader } from "@lntools/buffer-cursor";
+import { BufferReader } from "@lntools/bufio";
 import { IGossipStore } from "@lntools/wire";
 import { NodeAnnouncementMessage } from "@lntools/wire";
 import { ChannelAnnouncementMessage } from "@lntools/wire";

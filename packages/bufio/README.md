@@ -6,11 +6,11 @@
 Usage:
 
 ```bash
-npm install @lntools/buffer-cursor
+npm install @lntools/bufio
 ```
 
 ```javascript
-const { BufferReader, BufferWriter } = require("@lntools/buffer-cursor");
+const { BufferReader, BufferWriter } = require("@lntools/bufio");
 
 // write arbitrary length data
 const writer = new BufferWriter();

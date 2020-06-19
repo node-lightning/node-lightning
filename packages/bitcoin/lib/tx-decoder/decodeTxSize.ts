@@ -1,4 +1,4 @@
-import { BufferReader } from "@lntools/buffer-cursor";
+import { BufferReader } from "@lntools/bufio";
 import { SizeResult } from "../SizeResult";
 import { isSegWitTx } from "./isSegwitTx";
 

@@ -1,4 +1,4 @@
-import { BufferWriter } from "@lntools/buffer-cursor";
+import { BufferWriter } from "@lntools/bufio";
 import { AddressTor2 } from "../../domain/AddressTor2";
 import { torStringToBuffer } from "./torStringToBuffer";
 

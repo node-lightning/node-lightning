@@ -1,4 +1,4 @@
-import { BufferReader } from "@lntools/buffer-cursor";
+import { BufferReader } from "@lntools/bufio";
 import bech32 from "bech32";
 import { ADDRESS_VERSION } from "./address-version";
 import * as crypto from "./crypto";

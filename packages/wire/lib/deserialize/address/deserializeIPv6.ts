@@ -1,4 +1,4 @@
-import { BufferReader } from "@lntools/buffer-cursor";
+import { BufferReader } from "@lntools/bufio";
 import { AddressIPv6 } from "../../domain/AddressIPv6";
 import { ipv6StringFromBuffer } from "./ipv6StringFromBuffer";
 

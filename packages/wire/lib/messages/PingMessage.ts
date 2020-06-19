@@ -1,4 +1,4 @@
-import { BufferReader, BufferWriter } from "@lntools/buffer-cursor";
+import { BufferReader, BufferWriter } from "@lntools/bufio";
 import { PONG_BYTE_THRESHOLD } from "../Constants";
 import { MessageType } from "../MessageType";
 import { IWireMessage } from "./IWireMessage";

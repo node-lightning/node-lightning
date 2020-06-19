@@ -1,4 +1,4 @@
-import { BufferReader } from "@lntools/buffer-cursor";
+import { BufferReader } from "@lntools/bufio";
 import { expect } from "chai";
 import { TlvStreamReader } from "../../lib/serialize/TlvStreamReader";
 import { N1Type1, N1Type2, N1Type254, N1Type3, N2Type0, N2Type11 } from "./_tlvTypes.spec";

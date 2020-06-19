@@ -1,4 +1,4 @@
-import { BufferReader, BufferWriter } from "@lntools/buffer-cursor";
+import { BufferReader, BufferWriter } from "@lntools/bufio";
 import { MessageType } from "../MessageType";
 import { TlvStreamReader } from "../serialize/TlvStreamReader";
 import { IWireMessage } from "./IWireMessage";

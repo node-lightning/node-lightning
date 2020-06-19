@@ -13,7 +13,7 @@ LNTools is structured as a monorepo with individual packages existing inside of 
 
 -   [@lntools/bitcoin](packages/bitcoin) - tools for building and parsing Bitcoin blocks and transactions
 -   [@lntools/bitcoind](packages/bitcoind) - bitcoind RPC and zeromq client
--   [@lntools/buffer-cursor](packages/buffer-cursor) - utility for reading and writing Buffers
+-   [@lntools/bufio](packages/bufio) - utilities for working with Buffers
 -   [@lntools/chainmon](packages/chainmon) - transaction and block monitoring tools
 -   [@lntools/crypto](packages/crypto) - common cryptography utilities
 -   [@lntools/gossip-rocksdb](packages/gossip-rocksdb) - stores gossip messages in RocksDB

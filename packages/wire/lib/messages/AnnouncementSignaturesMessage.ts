@@ -1,4 +1,4 @@
-import { BufferReader, BufferWriter } from "@lntools/buffer-cursor";
+import { BufferReader, BufferWriter } from "@lntools/bufio";
 import { MessageType } from "../MessageType";
 import { ShortChannelId } from "../ShortChannelId";
 import { shortChannelIdFromBuffer } from "../ShortChannelIdUtils";

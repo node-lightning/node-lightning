@@ -1,4 +1,4 @@
-import { BufferWriter } from "@lntools/buffer-cursor";
+import { BufferWriter } from "@lntools/bufio";
 
 /**
  * Converts an IPv6 address in string notation to the

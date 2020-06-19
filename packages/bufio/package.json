@@ -1,10 +1,10 @@
 {
   "name": "@lntools/bufio",
-  "version": "0.8.0",
+  "version": "0.7.0",
   "description": "Buffer IO utilities ",
   "keywords": [],
   "author": "Brian Mancini <bmancini@gmail.com>",
-  "homepage": "https://github.com/altangent/lntools/tree/master/packages/buffer-cursor",
+  "homepage": "https://github.com/altangent/lntools/tree/master/packages/bufio",
   "license": "MIT",
   "repository": {
     "type": "git",

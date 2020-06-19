@@ -1,4 +1,4 @@
-import { BufferReader, BufferWriter } from "@lntools/buffer-cursor";
+import { BufferReader, BufferWriter } from "@lntools/bufio";
 import { BitField } from "../BitField";
 import { OutPoint } from "../domain/OutPoint";
 import { TlvStreamReader } from "../serialize/TlvStreamReader";

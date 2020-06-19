@@ -1,4 +1,4 @@
-import { BufferReader, BufferWriter } from "@lntools/buffer-cursor";
+import { BufferReader, BufferWriter } from "@lntools/bufio";
 import * as crypto from "@lntools/crypto";
 import { BitField } from "../BitField";
 import { deserializeAddress } from "../deserialize/address/deserializeAddress";

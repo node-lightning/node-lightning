@@ -1,4 +1,4 @@
-import { BufferWriter } from "@lntools/buffer-cursor";
+import { BufferWriter } from "@lntools/bufio";
 
 export abstract class Tlv {
     public type: bigint;

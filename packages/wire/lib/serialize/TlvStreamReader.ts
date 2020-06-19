@@ -1,4 +1,4 @@
-import { BufferReader } from "@lntools/buffer-cursor";
+import { BufferReader } from "@lntools/bufio";
 import { ITlvDeserializable } from "./ITlvDeserializable";
 import { TlvValueReader } from "./TlvValueReader";
 

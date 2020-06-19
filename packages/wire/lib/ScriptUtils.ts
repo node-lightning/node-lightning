@@ -1,4 +1,4 @@
-import { BufferWriter } from "@lntools/buffer-cursor";
+import { BufferWriter } from "@lntools/bufio";
 import { sha256 } from "@lntools/crypto";
 
 const OP_0 = 0;

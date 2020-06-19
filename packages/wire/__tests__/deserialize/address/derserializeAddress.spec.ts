@@ -1,4 +1,4 @@
-import { BufferReader } from "@lntools/buffer-cursor";
+import { BufferReader } from "@lntools/bufio";
 import { expect } from "chai";
 import { deserializeAddress as sut } from "../../../lib/deserialize/address/deserializeAddress";
 
