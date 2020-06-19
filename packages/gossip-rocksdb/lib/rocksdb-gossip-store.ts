@@ -1,4 +1,4 @@
-import { BufferCursor } from "@lntools/buffer-cursor";
+import { BufferReader } from "@lntools/buffer-cursor";
 import { IGossipStore } from "@lntools/wire";
 import { NodeAnnouncementMessage } from "@lntools/wire";
 import { ChannelAnnouncementMessage } from "@lntools/wire";
@@ -55,7 +55,7 @@ export class RocksdbGossipStore extends RocksdbBase implements IGossipStore {
         const raw = await this._safeGet<Buffer>(key);
         if (!raw) return [];
 
-        const reader = new BufferCursor(raw);
+        const reader = new BufferReader(raw);
         const results = [];
         while (!reader.eof) {
             results.push(shortChannelIdFromBuffer(reader.readBytes(8)));

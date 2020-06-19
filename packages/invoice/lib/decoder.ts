@@ -1,4 +1,4 @@
-import { BufferCursor } from "@lntools/buffer-cursor";
+import { BufferReader } from "@lntools/buffer-cursor";
 import bech32 from "bech32";
 import { ADDRESS_VERSION } from "./address-version";
 import * as crypto from "./crypto";
@@ -50,7 +50,7 @@ export function decode(invoice: string): Invoice {
                 {
                     value = [];
                     const bytes = wordcursor.readBytes(len);
-                    const bytecursor = new BufferCursor(bytes);
+                    const bytecursor = new BufferReader(bytes);
                     while (!bytecursor.eof) {
                         value.push({
                             pubkey: bytecursor.readBytes(33),
