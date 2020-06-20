@@ -1,35 +1,54 @@
 import { BufferReader, BufferWriter } from "@lntools/bufio";
+import { BitField } from "../BitField";
+import { QueryScidFlags } from "../flags/QueryScidFlags";
 import { MessageType } from "../MessageType";
 import { Encoder } from "../serialize/Encoder";
 import { EncodingType } from "../serialize/EncodingType";
-import { TlvStreamReader } from "../serialize/TlvStreamReader";
+import { readTlvs } from "../serialize/readTlvs";
 import { ShortChannelId } from "../ShortChannelId";
 import { shortChannelIdFromBuffer } from "../ShortChannelIdUtils";
 import { IWireMessage } from "./IWireMessage";
-import { QueryShortChannelIdsFlags } from "./tlvs/QueryShortChannelIdsFlags";
 
 export class QueryShortChannelIdsMessage implements IWireMessage {
     public static deserialize(payload: Buffer): QueryShortChannelIdsMessage {
-        const reader = new BufferReader(payload);
-        reader.readUInt16BE(); // read off type
-
         const instance = new QueryShortChannelIdsMessage();
-        instance.chainHash = reader.readBytes(32);
+        const reader = new BufferReader(payload);
 
-        const len = reader.readUInt16BE();
-        const esidBuffer = reader.readBytes(len);
+        reader.readUInt16BE(); // read off type
+        instance.chainHash = reader.readBytes(32); // chain_hash
 
-        const rawShortIdBuffer = new Encoder().decode(esidBuffer);
-        const reader2 = new BufferReader(rawShortIdBuffer);
-        while (!reader2.eof) {
-            instance.shortChannelIds.push(shortChannelIdFromBuffer(reader2.readBytes(8)));
+        // process the encoded short channel ids by reading the length of
+        // encoded data, then using the decoder to get the raw buffer after
+        // using the appropriate decoding scheme
+        const encodedScidLen = reader.readUInt16BE();
+        const encodedScidBuffer = reader.readBytes(encodedScidLen);
+        const scidBuffer = new Encoder().decode(encodedScidBuffer);
+
+        // After we have a raw buffer of scid values (each 8 bytes) we can read
+        // the data from the buffer
+        const scidReader = new BufferReader(scidBuffer);
+        while (!scidReader.eof) {
+            const scid = shortChannelIdFromBuffer(scidReader.readBytes(8));
+            instance.shortChannelIds.push(scid);
         }
 
-        const tlvStreamReader = new TlvStreamReader();
-        tlvStreamReader.register(QueryShortChannelIdsFlags);
-        const tlvs = tlvStreamReader.read(reader);
-
-        instance.flags = tlvs.find(p => p.type === QueryShortChannelIdsFlags.type);
+        // Process all TLVs available on the reader
+        readTlvs(reader, (type: bigint, bytes: Buffer) => {
+            switch (type) {
+                case BigInt(1): {
+                    const flagBytes = new Encoder().decode(bytes);
+                    const flagReader = new BufferReader(flagBytes);
+                    while (!flagReader.eof) {
+                        const rawFlags = flagReader.readBigSize();
+                        const flags = new BitField<QueryScidFlags>(rawFlags);
+                        instance.flags.push(flags);
+                    }
+                    return true;
+                }
+                default:
+                    return false;
+            }
+        });
 
         return instance;
     }
@@ -52,28 +71,35 @@ export class QueryShortChannelIdsMessage implements IWireMessage {
     /**
      * Optional flags that can be set when gossip_queries_ex is enabled.
      */
-    public flags: QueryShortChannelIdsFlags;
+    public flags: Array<BitField<QueryScidFlags>> = [];
 
     public serialize(encoding: EncodingType = EncodingType.ZlibDeflate): Buffer {
         const rawIdsBuffer = Buffer.concat(this.shortChannelIds.map(p => p.toBuffer()));
         const esids = new Encoder().encode(encoding, rawIdsBuffer);
-        const flags = this.flags ? this.flags.serialize(encoding) : Buffer.alloc(0);
 
-        const len =
-            2 + // type
-            32 + // chain_hash
-            2 + // encoded_short_ids len
-            esids.length + // encoded_short_ids
-            flags.length;
-
-        const writer = new BufferWriter(Buffer.alloc(len));
+        const writer = new BufferWriter();
         writer.writeUInt16BE(this.type);
         writer.writeBytes(this.chainHash);
         writer.writeUInt16BE(esids.length);
         writer.writeBytes(esids);
 
-        if (flags.length) {
-            writer.writeBytes(flags);
+        // encode TLV 1
+        if (this.flags.length) {
+            writer.writeBigSize(1n);
+
+            // combine all BitFields into buffers
+            const flagBufs: Buffer[] = [];
+            for (const flag of this.flags) {
+                flagBufs.push(flag.toBuffer());
+            }
+            const flagBytes = Buffer.concat(flagBufs);
+
+            // encode the flag bytes according to the encoding strategy
+            const encodedFlagBytes = new Encoder().encode(encoding, flagBytes);
+
+            // write the length and bytes
+            writer.writeBigSize(BigInt(encodedFlagBytes.length));
+            writer.writeBytes(encodedFlagBytes);
         }
 
         return writer.toBuffer();
