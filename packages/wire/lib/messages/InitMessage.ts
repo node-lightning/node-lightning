@@ -3,6 +3,7 @@ import { BitField } from "../BitField";
 import { InitFeatureFlags } from "../flags/InitFeatureFlags";
 import { MessageType } from "../MessageType";
 import { IWireMessage } from "./IWireMessage";
+import { readTlvs } from "../serialize/readTlvs";
 
 /**
  * InitMessage is defined in BOLT #1. Once authentication is complete, the first
@@ -41,23 +42,21 @@ export class InitMessage implements IWireMessage {
         instance.features = new BitField().or(gf).or(lf);
 
         // process TLVs
-        while (!reader.eof) {
-            const type = reader.readBigSize();
-            const length = reader.readBigSize();
-            const value = reader.readBytes(Number(length));
-            const valueReader = new BufferReader(value);
-
-            switch (Number(type)) {
-                // networks
-                case 1: {
-                    while (!valueReader.eof) {
-                        const chainHash = valueReader.readBytes(32);
+        readTlvs(reader, (type: bigint, bytes: Buffer) => {
+            switch (type) {
+                // Process networks TLVs which is a series of chain_hash 32
+                // byte values. This method will simply read from the stream
+                // until every thing has been read
+                case BigInt(1): {
+                    const chainHashReader = new BufferReader(bytes);
+                    while (!chainHashReader.eof) {
+                        const chainHash = chainHashReader.readBytes(32);
                         instance.chainHashes.push(chainHash);
                     }
-                    break;
+                    return true;
                 }
             }
-        }
+        });
 
         return instance;
     }
