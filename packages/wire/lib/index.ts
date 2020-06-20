@@ -65,7 +65,6 @@ export * from "./messages/ReplyShortChannelIdsEndMessage";
 export * from "./messages/IWireMessage";
 
 export * from "./messages/tlvs/ChannelUpdateChecksums";
-export * from "./messages/tlvs/QueryChannelRangeOptions";
 export * from "./messages/tlvs/ReplyChannelRangeChecksums";
 export * from "./messages/tlvs/ReplyChannelRangeTimestamps";
 export * from "./messages/tlvs/Tlv";

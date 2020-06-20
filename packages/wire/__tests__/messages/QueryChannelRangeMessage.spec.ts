@@ -1,6 +1,5 @@
 import { expect } from "chai";
 import { QueryChannelRangeMessage } from "../../lib/messages/QueryChannelRangeMessage";
-import { QueryChannelRangeOptions } from "../../lib/messages/tlvs/QueryChannelRangeOptions";
 
 describe("QueryChannelRangeMessage", () => {
     describe(".deserialize", () => {
@@ -33,7 +32,7 @@ describe("QueryChannelRangeMessage", () => {
             expect(msg.chainHash.toString("hex")).to.equal("43497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea330900000000"); // prettier-ignore
             expect(msg.firstBlocknum).to.equal(1630000);
             expect(msg.numberOfBlocks).to.equal(2000);
-            expect(msg.options.timestamp).to.equal(true);
+            expect(msg.timestamps).to.equal(true);
         });
 
         it("message with timestamp and checksum options", () => {
@@ -51,8 +50,8 @@ describe("QueryChannelRangeMessage", () => {
             expect(msg.chainHash.toString("hex")).to.equal("43497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea330900000000"); // prettier-ignore
             expect(msg.firstBlocknum).to.equal(1630000);
             expect(msg.numberOfBlocks).to.equal(2000);
-            expect(msg.options.timestamp).to.equal(true);
-            expect(msg.options.checksum).to.equal(true);
+            expect(msg.timestamps).to.equal(true);
+            expect(msg.checksums).to.equal(true);
         });
     });
 
@@ -78,8 +77,7 @@ describe("QueryChannelRangeMessage", () => {
             );
             msg.firstBlocknum = 1630000;
             msg.numberOfBlocks = 2000;
-            msg.options = new QueryChannelRangeOptions();
-            msg.options.checksum = true;
+            msg.checksums = true;
             expect(msg.serialize().toString("hex")).to.equal(
                 "010743497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea3309000000000018df30000007d0010102",
             );
@@ -93,9 +91,8 @@ describe("QueryChannelRangeMessage", () => {
             );
             msg.firstBlocknum = 1630000;
             msg.numberOfBlocks = 2000;
-            msg.options = new QueryChannelRangeOptions();
-            msg.options.checksum = true;
-            msg.options.timestamp = true;
+            msg.checksums = true;
+            msg.timestamps = true;
             expect(msg.serialize().toString("hex")).to.equal(
                 "010743497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea3309000000000018df30000007d0010103",
             );
