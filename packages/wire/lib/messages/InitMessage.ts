@@ -2,8 +2,8 @@ import { BufferReader, BufferWriter } from "@lntools/bufio";
 import { BitField } from "../BitField";
 import { InitFeatureFlags } from "../flags/InitFeatureFlags";
 import { MessageType } from "../MessageType";
-import { IWireMessage } from "./IWireMessage";
 import { readTlvs } from "../serialize/readTlvs";
+import { IWireMessage } from "./IWireMessage";
 
 /**
  * InitMessage is defined in BOLT #1. Once authentication is complete, the first
