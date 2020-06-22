@@ -42,15 +42,14 @@ export class InitMessage implements IWireMessage {
         instance.features = new BitField().or(gf).or(lf);
 
         // process TLVs
-        readTlvs(reader, (type: bigint, bytes: Buffer) => {
+        readTlvs(reader, (type: bigint, valueReader: BufferReader) => {
             switch (type) {
                 // Process networks TLVs which is a series of chain_hash 32
                 // byte values. This method will simply read from the stream
                 // until every thing has been read
                 case BigInt(1): {
-                    const chainHashReader = new BufferReader(bytes);
-                    while (!chainHashReader.eof) {
-                        const chainHash = chainHashReader.readBytes(32);
+                    while (!valueReader.eof) {
+                        const chainHash = valueReader.readBytes(32);
                         instance.chainHashes.push(chainHash);
                     }
                     return true;

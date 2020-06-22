@@ -33,9 +33,10 @@ export class QueryShortChannelIdsMessage implements IWireMessage {
         }
 
         // Process all TLVs available on the reader
-        readTlvs(reader, (type: bigint, bytes: Buffer) => {
+        readTlvs(reader, (type: bigint, valueReader: BufferReader) => {
             switch (type) {
                 case BigInt(1): {
+                    const bytes = valueReader.readBytes();
                     const flagBytes = new Encoder().decode(bytes);
                     const flagReader = new BufferReader(flagBytes);
                     while (!flagReader.eof) {

@@ -32,7 +32,7 @@ export class ReplyChannelRangeMessage implements IWireMessage {
         }
 
         // read tlvs in the reply_channel_range realm
-        readTlvs(reader, (type: bigint, bytes: Buffer) => {
+        readTlvs(reader, (type: bigint, valueReader: BufferReader) => {
             switch (type) {
                 // timestamps TLVs include the timestamps for the node1/2
                 // node_update messages. A tuple [number, number] will be
@@ -40,12 +40,13 @@ export class ReplyChannelRangeMessage implements IWireMessage {
                 // Timestamps are an encoded field where the first byte
                 // indicates the encoding type (RAW or ZLIB DEFLATE).
                 case BigInt(1): {
+                    const bytes = valueReader.readBytes();
                     const decodedBytes = new Encoder().decode(bytes);
-                    const valueReader = new BufferReader(decodedBytes);
-                    while (!valueReader.eof) {
+                    const decodedReader = new BufferReader(decodedBytes);
+                    while (!decodedReader.eof) {
                         instance.timestamps.push([
-                            valueReader.readUInt32BE(),
-                            valueReader.readUInt32BE(),
+                            decodedReader.readUInt32BE(),
+                            decodedReader.readUInt32BE(),
                         ]);
                     }
                     return true;
@@ -55,7 +56,6 @@ export class ReplyChannelRangeMessage implements IWireMessage {
                 // node_update message. A tuple [number, number] will be
                 // returned for each short_channel_id that is returned
                 case BigInt(3): {
-                    const valueReader = new BufferReader(bytes);
                     while (!valueReader.eof) {
                         instance.checksums.push([
                             valueReader.readUInt32BE(),

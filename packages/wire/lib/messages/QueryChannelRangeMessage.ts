@@ -16,11 +16,10 @@ export class QueryChannelRangeMessage implements IWireMessage {
         instance.numberOfBlocks = reader.readUInt32BE();
 
         // Parse any TLVs that might exist
-        readTlvs(reader, (type: bigint, bytes: Buffer) => {
+        readTlvs(reader, (type: bigint, valueReader: BufferReader) => {
             switch (type) {
                 case BigInt(1): {
-                    const tlvReader = new BufferReader(bytes);
-                    const options = tlvReader.readBigSize();
+                    const options = valueReader.readBigSize();
                     const bitfield = new BitField<QueryChannelRangeFlags>(options);
                     instance.timestamps = bitfield.isSet(QueryChannelRangeFlags.timestamps);
                     instance.checksums = bitfield.isSet(QueryChannelRangeFlags.checksums);

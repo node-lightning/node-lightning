@@ -59,13 +59,12 @@ export class ExtendedChannelAnnouncementMessage extends ChannelAnnouncementMessa
         instance.bitcoinKey2 = reader.readBytes(33);
 
         // read the TLVs for the extended data
-        readTlvs(reader, (type: bigint, bytes: Buffer) => {
+        readTlvs(reader, (type: bigint, valueReader: BufferReader) => {
             switch (type) {
                 // process the outpoint which is obtained after looking onchain
                 // at the funding transaction. This is encoded as a 32-byte txid
                 // and a 2 byte uint output index
                 case BigInt(16777271): {
-                    const valueReader = new BufferReader(bytes);
                     instance.outpoint = new OutPoint(
                         valueReader.readBytes(32).toString("hex"),
                         valueReader.readTUInt16(),
@@ -76,7 +75,6 @@ export class ExtendedChannelAnnouncementMessage extends ChannelAnnouncementMessa
                 // onchain at the funding transaction outpoint. This is encoded
                 // as a single tuint64 value.
                 case BigInt(16777273): {
-                    const valueReader = new BufferReader(bytes);
                     instance.capacity = valueReader.readTUInt64();
                     return true;
                 }
