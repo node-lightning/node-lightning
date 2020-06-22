@@ -108,8 +108,8 @@ export class ReplyChannelRangeMessage implements IWireMessage {
                 valueWriter.writeUInt32BE(v2);
             }
             const value = new Encoder().encode(encoding, valueWriter.toBuffer());
-            writer.writeBigSize(BigInt(1)); // type
-            writer.writeBigSize(BigInt(value.length)); // length
+            writer.writeBigSize(1); // type
+            writer.writeBigSize(value.length); // length
             writer.writeBytes(value); // value
         }
 
@@ -123,8 +123,8 @@ export class ReplyChannelRangeMessage implements IWireMessage {
                 valueWriter.writeUInt32BE(v2);
             }
             const value = valueWriter.toBuffer();
-            writer.writeBigSize(BigInt(3)); // type
-            writer.writeBigSize(BigInt(value.length)); // length
+            writer.writeBigSize(3); // type
+            writer.writeBigSize(value.length); // length
             writer.writeBytes(value); // value
         }
 

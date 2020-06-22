@@ -96,10 +96,9 @@ export class InitMessage implements IWireMessage {
         writer.writeBytes(features);
 
         // write chainhash tlv
-        const chainHashesLen = this.chainHashes.length * 32;
-        if (chainHashesLen) {
-            writer.writeBigSize(1n); // type
-            writer.writeBigSize(BigInt(chainHashesLen)); // length
+        if (this.chainHashes.length) {
+            writer.writeBigSize(1); // type
+            writer.writeBigSize(this.chainHashes.length * 32); // length
             writer.writeBytes(Buffer.concat(this.chainHashes)); // value
         }
 

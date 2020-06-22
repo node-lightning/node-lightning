@@ -86,8 +86,6 @@ export class QueryShortChannelIdsMessage implements IWireMessage {
 
         // encode TLV 1
         if (this.flags.length) {
-            writer.writeBigSize(1n);
-
             // combine all BitFields into buffers
             const flagBufs: Buffer[] = [];
             for (const flag of this.flags) {
@@ -98,8 +96,9 @@ export class QueryShortChannelIdsMessage implements IWireMessage {
             // encode the flag bytes according to the encoding strategy
             const encodedFlagBytes = new Encoder().encode(encoding, flagBytes);
 
-            // write the length and bytes
-            writer.writeBigSize(BigInt(encodedFlagBytes.length));
+            // write TLV data
+            writer.writeBigSize(1);
+            writer.writeBigSize(encodedFlagBytes.length);
             writer.writeBytes(encodedFlagBytes);
         }
 

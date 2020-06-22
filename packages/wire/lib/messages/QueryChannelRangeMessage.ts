@@ -78,8 +78,8 @@ export class QueryChannelRangeMessage implements IWireMessage {
             const bitfield = new BitField<QueryChannelRangeFlags>();
             if (this.timestamps) bitfield.set(QueryChannelRangeFlags.timestamps);
             if (this.checksums) bitfield.set(QueryChannelRangeFlags.checksums);
-            writer.writeBigSize(BigInt(1));
-            writer.writeBigSize(BigInt(BufferReader.bigSizeBytes(bitfield.value)));
+            writer.writeBigSize(1);
+            writer.writeBigSize(BufferReader.bigSizeBytes(bitfield.value));
             writer.writeBigSize(bitfield.value);
         }
 
