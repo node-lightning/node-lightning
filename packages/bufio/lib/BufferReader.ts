@@ -249,6 +249,44 @@ export class BufferReader {
     }
 
     /**
+     * TLV 0 to 2 byte unsigned integer encoded in big-endian.
+     */
+    public readTUInt16(): number {
+        const size = Math.min(2, this._buffer.length - this._position);
+        if (size === 0) return 0;
+        const val = this._buffer.readUIntBE(this._position, size);
+        this._assertMinimalTUInt(BigInt(val), size);
+        this._position += size;
+        return val;
+    }
+
+    /**
+     * TLV 0 to 4 byte unsigned integer encoded in big-endian.
+     */
+    public readTUInt32(): number {
+        const size = Math.min(4, this._buffer.length - this._position);
+        if (size === 0) return 0;
+        const val = this._buffer.readUIntBE(this._position, size);
+        this._assertMinimalTUInt(BigInt(val), size);
+        this._position += size;
+        return val;
+    }
+
+    /**
+     * TLV 0 to 8 byte unsigned integer encoded in big-endian.
+     */
+    public readTUInt64(): bigint {
+        const size = Math.min(8, this._buffer.length - this._position);
+        if (size === 0) return BigInt(0);
+        const hex =
+            this._buffer.slice(this._position, this._position + size).toString("hex") || "0";
+        const val = BigInt("0x" + hex);
+        this._assertMinimalTUInt(val, size);
+        this._position += size;
+        return val;
+    }
+
+    /**
      * Helper for reading off buffer using built-in read functions
      * @param fn name of function
      * @param len length to read
@@ -261,5 +299,19 @@ export class BufferReader {
         this._position += len;
         this._lastReadBytes = len;
         return result;
+    }
+
+    /**
+     * Ensures the TUInt value is minimally encoded
+     * @param num
+     * @param bytes
+     */
+    private _assertMinimalTUInt(num: bigint, bytes: number) {
+        const msg = "TUInt not minimal";
+        for (let i = 0; i < 9; i++) {
+            if (num < BigInt("0x1" + "".padStart(i * 2, "0"))) {
+                return assert.equal(bytes, i, msg);
+            }
+        }
     }
 }

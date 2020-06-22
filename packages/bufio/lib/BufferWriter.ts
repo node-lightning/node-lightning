@@ -175,6 +175,40 @@ export class BufferWriter {
     }
 
     /**
+     * TLV 0 to 2 byte unsigned integer encoded in big-endian.
+     * @param val
+     */
+    public writeTUInt16(val: number) {
+        if (val === 0) return;
+        const size = val > 0xff ? 2 : 1;
+        this._expand(size);
+        this._buffer.writeUIntBE(val, this._position, size);
+        this._position += size;
+    }
+
+    /**
+     * TLV 0 to 4 byte unsigned integer encoded in big-endian.
+     */
+    public writeTUInt32(val: number) {
+        if (val === 0) return;
+        const size = val > 0xffffff ? 4 : val > 0xffff ? 3 : val > 0xff ? 2 : 1;
+        this._expand(size);
+        this._buffer.writeUIntBE(val, this._position, size);
+        this._position += size;
+    }
+
+    /**
+     * TLV 0 to 8 byte unsigned integer encoded in big-endian.
+     */
+    public writeTUInt64(val: bigint) {
+        if (val === BigInt(0)) return;
+        let valString = val.toString(16);
+        if (valString.length % 2 === 1) valString = "0" + valString;
+        const buf = Buffer.from(valString, "hex");
+        this.writeBytes(buf);
+    }
+
+    /**
      * Expands the underlying buffer as needed by doubling the size of the
      * Buffer when it needs to grow.
      * @param needed

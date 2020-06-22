@@ -276,6 +276,120 @@ describe("BufferReader", () => {
         }
     });
 
+    describe(".readTUInt16()", () => {
+        it("should read 0-byte", () => {
+            const sut = new BufferReader(Buffer.alloc(0));
+            const a = sut.readTUInt32();
+            expect(a).to.equal(0);
+        });
+
+        it("should read 1-byte", () => {
+            const sut = new BufferReader(Buffer.from([1]));
+            const a = sut.readTUInt32();
+            expect(a).to.equal(1);
+        });
+
+        it("should read 2-byte", () => {
+            const sut = new BufferReader(Buffer.from([1, 1]));
+            const a = sut.readTUInt32();
+            expect(a).to.equal(257);
+        });
+    });
+
+    describe(".readTUInt32()", () => {
+        it("should read 0-byte", () => {
+            const sut = new BufferReader(Buffer.alloc(0));
+            const a = sut.readTUInt32();
+            expect(a).to.equal(0);
+        });
+
+        it("should read 1-byte", () => {
+            const sut = new BufferReader(Buffer.from([1]));
+            const a = sut.readTUInt32();
+            expect(a).to.equal(1);
+        });
+
+        it("should read 2-byte", () => {
+            const sut = new BufferReader(Buffer.from([1, 1]));
+            const a = sut.readTUInt32();
+            expect(a).to.equal(257);
+        });
+
+        it("should read 3-byte", () => {
+            const sut = new BufferReader(Buffer.from([1, 0, 0]));
+            const a = sut.readTUInt32();
+            expect(a).to.equal(0x010000);
+        });
+
+        it("should read 4-byte", () => {
+            const sut = new BufferReader(Buffer.from([1, 0, 0, 0]));
+            const a = sut.readTUInt32();
+            expect(a).to.equal(0x01000000);
+        });
+    });
+
+    describe(".readTUInt64()", () => {
+        it("should read 0-byte", () => {
+            const sut = new BufferReader(Buffer.alloc(0));
+            const a = sut.readTUInt64();
+            expect(a).to.equal(BigInt(0));
+        });
+
+        it("should read 1-byte", () => {
+            const sut = new BufferReader(Buffer.from([1]));
+            const a = sut.readTUInt64();
+            expect(a).to.equal(BigInt(1));
+        });
+
+        it("should read 2-byte", () => {
+            const sut = new BufferReader(Buffer.from([1, 1]));
+            const a = sut.readTUInt64();
+            expect(a).to.equal(BigInt(257));
+        });
+
+        it("should read 3-byte", () => {
+            const sut = new BufferReader(Buffer.from([1, 0, 0]));
+            const a = sut.readTUInt64();
+            expect(a).to.equal(BigInt("0x010000"));
+        });
+
+        it("should read 4-byte", () => {
+            const sut = new BufferReader(Buffer.from([1, 0, 0, 0]));
+            const a = sut.readTUInt64();
+            expect(a).to.equal(BigInt("0x01000000"));
+        });
+
+        it("should read 5-byte", () => {
+            const sut = new BufferReader(Buffer.from([1, 0, 0, 0, 0]));
+            const a = sut.readTUInt64();
+            expect(a).to.equal(BigInt("0x0100000000"));
+        });
+
+        it("should read 6-byte", () => {
+            const sut = new BufferReader(Buffer.from([1, 0, 0, 0, 0, 0]));
+            const a = sut.readTUInt64();
+            expect(a).to.equal(BigInt("0x010000000000"));
+        });
+
+        it("should read 7-byte", () => {
+            const sut = new BufferReader(Buffer.from([1, 0, 0, 0, 0, 0, 0]));
+            const a = sut.readTUInt64();
+            expect(a).to.equal(BigInt("0x01000000000000"));
+        });
+
+        it("should read 8-byte", () => {
+            const sut = new BufferReader(Buffer.from([1, 0, 0, 0, 0, 0, 0, 0]));
+            const a = sut.readTUInt64();
+            expect(a).to.equal(BigInt("0x0100000000000000"));
+        });
+
+        it("should read max", () => {
+            const sut = new BufferReader(Buffer.from([255, 255, 255, 255, 255, 255, 255, 255]));
+            const a = sut.readTUInt64();
+            expect(a).to.equal(BigInt("0xffffffffffffffff"));
+        });
+    });
+
     describe("peakBytes", () => {
         it("should return empty buffer when 0", () => {
             const sut = new BufferReader(Buffer.from([1]));
