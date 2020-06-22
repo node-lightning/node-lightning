@@ -63,6 +63,3 @@ export * from "./messages/QueryShortChannelIdsMessage";
 export * from "./messages/ReplyChannelRangeMessage";
 export * from "./messages/ReplyShortChannelIdsEndMessage";
 export * from "./messages/IWireMessage";
-
-export * from "./messages/tlvs/ChannelUpdateChecksums";
-export * from "./messages/tlvs/Tlv";
