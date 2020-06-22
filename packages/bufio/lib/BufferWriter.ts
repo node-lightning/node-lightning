@@ -130,7 +130,8 @@ export class BufferWriter {
      *   0xfe = 4 byte number (5 bytes total)
      *   0xff = 8 byte number (9 bytes total)
      */
-    public writeVarInt(num: bigint) {
+    public writeVarInt(val: bigint | number) {
+        const num = BigInt(val);
         if (num < BigInt(0xfd)) {
             this.writeUInt8(Number(num));
         } else if (num < BigInt(0x10000)) {
@@ -159,7 +160,8 @@ export class BufferWriter {
      *   0xfe = 4 byte number (5 bytes total)
      *   0xff = 8 byte number (9 bytes total)
      */
-    public writeBigSize(num: bigint) {
+    public writeBigSize(val: bigint | number) {
+        const num = BigInt(val);
         if (num < BigInt(0xfd)) {
             this.writeUInt8(Number(num));
         } else if (num < BigInt(0x10000)) {
