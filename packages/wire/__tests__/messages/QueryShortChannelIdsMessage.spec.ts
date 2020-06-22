@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { BitField } from "../../lib/BitField";
+import { QueryScidFlags } from "../../lib/flags/QueryScidFlags";
 import { QueryShortChannelIdsMessage } from "../../lib/messages/QueryShortChannelIdsMessage";
-import { QueryShortChannelIdsFlags } from "../../lib/messages/tlvs/QueryShortChannelIdsFlags";
 import { ShortChannelId } from "../../lib/ShortChannelId";
 
 describe("QueryShortChannelIdsMessage", () => {
@@ -51,16 +51,16 @@ describe("QueryShortChannelIdsMessage", () => {
 
         it("raw encoded tlv message", () => {
             const payload = Buffer.from(
-        "0105" + // type 261
-        "43497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea330900000000" + // chain_hash
-        "0011" + // encoded_short_ids len (25 bytes)
-        "00" + // encoding type (raw)
-        "18e05c000001000018e51d0000040000" + // short_channel_ids
-        "01" + // tlv type 1 (flags)
-        "03" + // tlv length (3 bytes)
-        "00" + // encoding (raw)
-        "0102", // flags
-      "hex"); // prettier-ignore
+                "0105" + // type 261
+                "43497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea330900000000" + // chain_hash
+                "0011" + // encoded_short_ids len (25 bytes)
+                "00" + // encoding type (raw)
+                "18e05c000001000018e51d0000040000" + // short_channel_ids
+                "01" + // tlv type 1 (flags)
+                "03" + // tlv length (3 bytes)
+                "00" + // encoding (raw)
+                "0102", // flags
+            "hex"); // prettier-ignore
 
             const msg = QueryShortChannelIdsMessage.deserialize(payload);
 
@@ -74,23 +74,23 @@ describe("QueryShortChannelIdsMessage", () => {
             expect(msg.shortChannelIds[1].txIdx).to.equal(4);
             expect(msg.shortChannelIds[1].voutIdx).to.equal(0);
 
-            expect(msg.flags.flags.length).to.equal(2);
-            expect(msg.flags.flags[0].value.toString()).to.equal("1");
-            expect(msg.flags.flags[1].value.toString()).to.equal("2");
+            expect(msg.flags.length).to.equal(2);
+            expect(msg.flags[0].value.toString()).to.equal("1");
+            expect(msg.flags[1].value.toString()).to.equal("2");
         });
 
         it("zlib deflate encoded tlv message", () => {
             const payload = Buffer.from(
-        "0105" + // type 261
-        "43497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea330900000000" + // chain_hash
-        "0019" + // encoded_short_ids len (35)
-        "01" + // encoded type (zlib deflate)
-        "789c937810c3c0c0c8c020f154968181858101001b800274" + // encoded_short_ids
-        "01" + // tlv type 1
-        "0b" + // tlv length (11 bytes)
-        "01" + // encoding type (zlib deflate)
-        "789c6364020000060004", // encoded flags
-      "hex"); // prettier-ignore
+                "0105" + // type 261
+                "43497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea330900000000" + // chain_hash
+                "0019" + // encoded_short_ids len (35)
+                "01" + // encoded type (zlib deflate)
+                "789c937810c3c0c0c8c020f154968181858101001b800274" + // encoded_short_ids
+                "01" + // tlv type 1
+                "0b" + // tlv length (11 bytes)
+                "01" + // encoding type (zlib deflate)
+                "789c6364020000060004", // encoded flags
+            "hex"); // prettier-ignore
 
             const msg = QueryShortChannelIdsMessage.deserialize(payload);
 
@@ -104,9 +104,9 @@ describe("QueryShortChannelIdsMessage", () => {
             expect(msg.shortChannelIds[1].txIdx).to.equal(4);
             expect(msg.shortChannelIds[1].voutIdx).to.equal(0);
 
-            expect(msg.flags.flags.length).to.equal(2);
-            expect(msg.flags.flags[0].value.toString()).to.equal("1");
-            expect(msg.flags.flags[1].value.toString()).to.equal("2");
+            expect(msg.flags.length).to.equal(2);
+            expect(msg.flags[0].value.toString()).to.equal("1");
+            expect(msg.flags[1].value.toString()).to.equal("2");
         });
     });
 
@@ -164,20 +164,19 @@ describe("QueryShortChannelIdsMessage", () => {
             );
             msg.shortChannelIds.push(new ShortChannelId(1630300, 1, 0));
             msg.shortChannelIds.push(new ShortChannelId(1631517, 4, 0));
-            msg.flags = new QueryShortChannelIdsFlags();
-            msg.flags.addFlags(BitField.fromNumber(1));
-            msg.flags.addFlags(BitField.fromNumber(2));
+            msg.flags.push(new BitField<QueryScidFlags>(BigInt(1)));
+            msg.flags.push(new BitField<QueryScidFlags>(BigInt(2)));
             expect(msg.serialize(0).toString("hex")).to.equal(
-        "0105" +
-        "43497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea330900000000" +
-        "0011" +
-        "00" +
-        "18e05c000001000018e51d0000040000" +
-        "01" +
-        "03" +
-        "00" +
-        "0102",
-      ); // prettier-ignore
+                "0105" +
+                    "43497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea330900000000" +
+                    "0011" +
+                    "00" +
+                    "18e05c000001000018e51d0000040000" +
+                    "01" +
+                    "03" +
+                    "00" +
+                    "0102",
+            );
         });
 
         it("zlib deflate encoded tlv message", () => {
@@ -188,21 +187,20 @@ describe("QueryShortChannelIdsMessage", () => {
             );
             msg.shortChannelIds.push(new ShortChannelId(1630300, 1, 0));
             msg.shortChannelIds.push(new ShortChannelId(1631517, 4, 0));
-            msg.flags = new QueryShortChannelIdsFlags();
-            msg.flags.addFlags(BitField.fromNumber(1));
-            msg.flags.addFlags(BitField.fromNumber(2));
+            msg.flags.push(new BitField<QueryScidFlags>(BigInt(1)));
+            msg.flags.push(new BitField<QueryScidFlags>(BigInt(2)));
             expect(msg.serialize(1).toString("hex")).to.equal(
-        "0105" +
-        "43497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea330900000000" +
-        "0019" +
-        "01" +
-        "789c937810c3c0c0c8c020f154968181858101001b800274" +
-        "01" +
-        "0b" +
-        "01" +
-        "789c6364020000060004" +
-        "",
-      ); // prettier-ignore
+                "0105" +
+                "43497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea330900000000" +
+                "0019" +
+                "01" +
+                "789c937810c3c0c0c8c020f154968181858101001b800274" +
+                "01" +
+                "0b" +
+                "01" +
+                "789c6364020000060004" +
+                "",
+            ); // prettier-ignore
         });
     });
 });

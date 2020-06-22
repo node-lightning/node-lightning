@@ -1,11 +1,9 @@
 import { BufferReader, BufferWriter } from "@lntools/bufio";
 import { BitField } from "../BitField";
 import { OutPoint } from "../domain/OutPoint";
-import { TlvStreamReader } from "../serialize/TlvStreamReader";
+import { readTlvs } from "../serialize/readTlvs";
 import { shortChannelIdFromBuffer } from "../ShortChannelIdUtils";
 import { ChannelAnnouncementMessage } from "./ChannelAnnouncementMessage";
-import { ExtendedChannelAnnouncementCapacity } from "./tlvs/ExtendedChannelAnnouncementCapacity";
-import { ExtendedChannelAnnouncementOutpoint } from "./tlvs/ExtendedChannelAnnouncementOutpoint";
 
 /**
  * Decorator for the channel_announcement that includes the additional
@@ -60,20 +58,30 @@ export class ExtendedChannelAnnouncementMessage extends ChannelAnnouncementMessa
         instance.bitcoinKey1 = reader.readBytes(33);
         instance.bitcoinKey2 = reader.readBytes(33);
 
-        const tlvReader = new TlvStreamReader();
-        tlvReader.register(ExtendedChannelAnnouncementOutpoint);
-        tlvReader.register(ExtendedChannelAnnouncementCapacity);
-        const tlvs = tlvReader.read(reader);
-        for (const tlv of tlvs) {
-            switch (tlv.type) {
-                case ExtendedChannelAnnouncementOutpoint.type:
-                    instance.outpoint = (tlv as ExtendedChannelAnnouncementOutpoint).outpoint;
-                    break;
-                case ExtendedChannelAnnouncementCapacity.type:
-                    instance.capacity = (tlv as ExtendedChannelAnnouncementCapacity).capacity;
-                    break;
+        // read the TLVs for the extended data
+        readTlvs(reader, (type: bigint, valueReader: BufferReader) => {
+            switch (type) {
+                // process the outpoint which is obtained after looking onchain
+                // at the funding transaction. This is encoded as a 32-byte txid
+                // and a 2 byte uint output index
+                case BigInt(16777271): {
+                    instance.outpoint = new OutPoint(
+                        valueReader.readBytes(32).toString("hex"),
+                        valueReader.readTUInt16(),
+                    );
+                    return true;
+                }
+                // process the channel capacity which is obtained  after looking
+                // onchain at the funding transaction outpoint. This is encoded
+                // as a single tuint64 value.
+                case BigInt(16777273): {
+                    instance.capacity = valueReader.readTUInt64();
+                    return true;
+                }
+                default:
+                    return false;
             }
-        }
+        });
 
         return instance;
     }
@@ -93,15 +101,29 @@ export class ExtendedChannelAnnouncementMessage extends ChannelAnnouncementMessa
 
     public serialize() {
         const chanAnnBuffer = super.serialize();
+        const writer = new BufferWriter();
 
-        const outpointTlv = new ExtendedChannelAnnouncementOutpoint();
-        outpointTlv.outpoint = this.outpoint;
-        const outpointTlvBuffer = outpointTlv.serialize();
+        // outpoint value
+        let valueWriter = new BufferWriter();
+        valueWriter.writeBytes(Buffer.from(this.outpoint.txId, "hex"));
+        valueWriter.writeTUInt16(this.outpoint.voutIdx);
+        let value = valueWriter.toBuffer();
 
-        const capacityTlv = new ExtendedChannelAnnouncementCapacity();
-        capacityTlv.capacity = this.capacity;
-        const capacityTlvBuffer = capacityTlv.serialize();
+        // outpoint tlv
+        writer.writeBigSize(16777271);
+        writer.writeBigSize(value.length);
+        writer.writeBytes(value);
 
-        return Buffer.concat([chanAnnBuffer, outpointTlvBuffer, capacityTlvBuffer]);
+        // capacity value
+        valueWriter = new BufferWriter();
+        valueWriter.writeTUInt64(this.capacity);
+        value = valueWriter.toBuffer();
+
+        // capacity tlv
+        writer.writeBigSize(16777273);
+        writer.writeBigSize(value.length);
+        writer.writeBytes(value);
+
+        return Buffer.concat([chanAnnBuffer, writer.toBuffer()]);
     }
 }

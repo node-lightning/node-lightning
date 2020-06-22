@@ -2,12 +2,10 @@ import { BufferReader, BufferWriter } from "@lntools/bufio";
 import { MessageType } from "../MessageType";
 import { Encoder } from "../serialize/Encoder";
 import { EncodingType } from "../serialize/EncodingType";
-import { TlvStreamReader } from "../serialize/TlvStreamReader";
+import { readTlvs } from "../serialize/readTlvs";
 import { ShortChannelId } from "../ShortChannelId";
 import { shortChannelIdFromBuffer } from "../ShortChannelIdUtils";
 import { IWireMessage } from "./IWireMessage";
-import { ReplyChannelRangeChecksums } from "./tlvs/ReplyChannelRangeChecksums";
-import { ReplyChannelRangeTimestamps } from "./tlvs/ReplyChannelRangeTimestamps";
 
 export class ReplyChannelRangeMessage implements IWireMessage {
     public static deserialize(payload: Buffer): ReplyChannelRangeMessage {
@@ -24,22 +22,54 @@ export class ReplyChannelRangeMessage implements IWireMessage {
         instance.fullInformation = reader.readUInt8() === 1;
 
         // read encoded_short_ids
-        const len = reader.readUInt16BE(); // encoded_short_channel_id bytes
-        const encodedShortIds = reader.readBytes(len);
-        const rawShortIds = new Encoder().decode(encodedShortIds);
-        const reader2 = new BufferReader(rawShortIds);
-        while (!reader2.eof) {
-            instance.shortChannelIds.push(shortChannelIdFromBuffer(reader2.readBytes(8)));
+        const encodedLen = reader.readUInt16BE(); // encoded_short_channel_id bytes
+        const encodedScidBytes = reader.readBytes(encodedLen);
+        const scidsBytes = new Encoder().decode(encodedScidBytes);
+        const scidsReader = new BufferReader(scidsBytes);
+        while (!scidsReader.eof) {
+            const scidBytes = scidsReader.readBytes(8);
+            instance.shortChannelIds.push(shortChannelIdFromBuffer(scidBytes));
         }
 
-        // read tlvs
-        const tlvReader = new TlvStreamReader();
-        tlvReader.register(ReplyChannelRangeTimestamps);
-        tlvReader.register(ReplyChannelRangeChecksums);
-        const tlvs = tlvReader.read(reader);
+        // read tlvs in the reply_channel_range realm
+        readTlvs(reader, (type: bigint, valueReader: BufferReader) => {
+            switch (type) {
+                // timestamps TLVs include the timestamps for the node1/2
+                // node_update messages. A tuple [number, number] will be
+                // returned for each short_channel_id that is returned.
+                // Timestamps are an encoded field where the first byte
+                // indicates the encoding type (RAW or ZLIB DEFLATE).
+                case BigInt(1): {
+                    const bytes = valueReader.readBytes();
+                    const decodedBytes = new Encoder().decode(bytes);
+                    const decodedReader = new BufferReader(decodedBytes);
+                    while (!decodedReader.eof) {
+                        instance.timestamps.push([
+                            decodedReader.readUInt32BE(),
+                            decodedReader.readUInt32BE(),
+                        ]);
+                    }
+                    return true;
+                }
 
-        instance.timestamps = tlvs.find(p => p.type === ReplyChannelRangeTimestamps.type);
-        instance.checksums = tlvs.find(p => p.type === ReplyChannelRangeChecksums.type);
+                // checksum TLVs include the checksums for the node1/2
+                // node_update message. A tuple [number, number] will be
+                // returned for each short_channel_id that is returned
+                case BigInt(3): {
+                    while (!valueReader.eof) {
+                        instance.checksums.push([
+                            valueReader.readUInt32BE(),
+                            valueReader.readUInt32BE(),
+                        ]);
+                    }
+                    return true;
+                }
+
+                // return that the TLV type was not handled
+                default:
+                    return false;
+            }
+        });
 
         return instance;
     }
@@ -50,30 +80,15 @@ export class ReplyChannelRangeMessage implements IWireMessage {
     public numberOfBlocks: number;
     public fullInformation: boolean;
     public shortChannelIds: ShortChannelId[] = [];
-    public timestamps: ReplyChannelRangeTimestamps;
-    public checksums: ReplyChannelRangeChecksums;
+    public timestamps: Array<[number, number]> = [];
+    public checksums: Array<[number, number]> = [];
 
     public serialize(encoding: EncodingType = EncodingType.ZlibDeflate): Buffer {
         // encode short channel ids
         const rawSids = Buffer.concat(this.shortChannelIds.map(p => p.toBuffer()));
         const esids = new Encoder().encode(encoding, rawSids);
 
-        const timestampsTlv = this.timestamps
-            ? this.timestamps.serialize(encoding)
-            : Buffer.alloc(0);
-        const checksumsTlv = this.checksums ? this.checksums.serialize() : Buffer.alloc(0);
-        const len =
-            2 + // type
-            32 + // chain_hash
-            4 + // first_blocknum
-            4 + // number_of_blocks
-            1 + // full_information
-            2 + // len encoded_short_ids
-            esids.length + // encoded_short_ids
-            timestampsTlv.length +
-            checksumsTlv.length;
-
-        const writer = new BufferWriter(Buffer.alloc(len));
+        const writer = new BufferWriter();
         writer.writeUInt16BE(this.type);
         writer.writeBytes(this.chainHash);
         writer.writeUInt32BE(this.firstBlocknum);
@@ -82,11 +97,35 @@ export class ReplyChannelRangeMessage implements IWireMessage {
         writer.writeUInt16BE(esids.length);
         writer.writeBytes(esids);
 
-        if (timestampsTlv.length) {
-            writer.writeBytes(timestampsTlv);
+        // write timestamp TLV if it is required. The timestaps are encoded as
+        // uint32BE tuples corresponding to the timestamps for node1/2
+        // channel_update messages. This buffer uses the encoding format
+        // supplied and will be either RAW or ZLIB DEFLARE
+        if (this.timestamps.length) {
+            const valueWriter = new BufferWriter();
+            for (const [v1, v2] of this.timestamps) {
+                valueWriter.writeUInt32BE(v1);
+                valueWriter.writeUInt32BE(v2);
+            }
+            const value = new Encoder().encode(encoding, valueWriter.toBuffer());
+            writer.writeBigSize(1); // type
+            writer.writeBigSize(value.length); // length
+            writer.writeBytes(value); // value
         }
-        if (checksumsTlv.length) {
-            writer.writeBytes(checksumsTlv);
+
+        // write checksums TLV if it is required. The checksums are encoded as
+        // uint32BE tuples corresponding to the checksums for node1/2
+        // channel_update messages
+        if (this.checksums.length) {
+            const valueWriter = new BufferWriter();
+            for (const [v1, v2] of this.checksums) {
+                valueWriter.writeUInt32BE(v1);
+                valueWriter.writeUInt32BE(v2);
+            }
+            const value = valueWriter.toBuffer();
+            writer.writeBigSize(3); // type
+            writer.writeBigSize(value.length); // length
+            writer.writeBytes(value); // value
         }
 
         return writer.toBuffer();

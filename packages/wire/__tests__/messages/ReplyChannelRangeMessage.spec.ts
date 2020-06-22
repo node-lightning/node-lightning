@@ -1,7 +1,5 @@
 import { expect } from "chai";
 import { ReplyChannelRangeMessage } from "../../lib/messages/ReplyChannelRangeMessage";
-import { ReplyChannelRangeChecksums } from "../../lib/messages/tlvs/ReplyChannelRangeChecksums";
-import { ReplyChannelRangeTimestamps } from "../../lib/messages/tlvs/ReplyChannelRangeTimestamps";
 import { ShortChannelId } from "../../lib/ShortChannelId";
 
 describe("ReplyChannelRangeMessage", () => {
@@ -145,11 +143,11 @@ describe("ReplyChannelRangeMessage", () => {
             expect(message.shortChannelIds[20].txIdx).to.equal(4);
             expect(message.shortChannelIds[20].voutIdx).to.equal(0);
 
-            expect(message.timestamps.timestamps.length).to.equal(21);
-            expect(message.timestamps.timestamps[0][0]).to.equal(1576830285);
-            expect(message.timestamps.timestamps[0][1]).to.equal(1579016636);
-            expect(message.timestamps.timestamps[20][0]).to.equal(1579020224);
-            expect(message.timestamps.timestamps[20][1]).to.equal(1576843845);
+            expect(message.timestamps.length).to.equal(21);
+            expect(message.timestamps[0][0]).to.equal(1576830285);
+            expect(message.timestamps[0][1]).to.equal(1579016636);
+            expect(message.timestamps[20][0]).to.equal(1579020224);
+            expect(message.timestamps[20][1]).to.equal(1576843845);
         });
 
         it("zlib encoded standard message", () => {
@@ -231,11 +229,11 @@ describe("ReplyChannelRangeMessage", () => {
             expect(msg.shortChannelIds[20].txIdx).to.equal(4);
             expect(msg.shortChannelIds[20].voutIdx).to.equal(0);
 
-            expect(msg.timestamps.timestamps.length).to.equal(21);
-            expect(msg.timestamps.timestamps[0][0]).to.equal(1576830285);
-            expect(msg.timestamps.timestamps[0][1]).to.equal(1579016636);
-            expect(msg.timestamps.timestamps[20][0]).to.equal(1579020224);
-            expect(msg.timestamps.timestamps[20][1]).to.equal(1576843845);
+            expect(msg.timestamps.length).to.equal(21);
+            expect(msg.timestamps[0][0]).to.equal(1576830285);
+            expect(msg.timestamps[0][1]).to.equal(1579016636);
+            expect(msg.timestamps[20][0]).to.equal(1579020224);
+            expect(msg.timestamps[20][1]).to.equal(1576843845);
         });
 
         it("message with timestamps and checksums tlvs", () => {
@@ -304,11 +302,11 @@ describe("ReplyChannelRangeMessage", () => {
             // 3ee677e3 4242f2e0
             const msg = ReplyChannelRangeMessage.deserialize(payload);
 
-            expect(msg.checksums.checksums.length).to.equal(21);
-            expect(msg.checksums.checksums[0][0]).to.equal(0x43cf660e);
-            expect(msg.checksums.checksums[0][1]).to.equal(0x444c7568);
-            expect(msg.checksums.checksums[20][0]).to.equal(0x3ee677e3);
-            expect(msg.checksums.checksums[20][1]).to.equal(0x4242f2e0);
+            expect(msg.checksums.length).to.equal(21);
+            expect(msg.checksums[0][0]).to.equal(0x43cf660e);
+            expect(msg.checksums[0][1]).to.equal(0x444c7568);
+            expect(msg.checksums[20][0]).to.equal(0x3ee677e3);
+            expect(msg.checksums[20][1]).to.equal(0x4242f2e0);
         });
     });
 
@@ -359,8 +357,7 @@ describe("ReplyChannelRangeMessage", () => {
             message.shortChannelIds.push(new ShortChannelId(1631513, 1, 0));
             message.shortChannelIds.push(new ShortChannelId(1631513, 2, 0));
             message.shortChannelIds.push(new ShortChannelId(1631517, 4, 0));
-            message.timestamps = new ReplyChannelRangeTimestamps();
-            message.timestamps.timestamps = [
+            message.timestamps = [
                 [1576830285, 1579016636],
                 [1578669800, 1579019372],
                 [1579023294, 1578669800],
@@ -454,8 +451,7 @@ describe("ReplyChannelRangeMessage", () => {
             message.shortChannelIds.push(new ShortChannelId(1631513, 1, 0));
             message.shortChannelIds.push(new ShortChannelId(1631513, 2, 0));
             message.shortChannelIds.push(new ShortChannelId(1631517, 4, 0));
-            message.timestamps = new ReplyChannelRangeTimestamps();
-            message.timestamps.timestamps = [
+            message.timestamps = [
                 [1576830285, 1579016636],
                 [1578669800, 1579019372],
                 [1579023294, 1578669800],
@@ -494,8 +490,7 @@ describe("ReplyChannelRangeMessage", () => {
             message.fullInformation = true;
             message.shortChannelIds.push(new ShortChannelId(1630300, 1, 0)); // 18e05c0000010000
             message.shortChannelIds.push(new ShortChannelId(1631517, 4, 0)); // 18e51d0000040000
-            message.checksums = new ReplyChannelRangeChecksums();
-            message.checksums.checksums.push([1, 2], [3, 4]);
+            message.checksums.push([1, 2], [3, 4]);
             expect(message.serialize(0).toString("hex")).to.equal(
                 "010843497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea3309000000000018df30000007d00100110018e05c000001000018e51d0000040000031000000001000000020000000300000004",
             );

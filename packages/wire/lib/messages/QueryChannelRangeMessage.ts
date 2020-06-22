@@ -1,8 +1,9 @@
 import { BufferReader, BufferWriter } from "@lntools/bufio";
+import { BitField } from "../BitField";
+import { QueryChannelRangeFlags } from "../flags/QueryChannelRangeFlags";
 import { MessageType } from "../MessageType";
-import { TlvStreamReader } from "../serialize/TlvStreamReader";
+import { readTlvs } from "../serialize/readTlvs";
 import { IWireMessage } from "./IWireMessage";
-import { QueryChannelRangeOptions } from "./tlvs/QueryChannelRangeOptions";
 
 export class QueryChannelRangeMessage implements IWireMessage {
     public static deserialize(payload: Buffer): QueryChannelRangeMessage {
@@ -14,11 +15,20 @@ export class QueryChannelRangeMessage implements IWireMessage {
         instance.firstBlocknum = reader.readUInt32BE();
         instance.numberOfBlocks = reader.readUInt32BE();
 
-        // try parse of tlvs
-        const tlvStreamReader = new TlvStreamReader();
-        tlvStreamReader.register(QueryChannelRangeOptions);
-        const tlvs = tlvStreamReader.read(reader);
-        instance.options = tlvs.find(p => p.type === QueryChannelRangeOptions.type);
+        // Parse any TLVs that might exist
+        readTlvs(reader, (type: bigint, valueReader: BufferReader) => {
+            switch (type) {
+                case BigInt(1): {
+                    const options = valueReader.readBigSize();
+                    const bitfield = new BitField<QueryChannelRangeFlags>(options);
+                    instance.timestamps = bitfield.isSet(QueryChannelRangeFlags.timestamps);
+                    instance.checksums = bitfield.isSet(QueryChannelRangeFlags.checksums);
+                    return true;
+                }
+                default:
+                    return false;
+            }
+        });
 
         return instance;
     }
@@ -45,27 +55,34 @@ export class QueryChannelRangeMessage implements IWireMessage {
     public numberOfBlocks: number;
 
     /**
-     * Optional options
+     * When gossip_queries_ex is enabled, this asks the remote node to include
+     * the timestamps of update messages.
      */
-    public options: QueryChannelRangeOptions;
+    public timestamps: boolean;
+
+    /**
+     * When gossip_queries_ex is enabled, this asks the remote node to include
+     * checksums of update messages.
+     */
+    public checksums: boolean;
 
     public serialize(): Buffer {
-        const optionsBuffer = this.options ? this.options.serialize() : Buffer.alloc(0);
-        const len =
-            2 + // type
-            32 + // chain_hash
-            4 + // first_blocknum
-            4 + // number_of_blocks
-            optionsBuffer.length; // options tlv
-
-        const writer = new BufferWriter(Buffer.alloc(len));
+        const writer = new BufferWriter();
         writer.writeUInt16BE(MessageType.QueryChannelRange);
         writer.writeBytes(this.chainHash);
         writer.writeUInt32BE(this.firstBlocknum);
         writer.writeUInt32BE(this.numberOfBlocks);
-        if (this.options) {
-            writer.writeBytes(optionsBuffer);
+
+        // write the options TLV
+        if (this.timestamps || this.checksums) {
+            const bitfield = new BitField<QueryChannelRangeFlags>();
+            if (this.timestamps) bitfield.set(QueryChannelRangeFlags.timestamps);
+            if (this.checksums) bitfield.set(QueryChannelRangeFlags.checksums);
+            writer.writeBigSize(1);
+            writer.writeBigSize(BufferReader.bigSizeBytes(bitfield.value));
+            writer.writeBigSize(bitfield.value);
         }
+
         return writer.toBuffer();
     }
 }

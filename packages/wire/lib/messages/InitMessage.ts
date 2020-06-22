@@ -2,6 +2,7 @@ import { BufferReader, BufferWriter } from "@lntools/bufio";
 import { BitField } from "../BitField";
 import { InitFeatureFlags } from "../flags/InitFeatureFlags";
 import { MessageType } from "../MessageType";
+import { readTlvs } from "../serialize/readTlvs";
 import { IWireMessage } from "./IWireMessage";
 
 /**
@@ -41,23 +42,20 @@ export class InitMessage implements IWireMessage {
         instance.features = new BitField().or(gf).or(lf);
 
         // process TLVs
-        while (!reader.eof) {
-            const type = reader.readBigSize();
-            const length = reader.readBigSize();
-            const value = reader.readBytes(Number(length));
-            const valueReader = new BufferReader(value);
-
-            switch (Number(type)) {
-                // networks
-                case 1: {
+        readTlvs(reader, (type: bigint, valueReader: BufferReader) => {
+            switch (type) {
+                // Process networks TLVs which is a series of chain_hash 32
+                // byte values. This method will simply read from the stream
+                // until every thing has been read
+                case BigInt(1): {
                     while (!valueReader.eof) {
                         const chainHash = valueReader.readBytes(32);
                         instance.chainHashes.push(chainHash);
                     }
-                    break;
+                    return true;
                 }
             }
-        }
+        });
 
         return instance;
     }
@@ -98,10 +96,9 @@ export class InitMessage implements IWireMessage {
         writer.writeBytes(features);
 
         // write chainhash tlv
-        const chainHashesLen = this.chainHashes.length * 32;
-        if (chainHashesLen) {
-            writer.writeBigSize(1n); // type
-            writer.writeBigSize(BigInt(chainHashesLen)); // length
+        if (this.chainHashes.length) {
+            writer.writeBigSize(1); // type
+            writer.writeBigSize(this.chainHashes.length * 32); // length
             writer.writeBytes(Buffer.concat(this.chainHashes)); // value
         }
 

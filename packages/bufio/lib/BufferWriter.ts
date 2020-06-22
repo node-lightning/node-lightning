@@ -130,7 +130,8 @@ export class BufferWriter {
      *   0xfe = 4 byte number (5 bytes total)
      *   0xff = 8 byte number (9 bytes total)
      */
-    public writeVarInt(num: bigint) {
+    public writeVarInt(val: bigint | number) {
+        const num = BigInt(val);
         if (num < BigInt(0xfd)) {
             this.writeUInt8(Number(num));
         } else if (num < BigInt(0x10000)) {
@@ -159,7 +160,8 @@ export class BufferWriter {
      *   0xfe = 4 byte number (5 bytes total)
      *   0xff = 8 byte number (9 bytes total)
      */
-    public writeBigSize(num: bigint) {
+    public writeBigSize(val: bigint | number) {
+        const num = BigInt(val);
         if (num < BigInt(0xfd)) {
             this.writeUInt8(Number(num));
         } else if (num < BigInt(0x10000)) {
@@ -172,6 +174,40 @@ export class BufferWriter {
             this.writeUInt8(0xff);
             this.writeUInt64BE(num);
         }
+    }
+
+    /**
+     * TLV 0 to 2 byte unsigned integer encoded in big-endian.
+     * @param val
+     */
+    public writeTUInt16(val: number) {
+        if (val === 0) return;
+        const size = val > 0xff ? 2 : 1;
+        this._expand(size);
+        this._buffer.writeUIntBE(val, this._position, size);
+        this._position += size;
+    }
+
+    /**
+     * TLV 0 to 4 byte unsigned integer encoded in big-endian.
+     */
+    public writeTUInt32(val: number) {
+        if (val === 0) return;
+        const size = val > 0xffffff ? 4 : val > 0xffff ? 3 : val > 0xff ? 2 : 1;
+        this._expand(size);
+        this._buffer.writeUIntBE(val, this._position, size);
+        this._position += size;
+    }
+
+    /**
+     * TLV 0 to 8 byte unsigned integer encoded in big-endian.
+     */
+    public writeTUInt64(val: bigint) {
+        if (val === BigInt(0)) return;
+        let valString = val.toString(16);
+        if (valString.length % 2 === 1) valString = "0" + valString;
+        const buf = Buffer.from(valString, "hex");
+        this.writeBytes(buf);
     }
 
     /**
