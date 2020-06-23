@@ -20,5 +20,6 @@
   "dependencies": {
     "@lntools/bitcoin": "^0.5.0",
     "@lntools/bitcoind": "^0.5.0"
-  }
+  },
+  "gitHead": "f1db27c96af2dc1dd8cb3ca62952499afd8efc6c"
 }

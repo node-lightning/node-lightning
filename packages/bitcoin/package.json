@@ -25,5 +25,6 @@
   "dependencies": {
     "@lntools/bufio": "^0.9.0",
     "@lntools/crypto": "^0.9.0"
-  }
+  },
+  "gitHead": "f1db27c96af2dc1dd8cb3ca62952499afd8efc6c"
 }

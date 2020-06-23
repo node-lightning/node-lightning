@@ -31,5 +31,6 @@
     "@lntools/noise": "^0.14.0",
     "rfc4648": "^1.2.1",
     "sse4_crc32": "^6.0.1"
-  }
+  },
+  "gitHead": "f1db27c96af2dc1dd8cb3ca62952499afd8efc6c"
 }

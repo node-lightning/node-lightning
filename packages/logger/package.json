@@ -19,5 +19,6 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/altangent/lntools.git"
-  }
+  },
+  "gitHead": "f1db27c96af2dc1dd8cb3ca62952499afd8efc6c"
 }

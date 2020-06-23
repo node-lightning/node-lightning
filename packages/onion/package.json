@@ -1,5 +1,6 @@
 {
   "name": "@lntools/onion",
+  "private": true,
   "version": "0.3.0",
   "description": "Lightning Network Onion Routing",
   "keywords": [
@@ -28,5 +29,8 @@
     "@lntools/crypto": "^0.9.0",
     "@lntools/logger": "^0.9.0",
     "@lntools/wire": "^0.17.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
