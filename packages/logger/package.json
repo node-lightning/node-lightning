@@ -1,6 +1,6 @@
 {
   "name": "@lntools/logger",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "description": "Logging tool for LNTools applications",
   "main": "dist/index.js",
   "scripts": {

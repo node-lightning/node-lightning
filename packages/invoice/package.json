@@ -1,6 +1,6 @@
 {
   "name": "@lntools/invoice",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "description": "BOLT 11 Lightning Network invoice encoding/decoding library",
   "main": "dist/index.js",
   "scripts": {
@@ -26,7 +26,7 @@
   "author": "Brian Mancini <bmancini@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "@lntools/bufio": "^0.8.0",
+    "@lntools/bufio": "^0.9.0",
     "bech32": "^1.1.3",
     "bs58check": "^2.1.2",
     "secp256k1": "^3.5.0"

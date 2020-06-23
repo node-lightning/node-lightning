@@ -1,6 +1,6 @@
 {
   "name": "@lntools/bufio",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "description": "Buffer IO utilities ",
   "keywords": [],
   "author": "Brian Mancini <bmancini@gmail.com>",
