@@ -1,7 +1,7 @@
 {
   "name": "@lntools/chain",
   "private": true,
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Lightning Network on-chain transaction handling tools",
   "author": "Brian Mancini <bmancini@gmail.com>",
   "homepage": "https://github.com/altangent/lntools/tree/master/packages/chain",
@@ -18,7 +18,7 @@
     "url": "git+https://github.com/altangent/lntools.git"
   },
   "dependencies": {
-    "@lntools/crypto": "^0.7.1",
+    "@lntools/crypto": "^0.8.0",
     "secp256k1": "^3.6.2"
   }
 }
