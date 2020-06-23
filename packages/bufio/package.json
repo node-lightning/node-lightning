@@ -16,5 +16,8 @@
     "lint": "../../node_modules/.bin/tslint --project tsconfig.json --config ../../tslint.json",
     "build": "../../node_modules/.bin/tsc --project tsconfig.json",
     "prepublish": "npm run build"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
