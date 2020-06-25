@@ -1,7 +1,11 @@
 export class Base32 {
     public static alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
-    public static padding = "=";
+    public static pad = "=";
 
+    /**
+     * Encodes the buffer using padded Base32 defined in RFC 4648.
+     * @param buf
+     */
     public static encode(buf: Buffer): string {
         if (!buf.length) return "";
 
@@ -41,7 +45,7 @@ export class Base32 {
             // when it is padded an there is no data, we encode the padding
             // character
             if (isPadded && index === 0) {
-                result = result + "=";
+                result = result + Base32.pad;
             }
             // otherwise the lowest 5 bits will be the index from 0-31 and we
             // prepend the value since we are reading in reverse order
@@ -56,8 +60,59 @@ export class Base32 {
         return result;
     }
 
+    /**
+     * Decodes the buffer using padded Base32 defined in RFC 4648.
+     * @param val
+     */
     public static decode(val: string): Buffer {
-        throw new Error();
-        // if (!val) return Buffer.alloc(0);
+        if (!val) return Buffer.alloc(0);
+
+        // We will read each character and reconstruct the final number that
+        // was used to generate the string.
+        let num = BigInt(0);
+
+        // Along the way we will count the number of padding characters we
+        // enounter, where each character represents 5 bits. We keep count of
+        // the padding chars found to help us calculate the padding bits at the
+        // end.
+        let paddingChars = 0;
+
+        // Iterate each character in our input string
+        for (const char of val) {
+            // Obtain the index of the current character, or alternative note
+            // that we found a padding character
+            let index: number;
+            if (char === Base32.pad) {
+                index = 0;
+                paddingChars++;
+            } else {
+                index = Base32.alphabet.indexOf(char);
+            }
+
+            // Shift our number left by 5 bits and add the 5 bits for our index
+            // as the least significant bits
+            num <<= BigInt(5);
+            num += BigInt(index);
+        }
+
+        // Now we need to remove the padding bits. RFC4648 discusses that we
+        // will encounter a few different scenarios that allows us to calculate
+        // the total number of padded characters that were included in our
+        // original byte stream. For example, if ther are 6 padding characters
+        // ======, where each character is 5 bits, we have 30 bits of padding in
+        // the padding characters.  However, we need to decode to an event byte
+        // so we round up to 32 bits of padding. The same logic applies for each
+        // of the other padding characters.
+        let paddingBits: number = 0;
+        if (paddingChars === 6) paddingBits = 32;
+        else if (paddingChars === 4) paddingBits = 24;
+        else if (paddingChars === 3) paddingBits = 16;
+        else if (paddingChars === 1) paddingBits = 8;
+
+        // Right shift the padding bits to obtain our original number
+        num >>= BigInt(paddingBits);
+
+        // Return the Buffer with our original number
+        return Buffer.from(num.toString(16), "hex");
     }
 }
