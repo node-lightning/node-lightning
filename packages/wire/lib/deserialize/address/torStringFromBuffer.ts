@@ -1,8 +1,8 @@
-import { base32 } from "rfc4648";
+import { Base32 } from "../../Base32";
 
 /**
  * Converts a Buffer into a TOR address including the .onion suffix
  */
 export function torStringFromBuffer(buffer: Buffer): string {
-    return base32.stringify(buffer).toLowerCase() + ".onion";
+    return Base32.encode(buffer).toLowerCase() + ".onion";
 }
