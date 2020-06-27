@@ -1,4 +1,4 @@
-import { base32 } from "rfc4648";
+import { Base32 } from "../../Base32";
 
 /**
  * Converts a Tor address in string notation into a Buffer
@@ -6,5 +6,5 @@ import { base32 } from "rfc4648";
 export function torStringToBuffer(host: string): Buffer {
     host = host.substr(0, host.indexOf("."));
     host = host.toUpperCase();
-    return Buffer.from(base32.parse(host));
+    return Base32.decode(host);
 }
