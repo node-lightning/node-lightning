@@ -1,0 +1,25 @@
+{
+  "name": "@lntools/checksum",
+  "version": "0.1.0",
+  "description": "Checksum library with CRC32C",
+  "keywords": [
+    "checksum", "crc32c"
+  ],
+  "author": "Brian Mancini <bmancini@gmail.com>",
+  "homepage": "https://github.com/altangent/lntools/tree/master/packages/checksum",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/altangent/lntools.git"
+  },
+  "scripts": {
+    "test": "../../node_modules/.bin/nyc --reporter=lcov --reporter=text --extension=.ts ../../node_modules/.bin/mocha --require ts-node/register --recursive \"__tests__/**/*.spec.*\"",
+    "lint": "../../node_modules/.bin/tslint --project tsconfig.json --config ../../tslint.json",
+    "build": "../../node_modules/.bin/tsc --project tsconfig.json",
+    "prepublish": "npm run build"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
