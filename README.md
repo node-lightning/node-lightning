@@ -15,6 +15,7 @@ LNTools is structured as a monorepo with individual packages existing inside of 
 -   [@lntools/bitcoind](packages/bitcoind) - bitcoind RPC and zeromq client
 -   [@lntools/bufio](packages/bufio) - utilities for working with Buffers
 -   [@lntools/chainmon](packages/chainmon) - transaction and block monitoring tools
+-   [@lntools/checksum](packages/checksum) - implements checksums such as CRC32C
 -   [@lntools/crypto](packages/crypto) - common cryptography utilities
 -   [@lntools/gossip-rocksdb](packages/gossip-rocksdb) - stores gossip messages in RocksDB
 -   [@lntools/graph](packages/graph) - builds and maintains a Lightning Network routing graph
