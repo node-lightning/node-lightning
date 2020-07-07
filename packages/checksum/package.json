@@ -1,9 +1,10 @@
 {
   "name": "@lntools/checksum",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Checksum library with CRC32C",
   "keywords": [
-    "checksum", "crc32c"
+    "checksum",
+    "crc32c"
   ],
   "author": "Brian Mancini <bmancini@gmail.com>",
   "homepage": "https://github.com/altangent/lntools/tree/master/packages/checksum",

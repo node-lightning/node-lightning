@@ -1,6 +1,6 @@
 {
   "name": "@lntools/bitcoin",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Bitcoin utilities",
   "keywords": [
     "bitcoin",
@@ -23,8 +23,8 @@
     "prepublish": "npm run build"
   },
   "dependencies": {
-    "@lntools/bufio": "^0.9.0",
-    "@lntools/crypto": "^0.9.0"
+    "@lntools/bufio": "^0.10.0",
+    "@lntools/crypto": "^0.10.0"
   },
   "gitHead": "f1db27c96af2dc1dd8cb3ca62952499afd8efc6c"
 }
