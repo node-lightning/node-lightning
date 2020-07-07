@@ -1,11 +1,11 @@
-import crc32c from "sse4_crc32";
+import { crc32c } from "@lntools/checksum";
 
 /**
  * CRC32C checksum for the provided value
  */
 export class Checksum {
     public static fromBuffer(buf: Buffer): Checksum {
-        return new Checksum(crc32c.calculate(buf));
+        return new Checksum(crc32c(buf));
     }
 
     public static empty(): Checksum {
