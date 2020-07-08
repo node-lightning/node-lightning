@@ -128,199 +128,6 @@ describe("QueryChannelRangeStrategy", () => {
         });
     });
 
-    // legacy single reply
-    // legacy multi reply
-    // legacy multi reply with queue
-    // standard single reply
-    // standard single reply with queue
-    // standard multi reply with queue
-
-    describe("legacy reply_channel_range", () => {
-        describe("complete=true, with_scids=true, queued_query=false", () => {
-            beforeEach(() => {
-                sut.queryRange(0, 4294967295);
-
-                const msg = new ReplyChannelRangeMessage();
-                msg.fullInformation = true;
-                msg.shortChannelIds.push(new ShortChannelId(1, 1, 1));
-                msg.firstBlocknum = 0;
-                msg.numberOfBlocks = 4294967295;
-                peer.emit("message", msg);
-            });
-
-            it("should enqueue scids", () => {
-                const scids = (fakeQueryShortIdsStrategy.enqueue as any).args[0];
-                expect(scids[0]).to.deep.equal(new ShortChannelId(1, 1, 1));
-            });
-
-            it("should not be awaiting range query reply", () => {
-                expect(sut.awaitingReply).to.be.false;
-            });
-        });
-
-        describe("full_info=true, with_scids=true, queued_query=true", () => {
-            beforeEach(() => {
-                sut.queryRange(0, 4294967295);
-                sut.queryRange(1000, 2000);
-
-                const msg = new ReplyChannelRangeMessage();
-                msg.fullInformation = true;
-                msg.shortChannelIds.push(new ShortChannelId(1, 1, 1));
-                msg.firstBlocknum = 0;
-                msg.numberOfBlocks = 4294967295;
-                peer.emit("message", msg);
-            });
-
-            it("should enqueue message", () => {
-                const scids = (fakeQueryShortIdsStrategy.enqueue as any).args[0];
-                expect(scids[0]).to.deep.equal(new ShortChannelId(1, 1, 1));
-            });
-
-            it("should be awaiting range query reply", () => {
-                expect(sut.awaitingReply).to.be.true;
-            });
-
-            it("should send queued range_query", () => {
-                const msg = peer.sendMessage.args[1][0] as QueryChannelRangeMessage;
-                expect(msg.firstBlocknum).to.equal(1000);
-                expect(msg.numberOfBlocks).to.equal(2000);
-            });
-        });
-
-        describe("full_info=true, with_scids=false, queued_query=false", () => {
-            beforeEach(() => {
-                sut.queryRange(0, 4294967295);
-                const msg = new ReplyChannelRangeMessage();
-                msg.fullInformation = true;
-                msg.firstBlocknum = 0;
-                msg.numberOfBlocks = 4294967295;
-                msg.shortChannelIds = [];
-                peer.emit("message", msg);
-            });
-
-            it("should not enqueue nessages", () => {
-                expect((fakeQueryShortIdsStrategy.enqueue as any).called).to.equal(false);
-            });
-
-            it("should not be awaiting range query reply", () => {
-                expect(sut.awaitingReply).to.be.false;
-            });
-        });
-
-        describe("full_info=true, with_scids=false, queued_query=true", () => {
-            beforeEach(() => {
-                sut.queryRange(0, 4294967295);
-                sut.queryRange(1000, 2000);
-
-                const msg = new ReplyChannelRangeMessage();
-                msg.fullInformation = true;
-                msg.firstBlocknum = 0;
-                msg.numberOfBlocks = 4294967295;
-                msg.shortChannelIds = [];
-                peer.emit("message", msg);
-            });
-
-            it("should not send query_short_channel_ids", () => {
-                expect(peer.sendMessage.callCount).to.equal(2);
-                const msg = peer.sendMessage.args[1][0] as IWireMessage;
-                expect(msg.type).to.equal(263);
-            });
-
-            it("should be awaiting range query reply", () => {
-                expect(sut.awaitingReply).to.be.true;
-            });
-
-            it("should send queued range_query", () => {
-                const msg = peer.sendMessage.args[1][0] as QueryChannelRangeMessage;
-                expect(msg.firstBlocknum).to.equal(1000);
-                expect(msg.numberOfBlocks).to.equal(2000);
-            });
-        });
-
-        describe("full_info=false, with_scids=true, queued_query=false", () => {
-            beforeEach(() => {
-                sut.queryRange(0, 4294967295);
-                const msg = new ReplyChannelRangeMessage();
-                msg.fullInformation = false;
-                msg.firstBlocknum = 0;
-                msg.numberOfBlocks = 4294967295;
-                msg.shortChannelIds.push(new ShortChannelId(1, 1, 1));
-                peer.emit("message", msg);
-            });
-
-            it("should enqueue message", () => {
-                const scids = (fakeQueryShortIdsStrategy.enqueue as any).args[0];
-                expect(scids[0]).to.deep.equal(new ShortChannelId(1, 1, 1));
-            });
-
-            it("should not be awaiting range query reply", () => {
-                expect(sut.awaitingReply).to.be.false;
-            });
-
-            it("switches to legacy", () => {
-                expect(sut.isLegacy).to.be.true;
-            });
-        });
-
-        describe("full_info=false, with_scids=true, queued_query=false", () => {
-            beforeEach(() => {
-                sut.queryRange(0, 4294967295);
-                const msg = new ReplyChannelRangeMessage();
-                msg.fullInformation = false;
-                msg.firstBlocknum = 0;
-                msg.numberOfBlocks = 4294967295;
-                msg.shortChannelIds.push(new ShortChannelId(1, 1, 1));
-                peer.emit("message", msg);
-            });
-
-            it("should enqueue message", () => {
-                const scids = (fakeQueryShortIdsStrategy.enqueue as any).args[0];
-                expect(scids[0]).to.deep.equal(new ShortChannelId(1, 1, 1));
-            });
-
-            it("should not be awaiting range query reply", () => {
-                expect(sut.awaitingReply).to.be.false;
-            });
-
-            it("switches to legacy", () => {
-                expect(sut.isLegacy).to.be.true;
-            });
-        });
-
-        describe("full_info=false, with_scids=true, queued_query=true", () => {
-            beforeEach(() => {
-                sut.queryRange(0, 4294967295);
-                sut.queryRange(1000, 2000);
-
-                const msg = new ReplyChannelRangeMessage();
-                msg.fullInformation = false;
-                msg.firstBlocknum = 0;
-                msg.numberOfBlocks = 4294967295;
-                msg.shortChannelIds.push(new ShortChannelId(1, 1, 1));
-                peer.emit("message", msg);
-            });
-
-            it("should enqueue message", () => {
-                const scids = (fakeQueryShortIdsStrategy.enqueue as any).args[0];
-                expect(scids[0]).to.deep.equal(new ShortChannelId(1, 1, 1));
-            });
-
-            it("should be awaiting range query reply", () => {
-                expect(sut.awaitingReply).to.be.true;
-            });
-
-            it("should send queued range_query", () => {
-                const msg = peer.sendMessage.args[1][0] as QueryChannelRangeMessage;
-                expect(msg.firstBlocknum).to.equal(1000);
-                expect(msg.numberOfBlocks).to.equal(2000);
-            });
-
-            it("switches to legacy", () => {
-                expect(sut.isLegacy).to.be.true;
-            });
-        });
-    });
-
     describe("failed reply", () => {
         let hasError: boolean;
 
@@ -386,11 +193,6 @@ describe("QueryChannelRangeStrategy", () => {
             peer.emit("message", msg);
         });
 
-        it("should enqueue scids", () => {
-            const scids = (fakeQueryShortIdsStrategy.enqueue as any).args[0];
-            expect(scids[0]).to.deep.equal(new ShortChannelId(1, 1, 1));
-        });
-
         it("does not send next item", () => {
             expect(peer.sendMessage.callCount).to.equal(1); // just our first send
         });
@@ -417,11 +219,11 @@ describe("QueryChannelRangeStrategy", () => {
         });
 
         it("should enqueue scids", () => {
-            const scids1 = (fakeQueryShortIdsStrategy.enqueue as any).args[0];
-            expect(scids1[0]).to.deep.equal(new ShortChannelId(1, 1, 1));
-
-            const scids2 = (fakeQueryShortIdsStrategy.enqueue as any).args[1];
-            expect(scids2[0]).to.deep.equal(new ShortChannelId(500, 1, 1));
+            const scids = (fakeQueryShortIdsStrategy.enqueue as any).args[0];
+            expect(scids).to.deep.equal([
+                new ShortChannelId(1, 1, 1),
+                new ShortChannelId(500, 1, 1),
+            ]);
         });
 
         it("sends next item", () => {

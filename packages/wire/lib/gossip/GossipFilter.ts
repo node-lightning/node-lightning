@@ -33,7 +33,6 @@ export declare interface GossipFilter {
  * message arriving before the channel_announcement.
  */
 export class GossipFilter extends EventEmitter {
-    public syncHeight: number = 0;
     private _chainClient: IGossipFilterChainClient;
     private _gossipStore: IGossipStore;
     private _pendingStore: IGossipStore;
