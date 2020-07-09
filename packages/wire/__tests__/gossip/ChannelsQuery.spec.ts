@@ -14,20 +14,13 @@ describe("ChannelsQuery", () => {
     let sut: ChannelsQuery;
     let peer: any;
     let logger: ILogger;
-    let errorEvent: sinon.SinonStub;
-    let completeEvent: sinon.SinonStub;
+    let promise: Promise<void>;
 
     beforeEach(() => {
         chainHash = Buffer.alloc(32, 1);
         peer = createFakePeer();
         logger = createFakeLogger();
         sut = new ChannelsQuery(chainHash, peer, logger);
-
-        errorEvent = sinon.stub();
-        sut.on("error", errorEvent);
-
-        completeEvent = sinon.stub();
-        sut.on("complete", completeEvent);
     });
 
     describe("event: receive reply_short_channel_ids_end", () => {
@@ -38,6 +31,8 @@ describe("ChannelsQuery", () => {
 
         describe("msg_complete=true, queued_scids=false", () => {
             beforeEach(() => {
+                promise = sut.query(new ShortChannelId(1, 1, 1));
+                peer.sendMessage.reset();
                 const msg = new ReplyShortChannelIdsEndMessage();
                 msg.complete = true;
                 peer.emit("message", msg);
@@ -51,17 +46,15 @@ describe("ChannelsQuery", () => {
                 expect(sut.state).to.equal(ChannelsQueryState.Complete);
             });
 
-            it("should emit complete", () => {
-                expect(completeEvent.called).to.be.true;
-            });
-
-            it("should not emit error", () => {
-                expect(errorEvent.called).to.be.false;
+            it("should resolve", async () => {
+                await promise;
             });
         });
 
         describe("msg_complete=true, queued_scids=true", () => {
             beforeEach(() => {
+                promise = sut.query(new ShortChannelId(1, 1, 1));
+                peer.sendMessage.reset();
                 (sut as any)._queue.push(new ShortChannelId(2, 2, 2));
                 const msg = new ReplyShortChannelIdsEndMessage();
                 msg.complete = true;
@@ -77,42 +70,38 @@ describe("ChannelsQuery", () => {
             it("should be in active state", () => {
                 expect(sut.state).to.equal(ChannelsQueryState.Active);
             });
-
-            it("should not emit complete", () => {
-                expect(completeEvent.called).to.be.false;
-            });
-
-            it("should not emit error", () => {
-                expect(errorEvent.called).to.be.false;
-            });
         });
 
         describe("msg_complete=false, queued_scids=false", () => {
             beforeEach(() => {
+                promise = sut.query(new ShortChannelId(1, 1, 1));
+                peer.sendMessage.reset();
                 const msg = new ReplyShortChannelIdsEndMessage();
                 msg.complete = false;
                 peer.emit("message", msg);
             });
 
             it("should not send any message", () => {
-                expect(peer.sendMessage.callCount).to.equal(0);
+                promise.catch(() => {
+                    expect(peer.sendMessage.callCount).to.equal(0);
+                });
             });
 
             it("should be in failed state", () => {
-                expect(sut.state).to.equal(ChannelsQueryState.Failed);
+                promise.catch(() => {
+                    expect(sut.state).to.equal(ChannelsQueryState.Failed);
+                });
             });
 
-            it("should not emit complete", () => {
-                expect(completeEvent.called).to.be.false;
-            });
-
-            it("should emit error", () => {
-                expect(errorEvent.called).to.be.true;
+            it("should reject", done => {
+                promise.catch(() => done());
             });
         });
 
         describe("msg_complete=false, queued_scids=true", () => {
             beforeEach(() => {
+                promise = sut.query(new ShortChannelId(1, 1, 1));
+                peer.sendMessage.reset();
                 (sut as any)._queue.push(new ShortChannelId(2, 2, 2));
                 const msg = new ReplyShortChannelIdsEndMessage();
                 msg.complete = false;
@@ -120,19 +109,19 @@ describe("ChannelsQuery", () => {
             });
 
             it("should not send any message", () => {
-                expect(peer.sendMessage.callCount).to.equal(0);
+                promise.catch(() => {
+                    expect(peer.sendMessage.callCount).to.equal(0);
+                });
             });
 
             it("should be in failed state", () => {
-                expect(sut.state).to.equal(ChannelsQueryState.Failed);
+                promise.catch(() => {
+                    expect(sut.state).to.equal(ChannelsQueryState.Failed);
+                });
             });
 
-            it("should not emit complete", () => {
-                expect(completeEvent.called).to.be.false;
-            });
-
-            it("should emit error", () => {
-                expect(errorEvent.called).to.be.true;
+            it("should reject", done => {
+                promise.catch(() => done());
             });
         });
     });

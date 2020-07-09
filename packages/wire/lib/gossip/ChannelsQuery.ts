@@ -20,21 +20,22 @@ export enum ChannelsQueryState {
  * an arbitrarily large number of short channel ids and will chunk the requests
  * appropriately.
  */
-export class ChannelsQuery extends EventEmitter {
+export class ChannelsQuery {
     public chunkSize = 2000;
 
     private _queue: ShortChannelId[] = [];
     private _state: ChannelsQueryState;
     private _error: GossipError;
+    private _emitter: EventEmitter;
 
     constructor(
         readonly chainHash: Buffer,
         readonly peer: IMessageSenderReceiver,
         readonly logger: ILogger,
     ) {
-        super();
         this.peer.on("message", this._handlePeerMessage.bind(this));
         this._state = ChannelsQueryState.Idle;
+        this._emitter = new EventEmitter();
     }
 
     public get state() {
@@ -46,17 +47,24 @@ export class ChannelsQuery extends EventEmitter {
     }
 
     /**
+     *
      * @param scids
      */
-    public query(...scids: ShortChannelId[]) {
-        // enqueue the short ids
-        this._queue.push(...scids);
+    public query(...scids: ShortChannelId[]): Promise<void> {
+        return new Promise((resolve, reject) => {
+            // enqueue the short ids
+            this._queue.push(...scids);
 
-        // Ensure we are in the active state
-        this._state = ChannelsQueryState.Active;
+            // Ensure we are in the active state
+            this._state = ChannelsQueryState.Active;
 
-        // send our query to the peer
-        this._sendQuery();
+            // send our query to the peer
+            this._sendQuery();
+
+            // wait for an event signal to fire
+            this._emitter.once("complete", resolve);
+            this._emitter.once("error", reject);
+        });
     }
 
     private _handlePeerMessage(msg: IWireMessage) {
@@ -84,10 +92,10 @@ export class ChannelsQuery extends EventEmitter {
         // does not maintain up-to-date channel information for the
         // requested chain_hash
         if (!msg.complete) {
-            const error = new GossipError(GossipErrorCode.ReplyChannelRangeNoInformation, msg);
+            const error = new GossipError(GossipErrorCode.ReplyChannelsNoInfo, msg);
             this._state = ChannelsQueryState.Failed;
             this._error = error;
-            this.emit("error", error);
+            this._emitter.emit("error", error);
             return;
         }
 
@@ -98,7 +106,7 @@ export class ChannelsQuery extends EventEmitter {
             this._sendQuery();
         } else {
             this._state = ChannelsQueryState.Complete;
-            this.emit("complete");
+            this._emitter.emit("complete");
         }
     }
 }
