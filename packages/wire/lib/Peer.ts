@@ -11,15 +11,23 @@ import { IWireMessage } from "./messages/IWireMessage";
 import { PeerState } from "./PeerState";
 import { PingPongState } from "./PingPongState";
 
-export declare interface IMessageSender {
+export interface IMessageSender {
     sendMessage(msg: IWireMessage): void;
 }
 
-export declare interface IMessageReceiver {
+export interface IMessageReceiver {
     on(event: "message", listener: (msg: IWireMessage) => void): this;
 }
 
 export type IMessageSenderReceiver = IMessageSender & IMessageReceiver;
+
+export interface IPeer extends IMessageSenderReceiver {
+    sendMessage(msg: IWireMessage): void;
+    disconnect(): void;
+
+    on(event: "message", listener: (msg: IWireMessage) => void): this;
+    on(event: "error", listener: (err: Error) => void): this;
+}
 
 /**
  * Peer is an EventEmitter that layers the Lightning Network wire
@@ -75,7 +83,7 @@ export type IMessageSenderReceiver = IMessageSender & IMessageReceiver;
  *
  * @emits end emitted when the connection to the peer is ending.
  */
-export class Peer extends EventEmitter implements IMessageSenderReceiver {
+export class Peer extends EventEmitter implements IPeer {
     public static states = PeerState;
 
     public state: PeerState = PeerState.Disconnected;
