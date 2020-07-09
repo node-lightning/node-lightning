@@ -7,6 +7,9 @@ export enum GossipErrorCode {
 }
 
 export class GossipError extends Error {
+    public code: GossipErrorCode;
+    public wireMessage: IWireMessage;
+
     constructor(code: GossipErrorCode, wireMessage?: IWireMessage) {
         let message = "Unknown gossip error";
         switch (code) {
@@ -18,5 +21,7 @@ export class GossipError extends Error {
                 break;
         }
         super(message);
+        this.code = code;
+        this.wireMessage = wireMessage;
     }
 }
