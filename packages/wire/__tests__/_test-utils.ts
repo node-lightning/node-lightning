@@ -13,6 +13,10 @@ export function createFakePeer() {
             this._handlers.push([type, handler, true]);
         },
 
+        off(type, handler) {
+            //
+        },
+
         emit(type, msg) {
             const handlers = this._handlers.slice();
             for (let i = 0; i < handlers.length; i++) {
@@ -35,4 +39,8 @@ export function createFakeLogger(): ILogger {
     const fake = sinon.createStubInstance(Logger);
     fake.sub = createFakeLogger as any;
     return fake;
+}
+
+export function wait(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
 }
