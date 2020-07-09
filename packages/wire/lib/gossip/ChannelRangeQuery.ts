@@ -51,12 +51,13 @@ export enum ChannelRangeQueryState {
  * - full_information indicated a multipart message that was incomplete
  * - first_blocknum+number_of_blocks matches the query for each reply message
  */
-export class ChannelRangeQuery extends EventEmitter {
+export class ChannelRangeQuery {
     private _state: ChannelRangeQueryState;
     private _isLegacy = false;
     private _query: QueryChannelRangeMessage;
     private _results: ShortChannelId[] = [];
     private _error: GossipError;
+    private _emitter: EventEmitter;
 
     constructor(
         readonly chainHash: Buffer,
@@ -64,10 +65,10 @@ export class ChannelRangeQuery extends EventEmitter {
         readonly logger: ILogger,
         isLegacy: boolean = false,
     ) {
-        super();
         this._state = ChannelRangeQueryState.Idle;
         this._isLegacy = isLegacy;
-        this.peer.on("message", this._handlePeerMessage.bind(this));
+        this._emitter = new EventEmitter();
+        this.peer.on("message", this._onMessage.bind(this));
     }
 
     /**
@@ -100,21 +101,50 @@ export class ChannelRangeQuery extends EventEmitter {
         return this._error;
     }
 
-    public queryRange(firstBlocknum: number = 0, numberOfBlocks = 4294967295 - firstBlocknum) {
+    /**
+     * Resolves when the query has completed, otherwise it will reject on an
+     * error.
+     */
+    public queryRange(
+        firstBlock: number = 0,
+        numBlocks = 4294967295 - firstBlock,
+    ): Promise<ShortChannelId[]> {
+        // Construct a promise that will be resolved after all query logic has
+        // succeeded or failed. This is a slightly different pattern in that
+        // we use an private event emitter to signal completion or failure
+        // asynchronously. We use those handlers to resolve the promise. As a
+        // result, the external interface is very clean, but we can have
+        // complicated internal operations
+        return new Promise((resolve, reject) => {
+            // transition the state to active
+            this._state = ChannelRangeQueryState.Active;
+
+            // send the query message and start the process
+            this._sendQuery(firstBlock, numBlocks);
+
+            // subscribe to the event emitter so we can resolve or reject
+            this._emitter.once("complete", resolve);
+            this._emitter.once("error", reject);
+        });
+    }
+
+    /**
+     * Constructs and sends the query message the remote peer.
+     * @param firstBlock
+     * @param numBlocks
+     */
+    private _sendQuery(firstBlock: number, numBlocks: number) {
         this.logger.info(
             "sending query_channel_range start_block=%d end_block=%d",
-            firstBlocknum,
-            firstBlocknum + numberOfBlocks - 1,
+            firstBlock,
+            firstBlock + numBlocks - 1,
         );
-
-        // transition the state to active
-        this._state = ChannelRangeQueryState.Active;
 
         // send message
         const msg = new QueryChannelRangeMessage();
         msg.chainHash = this.chainHash;
-        msg.firstBlocknum = firstBlocknum;
-        msg.numberOfBlocks = numberOfBlocks;
+        msg.firstBlocknum = firstBlock;
+        msg.numberOfBlocks = numBlocks;
         this.peer.sendMessage(msg);
 
         // capture the active query to check reply if it is a legacy reply
@@ -141,9 +171,9 @@ export class ChannelRangeQuery extends EventEmitter {
 
     /**
      * Handles incoming peer messages but is filtered to only look for
-     * replly_channel_range messages.
+     * reply_channel_range messages.
      */
-    private _handlePeerMessage(msg: IWireMessage) {
+    private _onMessage(msg: IWireMessage) {
         if (msg instanceof ReplyChannelRangeMessage) {
             // check the incoming message to see if we need to transition to legacy
             // mode. If it is determined to be in legacy mode, we will switch the
@@ -203,7 +233,7 @@ export class ChannelRangeQuery extends EventEmitter {
             const error = new GossipError(GossipErrorCode.ReplyChannelRangeNoInformation, msg);
             this._error = error;
             this._state = ChannelRangeQueryState.Failed;
-            this.emit("error", error);
+            this._emitter.emit("error", error);
             return;
         }
 
@@ -219,7 +249,7 @@ export class ChannelRangeQuery extends EventEmitter {
                 targetHeight,
             );
             this._state = ChannelRangeQueryState.Complete;
-            this.emit("complete", this._results);
+            this._emitter.emit("complete", this._results);
         }
     }
 
@@ -250,7 +280,7 @@ export class ChannelRangeQuery extends EventEmitter {
             const error = new GossipError(GossipErrorCode.ReplyChannelRangeNoInformation, msg);
             this._error = error;
             this._state = ChannelRangeQueryState.Failed;
-            this.emit("error", error);
+            this._emitter.emit("error", error);
             return;
         }
 
@@ -258,7 +288,7 @@ export class ChannelRangeQuery extends EventEmitter {
         // the multipart message and are complete.
         if (msg.fullInformation) {
             this._state = ChannelRangeQueryState.Complete;
-            this.emit("complete", this._results);
+            this._emitter.emit("complete", this._results);
         }
     }
 }
