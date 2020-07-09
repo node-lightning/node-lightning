@@ -27,12 +27,7 @@ async function connectToPeer(peerInfo: { rpk: string; host: string; port: number
     // controlling gossip requests with the peer.
     const gossipStore = new GossipMemoryStore();
     const pendingStore = new GossipMemoryStore();
-    const gossipManager = new GossipManager({
-        chainHash,
-        logger,
-        gossipStore,
-        pendingStore,
-    });
+    const gossipManager = new GossipManager(logger, gossipStore, pendingStore);
 
     // attach error handling for gossip manager
     gossipManager.on("error", err => logger.error("gossip failed", err));
