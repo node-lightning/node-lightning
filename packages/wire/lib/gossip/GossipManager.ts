@@ -42,14 +42,16 @@ export class GossipManager extends EventEmitter {
     public syncState: SyncState;
     public isSynchronizing: boolean;
     public readonly peers: Set<GossipPeer>;
+    public readonly logger;
 
     constructor(
-        readonly logger: ILogger,
+        logger: ILogger,
         readonly gossipStore: IGossipStore,
         readonly pendingStore: IGossipStore,
         readonly chainClient?: IGossipFilterChainClient,
     ) {
         super();
+        this.logger = logger.sub("gspmgr");
         this.peers = new Set<GossipPeer>();
         this.syncState = SyncState.Unsynced;
     }
@@ -231,8 +233,8 @@ export class GossipManager extends EventEmitter {
                 this.blockHeight,
                 (msg as ChannelAnnouncementMessage).shortChannelId.block,
             );
-            this.emit("message", msg);
         }
+        this.emit("message", msg);
     }
 
     /**
@@ -252,17 +254,17 @@ export class GossipManager extends EventEmitter {
             await peer.syncRange();
 
             // finally transition to sync complete status
-            this.logger.info("synchronization complete");
+            this.logger.info("sync status now 'synced'");
             this.syncState = SyncState.Synced;
 
             // enable gossip for all the peers
+            this.logger.info("enabling gossip for all peers");
             for (const gossipPeer of this.peers) {
                 gossipPeer.enableGossip();
             }
         } catch (ex) {
             // TODO select next peer
             this.syncState = SyncState.Unsynced;
-            this.logger.info("synchronization failed");
         }
     }
 

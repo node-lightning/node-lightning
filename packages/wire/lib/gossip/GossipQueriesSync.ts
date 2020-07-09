@@ -37,6 +37,7 @@ export class GossipQueriesSync {
 
     public async queryRange(firstBlock?: number, numBlocks?: number): Promise<void> {
         try {
+            this.logger.info("synchronization starting");
             this._state = GossipQueriesSyncState.AwaitingChannelRange;
             const scids = await this._rangeQuery.queryRange(firstBlock, numBlocks);
 
@@ -46,6 +47,7 @@ export class GossipQueriesSync {
             this._state = GossipQueriesSyncState.AwaitingMessages;
             await this._syncWatcher.watch();
 
+            this.logger.info("synchronization complete!");
             this._state = GossipQueriesSyncState.Complete;
         } catch (ex) {
             this._state = GossipQueriesSyncState.Failed;
