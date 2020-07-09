@@ -1,7 +1,6 @@
 import { ILogger } from "@lntools/logger";
 import { GossipTimestampFilterMessage } from "../messages/GossipTimestampFilterMessage";
 import { IMessageSender } from "../Peer";
-import { PeerGossipReceiveState } from "./GossipReceiveState";
 
 export enum GossipQueriesReceiverState {
     Idle,
