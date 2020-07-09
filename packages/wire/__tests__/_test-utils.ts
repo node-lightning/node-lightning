@@ -1,5 +1,7 @@
 import { Logger, ILogger } from "@lntools/logger";
 import sinon from "sinon";
+import { BitField } from "../lib/BitField";
+import { InitFeatureFlags } from "../lib/flags/InitFeatureFlags";
 
 export function createFakePeer() {
     return {
@@ -32,6 +34,10 @@ export function createFakePeer() {
         },
         sendMessage: sinon.stub(),
         pubkey: Buffer.alloc(32, 1),
+        localChains: [],
+        localFeatures: new BitField<InitFeatureFlags>(),
+        remoteChains: [],
+        remoteFeatures: new BitField<InitFeatureFlags>(),
     } as any;
 }
 
