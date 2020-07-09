@@ -1,11 +1,11 @@
 import { ILogger } from "@lntools/logger";
 import { expect } from "chai";
+import { GossipError, GossipErrorCode } from "../../lib/gossip/GossipError";
 import { GossipQueriesSync, GossipQueriesSyncState } from "../../lib/gossip/GossipQueriesSync";
 import { ReplyChannelRangeMessage } from "../../lib/messages/ReplyChannelRangeMessage";
 import { ReplyShortChannelIdsEndMessage } from "../../lib/messages/ReplyShortChannelIdsEndMessage";
 import { ShortChannelId } from "../../lib/ShortChannelId";
 import { createFakeLogger, createFakePeer, wait } from "../_test-utils";
-import { GossipError, GossipErrorCode } from "../../lib/gossip/GossipError";
 
 describe("GossipQueriesSync", () => {
     let chainHash: Buffer;
@@ -31,7 +31,7 @@ describe("GossipQueriesSync", () => {
         // Execute the query. Since this is a promise, we will resolve the test
         // when the queryRange method resolves successfully. If for some reason
         // it fails, we will reject with the error and the test will fail
-        let promise = sut.queryRange();
+        const promise = sut.queryRange();
 
         // At this point, the query should have been sent and we will now be
         // awaiting completion of the channel range state machine.
@@ -77,7 +77,7 @@ describe("GossipQueriesSync", () => {
         // Execute the query. Since this is a promise, we will resolve the test
         // when the queryRange method resolves successfully. If for some reason
         // it fails, we will reject with the error and the test will fail
-        let promise = sut.queryRange();
+        const promise = sut.queryRange();
 
         // At this point, the query should have been sent and we will now be
         // awaiting completion of the channel range state machine.
@@ -109,7 +109,7 @@ describe("GossipQueriesSync", () => {
         // Execute the query. Since this is a promise, we will resolve the test
         // when the queryRange method resolves successfully. If for some reason
         // it fails, we will reject with the error and the test will fail
-        promise = sut.queryRange();
+        const promise = sut.queryRange();
 
         // At this point, the query should have been sent and we will now be
         // awaiting completion of the channel range state machine.

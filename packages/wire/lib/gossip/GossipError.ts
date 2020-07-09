@@ -2,8 +2,9 @@ import { IWireMessage } from "../messages/IWireMessage";
 
 export enum GossipErrorCode {
     Unknown = 0,
-    ReplyChannelRangeNoInformation = 1,
-    ReplyChannelsNoInfo = 2,
+    PeerNotReady,
+    ReplyChannelRangeNoInformation,
+    ReplyChannelsNoInfo,
 }
 
 export class GossipError extends Error {
