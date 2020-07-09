@@ -11,7 +11,7 @@ export class GossipError extends Error {
         let message = "Unknown gossip error";
         switch (code) {
             case GossipErrorCode.ReplyChannelRangeNoInformation:
-                message = "reply_channel_rnage had no information";
+                message = "reply_channel_range had no information";
                 break;
             case GossipErrorCode.ReplyChannelsNoInfo:
                 message = "reply_short_channel_ids_end had no information";
