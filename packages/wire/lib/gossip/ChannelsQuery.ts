@@ -5,41 +5,66 @@ import { QueryShortChannelIdsMessage } from "../messages/QueryShortChannelIdsMes
 import { ReplyShortChannelIdsEndMessage } from "../messages/ReplyShortChannelIdsEndMessage";
 import { IMessageSenderReceiver } from "../Peer";
 import { ShortChannelId } from "../ShortChannelId";
-import { IQueryShortIdsStrategy } from "./IQueryShortIdsStrategy";
+import { GossipError, GossipErrorCode } from "./GossipError";
+
+export enum ChannelsQueryState {
+    Idle,
+    Active,
+    Complete,
+    Failed,
+}
 
 /**
  * This class manages the state machine for executing query_short_channel_ids
- * and ensuring that there is only a single inflight message at one time.
+ * and will resolve as either complete or with an error. This class can accept
+ * an arbitrarily large number of short channel ids and will chunk the requests
+ * appropriately.
  */
-export class QueryShortIdsStrategy extends EventEmitter implements IQueryShortIdsStrategy {
-    public chunkSize = 8000;
+export class ChannelsQuery {
+    public chunkSize = 2000;
 
     private _queue: ShortChannelId[] = [];
-    private _awaitingReply: boolean;
+    private _state: ChannelsQueryState;
+    private _error: GossipError;
+    private _emitter: EventEmitter;
 
     constructor(
         readonly chainHash: Buffer,
         readonly peer: IMessageSenderReceiver,
         readonly logger: ILogger,
     ) {
-        super();
         this.peer.on("message", this._handlePeerMessage.bind(this));
-        this._awaitingReply = false;
+        this._state = ChannelsQueryState.Idle;
+        this._emitter = new EventEmitter();
+    }
+
+    public get state() {
+        return this._state;
+    }
+
+    public get error() {
+        return this._error;
     }
 
     /**
+     *
      * @param scids
      */
-    public enqueue(...scids: ShortChannelId[]) {
-        // enqueue the short ids
-        this._queue.push(...scids);
+    public query(...scids: ShortChannelId[]): Promise<void> {
+        return new Promise((resolve, reject) => {
+            // enqueue the short ids
+            this._queue.push(...scids);
 
-        // abort if we are currently waiting for a reply since we cannot have more
-        // than one message in flight at a time
-        if (this._awaitingReply) return;
+            // Ensure we are in the active state
+            this._state = ChannelsQueryState.Active;
 
-        // send our query to the peer
-        this._sendQuery();
+            // send our query to the peer
+            this._sendQuery();
+
+            // wait for an event signal to fire
+            this._emitter.once("complete", resolve);
+            this._emitter.once("error", reject);
+        });
     }
 
     private _handlePeerMessage(msg: IWireMessage) {
@@ -53,30 +78,25 @@ export class QueryShortIdsStrategy extends EventEmitter implements IQueryShortId
         // splice a chunk of work to do from the suqery
         const scids = this._queue.splice(0, this.chunkSize);
 
-        // if no work to do, return
-        if (!scids.length) return;
-
         const msg = new QueryShortChannelIdsMessage();
         msg.chainHash = this.chainHash;
         msg.shortChannelIds = scids;
         this.logger.debug("sending query_short_channel_ids - scid_count:", scids.length);
         this.peer.sendMessage(msg);
-
-        // mark the flag inidicate that a query is in flight
-        this._awaitingReply = true;
     }
 
     private _onReplyShortIdsEnd(msg: ReplyShortChannelIdsEndMessage) {
         this.logger.debug("received reply_short_channel_ids_end - complete: %d", msg.complete);
 
-        // disable the flag that indicates we are awaiting a reply
-        this._awaitingReply = false;
-
         // If we receive a reply with complete=false, the remote peer
         // does not maintain up-to-date channel information for the
         // requested chain_hash
         if (!msg.complete) {
-            this.emit("query_short_channel_ids_failed", msg);
+            const error = new GossipError(GossipErrorCode.ReplyChannelsNoInfo, msg);
+            this._state = ChannelsQueryState.Failed;
+            this._error = error;
+            this._emitter.emit("error", error);
+            return;
         }
 
         // This occurs when the last batch of information has been received
@@ -84,7 +104,9 @@ export class QueryShortIdsStrategy extends EventEmitter implements IQueryShortId
         // requires sending another QueryShortIds message
         if (this._queue.length > 0) {
             this._sendQuery();
-            return;
+        } else {
+            this._state = ChannelsQueryState.Complete;
+            this._emitter.emit("complete");
         }
     }
 }

@@ -34,19 +34,18 @@ export * from "./flags/NodeFeatureFlags";
 export * from "./flags/QueryChannelRangeFlags";
 export * from "./flags/QueryScidFlags";
 
+export * from "./gossip/ChannelRangeQuery";
+export * from "./gossip/ChannelsQuery";
 export * from "./gossip/GossipEmitter";
 export * from "./gossip/GossipFilter";
-export * from "./gossip/IGossipFilterChainClient";
 export * from "./gossip/GossipManager";
 export * from "./gossip/GossipMemoryStore";
+export * from "./gossip/GossipPeer";
+export * from "./gossip/GossipQueriesReceiver";
+export * from "./gossip/GossipQueriesSync";
 export * from "./gossip/GossipStore";
-export * from "./gossip/GossipReceiveState";
-export * from "./gossip/GossipTimestampFilterStrategy";
-export * from "./gossip/IGossipTimestampFilterStrategy";
-export * from "./gossip/IQueryChannelRangeStrategy";
-export * from "./gossip/IQueryShortIdsStrategy";
-export * from "./gossip/QueryChannelRangeStrategy";
-export * from "./gossip/QueryShortIdsStrategy";
+export * from "./gossip/GossipSyncWatcher";
+export * from "./gossip/IGossipFilterChainClient";
 
 export * from "./messages/AnnouncementSignaturesMessage";
 export * from "./messages/ChannelAnnouncementMessage";

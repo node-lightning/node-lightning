@@ -5,7 +5,7 @@ import sinon from "sinon";
 import { BitField } from "../../lib/BitField";
 import { OutPoint } from "../../lib/domain/OutPoint";
 import { InitFeatureFlags } from "../../lib/flags/InitFeatureFlags";
-import { GossipManager } from "../../lib/gossip/GossipManager";
+import { GossipManager, SyncState } from "../../lib/gossip/GossipManager";
 import { GossipMemoryStore } from "../../lib/gossip/GossipMemoryStore";
 import { IGossipFilterChainClient } from "../../lib/gossip/IGossipFilterChainClient";
 import { ChannelAnnouncementMessage } from "../../lib/messages/ChannelAnnouncementMessage";
@@ -33,12 +33,7 @@ describe("GossipManager", () => {
     let chainClient: IGossipFilterChainClient;
     beforeEach(() => {
         gossipStore = new GossipMemoryStore();
-        sut = new GossipManager({
-            chainHash: Buffer.alloc(32),
-            logger: createFakeLogger(),
-            gossipStore,
-            pendingStore: new GossipMemoryStore(),
-        });
+        sut = new GossipManager(createFakeLogger(), gossipStore, new GossipMemoryStore());
         peer1 = createFakePeer();
         chainClient = createFakeChainClient();
     });
@@ -71,13 +66,12 @@ describe("GossipManager", () => {
                 // delay sync for 100 s
                 chainClient.waitForSync = () => new Promise(resolve => setTimeout(resolve, 100));
 
-                sut = new GossipManager({
-                    chainHash: Buffer.alloc(32),
-                    logger: createFakeLogger(),
+                sut = new GossipManager(
+                    createFakeLogger(),
                     gossipStore,
-                    pendingStore: new GossipMemoryStore(),
+                    new GossipMemoryStore(),
                     chainClient,
-                });
+                );
 
                 const start = Date.now();
                 await sut.start();
@@ -96,13 +90,12 @@ describe("GossipManager", () => {
                 await gossipStore.saveChannelAnnouncement(msg1);
                 await gossipStore.saveChannelAnnouncement(msg2);
 
-                sut = new GossipManager({
-                    chainHash: Buffer.alloc(32),
-                    logger: createFakeLogger(),
+                sut = new GossipManager(
+                    createFakeLogger(),
                     gossipStore,
-                    pendingStore: new GossipMemoryStore(),
+                    new GossipMemoryStore(),
                     chainClient,
-                });
+                );
             });
 
             it("should restore to highest channel's block", async () => {
@@ -132,13 +125,12 @@ describe("GossipManager", () => {
                 await gossipStore.saveChannelAnnouncement(msg1);
                 await gossipStore.saveChannelAnnouncement(msg2);
 
-                sut = new GossipManager({
-                    chainHash: Buffer.alloc(32),
-                    logger: createFakeLogger(),
+                sut = new GossipManager(
+                    createFakeLogger(),
                     gossipStore,
-                    pendingStore: new GossipMemoryStore(),
+                    new GossipMemoryStore(),
                     chainClient,
-                });
+                );
             });
 
             it("should not check channels", async () => {
@@ -155,12 +147,12 @@ describe("GossipManager", () => {
         });
 
         describe("first peer that is `ready`", () => {
-            it("should start gossip_sync process", () => {
+            it("should start sync process", () => {
                 peer1.state = PeerState.Ready;
                 peer1.remoteFeatures = new BitField<InitFeatureFlags>();
                 peer1.remoteFeatures.set(InitFeatureFlags.gossipQueriesOptional);
                 sut.addPeer(peer1);
-                const msg = (peer1.sendMessage as any).args[1][0];
+                const msg = (peer1.sendMessage as any).args[0][0];
                 expect(msg.type).to.equal(263);
                 expect(msg.firstBlocknum).to.equal(0);
                 expect(msg.numberOfBlocks).to.equal(4294967295);
@@ -169,7 +161,7 @@ describe("GossipManager", () => {
             it("should start gossip_sync process on peer `ready`", () => {
                 sut.addPeer(peer1);
                 peer1.on("ready", () => {
-                    const msg = (peer1.sendMessage as any).args[1][0];
+                    const msg = (peer1.sendMessage as any).args[0][0];
                     expect(msg.type).to.equal(263);
                     expect(msg.firstBlocknum).to.equal(0);
                     expect(msg.numberOfBlocks).to.equal(4294967295);
@@ -185,7 +177,7 @@ describe("GossipManager", () => {
             it("should start gossip_sync process on peer `ready`", () => {
                 sut.addPeer(peer1);
                 peer1.on("ready", () => {
-                    const msg = (peer1.sendMessage as any).args[1][0];
+                    const msg = (peer1.sendMessage as any).args[0][0];
                     expect(msg.type).to.equal(263);
                     expect(msg.firstBlocknum).to.equal(0);
                     expect(msg.numberOfBlocks).to.equal(4294967295);
@@ -202,6 +194,7 @@ describe("GossipManager", () => {
                 peer1.state = PeerState.Ready;
                 peer1.remoteFeatures = new BitField<InitFeatureFlags>();
                 peer1.remoteFeatures.set(InitFeatureFlags.gossipQueriesOptional);
+                sut.syncState = SyncState.Synced;
                 sut.addPeer(peer1);
                 const msg = (peer1.sendMessage as any).args[0][0];
                 expect(msg.type).to.equal(265);
@@ -211,12 +204,13 @@ describe("GossipManager", () => {
         });
 
         describe("peer that is not `ready`", () => {
-            it("should start gossip_sync process once peer is `ready`", () => {
+            it("should start gossip reciept once peer is `ready`", () => {
                 sut.addPeer(peer1);
+                sut.syncState = SyncState.Synced;
                 peer1.on("ready", () => {
                     const msg = (peer1.sendMessage as any).args[0][0];
                     expect(msg.type).to.equal(265);
-                    expect(msg.firstTimestamp).to.be.gte(1580946012);
+                    expect(msg.firstTimestamp).to.be.gte(0);
                     expect(msg.timestampRange).to.equal(4294967295);
                 });
                 peer1.state = PeerState.Ready;
@@ -230,6 +224,7 @@ describe("GossipManager", () => {
     describe("when peer", () => {
         beforeEach(async () => {
             await sut.start();
+            peer1.state = PeerState.Ready;
             sut.addPeer(peer1);
         });
 

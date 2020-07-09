@@ -41,13 +41,7 @@ async function connectToPeer(peerInfo: { rpk: string; host: string; port: number
     // controlling gossip requests with the peer.
     const gossipStore = new RocksdbGossipStore(".db");
     const pendingStore = new GossipMemoryStore();
-    const gossipManager = new GossipManager({
-        chainHash,
-        logger,
-        gossipStore,
-        pendingStore,
-        chainClient,
-    });
+    const gossipManager = new GossipManager(logger, gossipStore, pendingStore, chainClient);
 
     // attach error handling for gossip manager
     gossipManager.on("error", err => logger.error("gossip failed", err));
@@ -67,12 +61,6 @@ async function connectToPeer(peerInfo: { rpk: string; host: string; port: number
         if (msg instanceof ExtendedChannelAnnouncementMessage) {
             txWatcher.watchOutpoint(msg.outpoint);
         }
-    });
-
-    // track when gossip messages have been completely flushed through the
-    // gossip processing pipeline.
-    gossipManager.on("flushed", () => {
-        logger.info("gossip flushed");
     });
 
     // The transaction watcher will notify us of transactions that have been spent.

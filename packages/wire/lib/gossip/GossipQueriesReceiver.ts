@@ -1,17 +1,18 @@
 import { ILogger } from "@lntools/logger";
 import { GossipTimestampFilterMessage } from "../messages/GossipTimestampFilterMessage";
 import { IMessageSender } from "../Peer";
-import { PeerGossipReceiveState } from "./GossipReceiveState";
-import { IGossipTimestampFilterStrategy } from "./IGossipTimestampFilterStrategy";
 
-const uint32max = 4294967295;
+export enum GossipQueriesReceiverState {
+    Idle,
+    Receiving,
+}
 
 /**
  * This class is used to activate / deactivate receiving of gossip messages
  * when the gossip_queries or gossip_queries_ex gossip sync strategies are used.
  */
-export class GossipTimestampFilterStrategy implements IGossipTimestampFilterStrategy {
-    private _receiveState: PeerGossipReceiveState;
+export class GossipQueriesReceiver {
+    private _state: GossipQueriesReceiverState;
     private _firstTimestamp: number;
     private _timestampRange: number;
 
@@ -20,18 +21,13 @@ export class GossipTimestampFilterStrategy implements IGossipTimestampFilterStra
         readonly peer: IMessageSender,
         readonly logger: ILogger,
     ) {
-        this._receiveState = PeerGossipReceiveState.Inactive;
-        this._firstTimestamp = uint32max;
+        this._state = GossipQueriesReceiverState.Idle;
+        this._firstTimestamp = 0xffffffff;
         this._timestampRange = 0;
     }
 
-    public get receiveState() {
-        return this._receiveState;
-    }
-
-    public set receiveState(state: PeerGossipReceiveState) {
-        this._receiveState = state;
-        this.logger.debug("receive state changed to", state);
+    public get state(): GossipQueriesReceiverState {
+        return this._state;
     }
 
     public get firstTimestamp(): number {
@@ -52,18 +48,18 @@ export class GossipTimestampFilterStrategy implements IGossipTimestampFilterStra
         this.logger.info("deactivating gossip");
 
         // reset params
-        this._firstTimestamp = uint32max;
+        this._firstTimestamp = 0xffffffff;
         this._timestampRange = 0;
 
         // send message
         const msg = new GossipTimestampFilterMessage();
         msg.chainHash = this.chainHash;
-        msg.firstTimestamp = uint32max;
+        msg.firstTimestamp = 0xffffffff;
         msg.timestampRange = 0;
         this.peer.sendMessage(msg);
 
         // change state
-        this.receiveState = PeerGossipReceiveState.Inactive;
+        this._state = GossipQueriesReceiverState.Idle;
     }
 
     /**
@@ -73,7 +69,7 @@ export class GossipTimestampFilterStrategy implements IGossipTimestampFilterStra
      * @param start
      * @param range
      */
-    public activate(start: number = Math.trunc(Date.now() / 1000), range = uint32max) {
+    public activate(start: number = Math.trunc(Date.now() / 1000), range = 0xffffffff) {
         this.logger.info("activating gossip for range %d to %d", start, range);
 
         // set params
@@ -88,6 +84,6 @@ export class GossipTimestampFilterStrategy implements IGossipTimestampFilterStra
         this.peer.sendMessage(msg);
 
         // change state
-        this.receiveState = PeerGossipReceiveState.Receiving;
+        this._state = GossipQueriesReceiverState.Receiving;
     }
 }

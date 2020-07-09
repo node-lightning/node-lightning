@@ -1,15 +1,22 @@
 import { ILogger } from "@lntools/logger";
 import { EventEmitter } from "events";
+import { IWireMessage } from "../messages/IWireMessage";
 import { QueryChannelRangeMessage } from "../messages/QueryChannelRangeMessage";
 import { ReplyChannelRangeMessage } from "../messages/ReplyChannelRangeMessage";
-import { IWireMessage } from "../messages/IWireMessage";
 import { IMessageSenderReceiver } from "../Peer";
-import { IQueryChannelRangeStrategy } from "./IQueryChannelRangeStrategy";
-import { IQueryShortIdsStrategy } from "./IQueryShortIdsStrategy";
+import { ShortChannelId } from "../ShortChannelId";
+import { GossipError, GossipErrorCode } from "./GossipError";
+
+export enum ChannelRangeQueryState {
+    Idle,
+    Active,
+    Complete,
+    Failed,
+}
 
 /**
- * This controls the query_channel_range behavior and ensures there is only a
- * single message in flight at a single time.
+ * Performs a single query_channel_range operation and encapsulates the state
+ * machine performed during the query operations.
  *
  * A single query_channel_range may be too large to fit in a single
  * reply_channel_range response. When this happens, there will be multiple
@@ -44,28 +51,24 @@ import { IQueryShortIdsStrategy } from "./IQueryShortIdsStrategy";
  * - full_information indicated a multipart message that was incomplete
  * - first_blocknum+number_of_blocks matches the query for each reply message
  */
-export class QueryChannelRangeStrategy extends EventEmitter implements IQueryChannelRangeStrategy {
-    private _queue: Array<[number, number]> = [];
-    private _blocked: boolean = false;
+export class ChannelRangeQuery {
+    private _state: ChannelRangeQueryState;
     private _isLegacy = false;
-    private _lastQuery: QueryChannelRangeMessage;
+    private _query: QueryChannelRangeMessage;
+    private _results: ShortChannelId[] = [];
+    private _error: GossipError;
+    private _emitter: EventEmitter;
 
     constructor(
         readonly chainHash: Buffer,
         readonly peer: IMessageSenderReceiver,
         readonly logger: ILogger,
-        readonly queryShortIdsStrategy: IQueryShortIdsStrategy,
+        isLegacy: boolean = false,
     ) {
-        super();
-        this._isLegacy = false;
-        this.peer.on("message", this._handlePeerMessage.bind(this));
-    }
-
-    /**
-     *
-     */
-    public get awaitingReply() {
-        return this._blocked;
+        this._state = ChannelRangeQueryState.Idle;
+        this._isLegacy = isLegacy;
+        this._emitter = new EventEmitter();
+        this.peer.on("message", this._onMessage.bind(this));
     }
 
     /**
@@ -77,18 +80,75 @@ export class QueryChannelRangeStrategy extends EventEmitter implements IQueryCha
         return this._isLegacy;
     }
 
-    public queryRange(firstBlocknum: number = 0, numberOfBlocks = 4294967295 - firstBlocknum) {
-        // enqueue the range query
-        this._queue.push([firstBlocknum, numberOfBlocks]);
+    /**
+     * Gets the current state of the Query object
+     */
+    public get state(): ChannelRangeQueryState {
+        return this._state;
+    }
 
-        // Check if a range query has already been sent and if it has enqueue the
-        // query until a reply is received from the peer. This is required to
-        // conform to BOLT7 which indicates a single pending query message can be
-        // outstanding at one time.
+    /**
+     * Results found
+     */
+    public get results(): ShortChannelId[] {
+        return this._results;
+    }
 
-        if (!this._blocked) {
-            this._sendQuery();
-        }
+    /**
+     * Gets the error that was encountered during processing
+     */
+    public get error(): GossipError {
+        return this._error;
+    }
+
+    /**
+     * Resolves when the query has completed, otherwise it will reject on an
+     * error.
+     */
+    public queryRange(
+        firstBlock: number = 0,
+        numBlocks = 4294967295 - firstBlock,
+    ): Promise<ShortChannelId[]> {
+        // Construct a promise that will be resolved after all query logic has
+        // succeeded or failed. This is a slightly different pattern in that
+        // we use an private event emitter to signal completion or failure
+        // asynchronously. We use those handlers to resolve the promise. As a
+        // result, the external interface is very clean, but we can have
+        // complicated internal operations
+        return new Promise((resolve, reject) => {
+            // transition the state to active
+            this._state = ChannelRangeQueryState.Active;
+
+            // send the query message and start the process
+            this._sendQuery(firstBlock, numBlocks);
+
+            // subscribe to the event emitter so we can resolve or reject
+            this._emitter.once("complete", resolve);
+            this._emitter.once("error", reject);
+        });
+    }
+
+    /**
+     * Constructs and sends the query message the remote peer.
+     * @param firstBlock
+     * @param numBlocks
+     */
+    private _sendQuery(firstBlock: number, numBlocks: number) {
+        this.logger.info(
+            "sending query_channel_range start_block=%d end_block=%d",
+            firstBlock,
+            firstBlock + numBlocks - 1,
+        );
+
+        // send message
+        const msg = new QueryChannelRangeMessage();
+        msg.chainHash = this.chainHash;
+        msg.firstBlocknum = firstBlock;
+        msg.numberOfBlocks = numBlocks;
+        this.peer.sendMessage(msg);
+
+        // capture the active query to check reply if it is a legacy reply
+        this._query = msg;
     }
 
     /**
@@ -97,7 +157,10 @@ export class QueryChannelRangeStrategy extends EventEmitter implements IQueryCha
      * number_of_blocks matches the values in the target query.
      * @param msg
      */
-    public isLegacyReply(msg: ReplyChannelRangeMessage, query: QueryChannelRangeMessage): boolean {
+    private _isLegacyReply(
+        msg: ReplyChannelRangeMessage,
+        query: QueryChannelRangeMessage,
+    ): boolean {
         return (
             !msg.fullInformation &&
             msg.shortChannelIds.length &&
@@ -106,12 +169,16 @@ export class QueryChannelRangeStrategy extends EventEmitter implements IQueryCha
         );
     }
 
-    private _handlePeerMessage(msg: IWireMessage) {
+    /**
+     * Handles incoming peer messages but is filtered to only look for
+     * reply_channel_range messages.
+     */
+    private _onMessage(msg: IWireMessage) {
         if (msg instanceof ReplyChannelRangeMessage) {
-            // check the incoming message to see if we need to transaction to legacy
+            // check the incoming message to see if we need to transition to legacy
             // mode. If it is determined to be in legacy mode, we will switch the
             // strategy that is used to handle the reply.
-            if (!this._isLegacy && this.isLegacyReply(msg, this._lastQuery)) {
+            if (!this._isLegacy && this._isLegacyReply(msg, this._query)) {
                 this._isLegacy = true;
                 this.logger.info("using legacy LND query_channel_range technique");
             }
@@ -124,38 +191,6 @@ export class QueryChannelRangeStrategy extends EventEmitter implements IQueryCha
             }
             return;
         }
-    }
-
-    /**
-     * Sends a query message and caches the pending query results for use when
-     * a reply is received.
-     */
-    private _sendQuery() {
-        // obtain the next queued item that should be sent
-        const query = this._queue.shift();
-
-        // abort if there is nothing to do
-        if (!query) return;
-
-        const [firstBlocknum, numberOfBlocks] = query;
-        this.logger.info(
-            "sending query_channel_range start_block=%d end_block=%d",
-            firstBlocknum,
-            firstBlocknum + numberOfBlocks - 1,
-        );
-
-        // lock sending until this query completes
-        this._blocked = true;
-
-        // send message
-        const msg = new QueryChannelRangeMessage();
-        msg.chainHash = this.chainHash;
-        msg.firstBlocknum = firstBlocknum;
-        msg.numberOfBlocks = numberOfBlocks;
-        this.peer.sendMessage(msg);
-
-        // capture the active query to see we can use it in the reply
-        this._lastQuery = msg;
     }
 
     /**
@@ -189,40 +224,39 @@ export class QueryChannelRangeStrategy extends EventEmitter implements IQueryCha
 
         // enqueues any scids to be processed by a query_short_chan_id message
         if (msg.shortChannelIds.length) {
-            this.queryShortIdsStrategy.enqueue(...msg.shortChannelIds);
+            this._results.push(...msg.shortChannelIds);
         }
 
         // The full_information flag should only return false when the remote peer
-        // does not maintain up-to-date infromatino for the request chain_hash
+        // does not maintain up-to-date information for the request chain_hash
         if (!msg.fullInformation) {
-            this.emit("channel_range_failed", msg);
+            const error = new GossipError(GossipErrorCode.ReplyChannelRangeNoInformation, msg);
+            this._error = error;
+            this._state = ChannelRangeQueryState.Failed;
+            this._emitter.emit("error", error);
+            return;
         }
 
-        // We can unblock when we have received a reply that covers the full range
+        // We can finished when we have received a reply that covers the full range
         // of requested data. We know the final block height will be the querie's
-        // first_blocknum + number_of_blocks. At this point, we can unblock
-        // sending and clear out the active query.
+        // first_blocknum + number_of_blocks.
         const currentHeight = msg.firstBlocknum + msg.numberOfBlocks;
-        const targetHeight = this._lastQuery.firstBlocknum + this._lastQuery.numberOfBlocks;
+        const targetHeight = this._query.firstBlocknum + this._query.numberOfBlocks;
         if (currentHeight >= targetHeight) {
-            this._blocked = false;
             this.logger.debug(
                 "received final reply_channel_range height %d >= query_channel_range height %d",
                 currentHeight,
                 targetHeight,
             );
-
-            // send the next query message since we have successfully completed the query
-            this._sendQuery();
+            this._state = ChannelRangeQueryState.Complete;
+            this._emitter.emit("complete", this._results);
         }
     }
 
     /**
-     * Handles a reply_channel_range message using the legacy strategy where
-     * multiple techniques were used to signal the completion of a query. As a
-     * result, this code removes send blocking after receipt of the first reply
-     * message. We are also looser about the meaning of the full_information
-     * byte since it can indicate a failure OR a multipart message.
+     * Handles a reply_channel_range message using the legacy strategy. This
+     * code will error if fullInformation=0 scids=[] and will be considered
+     * complete when fullInformation=1.
      * @param msg
      */
     private _handleLegacyReply(msg: ReplyChannelRangeMessage) {
@@ -236,25 +270,25 @@ export class QueryChannelRangeStrategy extends EventEmitter implements IQueryCha
 
         // enqueues any scids to be processed by a query_short_chan_id message
         if (msg.shortChannelIds.length) {
-            this.queryShortIdsStrategy.enqueue(...msg.shortChannelIds);
+            this.results.push(...msg.shortChannelIds);
         }
 
         // Check the complete flag and the existance of SCIDs. Unfortunately,
         // non-confirming implementations are incorrectly using the completion
         // flag to a multi-message reply.
-        if (!msg.fullInformation && !msg.shortChannelIds.length) {
-            this.emit("channel_range_failed", msg);
+        if (msg.fullInformation && !this.results.length) {
+            const error = new GossipError(GossipErrorCode.ReplyChannelRangeNoInformation, msg);
+            this._error = error;
+            this._state = ChannelRangeQueryState.Failed;
+            this._emitter.emit("error", error);
+            return;
         }
 
-        // indicate that we are okay to send another query message. We are doing
-        // this because we have no other way of knowing if the query has completed,
-        // which may piss some peers off.
-        this._blocked = false;
-
-        // clear out the active query
-        this._lastQuery = undefined;
-
-        // send the next query message if one exists
-        this._sendQuery();
+        // If we see a fullInformation flag then we have received all parts of
+        // the multipart message and are complete.
+        if (msg.fullInformation) {
+            this._state = ChannelRangeQueryState.Complete;
+            this._emitter.emit("complete", this._results);
+        }
     }
 }

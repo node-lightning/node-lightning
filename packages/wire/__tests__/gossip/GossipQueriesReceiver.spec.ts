@@ -2,14 +2,14 @@
 
 import { ILogger } from "@lntools/logger";
 import { expect } from "chai";
-import { PeerGossipReceiveState } from "../../lib/gossip/GossipReceiveState";
-import { GossipTimestampFilterStrategy } from "../../lib/gossip/GossipTimestampFilterStrategy";
+import { GossipQueriesReceiver } from "../../lib/gossip/GossipQueriesReceiver";
+import { GossipQueriesReceiverState } from "../../lib/gossip/GossipQueriesReceiver";
 import { GossipTimestampFilterMessage } from "../../lib/messages/GossipTimestampFilterMessage";
 import { createFakeLogger, createFakePeer } from "../_test-utils";
 
-describe("GossipTimestampFilterStrategry", () => {
+describe("GossipQueriesReceiver", () => {
     let chainHash: Buffer;
-    let sut: GossipTimestampFilterStrategy;
+    let sut: GossipQueriesReceiver;
     let peer: any;
     let logger: ILogger;
 
@@ -17,12 +17,12 @@ describe("GossipTimestampFilterStrategry", () => {
         chainHash = Buffer.alloc(32, 1);
         peer = createFakePeer();
         logger = createFakeLogger();
-        sut = new GossipTimestampFilterStrategy(chainHash, peer, logger);
+        sut = new GossipQueriesReceiver(chainHash, peer, logger);
     });
 
     describe("initial state", () => {
         it("in 'inactive' state", () => {
-            expect(sut.receiveState).to.equal(PeerGossipReceiveState.Inactive);
+            expect(sut.state).to.equal(GossipQueriesReceiverState.Idle);
         });
 
         it("has uint32_max start", () => {
@@ -46,7 +46,7 @@ describe("GossipTimestampFilterStrategry", () => {
 
         it("should transition state to 'receiving'", () => {
             sut.activate(1590174550, 4294967294);
-            expect(sut.receiveState).to.equal(PeerGossipReceiveState.Receiving);
+            expect(sut.state).to.equal(GossipQueriesReceiverState.Receiving);
         });
 
         it("sets timestamp", () => {
@@ -70,9 +70,9 @@ describe("GossipTimestampFilterStrategry", () => {
             expect(msg.timestampRange).to.equal(0);
         });
 
-        it("should transition state to 'inactive'", () => {
+        it("should transition state to 'idle'", () => {
             sut.deactivate();
-            expect(sut.receiveState).to.equal(PeerGossipReceiveState.Inactive);
+            expect(sut.state).to.equal(GossipQueriesReceiverState.Idle);
         });
 
         it("sets timestamp", () => {

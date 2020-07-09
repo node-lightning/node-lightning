@@ -10,9 +10,15 @@ import { PeerState } from "../PeerState";
 import { ShortChannelId } from "../ShortChannelId";
 import { WireError, WireErrorCode } from "../WireError";
 import { GossipFilter } from "./GossipFilter";
+import { GossipPeer } from "./GossipPeer";
 import { IGossipStore } from "./GossipStore";
 import { IGossipFilterChainClient } from "./IGossipFilterChainClient";
-import { PeerGossipReceiver } from "./PeerGossipReceiver";
+
+export enum SyncState {
+    Unsynced,
+    Syncing,
+    Synced,
+}
 
 // tslint:disable-next-line: interface-name
 export declare interface GossipManager {
@@ -31,54 +37,30 @@ export declare interface GossipManager {
  * routing gossip traffic obtained by peers.
  */
 export class GossipManager extends EventEmitter {
-    public chainHash: Buffer;
-    public logger: ILogger;
     public blockHeight: number;
     public started: boolean;
-    private _peers: Set<Peer>;
-    private _gossipStore: IGossipStore;
-    private _pendingStore: IGossipStore;
-    private _gossipFilter: GossipFilter;
-    private _gossipReceivers: Map<Peer, PeerGossipReceiver>;
-    private _chainClient: IGossipFilterChainClient;
+    public syncState: SyncState;
+    public isSynchronizing: boolean;
+    public readonly peers: Set<GossipPeer>;
+    public readonly logger;
 
-    constructor({
-        chainClient,
-        chainHash,
-        logger,
-        gossipStore,
-        pendingStore,
-    }: {
-        chainHash: Buffer;
-        logger: ILogger;
-        gossipStore: IGossipStore;
-        pendingStore: IGossipStore;
-        chainClient?: IGossipFilterChainClient;
-    }) {
+    constructor(
+        logger: ILogger,
+        readonly gossipStore: IGossipStore,
+        readonly pendingStore: IGossipStore,
+        readonly chainClient?: IGossipFilterChainClient,
+    ) {
         super();
-        this.chainHash = chainHash;
-        this.logger = logger.sub("gossip_mgr");
-
-        this._gossipStore = gossipStore;
-        this._pendingStore = pendingStore;
-        this._chainClient = chainClient;
-
-        this._peers = new Set<Peer>();
-        this._gossipReceivers = new Map<Peer, PeerGossipReceiver>();
-
-        this._onPeerMessage = this._onPeerMessage.bind(this);
-
-        this._gossipFilter = new GossipFilter({ gossipStore, pendingStore, chainClient });
-        this._gossipFilter.on("message", this._onFilterMessage.bind(this));
-        this._gossipFilter.on("error", this._onError.bind(this));
-        this._gossipFilter.on("flushed", () => this.emit("flushed"));
+        this.logger = logger.sub("gspmgr");
+        this.peers = new Set<GossipPeer>();
+        this.syncState = SyncState.Unsynced;
     }
 
     /**
      * The number of peers managed by the PeerManager
      */
     get peerCount(): number {
-        return this._peers.size;
+        return this.peers.size;
     }
 
     /**
@@ -92,9 +74,9 @@ export class GossipManager extends EventEmitter {
         this.logger.info("starting gossip manager");
 
         // wait for chain sync to complete
-        if (this._chainClient) {
+        if (this.chainClient) {
             this.logger.info("waiting for chain sync");
-            await this._chainClient.waitForSync();
+            await this.chainClient.waitForSync();
             this.logger.info("chain sync complete");
         }
 
@@ -114,29 +96,12 @@ export class GossipManager extends EventEmitter {
      */
     public addPeer(peer: Peer) {
         if (!this.started) throw new WireError(WireErrorCode.gossipManagerNotStarted);
-        this._peers.add(peer);
-        peer.on("message", this._onPeerMessage);
-        peer.on("close", () => this.removePeer(peer));
-
-        const onReady = () => {
-            const gossipReceiver = new PeerGossipReceiver(this.chainHash, peer, this.logger);
-            this._gossipReceivers.set(peer, gossipReceiver);
-        };
 
         if (peer.state === PeerState.Ready) {
-            onReady();
+            this._onPeerReady(peer);
         } else {
-            peer.once("ready", () => onReady());
+            peer.once("ready", () => this._onPeerReady(peer));
         }
-    }
-
-    /**
-     * Removes the peer from the manager and unsubscribes from all
-     * events that are emitted by the peer.
-     */
-    public removePeer(peer: Peer) {
-        this._peers.delete(peer);
-        peer.off("message", this._onPeerMessage);
     }
 
     /**
@@ -145,7 +110,7 @@ export class GossipManager extends EventEmitter {
      */
     public async removeChannel(scid: ShortChannelId) {
         this.logger.debug("removing channel %s", scid.toString());
-        await this._gossipStore.deleteChannelAnnouncement(scid);
+        await this.gossipStore.deleteChannelAnnouncement(scid);
     }
 
     /**
@@ -154,7 +119,7 @@ export class GossipManager extends EventEmitter {
      * @param outpoint
      */
     public async removeChannelByOutpoint(outpoint: OutPoint) {
-        const chanAnn = await this._gossipStore.findChannelAnnouncementByOutpoint(outpoint);
+        const chanAnn = await this.gossipStore.findChannelAnnouncementByOutpoint(outpoint);
         if (!chanAnn) return;
         await this.removeChannel(chanAnn.shortChannelId);
     }
@@ -178,23 +143,23 @@ export class GossipManager extends EventEmitter {
         const seenNodeIds: Set<string> = new Set();
 
         // obtain full list of channel announcements
-        const chanAnns = await this._gossipStore.findChannelAnnouncemnts();
+        const chanAnns = await this.gossipStore.findChannelAnnouncemnts();
         for (const chanAnn of chanAnns) {
             yield chanAnn;
 
             // load and add the node1 channel_update
-            const update1 = await this._gossipStore.findChannelUpdate(chanAnn.shortChannelId, 0);
+            const update1 = await this.gossipStore.findChannelUpdate(chanAnn.shortChannelId, 0);
             if (update1) yield update1;
 
             // load and add the nod2 channel_update
-            const update2 = await this._gossipStore.findChannelUpdate(chanAnn.shortChannelId, 1);
+            const update2 = await this.gossipStore.findChannelUpdate(chanAnn.shortChannelId, 1);
             if (update2) yield update2;
 
             // optionally load node1 announcement
             const nodeId1 = chanAnn.nodeId1.toString("hex");
             if (!seenNodeIds.has(nodeId1)) {
                 seenNodeIds.add(nodeId1);
-                const nodeAnn = await this._gossipStore.findNodeAnnouncement(chanAnn.nodeId1);
+                const nodeAnn = await this.gossipStore.findNodeAnnouncement(chanAnn.nodeId1);
                 if (nodeAnn) yield nodeAnn;
             }
 
@@ -202,7 +167,7 @@ export class GossipManager extends EventEmitter {
             const nodeId2 = chanAnn.nodeId2.toString("hex");
             if (!seenNodeIds.has(nodeId2)) {
                 seenNodeIds.add(nodeId2);
-                const nodeAnn = await this._gossipStore.findNodeAnnouncement(chanAnn.nodeId2);
+                const nodeAnn = await this.gossipStore.findNodeAnnouncement(chanAnn.nodeId2);
                 if (nodeAnn) yield nodeAnn;
             }
         }
@@ -210,17 +175,59 @@ export class GossipManager extends EventEmitter {
         // Broadcast unattached node announcements. These may have been orphaned
         // from previously closed channels, or if the node allows node_ann messages
         // without channels.
-        const nodeAnns = await this._gossipStore.findNodeAnnouncements();
+        const nodeAnns = await this.gossipStore.findNodeAnnouncements();
         for (const nodeAnn of nodeAnns) {
             if (!seenNodeIds.has(nodeAnn.nodeId.toString("hex"))) yield nodeAnn;
         }
     }
 
-    private _onPeerMessage(msg: IWireMessage) {
-        this._gossipFilter.enqueue(msg);
+    /**
+     * Handles when a peer has been added to the manager and it is finally
+     * ready and has negotiated the gossip technique.
+     * @param peer
+     */
+    private _onPeerReady(peer: Peer) {
+        // Construct a gossip filter for use by the specific GossipPeer. This
+        // filter will be internally used by the GossipPeer to validate and
+        // capture gossip messages
+        const filter = new GossipFilter({
+            gossipStore: this.gossipStore,
+            pendingStore: this.pendingStore,
+            chainClient: this.chainClient,
+        });
+
+        // Construct the gossip Peer and add it to the collection of Peers
+        // that are currently being managed by the GossipPeer
+        const gossipPeer = new GossipPeer(peer, filter, this.logger);
+
+        // Attach events from the gossipPeer
+        gossipPeer.on("message", this._onGossipMessage.bind(this));
+        gossipPeer.on("error", this._onGossipError.bind(this));
+
+        // Add peer to the list of peers
+        this.peers.add(gossipPeer);
+
+        // Ensure that when the peer exist, we remove it from the collection
+        peer.on("close", () => this.peers.delete(gossipPeer));
+
+        // If we have not yet performed a full synchronization then we can
+        // perform the full gossip state restore from this node
+        if (this.syncState === SyncState.Unsynced) {
+            // tslint:disable-next-line: no-floating-promises
+            this._syncPeer(gossipPeer);
+        }
+
+        // If we've already synced, simply enable gossip receiving for the peer
+        else {
+            gossipPeer.enableGossip();
+        }
     }
 
-    private _onFilterMessage(msg: IWireMessage) {
+    /**
+     * Handles receieved gossip messages
+     * @param msg
+     */
+    private _onGossipMessage(msg: IWireMessage) {
         if (msg.type === MessageType.ChannelAnnouncement) {
             this.blockHeight = Math.max(
                 this.blockHeight,
@@ -230,14 +237,41 @@ export class GossipManager extends EventEmitter {
         this.emit("message", msg);
     }
 
-    private _onError(err: Error) {
+    /**
+     * Handles Gossip Errors
+     */
+    private _onGossipError(err: Error) {
         this.emit("error", err);
+    }
+
+    /**
+     * Synchronize the peer using the peer's synchronization mechanism.
+     * @param peer
+     */
+    private async _syncPeer(peer: GossipPeer) {
+        try {
+            // perform synchronization
+            await peer.syncRange();
+
+            // finally transition to sync complete status
+            this.logger.info("sync status now 'synced'");
+            this.syncState = SyncState.Synced;
+
+            // enable gossip for all the peers
+            this.logger.info("enabling gossip for all peers");
+            for (const gossipPeer of this.peers) {
+                gossipPeer.enableGossip();
+            }
+        } catch (ex) {
+            // TODO select next peer
+            this.syncState = SyncState.Unsynced;
+        }
     }
 
     private async _restoreState() {
         this.logger.info("retrieving gossip state from store");
         this.blockHeight = 0;
-        const chanAnns = await this._gossipStore.findChannelAnnouncemnts();
+        const chanAnns = await this.gossipStore.findChannelAnnouncemnts();
 
         // find best block height
         for (const chanAnn of chanAnns) {
@@ -250,7 +284,7 @@ export class GossipManager extends EventEmitter {
     }
 
     private async _validateUtxos(chanAnns: ChannelAnnouncementMessage[]) {
-        if (!this._chainClient) {
+        if (!this.chainClient) {
             this.logger.info("skipping utxo validation, no chain_client configured");
             return;
         }
@@ -273,7 +307,7 @@ export class GossipManager extends EventEmitter {
                 );
             }
             if (chanAnn instanceof ExtendedChannelAnnouncementMessage) {
-                const utxo = await this._chainClient.getUtxo(
+                const utxo = await this.chainClient.getUtxo(
                     chanAnn.outpoint.txId,
                     chanAnn.outpoint.voutIdx,
                 );
