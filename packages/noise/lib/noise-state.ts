@@ -1,6 +1,6 @@
-import { ccpDecrypt, ccpEncrypt, ecdh, hkdf, sha256 } from "@lntools/crypto";
-import { getPublicKey } from "@lntools/crypto";
-import { ILogger } from "@lntools/logger";
+import { ccpDecrypt, ccpEncrypt, ecdh, hkdf, sha256 } from "@node-lightning/crypto";
+import { getPublicKey } from "@node-lightning/crypto";
+import { ILogger } from "@node-lightning/logger";
 import { NoiseStateOptions } from "./noise-state-options";
 
 export class NoiseState {

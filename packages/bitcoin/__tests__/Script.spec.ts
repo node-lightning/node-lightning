@@ -1,5 +1,5 @@
-import { bufToStream } from "@lntools/bufio";
-import { hash160 } from "@lntools/crypto";
+import { bufToStream } from "@node-lightning/bufio";
+import { hash160 } from "@node-lightning/crypto";
 import { expect } from "chai";
 import { OpCode } from "../lib/OpCodes";
 import { Script } from "../lib/Script";

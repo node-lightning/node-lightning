@@ -1,4 +1,4 @@
-import { BufferReader, BufferWriter } from "@lntools/bufio";
+import { BufferReader, BufferWriter } from "@node-lightning/bufio";
 import { PONG_BYTE_THRESHOLD } from "../Constants";
 import { MessageType } from "../MessageType";
 import { IWireMessage } from "./IWireMessage";

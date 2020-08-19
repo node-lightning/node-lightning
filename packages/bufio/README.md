@@ -1,16 +1,16 @@
 # Utilities for Buffer IO
 
-[![CircleCI](https://circleci.com/gh/altangent/lntools/tree/master.svg?style=shield)](https://circleci.com/gh/altangent/lntools/tree/master)
-[![codecov](https://codecov.io/gh/altangent/lntools/branch/master/graph/badge.svg)](https://codecov.io/gh/altangent/lntools)
+[![CircleCI](https://circleci.com/gh/altangent/node-lightning/tree/master.svg?style=shield)](https://circleci.com/gh/altangent/node-lightning/tree/master)
+[![codecov](https://codecov.io/gh/altangent/node-lightning/branch/master/graph/badge.svg)](https://codecov.io/gh/altangent/node-lightning)
 
 Usage:
 
 ```bash
-npm install @lntools/bufio
+npm install @node-lightning/bufio
 ```
 
 ```javascript
-const { BufferReader, BufferWriter } = require("@lntools/bufio");
+const { BufferReader, BufferWriter } = require("@node-lightning/bufio");
 
 // write arbitrary length data
 const writer = new BufferWriter();

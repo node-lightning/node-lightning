@@ -1,5 +1,5 @@
-import { ChannelAnnouncementMessage } from "@lntools/wire";
-import { ExtendedChannelAnnouncementMessage } from "@lntools/wire";
+import { ChannelAnnouncementMessage } from "@node-lightning/wire";
+import { ExtendedChannelAnnouncementMessage } from "@node-lightning/wire";
 import { Channel } from "../channel";
 
 /**

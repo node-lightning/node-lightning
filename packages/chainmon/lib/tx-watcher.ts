@@ -1,6 +1,6 @@
-import { decodeTx } from "@lntools/bitcoin";
-import { Tx } from "@lntools/bitcoin";
-import { BitcoindClient } from "@lntools/bitcoind";
+import { decodeTx } from "@node-lightning/bitcoin";
+import { Tx } from "@node-lightning/bitcoin";
+import { BitcoindClient } from "@node-lightning/bitcoind";
 import { EventEmitter } from "events";
 import { Outpoint } from "./outpoint";
 

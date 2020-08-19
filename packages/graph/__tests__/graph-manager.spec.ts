@@ -1,10 +1,10 @@
 // tslint:disable: no-unused-expression
-import { AddressIPv4, BitField, OutPoint, ShortChannelId } from "@lntools/wire";
-import { ExtendedChannelAnnouncementMessage } from "@lntools/wire";
-import { IGossipEmitter } from "@lntools/wire";
-import { ChannelAnnouncementMessage } from "@lntools/wire";
-import { ChannelUpdateMessage } from "@lntools/wire";
-import { NodeAnnouncementMessage } from "@lntools/wire";
+import { AddressIPv4, BitField, OutPoint, ShortChannelId } from "@node-lightning/wire";
+import { ExtendedChannelAnnouncementMessage } from "@node-lightning/wire";
+import { IGossipEmitter } from "@node-lightning/wire";
+import { ChannelAnnouncementMessage } from "@node-lightning/wire";
+import { ChannelUpdateMessage } from "@node-lightning/wire";
+import { NodeAnnouncementMessage } from "@node-lightning/wire";
 import { expect } from "chai";
 import { EventEmitter } from "events";
 import { Channel } from "../lib/channel";

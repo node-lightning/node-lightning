@@ -1,4 +1,4 @@
-import { ILogger } from "@lntools/logger";
+import { ILogger } from "@node-lightning/logger";
 import { EventEmitter } from "events";
 import { OutPoint } from "../domain/OutPoint";
 import { ChannelAnnouncementMessage } from "../messages/ChannelAnnouncementMessage";

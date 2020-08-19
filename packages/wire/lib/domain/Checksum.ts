@@ -1,4 +1,4 @@
-import { crc32c } from "@lntools/checksum";
+import { crc32c } from "@node-lightning/checksum";
 
 /**
  * CRC32C checksum for the provided value

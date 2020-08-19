@@ -1,4 +1,4 @@
-import * as crypto from "@lntools/crypto";
+import * as crypto from "@node-lightning/crypto";
 
 export function generateCipherStream(key: Buffer, size: number) {
     const iv = Buffer.alloc(16);

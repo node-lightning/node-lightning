@@ -1,4 +1,4 @@
-import { ChannelUpdateMessage } from "@lntools/wire";
+import { ChannelUpdateMessage } from "@node-lightning/wire";
 import { ChannelSettings } from "../channel-settings";
 
 /**

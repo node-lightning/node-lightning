@@ -1,4 +1,4 @@
-import * as crypto from "@lntools/crypto";
+import * as crypto from "@node-lightning/crypto";
 
 /**
  * Generates blinded shared secret between each hop in an onion packet.

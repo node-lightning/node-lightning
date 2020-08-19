@@ -1,4 +1,4 @@
-import * as crypto from "@lntools/crypto";
+import * as crypto from "@node-lightning/crypto";
 import { KeyType } from "./KeyType";
 
 /**

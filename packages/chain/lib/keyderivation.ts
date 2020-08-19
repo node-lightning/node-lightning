@@ -1,4 +1,4 @@
-import { sha256 } from "@lntools/crypto";
+import { sha256 } from "@node-lightning/crypto";
 import secp256k1 from "secp256k1";
 
 /**

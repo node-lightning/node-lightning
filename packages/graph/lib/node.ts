@@ -1,4 +1,4 @@
-import { Address, BitField } from "@lntools/wire";
+import { Address, BitField } from "@node-lightning/wire";
 import { Channel } from "./channel";
 
 /**

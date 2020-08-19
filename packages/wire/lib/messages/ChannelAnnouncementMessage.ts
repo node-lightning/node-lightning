@@ -1,5 +1,5 @@
-import { BufferReader, BufferWriter } from "@lntools/bufio";
-import * as crypto from "@lntools/crypto";
+import { BufferReader, BufferWriter } from "@node-lightning/bufio";
+import * as crypto from "@node-lightning/crypto";
 import { BitField } from "../BitField";
 import { ChannelFeatureFlags } from "../flags/ChannelFeatureFlags";
 import { MessageType } from "../MessageType";

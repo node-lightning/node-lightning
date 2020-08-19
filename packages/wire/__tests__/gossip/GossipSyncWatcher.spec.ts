@@ -1,4 +1,4 @@
-import { ILogger } from "@lntools/logger";
+import { ILogger } from "@node-lightning/logger";
 import { expect } from "chai";
 import { GossipSyncWatcher } from "../../lib/gossip/GossipSyncWatcher";
 import { createFakeLogger, createFakePeer, wait } from "../_test-utils";

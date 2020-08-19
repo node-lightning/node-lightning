@@ -1,4 +1,4 @@
-import { ILogger } from "@lntools/logger";
+import { ILogger } from "@node-lightning/logger";
 import { GossipTimestampFilterMessage } from "../messages/GossipTimestampFilterMessage";
 import { IMessageSender } from "../Peer";
 

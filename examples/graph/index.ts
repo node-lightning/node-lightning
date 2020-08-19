@@ -1,17 +1,17 @@
-import { BitcoindClient } from "@lntools/bitcoind";
-import { ConstantBackoff, RetryPolicy } from "@lntools/bitcoind";
-import { TxWatcher } from "@lntools/chainmon";
-import { RocksdbGossipStore } from "@lntools/gossip-rocksdb";
-import { GraphManager } from "@lntools/graph";
-import { GraphError } from "@lntools/graph";
-import { LndSerializer } from "@lntools/graph";
-import { ConsoleTransport, Logger, LogLevel } from "@lntools/logger";
-import { BitField } from "@lntools/wire";
-import { ExtendedChannelAnnouncementMessage } from "@lntools/wire";
-import { Peer } from "@lntools/wire";
-import { GossipMemoryStore } from "@lntools/wire";
-import { GossipManager } from "@lntools/wire";
-import { InitFeatureFlags } from "@lntools/wire";
+import { BitcoindClient } from "@node-lightning/bitcoind";
+import { ConstantBackoff, RetryPolicy } from "@node-lightning/bitcoind";
+import { TxWatcher } from "@node-lightning/chainmon";
+import { RocksdbGossipStore } from "@node-lightning/gossip-rocksdb";
+import { GraphManager } from "@node-lightning/graph";
+import { GraphError } from "@node-lightning/graph";
+import { LndSerializer } from "@node-lightning/graph";
+import { ConsoleTransport, Logger, LogLevel } from "@node-lightning/logger";
+import { BitField } from "@node-lightning/wire";
+import { ExtendedChannelAnnouncementMessage } from "@node-lightning/wire";
+import { Peer } from "@node-lightning/wire";
+import { GossipMemoryStore } from "@node-lightning/wire";
+import { GossipManager } from "@node-lightning/wire";
+import { InitFeatureFlags } from "@node-lightning/wire";
 import fs from "fs";
 
 // tslint:disable-next-line: no-var-requires

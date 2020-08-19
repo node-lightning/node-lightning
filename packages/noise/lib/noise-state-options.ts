@@ -1,4 +1,4 @@
-import { ILogger } from "@lntools/logger";
+import { ILogger } from "@node-lightning/logger";
 
 export type NoiseStateOptions = {
     /**

@@ -1,4 +1,4 @@
-# @lntools/bitcoind
+# @node-lightning/bitcoind
 
 This package provides connectivity to a bitcoind node by enabling RPC functions
 and Zeromq streaming.
@@ -27,14 +27,14 @@ You can subscribe to raw transactions and blocks emitted by zeromq:
 ```typescript
 client.subscribeRawTx();
 client.on("rawtx", (rawtx: Buffer) => {
-  // deserialize and do something
+    // deserialize and do something
 });
 ```
 
 ```typescript
 client.subscribeRawBlock();
 client.on("rawblock", (rawblock: Buffer) => {
-  // deserialize and do something
+    // deserialize and do something
 });
 ```
 

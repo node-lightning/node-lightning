@@ -1,4 +1,4 @@
-import { BufferWriter } from "@lntools/bufio";
+import { BufferWriter } from "@node-lightning/bufio";
 import { AddressIPv6 } from "../../domain/AddressIPv6";
 import { ipv6StringToBuffer } from "./ipv6StringToBuffer";
 

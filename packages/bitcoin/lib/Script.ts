@@ -1,7 +1,7 @@
-import { bigToBufLE } from "@lntools/bufio";
-import { encodeVarInt } from "@lntools/bufio";
-import { BufferReader } from "@lntools/bufio";
-import { StreamReader } from "@lntools/bufio";
+import { bigToBufLE } from "@node-lightning/bufio";
+import { encodeVarInt } from "@node-lightning/bufio";
+import { BufferReader } from "@node-lightning/bufio";
+import { StreamReader } from "@node-lightning/bufio";
 import { Readable } from "stream";
 import { OpCode } from "./OpCodes";
 import { ScriptCmd } from "./ScriptCmd";

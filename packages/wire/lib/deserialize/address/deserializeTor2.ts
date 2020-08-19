@@ -1,4 +1,4 @@
-import { BufferReader } from "@lntools/bufio";
+import { BufferReader } from "@node-lightning/bufio";
 import { AddressTor2 } from "../../domain/AddressTor2";
 import { torStringFromBuffer } from "./torStringFromBuffer";
 

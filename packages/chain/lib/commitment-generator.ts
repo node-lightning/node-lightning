@@ -1,4 +1,4 @@
-import { sha256 } from "@lntools/crypto";
+import { sha256 } from "@node-lightning/crypto";
 
 // note we will need to use bignumber.js because we can't do bitmath over 2**32
 export function generateFromSeed(seed: Buffer, i: number): Buffer {

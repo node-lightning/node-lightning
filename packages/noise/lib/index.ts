@@ -1,5 +1,5 @@
-import * as crypto from "@lntools/crypto";
-import { ILogger } from "@lntools/logger";
+import * as crypto from "@node-lightning/crypto";
+import { ILogger } from "@node-lightning/logger";
 import { Socket } from "net";
 import { NoiseServer } from "./noise-server";
 import { NoiseServerOptions } from "./noise-server-options";

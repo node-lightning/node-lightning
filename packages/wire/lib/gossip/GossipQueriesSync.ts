@@ -1,4 +1,4 @@
-import { ILogger } from "@lntools/logger";
+import { ILogger } from "@node-lightning/logger";
 import { ChannelRangeQuery } from "./ChannelRangeQuery";
 import { ChannelsQuery } from "./ChannelsQuery";
 import { GossipPeer } from "./GossipPeer";

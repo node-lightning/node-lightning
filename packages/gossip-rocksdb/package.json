@@ -1,5 +1,5 @@
 {
-  "name": "@lntools/gossip-rocksdb",
+  "name": "@node-lightning/gossip-rocksdb",
   "version": "0.7.0",
   "description": "Gossip store using RocksDB",
   "scripts": {
@@ -17,16 +17,16 @@
     "rocksdb"
   ],
   "author": "Brian Mancini <bmancini@gmail.com>",
-  "homepage": "https://github.com/altangent/lntools/tree/master/packages/gossip-rocksdb",
+  "homepage": "https://github.com/altangent/node-lightning/tree/master/packages/gossip-rocksdb",
   "license": "MIT",
   "main": "dist/index.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/altangent/lntools.git"
+    "url": "git+https://github.com/altangent/node-lightning.git"
   },
   "dependencies": {
-    "@lntools/bufio": "^0.10.0",
-    "@lntools/wire": "^0.18.0",
+    "@node-lightning/bufio": "^0.10.0",
+    "@node-lightning/wire": "^0.18.0",
     "levelup": "^4.3.2",
     "rocksdb": "^4.1.0"
   },
@@ -34,5 +34,7 @@
     "@types/levelup": "^4.3.0",
     "@types/rocksdb": "^3.0.0"
   },
-  "gitHead": "f1db27c96af2dc1dd8cb3ca62952499afd8efc6c"
+  "publishConfig": {
+    "access": "public"
+  }
 }

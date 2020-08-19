@@ -1,17 +1,17 @@
-# LNTools Logger
+# Node-Lightning Logger
 
-Logger for LNTools modules that supports multi-transport, multi-area+instance logging using standard `util.format` sprintf value formatting.
+Logger for Node-Lightning modules that supports multi-transport, multi-area+instance logging using standard `util.format` sprintf value formatting.
 
 ### Getting Started
 
 ```bash
-npm install @lntools/logger
+npm install @node-lightning/logger
 ```
 
 To use the module you will need to create an area logger and include an optional instance identifier:
 
 ```javascript
-const { manager } = require("@lntools/logger");
+const { manager } = require("@node-lightning/logger");
 
 const area = "TEST";
 const instanceId = "12345678";
@@ -39,7 +39,7 @@ The above message should look similar to:
 2019-07-22T13:28:37.855Z [WRN] TEST 12345678: i'm warning you
 2019-07-22T13:28:37.855Z [ERR] TEST 12345678: something went bad
 2019-07-22T13:28:37.856Z [ERR] TEST 12345678: Error: booooom
-    at Object.<anonymous> (/code/go/src/github.com/altangent/lntools/packages/logger/test.js:9:11)
+    at Object.<anonymous> (/code/go/src/github.com/altangent/node-lightning/packages/logger/test.js:9:11)
     at Module._compile (internal/modules/cjs/loader.js:776:30)
     at Object.Module._extensions..js (internal/modules/cjs/loader.js:787:10)
     at Module.load (internal/modules/cjs/loader.js:653:32)
@@ -58,4 +58,4 @@ The above message should look similar to:
 The default instance of the logger will output to:
 
 -   `console`
--   `lntools.log` file located at the root of the application runtime
+-   `node-lightning.log` file located at the root of the application runtime

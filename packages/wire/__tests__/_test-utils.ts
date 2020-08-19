@@ -1,4 +1,4 @@
-import { Logger, ILogger } from "@lntools/logger";
+import { Logger, ILogger } from "@node-lightning/logger";
 import sinon from "sinon";
 import { BitField } from "../lib/BitField";
 import { InitFeatureFlags } from "../lib/flags/InitFeatureFlags";

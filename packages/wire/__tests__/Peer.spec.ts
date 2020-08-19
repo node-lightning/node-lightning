@@ -1,7 +1,7 @@
 // tslint:disable: max-classes-per-file
 // tslint:disable: no-unused-expression
-import { ILogger } from "@lntools/logger";
-import * as noise from "@lntools/noise";
+import { ILogger } from "@node-lightning/logger";
+import * as noise from "@node-lightning/noise";
 import { expect } from "chai";
 import { EventEmitter } from "events";
 import sinon from "sinon";

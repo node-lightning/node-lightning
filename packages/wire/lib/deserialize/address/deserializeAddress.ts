@@ -1,4 +1,4 @@
-import { BufferReader } from "@lntools/bufio";
+import { BufferReader } from "@node-lightning/bufio";
 import { Address } from "../../domain/Address";
 import { AddressType } from "../../domain/AddressType";
 import { deserializeIPv4 } from "./deserializeIPv4";

@@ -1,4 +1,4 @@
-import { ILogger } from "@lntools/logger";
+import { ILogger } from "@node-lightning/logger";
 import { Socket } from "net";
 import { NoiseState } from "./noise-state";
 

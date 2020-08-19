@@ -1,5 +1,5 @@
 {
-  "name": "@lntools/checksum",
+  "name": "@node-lightning/checksum",
   "version": "0.2.0",
   "description": "Checksum library with CRC32C",
   "keywords": [
@@ -7,12 +7,12 @@
     "crc32c"
   ],
   "author": "Brian Mancini <bmancini@gmail.com>",
-  "homepage": "https://github.com/altangent/lntools/tree/master/packages/checksum",
+  "homepage": "https://github.com/altangent/node-lightning/tree/master/packages/checksum",
   "license": "MIT",
   "main": "dist/index.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/altangent/lntools.git"
+    "url": "git+https://github.com/altangent/node-lightning.git"
   },
   "scripts": {
     "test": "../../node_modules/.bin/nyc --reporter=lcov --reporter=text --extension=.ts ../../node_modules/.bin/mocha --require ts-node/register --recursive \"__tests__/**/*.spec.*\"",

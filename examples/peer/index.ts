@@ -1,12 +1,10 @@
-import { ConsoleTransport, Logger, LogLevel } from "@lntools/logger";
-import { BitField } from "@lntools/wire";
-import { QueryChannelRangeOptions } from "@lntools/wire";
-import { QueryShortChannelIdsMessage } from "@lntools/wire";
-import { ShortChannelId } from "@lntools/wire";
-import { QueryShortChannelIdsFlags } from "@lntools/wire";
-import { QueryChannelRangeMessage } from "@lntools/wire";
-import { Peer } from "@lntools/wire";
-import { InitFeatureFlags } from "@lntools/wire/dist/flags/InitFeatureFlags";
+import { ConsoleTransport, Logger, LogLevel } from "@node-lightning/logger";
+import { BitField } from "@node-lightning/wire";
+import { QueryShortChannelIdsMessage } from "@node-lightning/wire";
+import { ShortChannelId } from "@node-lightning/wire";
+import { QueryChannelRangeMessage } from "@node-lightning/wire";
+import { Peer } from "@node-lightning/wire";
+import { InitFeatureFlags } from "@node-lightning/wire/dist/flags/InitFeatureFlags";
 
 // tslint:disable-next-line: no-var-requires
 const config = require("../config.json");

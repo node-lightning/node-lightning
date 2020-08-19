@@ -1,4 +1,4 @@
-import { BufferReader } from "@lntools/bufio";
+import { BufferReader } from "@node-lightning/bufio";
 import { expect } from "chai";
 import { readTlvs } from "../../lib/serialize/readTlvs";
 import { shortChannelIdFromBuffer } from "../../lib/ShortChannelIdUtils";

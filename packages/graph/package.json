@@ -1,5 +1,5 @@
 {
-  "name": "@lntools/graph",
+  "name": "@node-lightning/graph",
   "version": "0.8.0",
   "description": "Lightning Network P2P Graph",
   "keywords": [
@@ -8,11 +8,11 @@
     "bolt7"
   ],
   "author": "Brian Mancini <bmancini@gmail.com>",
-  "homepage": "https://github.com/altangent/lntools/tree/master/packages/graph",
+  "homepage": "https://github.com/altangent/node-lightning/tree/master/packages/graph",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/altangent/lntools.git"
+    "url": "git+https://github.com/altangent/node-lightning.git"
   },
   "main": "dist/index.js",
   "scripts": {
@@ -22,7 +22,9 @@
     "prepublish": "npm run build"
   },
   "dependencies": {
-    "@lntools/wire": "^0.18.0"
+    "@node-lightning/wire": "^0.18.0"
   },
-  "gitHead": "f1db27c96af2dc1dd8cb3ca62952499afd8efc6c"
+  "publishConfig": {
+    "access": "public"
+  }
 }

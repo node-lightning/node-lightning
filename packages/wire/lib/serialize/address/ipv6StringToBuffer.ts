@@ -1,4 +1,4 @@
-import { BufferWriter } from "@lntools/bufio";
+import { BufferWriter } from "@node-lightning/bufio";
 
 /**
  * Converts an IPv6 address in string notation to the

@@ -1,12 +1,12 @@
-import { BufferReader } from "@lntools/bufio";
-import { IGossipStore } from "@lntools/wire";
-import { NodeAnnouncementMessage } from "@lntools/wire";
-import { ChannelAnnouncementMessage } from "@lntools/wire";
-import { ExtendedChannelAnnouncementMessage } from "@lntools/wire";
-import { ChannelUpdateMessage } from "@lntools/wire";
-import { OutPoint } from "@lntools/wire";
-import { ShortChannelId } from "@lntools/wire";
-import { shortChannelIdFromBuffer } from "@lntools/wire";
+import { BufferReader } from "@node-lightning/bufio";
+import { IGossipStore } from "@node-lightning/wire";
+import { NodeAnnouncementMessage } from "@node-lightning/wire";
+import { ChannelAnnouncementMessage } from "@node-lightning/wire";
+import { ExtendedChannelAnnouncementMessage } from "@node-lightning/wire";
+import { ChannelUpdateMessage } from "@node-lightning/wire";
+import { OutPoint } from "@node-lightning/wire";
+import { ShortChannelId } from "@node-lightning/wire";
+import { shortChannelIdFromBuffer } from "@node-lightning/wire";
 import { RocksdbBase } from "./rocksdb-base";
 
 enum Prefix {

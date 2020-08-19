@@ -1,5 +1,5 @@
-import { ShortChannelId } from "@lntools/wire";
-import { shortChannelIdFromBuffer } from "@lntools/wire";
+import { ShortChannelId } from "@node-lightning/wire";
+import { shortChannelIdFromBuffer } from "@node-lightning/wire";
 
 /**
  *

@@ -1,5 +1,5 @@
-import { ShortChannelId } from "@lntools/wire";
-import { OutPoint } from "@lntools/wire";
+import { ShortChannelId } from "@node-lightning/wire";
+import { OutPoint } from "@node-lightning/wire";
 import { Channel } from "./channel";
 import { NodeNotFoundError } from "./graph-error";
 import { Node } from "./node";

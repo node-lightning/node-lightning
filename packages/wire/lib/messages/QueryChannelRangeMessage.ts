@@ -1,4 +1,4 @@
-import { BufferReader, BufferWriter } from "@lntools/bufio";
+import { BufferReader, BufferWriter } from "@node-lightning/bufio";
 import { BitField } from "../BitField";
 import { QueryChannelRangeFlags } from "../flags/QueryChannelRangeFlags";
 import { MessageType } from "../MessageType";

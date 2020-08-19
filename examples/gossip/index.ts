@@ -1,12 +1,12 @@
-import { ConsoleTransport, Logger, LogLevel } from "@lntools/logger";
-import { BitField, ChannelAnnouncementMessage } from "@lntools/wire";
-import { ChannelUpdateMessage } from "@lntools/wire";
-import { NodeAnnouncementMessage } from "@lntools/wire";
-import { ExtendedChannelAnnouncementMessage } from "@lntools/wire";
-import { Peer } from "@lntools/wire";
-import { GossipMemoryStore } from "@lntools/wire";
-import { GossipManager } from "@lntools/wire";
-import { InitFeatureFlags } from "@lntools/wire";
+import { ConsoleTransport, Logger, LogLevel } from "@node-lightning/logger";
+import { BitField, ChannelAnnouncementMessage } from "@node-lightning/wire";
+import { ChannelUpdateMessage } from "@node-lightning/wire";
+import { NodeAnnouncementMessage } from "@node-lightning/wire";
+import { ExtendedChannelAnnouncementMessage } from "@node-lightning/wire";
+import { Peer } from "@node-lightning/wire";
+import { GossipMemoryStore } from "@node-lightning/wire";
+import { GossipManager } from "@node-lightning/wire";
+import { InitFeatureFlags } from "@node-lightning/wire";
 
 // tslint:disable-next-line: no-var-requires
 const config = require("../config.json");

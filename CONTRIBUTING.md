@@ -1,4 +1,4 @@
-# Contributing to LNTools
+# Contributing to Node-Lightning
 
 This is a preliminary contribution guide.
 
@@ -7,8 +7,8 @@ This is a preliminary contribution guide.
 1. Checkout source code
 
 ```
-git clone https://github.com/altangent/lntools
-cd lntools
+git clone https://github.com/altangent/node-lightning
+cd node-lightning
 ```
 
 2. Run npm install to install the development tools
@@ -25,11 +25,11 @@ npm run bootstrap
 
 You are now ready develop on any of the modules.
 
-## LNTools Packages
+## Node-Lightning Packages
 
 All packages live inside the `packages` directory.
 
-Packages are logically divided by code areas that would be useful for independent inclusion by a consumer. Packages are published on NPM using the `@lntools` organization and have names such as `@lntools/wire` or `@lntools/invoice`.
+Packages are logically divided by code areas that would be useful for independent inclusion by a consumer. Packages are published on NPM using the `@node-lightning` organization and have names such as `@node-lightning/wire` or `@node-lightning/invoice`.
 
 Err on the side of including code inside an existing package. Code can be split into its own package if necessary.
 
@@ -40,10 +40,10 @@ Each package should:
 -   Use a `package.json`:
     -   Includes run commands for `test`, `lint`, `ci`, and `prepublish`
     -   Links to the package README as the home page
-    -   Links to the LNTools repository
+    -   Links to the Node-Lightning repository
     ```json
     {
-        "name": "@lntools/<NAME>",
+        "name": "@node-lightning/<NAME>",
         "version": "0.1.0",
         "description": "<DESCRIPTION",
         "scripts": {
@@ -54,14 +54,17 @@ Each package should:
         },
         "keywords": [],
         "author": "NAME",
-        "homepage": "https://github.com/altangent/lntools/tree/master/packages/<NAME>",
+        "homepage": "https://github.com/altangent/node-lightning/tree/master/packages/<NAME>",
         "license": "MIT",
         "main": "dist/index.js",
         "repository": {
             "type": "git",
-            "url": "git+https://github.com/altangent/lntools.git"
+            "url": "git+https://github.com/altangent/node-lightning.git"
         },
-        "dependencies": {}
+        "dependencies": {},
+        "publishConfig": {
+            "access": "public"
+        }
     }
     ```
 -   Use it's own `tsconfig.json` that extends the root `tsconfig.json` file.
@@ -88,7 +91,7 @@ The packages that HAVE been added have been reviewed and version pinned.
 
 ## Code Formatting
 
-LNTools uses prettier for automatic code formatting. You should have prettier auto-configured. In the future CI will automatically run a check with prettier and will fail if there are formatting problems.
+Node-Lightning uses prettier for automatic code formatting. You should have prettier auto-configured. In the future CI will automatically run a check with prettier and will fail if there are formatting problems.
 
 In tests or examples with long buffer input, it is acceptable to use the `prettier-ignore` comment to prevent unnecessary wrapping.
 
@@ -114,6 +117,6 @@ Appropriate test coverage should be added for new code or changes to existing co
 
 ## Releases
 
-Lerna is used to manage the LNTools monorepo. Independent versioning is currently being used for packages.
+Lerna is used to manage the Node-Lightning monorepo. Independent versioning is currently being used for packages.
 
 When code changes in a package, Lerna will detect this change and update the version for the package and all packages that depend on the changed package. These versions will be tagged.

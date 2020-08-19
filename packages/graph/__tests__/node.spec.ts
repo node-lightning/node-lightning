@@ -1,5 +1,5 @@
-import { ShortChannelId } from "@lntools/wire";
-import { AddressIPv4 } from "@lntools/wire";
+import { ShortChannelId } from "@node-lightning/wire";
+import { AddressIPv4 } from "@node-lightning/wire";
 import { expect } from "chai";
 import { Channel } from "../lib/channel";
 import { Node } from "../lib/node";

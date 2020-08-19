@@ -1,5 +1,5 @@
 {
-  "name": "@lntools/invoice",
+  "name": "@node-lightning/invoice",
   "version": "0.10.0",
   "description": "BOLT 11 Lightning Network invoice encoding/decoding library",
   "main": "dist/index.js",
@@ -9,10 +9,10 @@
     "build": "../../node_modules/.bin/tsc --project tsconfig.json",
     "prepublish": "npm run build"
   },
-  "homepage": "https://github.com/altangent/lntools/tree/master/packages/invoice",
+  "homepage": "https://github.com/altangent/node-lightning/tree/master/packages/invoice",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/altangent/lntools.git"
+    "url": "git+https://github.com/altangent/node-lightning.git"
   },
   "keywords": [
     "bolt-11",
@@ -26,10 +26,12 @@
   "author": "Brian Mancini <bmancini@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "@lntools/bufio": "^0.10.0",
+    "@node-lightning/bufio": "^0.10.0",
     "bech32": "^1.1.3",
     "bs58check": "^2.1.2",
     "secp256k1": "^3.5.0"
   },
-  "gitHead": "f1db27c96af2dc1dd8cb3ca62952499afd8efc6c"
+  "publishConfig": {
+    "access": "public"
+  }
 }

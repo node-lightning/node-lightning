@@ -1,14 +1,14 @@
 {
-  "name": "@lntools/bitcoind",
+  "name": "@node-lightning/bitcoind",
   "version": "0.6.0",
   "description": "Basic bitcoind JSONRPC and ZMQ client",
   "keywords": [],
   "author": "Brian Mancini <bmancini@gmail.com>",
-  "homepage": "https://github.com/altangent/lntools/tree/master/packages/bitcoind",
+  "homepage": "https://github.com/altangent/node-lightning/tree/master/packages/bitcoind",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/altangent/lntools.git"
+    "url": "git+https://github.com/altangent/node-lightning.git"
   },
   "main": "dist/index.js",
   "scripts": {
@@ -20,5 +20,7 @@
   "dependencies": {
     "zeromq": "^5.2.0"
   },
-  "gitHead": "f1db27c96af2dc1dd8cb3ca62952499afd8efc6c"
+  "publishConfig": {
+    "access": "public"
+  }
 }

@@ -1,5 +1,5 @@
 {
-  "name": "@lntools/onion",
+  "name": "@node-lightning/onion",
   "private": true,
   "version": "0.4.0",
   "description": "Lightning Network Onion Routing",
@@ -11,11 +11,11 @@
     "bolt4"
   ],
   "author": "Brian Mancini <bmancini@gmail.com>",
-  "homepage": "https://github.com/altangent/lntools/tree/master/packages/onion",
+  "homepage": "https://github.com/altangent/node-lightning/tree/master/packages/onion",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/altangent/lntools.git"
+    "url": "git+https://github.com/altangent/node-lightning.git"
   },
   "main": "dist/index.js",
   "scripts": {
@@ -25,10 +25,10 @@
     "prepublish": "npm run build"
   },
   "dependencies": {
-    "@lntools/bufio": "^0.10.0",
-    "@lntools/crypto": "^0.10.0",
-    "@lntools/logger": "^0.10.0",
-    "@lntools/wire": "^0.18.0"
+    "@node-lightning/bufio": "^0.10.0",
+    "@node-lightning/crypto": "^0.10.0",
+    "@node-lightning/logger": "^0.10.0",
+    "@node-lightning/wire": "^0.18.0"
   },
   "publishConfig": {
     "access": "public"

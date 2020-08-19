@@ -1,4 +1,4 @@
-import { BufferReader, BufferWriter } from "@lntools/bufio";
+import { BufferReader, BufferWriter } from "@node-lightning/bufio";
 import { MessageType } from "../MessageType";
 import { Encoder } from "../serialize/Encoder";
 import { EncodingType } from "../serialize/EncodingType";

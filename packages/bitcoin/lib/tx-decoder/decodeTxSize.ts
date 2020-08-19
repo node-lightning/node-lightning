@@ -1,4 +1,4 @@
-import { BufferReader } from "@lntools/bufio";
+import { BufferReader } from "@node-lightning/bufio";
 import { SizeResult } from "../SizeResult";
 import { isSegWitTx } from "./isSegwitTx";
 

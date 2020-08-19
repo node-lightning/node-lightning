@@ -1,5 +1,5 @@
-import { BufferWriter } from "@lntools/bufio";
-import { sha256 } from "@lntools/crypto";
+import { BufferWriter } from "@node-lightning/bufio";
+import { sha256 } from "@node-lightning/crypto";
 
 const OP_0 = 0;
 const OP_CHECKMULTISIG = 174;

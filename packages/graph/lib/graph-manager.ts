@@ -1,7 +1,7 @@
-import { IGossipEmitter, IWireMessage, OutPoint } from "@lntools/wire";
-import { ChannelAnnouncementMessage } from "@lntools/wire";
-import { ChannelUpdateMessage } from "@lntools/wire";
-import { NodeAnnouncementMessage } from "@lntools/wire";
+import { IGossipEmitter, IWireMessage, OutPoint } from "@node-lightning/wire";
+import { ChannelAnnouncementMessage } from "@node-lightning/wire";
+import { ChannelUpdateMessage } from "@node-lightning/wire";
+import { NodeAnnouncementMessage } from "@node-lightning/wire";
 import { EventEmitter } from "events";
 import { Channel } from "./channel";
 import { ChannelSettings } from "./channel-settings";

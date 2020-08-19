@@ -1,4 +1,4 @@
-import * as crypto from "@lntools/crypto";
+import * as crypto from "@node-lightning/crypto";
 import { generateCipherStream } from "./generateCipherStream";
 import { generateKey } from "./generateKey";
 import { KeyType } from "./KeyType";

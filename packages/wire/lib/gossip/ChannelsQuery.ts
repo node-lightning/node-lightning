@@ -1,4 +1,4 @@
-import { ILogger } from "@lntools/logger";
+import { ILogger } from "@node-lightning/logger";
 import { EventEmitter } from "events";
 import { IWireMessage } from "../messages/IWireMessage";
 import { QueryShortChannelIdsMessage } from "../messages/QueryShortChannelIdsMessage";

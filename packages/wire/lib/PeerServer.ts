@@ -1,6 +1,6 @@
-import { ILogger } from "@lntools/logger";
-import { NoiseSocket } from "@lntools/noise";
-import { NoiseServer } from "@lntools/noise/lib/noise-server";
+import { ILogger } from "@node-lightning/logger";
+import { NoiseSocket } from "@node-lightning/noise";
+import { NoiseServer } from "@node-lightning/noise/lib/noise-server";
 import { EventEmitter } from "events";
 import { BitField } from "./BitField";
 import { InitFeatureFlags } from "./flags/InitFeatureFlags";

@@ -1,4 +1,4 @@
-import { Address } from "@lntools/wire";
+import { Address } from "@node-lightning/wire";
 import { Channel } from "../channel";
 import { ChannelSettings } from "../channel-settings";
 import { Graph } from "../graph";

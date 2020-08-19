@@ -9,11 +9,11 @@
   "author": "Brian Mancini <bmancini@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "@lntools/bufio": "file:../../packages/bufio",
-    "@lntools/chainmon": "file:../../packages/chainmon",
-    "@lntools/crypto": "file:../../packages/crypto",
-    "@lntools/logger": "file:../../packages/logger",
-    "@lntools/noise": "file:../../packages/noise",
-    "@lntools/wire": "file:/../../packages/wire"
+    "@node-lightning/bufio": "file:../../packages/bufio",
+    "@node-lightning/chainmon": "file:../../packages/chainmon",
+    "@node-lightning/crypto": "file:../../packages/crypto",
+    "@node-lightning/logger": "file:../../packages/logger",
+    "@node-lightning/noise": "file:../../packages/noise",
+    "@node-lightning/wire": "file:/../../packages/wire"
   }
 }

@@ -1,5 +1,5 @@
 {
-  "name": "@lntools/main",
+  "name": "@node-lightning/main",
   "version": "0.1.0",
   "description": "Toolkit for the Bitcoin Lightning Network",
   "scripts": {
@@ -13,7 +13,7 @@
   },
   "keywords": [
     "lightning-network",
-    "lntools",
+    "node-lightning",
     "bitcoin"
   ],
   "author": "Brian Mancini <bmancini@gmail.com>",

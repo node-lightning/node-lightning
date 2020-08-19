@@ -1,14 +1,14 @@
 {
-  "name": "@lntools/bufio",
+  "name": "@node-lightning/bufio",
   "version": "0.10.0",
   "description": "Buffer IO utilities ",
   "keywords": [],
   "author": "Brian Mancini <bmancini@gmail.com>",
-  "homepage": "https://github.com/altangent/lntools/tree/master/packages/bufio",
+  "homepage": "https://github.com/altangent/node-lightning/tree/master/packages/bufio",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/altangent/lntools.git"
+    "url": "git+https://github.com/altangent/node-lightning.git"
   },
   "main": "dist/index.js",
   "scripts": {
@@ -19,6 +19,5 @@
   },
   "publishConfig": {
     "access": "public"
-  },
-  "gitHead": "f1db27c96af2dc1dd8cb3ca62952499afd8efc6c"
+  }
 }

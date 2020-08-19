@@ -1,5 +1,5 @@
 {
-  "name": "@lntools/noise",
+  "name": "@node-lightning/noise",
   "version": "0.15.0",
   "description": "BOLT 8 Lightning Network Noise Protocol Socket",
   "main": "dist/index.js",
@@ -18,15 +18,17 @@
     "bitcoin"
   ],
   "author": "Brian Mancini <bmancini@gmail.com>",
-  "homepage": "https://github.com/altangent/lntools/tree/master/packages/noise",
+  "homepage": "https://github.com/altangent/node-lightning/tree/master/packages/noise",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/altangent/lntools.git"
+    "url": "git+https://github.com/altangent/node-lightning.git"
   },
   "dependencies": {
-    "@lntools/crypto": "^0.6.0",
-    "@lntools/logger": "^0.10.0"
+    "@node-lightning/crypto": "^0.10.0",
+    "@node-lightning/logger": "^0.10.0"
   },
-  "gitHead": "f1db27c96af2dc1dd8cb3ca62952499afd8efc6c"
+  "publishConfig": {
+    "access": "public"
+  }
 }

@@ -1,4 +1,4 @@
-import { BufferReader } from "@lntools/bufio";
+import { BufferReader } from "@node-lightning/bufio";
 import bech32 from "bech32";
 import { ADDRESS_VERSION } from "./address-version";
 import * as crypto from "./crypto";

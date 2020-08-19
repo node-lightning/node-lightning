@@ -1,7 +1,7 @@
 # Lightning Network Noise Protocol Socket (BOLT #8)
 
-[![CircleCI](https://circleci.com/gh/altangent/lntools/tree/master.svg?style=shield)](https://circleci.com/gh/altangent/lntools/tree/master)
-[![codecov](https://codecov.io/gh/altangent/lntools/branch/master/graph/badge.svg)](https://codecov.io/gh/altangent/lntools)
+[![CircleCI](https://circleci.com/gh/altangent/node-lightning/tree/master.svg?style=shield)](https://circleci.com/gh/altangent/node-lightning/tree/master)
+[![codecov](https://codecov.io/gh/altangent/node-lightning/branch/master/graph/badge.svg)](https://codecov.io/gh/altangent/node-lightning)
 
 Implements a Noise Protocol TCP Socket and Server in Node.js as defined in Lightning Network BOLT #8 for Encrypted and Authenticated Transport.
 
@@ -13,12 +13,12 @@ Implements a Noise Protocol TCP Socket and Server in Node.js as defined in Light
 
 Learn more about the Noise Protocol and the Lighting Network version:
 
-- [Noise Protocol](http://noiseprotocol.org/)
-- [Lightning Network BOLT #8](https://github.com/lightningnetwork/lightning-rfc/blob/master/08-transport.md)
+-   [Noise Protocol](http://noiseprotocol.org/)
+-   [Lightning Network BOLT #8](https://github.com/lightningnetwork/lightning-rfc/blob/master/08-transport.md)
 
 ## Requirements
 
-- Node.js 10.17+
+-   Node.js 10.17+
 
 ## Usage
 
@@ -28,13 +28,13 @@ This example shows how to create a `NoiseSocket` that connects to a `NoiseServer
 
 To create a `NoiseSocket`, you must provide:
 
-- local private key `ls` which is a `Buffer` with 32-bytes
-- remote node's compressed public key `rp` which is a `Buffer` with 33-bytes.
+-   local private key `ls` which is a `Buffer` with 32-bytes
+-   remote node's compressed public key `rp` which is a `Buffer` with 33-bytes.
 
 These two values are required to create the encrypted and authenticated communication channel.
 
 ```javascript
-const noise = require("@lntools/noise");
+const noise = require("@node-lightning/noise");
 
 // ls is private key as a Buffer(32) defining a point on elliptic
 // curve secp256k1
@@ -43,8 +43,8 @@ const ls = Buffer.from("11111111111111111111111111111111111111111111111111111111
 // rpk is compressed public key as a Buffer(33) defining a point
 // on elliptic curve secp256k1
 const rpk = Buffer.from(
-  "028d7500dd4c12685d1f568b4c2b5048e8534b873319f3a8daa612b469132ec7f7",
-  "hex",
+    "028d7500dd4c12685d1f568b4c2b5048e8534b873319f3a8daa612b469132ec7f7",
+    "hex",
 );
 
 // Create a new `NoiseSocket` instance using the `connect` factory
@@ -54,29 +54,29 @@ const socket = noise.connect({ ls, rpk, host: "127.0.0.1", port: 9735 });
 // established, however the socket is not yet ready because the
 // handshake has not be completed
 socket.on("connect", () => {
-  console.log("connected to server");
+    console.log("connected to server");
 });
 
 // Socket will emit the `ready` event once the handshake is completed.
 // The socket is now ready for sending and receiving messages!
 socket.on("ready", () => {
-  console.log("handshake complete, ready for sending/receiving");
+    console.log("handshake complete, ready for sending/receiving");
 
-  // Send a message
-  socket.write(Buffer.from("hello from client"));
+    // Send a message
+    socket.write(Buffer.from("hello from client"));
 });
 
 // Attaching a `data` event will put the socket into flowing mode and will
 // process messages as soon as they arrive.
 socket.on("data", buf => {
-  console.log("received: " + buf.toString());
+    console.log("received: " + buf.toString());
 });
 ```
 
 ### Creating a NoiseSocket Server:
 
 ```javascript
-const noise = require('@lntools/noise');
+const noise = require('@node-lightning/noise');
 
 // ls is private key as a Buffer(32) defining a point on elliptic
 // curve secp256k1
@@ -122,7 +122,7 @@ The `data` event method reads data as soon as it comes in:
 
 ```javascript
 socket.on("data", buf => {
-  /* do stuff with the buffer */
+    /* do stuff with the buffer */
 });
 ```
 
@@ -141,10 +141,10 @@ for implementing wire protocols ontop of the `NoiseSocket`.
 
 ```javascript
 socket.on("readable", () => {
-  let buf = socket.read();
-  if (buf) {
-    /* do stuff with the buffer */
-  }
+    let buf = socket.read();
+    if (buf) {
+        /* do stuff with the buffer */
+    }
 });
 ```
 

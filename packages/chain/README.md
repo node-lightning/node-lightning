@@ -1,1 +1,1 @@
-# `@lntools/txhandling`
+# `@node-lightning/txhandling`

@@ -9,15 +9,15 @@
   "author": "Brian Mancini <bmancini@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "@lntools/bitcoin": "file:../../packages/bitcoin",
-    "@lntools/bitcoind": "file:../../packages/bitcoind",
-    "@lntools/bufio": "file:../../packages/bufio",
-    "@lntools/chainmon": "file:../../packages/chainmon",
-    "@lntools/crypto": "file:../../packages/crypto",
-    "@lntools/gossip-rocksdb": "file:../../packages/gossip-rocksdb",
-    "@lntools/graph": "file:../../packages/graph",
-    "@lntools/logger": "file:../../packages/logger",
-    "@lntools/noise": "file:../../packages/noise",
-    "@lntools/wire": "file:/../../packages/wire"
+    "@node-lightning/bitcoin": "file:../../packages/bitcoin",
+    "@node-lightning/bitcoind": "file:../../packages/bitcoind",
+    "@node-lightning/bufio": "file:../../packages/bufio",
+    "@node-lightning/chainmon": "file:../../packages/chainmon",
+    "@node-lightning/crypto": "file:../../packages/crypto",
+    "@node-lightning/gossip-rocksdb": "file:../../packages/gossip-rocksdb",
+    "@node-lightning/graph": "file:../../packages/graph",
+    "@node-lightning/logger": "file:../../packages/logger",
+    "@node-lightning/noise": "file:../../packages/noise",
+    "@node-lightning/wire": "file:/../../packages/wire"
   }
 }

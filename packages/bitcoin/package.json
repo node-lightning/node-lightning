@@ -1,5 +1,5 @@
 {
-  "name": "@lntools/bitcoin",
+  "name": "@node-lightning/bitcoin",
   "version": "0.6.0",
   "description": "Bitcoin utilities",
   "keywords": [
@@ -9,11 +9,11 @@
     "block parser"
   ],
   "author": "Brian Mancini <bmancini@gmail.com>",
-  "homepage": "https://github.com/altangent/lntools/tree/master/packages/bitcoin",
+  "homepage": "https://github.com/altangent/node-lightning/tree/master/packages/bitcoin",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/altangent/lntools.git"
+    "url": "git+https://github.com/altangent/node-lightning.git"
   },
   "main": "dist/index.js",
   "scripts": {
@@ -23,8 +23,10 @@
     "prepublish": "npm run build"
   },
   "dependencies": {
-    "@lntools/bufio": "^0.10.0",
-    "@lntools/crypto": "^0.10.0"
+    "@node-lightning/bufio": "^0.10.0",
+    "@node-lightning/crypto": "^0.10.0"
   },
-  "gitHead": "f1db27c96af2dc1dd8cb3ca62952499afd8efc6c"
+  "publishConfig": {
+    "access": "public"
+  }
 }

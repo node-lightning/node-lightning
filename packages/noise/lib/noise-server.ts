@@ -1,4 +1,4 @@
-import * as crypto from "@lntools/crypto";
+import * as crypto from "@node-lightning/crypto";
 import assert from "assert";
 import { EventEmitter } from "events";
 import { Server, Socket } from "net";

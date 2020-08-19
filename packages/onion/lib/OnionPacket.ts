@@ -1,5 +1,5 @@
-import * as crypto from "@lntools/crypto";
-import { ILogger } from "../../wire/node_modules/@lntools/logger/dist";
+import * as crypto from "@node-lightning/crypto";
+import { ILogger } from "../../wire/node_modules/@node-lightning/logger/dist";
 import { bufRightShift } from "./bufRightShift";
 import { generateCipherStream } from "./generateCipherStream";
 import { generateFiller } from "./generateFiller";

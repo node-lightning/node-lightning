@@ -4,7 +4,7 @@ import {
     AddressTor3,
     OutPoint,
     shortChannelIdFromNumber,
-} from "@lntools/wire";
+} from "@node-lightning/wire";
 import { expect } from "chai";
 import { Channel } from "../../lib/channel";
 import { ChannelSettings } from "../../lib/channel-settings";

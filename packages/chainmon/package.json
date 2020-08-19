@@ -1,5 +1,5 @@
 {
-  "name": "@lntools/chainmon",
+  "name": "@node-lightning/chainmon",
   "version": "0.6.0",
   "description": "Bitcoin on-chain transaction monitoring tool",
   "main": "dist/index.js",
@@ -11,15 +11,17 @@
   },
   "keywords": [],
   "author": "Brian Mancini <bmancini@gmail.com>",
-  "homepage": "https://github.com/altangent/lntools/tree/master/packages/chainmon",
+  "homepage": "https://github.com/altangent/node-lightning/tree/master/packages/chainmon",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/altangent/lntools.git"
+    "url": "git+https://github.com/altangent/node-lightning.git"
   },
   "dependencies": {
-    "@lntools/bitcoin": "^0.6.0",
-    "@lntools/bitcoind": "^0.6.0"
+    "@node-lightning/bitcoin": "^0.6.0",
+    "@node-lightning/bitcoind": "^0.6.0"
   },
-  "gitHead": "f1db27c96af2dc1dd8cb3ca62952499afd8efc6c"
+  "publishConfig": {
+    "access": "public"
+  }
 }

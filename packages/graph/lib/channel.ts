@@ -1,5 +1,5 @@
-import { BitField, ShortChannelId } from "@lntools/wire";
-import { OutPoint } from "@lntools/wire";
+import { BitField, ShortChannelId } from "@node-lightning/wire";
+import { OutPoint } from "@node-lightning/wire";
 import { ChannelSettings } from "./channel-settings";
 
 export class Channel {

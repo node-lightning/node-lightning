@@ -1,4 +1,4 @@
-import { ILogger } from "@lntools/logger";
+import { ILogger } from "@node-lightning/logger";
 import assert from "assert";
 import { Socket } from "net";
 import { Duplex } from "stream";

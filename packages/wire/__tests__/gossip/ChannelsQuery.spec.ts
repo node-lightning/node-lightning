@@ -1,6 +1,6 @@
 // tslint:disable: no-unused-expression
 
-import { ILogger } from "@lntools/logger";
+import { ILogger } from "@node-lightning/logger";
 import { expect } from "chai";
 import sinon from "sinon";
 import { ChannelsQuery, ChannelsQueryState } from "../../lib/gossip/ChannelsQuery";

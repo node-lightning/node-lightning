@@ -1,6 +1,6 @@
-import { ILogger } from "@lntools/logger";
-import * as noise from "@lntools/noise";
-import { NoiseSocket } from "@lntools/noise";
+import { ILogger } from "@node-lightning/logger";
+import * as noise from "@node-lightning/noise";
+import { NoiseSocket } from "@node-lightning/noise";
 import assert from "assert";
 import { EventEmitter } from "events";
 import { BitField } from "./BitField";
@@ -31,7 +31,7 @@ export interface IPeer extends IMessageSenderReceiver {
 
 /**
  * Peer is an EventEmitter that layers the Lightning Network wire
- * protocol ontop of an @lntools/noise NoiseSocket.
+ * protocol ontop of an @node-lightning/noise NoiseSocket.
  *
  * Peer itself is a state-machine with three states:
  * 1. pending
