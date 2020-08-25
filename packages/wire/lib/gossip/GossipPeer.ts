@@ -101,7 +101,15 @@ export class GossipPeer extends EventEmitter implements IPeer {
     }
 
     /**
-     * Sends a message to the peer.
+     * Sends the serialized data to the peer.
+     * @param buf
+     */
+    public send(buf: Buffer) {
+        this.peer.send(buf);
+    }
+
+    /**
+     * Sends a message to the peer using the default serialization.
      * @param msg
      */
     public sendMessage(msg: IWireMessage) {

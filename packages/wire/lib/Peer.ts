@@ -12,6 +12,7 @@ import { PeerState } from "./PeerState";
 import { PingPongState } from "./PingPongState";
 
 export interface IMessageSender {
+    send(buf: Buffer): void;
     sendMessage(msg: IWireMessage): void;
 }
 
@@ -22,6 +23,7 @@ export interface IMessageReceiver {
 export type IMessageSenderReceiver = IMessageSender & IMessageReceiver;
 
 export interface IPeer extends IMessageSenderReceiver {
+    send(buf: Buffer): void;
     sendMessage(msg: IWireMessage): void;
     disconnect(): void;
 
@@ -182,7 +184,20 @@ export class Peer extends EventEmitter implements IPeer {
     }
 
     /**
-     * Writes the message on the NoiseSocket
+     * Writes data on the NoiseSocket. This method allows custom
+     * serialization of methods. Use `sendMessage` to send a message
+     * using the default message serialization.
+     * @param buf
+     */
+    public send(buf: Buffer): boolean {
+        assert.ok(this.state === PeerState.Ready, new Error("Peer is not ready"));
+        this.emit("sending", buf);
+        return this.socket.write(buf);
+    }
+
+    /**
+     * Writes the message on the NoiseSocket using the default
+     * serialization properties
      */
     public sendMessage(m: any): boolean {
         assert.ok(this.state === PeerState.Ready, new Error("Peer is not ready"));
