@@ -74,12 +74,13 @@ export class GossipPeer extends EventEmitter implements IPeer {
      * @param firstBlock
      * @param numBlocks
      */
-    public async syncRange(firstBlock?: number, numBlocks?: number) {
+    public async syncRange(firstBlock?: number, numBlocks?: number): Promise<boolean> {
         if (this.gossipQueries) {
             const chainHash = this.peer.localChains[0];
             const synchronizer = new GossipQueriesSync(chainHash, this, this.logger);
-            await synchronizer.queryRange(firstBlock, numBlocks);
+            return await synchronizer.queryRange(firstBlock, numBlocks);
         }
+        return false;
     }
 
     /**

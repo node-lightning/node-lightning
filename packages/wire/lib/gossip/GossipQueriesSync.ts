@@ -35,7 +35,7 @@ export class GossipQueriesSync {
         return this._error;
     }
 
-    public async queryRange(firstBlock?: number, numBlocks?: number): Promise<void> {
+    public async queryRange(firstBlock?: number, numBlocks?: number): Promise<boolean> {
         try {
             this.logger.info("synchronization starting");
             this._state = GossipQueriesSyncState.AwaitingChannelRange;
@@ -49,10 +49,11 @@ export class GossipQueriesSync {
 
             this.logger.info("synchronization complete!");
             this._state = GossipQueriesSyncState.Complete;
+            return true;
         } catch (ex) {
             this._state = GossipQueriesSyncState.Failed;
             this._error = ex;
-            throw ex;
+            return false;
         }
     }
 }
