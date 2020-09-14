@@ -1,6 +1,40 @@
 # Contributing to Node-Lightning
 
-This is a preliminary contribution guide.
+Node-Lightning operates under an open-source model where all are welcome to contribute to the development, reviewing, documentation, and testing process regardless of skill level or expertise. Due to the diffficulty, complexity, and impact of errors the final merging process must be strict. That said, our goal with this project is to create an approachable implementation of Lightning, we encourage contributors to not be afraid to contribute and learn!
+
+## Creating Pull Requests
+
+This project uses [GitHub workflow](https://guides.github.com/introduction/flow/). Outside contributors to the project can create patches by forking the repository, creating a branch, and then submitting a pull request. The pull request will be reviewed by the project maintainers. After the changes have been reviewed and the code pass CI builds, the code can be merged into the master branch. The review process will likely have back and forth.
+
+To submit a change:
+1. Fork the repository
+2. Create a branch
+3. Commit your changes
+4. Create a pull request
+
+For feedback while you are developing, you can create a _draft pull request_ on GitHub. The draft pull request will allow discussion of code, architecture, and changes and will signal that the code is still a work in progress. We highly recommend this process as it allows for feedback while developing.
+
+Commits in your pull requests should be atomic and minimal. Please do not submit large single commits or mix minor changes with major changes. This allows individual commits to be reviewed individually. Commit messages should follow the format:
+
+```
+area: general description of the change
+
+Longer description of what changed and a description
+of why the change is occuring and how it was fixed.
+
+Refence any issues as well.
+```
+
+Please wrap commit comments at 72 characters. [More information](https://chris.beams.io/posts/git-commit/) on writing good commit messages.
+
+To facilitate clean commit messages and the review process you will likely need to use interactive rebase for commits.
+
+```
+git rebase -i <sha1-of-commit>
+```
+
+You can then mark the commit that should change with `edit`, commit your changes, and continue the rebase. More information on our friend [stackoverflow](https://stackoverflow.com/a/8825163).
+
 
 ## Developer Setup
 
@@ -113,7 +147,6 @@ Appropriate test coverage should be added for new code or changes to existing co
 
 ## Commenting
 
-## Pull Requests
 
 ## Releases
 
