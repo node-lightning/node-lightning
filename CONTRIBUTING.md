@@ -1,20 +1,16 @@
 # Contributing to Node-Lightning
 
-Node-Lightning operates under an open-source model where all are welcome to contribute to the development, reviewing, documentation, and testing process regardless of skill level or expertise. Due to the diffficulty, complexity, and impact of errors the final merging process must be strict. That said, our goal with this project is to create an approachable implementation of Lightning, we encourage contributors to not be afraid to contribute and learn!
+Node-Lightning uses the open source model where all are welcome to contribute to the development, review, documentation, and testing process regardless of skill level or expertise. Due to the diffficulty, complexity, and impact of errors the final merging process must be rigorous. So you can expect some back and forth to help us understand how you will be making changes and to ensure that the code maintains the standards of the project. That said, our goal with this project is to create an approachable implementation of Lightning, we encourage contributors to not be afraid to contribute and learn! Software is an iterative process!
 
 ## Creating Pull Requests
 
-This project uses [GitHub workflow](https://guides.github.com/introduction/flow/). Outside contributors to the project can create patches by forking the repository, creating a branch, and then submitting a pull request. The pull request will be reviewed by the project maintainers. After the changes have been reviewed and the code pass CI builds, the code can be merged into the master branch. The review process will likely have back and forth.
+Before creating a pull request you should create an issue, if one does not already exist, to track the change(s) you will be making. This creates a place for a broader discussion about the reason and intent of changes. Once an issue has been acknowledged, you can submit a pull request.
 
-To submit a change:
-1. Fork the repository
-2. Create a branch
-3. Commit your changes
-4. Create a pull request
+This project uses the [GitHub workflow](https://guides.github.com/introduction/flow/). Outside contributors to the project can create patches by forking the repository, creating a branch, and then submitting a pull request on GitHub. The pull request will be reviewed by the project maintainers. After the changes have been reviewed and the code passes CI, the code can be merged into the master branch. The review process will likely have a conversation and back and forth on changes that should be made to make the patch ready for merge.
 
-For feedback while you are developing, you can create a _draft pull request_ on GitHub. The draft pull request will allow discussion of code, architecture, and changes and will signal that the code is still a work in progress. We highly recommend this process as it allows for feedback while developing.
+For facilitate the back and forth while you are developing, you can create a [_draft_ pull request](https://github.blog/2019-02-14-introducing-draft-pull-requests/) early in your development process. The draft pull request will allow discussion of code and architecture and will signal that the code is still a work in progress. We highly recommend this since it helps make get eyes on code earlier in the process making coding more collaborative.
 
-Commits in your pull requests should be atomic and minimal. Please do not submit large single commits or mix minor changes with major changes. This allows individual commits to be reviewed individually. Commit messages should follow the format:
+When making commits in your pull requests they should be atomic and minimal. Please do not submit large single commits or mix minor changes with major changes. We may ask you to restructure your commits. Well structured commits allow each to reviewed indpendently and should pass CI on their own. Commit messages should follow the format:
 
 ```
 area: general description of the change
@@ -22,7 +18,7 @@ area: general description of the change
 Longer description of what changed and a description
 of why the change is occuring and how it was fixed.
 
-Refence any issues as well.
+Refence issue numbers
 ```
 
 Please wrap commit comments at 72 characters. [More information](https://chris.beams.io/posts/git-commit/) on writing good commit messages.
@@ -33,7 +29,7 @@ To facilitate clean commit messages and the review process you will likely need 
 git rebase -i <sha1-of-commit>
 ```
 
-You can then mark the commit that should change with `edit`, commit your changes, and continue the rebase. More information on our friend [stackoverflow](https://stackoverflow.com/a/8825163).
+You can then mark the commit that should change with `edit`, commit your changes, and continue the rebase. More information on [stackoverflow](https://stackoverflow.com/a/8825163).
 
 
 ## Developer Setup
