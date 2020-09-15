@@ -1,28 +1,76 @@
+import { ILogger } from "@node-lightning/logger";
 import { ChannelUpdateChannelFlags } from "../flags/ChanneUpdateChannelFlags";
 import { ChannelAnnouncementMessage } from "../messages/ChannelAnnouncementMessage";
 import { ChannelUpdateMessage } from "../messages/ChannelUpdateMessage";
 import { IWireMessage } from "../messages/IWireMessage";
 import { NodeAnnouncementMessage } from "../messages/NodeAnnouncementMessage";
+import { IPeer } from "../Peer";
 import { ShortChannelId } from "../ShortChannelId";
-import { GossipPeer } from "./GossipPeer";
 
+/**
+ * Interface for the sub-system for handling the gossip message relay,
+ * also known as rumor mongering.This system is responsible for
+ * periodically flushing messages to connected peers and makes a best
+ * effort to not send message that have already been sent to a peer.
+ *
+ * The idea of rumor mongering is that a piece of information is hot. A
+ * node attempts to infect connected peers with this information by
+ * sending it to them. Once it has been sent, we no longer need to
+ * infect them with information.
+ */
+export interface IGossipRelay {
+    /**
+     * The current state of gossip relay
+     */
+    state: GossipRelayState;
+
+    /**
+     * Starts gossip relay
+     */
+    start(): void;
+
+    /**
+     * Stops gossip relay
+     */
+    stop(): void;
+
+    /**
+     * Adds a new peer to relay messages to
+     * @param peer
+     */
+    addPeer(peer: IPeer): void;
+
+    /**
+     * Removes the peer from relay
+     * @param peer
+     */
+    removePeer(peer: IPeer): void;
+
+    /**
+     * Enqueues a message to be broadcast to peers
+     * @param msg
+     */
+    enqueue(msg: IWireMessage): void;
+}
+
+/**
+ * The state of a IGossipRelay rumor mongerer
+ */
 export enum GossipRelayState {
+    /**
+     * Rumor mongering is active
+     */
     Active,
+
+    /**
+     * Rumor mongering is not active
+     */
     Inactive,
 }
 
 /**
- * GossipRelay is a sub-system for handling the gossip message relay,
- * also known as rumor mongering. This system is responsible for
- * periodically flushing messages to connected peers and makes a best
- * effort to not send message that have already been sent to a peer. The
- * idea of rumor mongering is that a piece of information is hot. Our
- * node attempts to infect connected peers with this information by
- * sending it to them. Once it has been sent, we no longer need to
- * infect them with information.
- *
- * The current system performs relay by enqueing all messages and
- * maintaining an index of each peer in the list of messages. When
+ * This is a basic implementation of IGossipRelay that enques all
+ * messages and maintaining an index of each peer in the queue. When
  * messages are flushed, only messages that haven't been sent to a peer
  * are sent and the index position for that peer is updated. When the
  * queue of messages has reached a maximum length, older messages are
@@ -30,11 +78,15 @@ export enum GossipRelayState {
  */
 export class GossipRelay {
     private _queue: IWireMessage[];
-    private _peers: Map<GossipPeer, number>;
+    private _peers: Map<IPeer, number>;
     private _timer: NodeJS.Timeout;
     private _state: GossipRelayState;
 
-    constructor(readonly relayPeriodMs = 60000, readonly maxQueueLen = 10000) {
+    constructor(
+        readonly logger: ILogger,
+        readonly relayPeriodMs = 60000,
+        readonly maxQueueLen = 10000,
+    ) {
         this._peers = new Map();
         this._queue = [];
         this._state = GossipRelayState.Inactive;
@@ -53,6 +105,7 @@ export class GossipRelay {
      */
     public start() {
         if (this._state === GossipRelayState.Active) return;
+        this.logger.info("starting gossip relay for all peers");
         this._state = GossipRelayState.Active;
         this._timer = setInterval(this._onTimer.bind(this), this.relayPeriodMs);
     }
@@ -62,6 +115,7 @@ export class GossipRelay {
      */
     public stop() {
         if (this._state === GossipRelayState.Inactive) return;
+        this.logger.info("stopping gossip relay for all peers");
         clearTimeout(this._timer);
         this._state = GossipRelayState.Inactive;
     }
@@ -70,7 +124,7 @@ export class GossipRelay {
      * Adds a new peer to relay messages to
      * @param peer
      */
-    public addPeer(peer: GossipPeer) {
+    public addPeer(peer: IPeer) {
         this._peers.set(peer, this._queue.length);
     }
 
@@ -78,7 +132,7 @@ export class GossipRelay {
      * Removes the peer from relay
      * @param peer
      */
-    public removePeer(peer: GossipPeer) {
+    public removePeer(peer: IPeer) {
         this._peers.delete(peer);
     }
 
@@ -96,6 +150,7 @@ export class GossipRelay {
 
             // adds to the queue if there is no existing message
             if (!existing) {
+                this.logger.trace("adding channel_announcement", msg.shortChannelId.toString());
                 this._queue.push(msg);
                 return;
             }
@@ -111,6 +166,11 @@ export class GossipRelay {
 
             // Adds to the queue if there is no existing message
             if (!existing) {
+                this.logger.trace(
+                    "adding channel_update",
+                    msg.shortChannelId.toString(),
+                    msg.channelFlags.isSet(ChannelUpdateChannelFlags.direction),
+                );
                 this._queue.push(msg);
                 return;
             }
@@ -118,6 +178,11 @@ export class GossipRelay {
             // Removes the existing message and replaces with a newer
             // message by adding the new message to the back of the queue
             if (existing && existing.timestamp < msg.timestamp) {
+                this.logger.trace(
+                    "updating channel_update",
+                    msg.shortChannelId.toString(),
+                    msg.channelFlags.isSet(ChannelUpdateChannelFlags.direction),
+                );
                 const idx = this._queue.indexOf(existing);
                 this._queue.splice(idx, 1);
                 this._queue.push(msg);
@@ -133,6 +198,7 @@ export class GossipRelay {
 
             // Adds to the queue if there is no existing message
             if (!existing) {
+                this.logger.trace("adding node_announcement", msg.nodeId.toString("hex"));
                 this._queue.push(msg);
                 return;
             }
@@ -140,6 +206,7 @@ export class GossipRelay {
             // Removes the existing message and replaces with a newer
             // message by adding the new message to the back of the queue
             if (existing && existing.timestamp < msg.timestamp) {
+                this.logger.trace("updating node_announcement", msg.nodeId.toString("hex"));
                 const idx = this._queue.indexOf(existing);
                 this._queue.splice(idx, 1);
                 this._queue.push(msg);
@@ -193,6 +260,7 @@ export class GossipRelay {
      * prune the queue
      */
     private _onTimer() {
+        this.logger.debug(`periodic flush, ${this._peers.size} peers, ${this._queue.length} hot messages`); // prettier-ignore
         for (const peer of this._peers.keys()) {
             this._flushToPeer(peer);
         }
@@ -205,7 +273,7 @@ export class GossipRelay {
      * the peer has received.
      * @param peer
      */
-    private _flushToPeer(peer: GossipPeer) {
+    private _flushToPeer(peer: IPeer) {
         for (let i = this._peers.get(peer); i < this._queue.length; i++) {
             const message = this._queue[i];
             peer.sendMessage(message);
@@ -232,5 +300,7 @@ export class GossipRelay {
         for (const [peer, index] of this._peers.entries()) {
             this._peers.set(peer, index - deleteCount);
         }
+
+        this.logger.debug(`pruned ${deleteCount} old messages`);
     }
 }

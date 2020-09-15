@@ -6,7 +6,7 @@ import { ChannelAnnouncementMessage } from "../../lib/messages/ChannelAnnounceme
 import { ChannelUpdateMessage } from "../../lib/messages/ChannelUpdateMessage";
 import { NodeAnnouncementMessage } from "../../lib/messages/NodeAnnouncementMessage";
 import { ShortChannelId } from "../../lib/ShortChannelId";
-import { createFakePeer, wait } from "../_test-utils";
+import { createFakeLogger, createFakePeer, wait } from "../_test-utils";
 
 describe("GossipRelay", () => {
     let sut: GossipRelay;
@@ -37,7 +37,7 @@ describe("GossipRelay", () => {
     }
 
     beforeEach(() => {
-        sut = new GossipRelay(100, 3);
+        sut = new GossipRelay(createFakeLogger(), 100, 3);
     });
 
     describe("state: Inactive", () => {
