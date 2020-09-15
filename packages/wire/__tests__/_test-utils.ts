@@ -32,6 +32,7 @@ export function createFakePeer() {
                 }
             }
         },
+        send: sinon.stub(),
         sendMessage: sinon.stub(),
         pubkey: Buffer.alloc(32, 1),
         localChains: [],

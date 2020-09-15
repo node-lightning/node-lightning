@@ -43,6 +43,7 @@ export * from "./gossip/GossipMemoryStore";
 export * from "./gossip/GossipPeer";
 export * from "./gossip/GossipQueriesReceiver";
 export * from "./gossip/GossipQueriesSync";
+export * from "./gossip/GossipRelay";
 export * from "./gossip/GossipStore";
 export * from "./gossip/GossipSyncWatcher";
 export * from "./gossip/IGossipFilterChainClient";

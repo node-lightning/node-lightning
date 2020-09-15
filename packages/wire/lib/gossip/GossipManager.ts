@@ -11,6 +11,7 @@ import { ShortChannelId } from "../ShortChannelId";
 import { WireError, WireErrorCode } from "../WireError";
 import { GossipFilter } from "./GossipFilter";
 import { GossipPeer } from "./GossipPeer";
+import { GossipRelay, IGossipRelay } from "./GossipRelay";
 import { IGossipStore } from "./GossipStore";
 import { IGossipFilterChainClient } from "./IGossipFilterChainClient";
 
@@ -41,8 +42,9 @@ export class GossipManager extends EventEmitter {
     public started: boolean;
     public syncState: SyncState;
     public isSynchronizing: boolean;
+    public gossipRelay: IGossipRelay;
     public readonly peers: Set<GossipPeer>;
-    public readonly logger;
+    public readonly logger: ILogger;
 
     constructor(
         logger: ILogger,
@@ -54,6 +56,7 @@ export class GossipManager extends EventEmitter {
         this.logger = logger.sub("gspmgr");
         this.peers = new Set<GossipPeer>();
         this.syncState = SyncState.Unsynced;
+        this.gossipRelay = new GossipRelay(logger.sub("gsprel"), 60000, 2000);
     }
 
     /**
@@ -87,6 +90,10 @@ export class GossipManager extends EventEmitter {
             this.emit("message", msg);
         }
 
+        // start the gossip relay manager
+        this.gossipRelay.start();
+
+        // flag that the manager has now started
         this.started = true;
     }
 
@@ -207,8 +214,11 @@ export class GossipManager extends EventEmitter {
         // Add peer to the list of peers
         this.peers.add(gossipPeer);
 
-        // Ensure that when the peer exist, we remove it from the collection
-        peer.on("close", () => this.peers.delete(gossipPeer));
+        // Add event handler for a beer closing
+        peer.on("close", this._onPeerClose.bind(this, gossipPeer));
+
+        // Add the peer to the relay manager
+        this.gossipRelay.addPeer(gossipPeer);
 
         // If we have not yet performed a full synchronization then we can
         // perform the full gossip state restore from this node
@@ -224,6 +234,17 @@ export class GossipManager extends EventEmitter {
     }
 
     /**
+     * Handles when a peer closes
+     * @param gossipPeer
+     */
+    private _onPeerClose(gossipPeer: GossipPeer) {
+        if (this.gossipRelay) {
+            this.gossipRelay.removePeer(gossipPeer);
+        }
+        this.peers.delete(gossipPeer);
+    }
+
+    /**
      * Handles receieved gossip messages
      * @param msg
      */
@@ -234,6 +255,11 @@ export class GossipManager extends EventEmitter {
                 (msg as ChannelAnnouncementMessage).shortChannelId.block,
             );
         }
+
+        // enqueue the message into the relayer
+        this.gossipRelay.enqueue(msg);
+
+        // emit the message generally
         this.emit("message", msg);
     }
 
@@ -250,18 +276,26 @@ export class GossipManager extends EventEmitter {
      */
     private async _syncPeer(peer: GossipPeer) {
         try {
+            // Change the current sync state
+            this.syncState = SyncState.Syncing;
+
+            // Ensure that we are not relaying to peers
+            this.gossipRelay.stop();
+
             // perform synchronization
             await peer.syncRange();
 
             // finally transition to sync complete status
-            this.logger.info("sync status now 'synced'");
+            this.logger.info("sync status now: Synced");
             this.syncState = SyncState.Synced;
 
             // enable gossip for all the peers
-            this.logger.info("enabling gossip for all peers");
             for (const gossipPeer of this.peers) {
                 gossipPeer.enableGossip();
             }
+
+            // Enable gossip relay now that sync is complete
+            this.gossipRelay.start();
         } catch (ex) {
             // TODO select next peer
             this.syncState = SyncState.Unsynced;
