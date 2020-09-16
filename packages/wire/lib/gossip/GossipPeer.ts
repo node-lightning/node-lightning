@@ -37,7 +37,7 @@ export class GossipPeer extends EventEmitter implements IPeer {
         }
 
         // Construct a sub-logger for use by the Gossiping systems
-        this.logger = logger.sub("gossip", peer.id);
+        this.logger = logger.sub("gspeer", peer.id);
 
         // Attach the appropriate events, many of them will simply be forwarded
         // but we will intercept messages and funnel appropriate messages
@@ -78,7 +78,8 @@ export class GossipPeer extends EventEmitter implements IPeer {
         if (this.gossipQueries) {
             const chainHash = this.peer.localChains[0];
             const synchronizer = new GossipQueriesSync(chainHash, this, this.logger);
-            return await synchronizer.queryRange(firstBlock, numBlocks);
+            await synchronizer.queryRange(firstBlock, numBlocks);
+            return true;
         }
         return false;
     }
