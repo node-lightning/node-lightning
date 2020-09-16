@@ -57,7 +57,8 @@ export class ChannelRangeQuery {
     private _query: QueryChannelRangeMessage;
     private _results: ShortChannelId[] = [];
     private _error: GossipError;
-    private _emitter: EventEmitter;
+    private _resolve: (scids: ShortChannelId[]) => void;
+    private _reject: (reason: any) => void;
 
     constructor(
         readonly chainHash: Buffer,
@@ -67,7 +68,6 @@ export class ChannelRangeQuery {
     ) {
         this._state = ChannelRangeQueryState.Idle;
         this._isLegacy = isLegacy;
-        this._emitter = new EventEmitter();
         this.peer.on("message", this._onMessage.bind(this));
     }
 
@@ -122,10 +122,31 @@ export class ChannelRangeQuery {
             // send the query message and start the process
             this._sendQuery(firstBlock, numBlocks);
 
-            // subscribe to the event emitter so we can resolve or reject
-            this._emitter.once("complete", resolve);
-            this._emitter.once("error", reject);
+            // capture the promise methods so we can invoke them from
+            // within our state machine.
+            this._resolve = resolve;
+            this._reject = reject;
         });
+    }
+
+    /**
+     * Idempotent method that marks the state machine failed
+     * @param error
+     */
+    private _transitionFailed(error: GossipError) {
+        if (this._state !== ChannelRangeQueryState.Active) return;
+        this._error = error;
+        this._state = ChannelRangeQueryState.Failed;
+        this._reject(error);
+    }
+
+    /**
+     * Idempotent method that marks the state machine complete
+     */
+    private _transitionComplete() {
+        if (this._state !== ChannelRangeQueryState.Active) return;
+        this._state = ChannelRangeQueryState.Complete;
+        this._resolve(this._results);
     }
 
     /**
@@ -231,9 +252,7 @@ export class ChannelRangeQuery {
         // does not maintain up-to-date information for the request chain_hash
         if (!msg.fullInformation) {
             const error = new GossipError(GossipErrorCode.ReplyChannelRangeNoInformation, msg);
-            this._error = error;
-            this._state = ChannelRangeQueryState.Failed;
-            this._emitter.emit("error", error);
+            this._transitionFailed(error);
             return;
         }
 
@@ -248,8 +267,8 @@ export class ChannelRangeQuery {
                 currentHeight,
                 targetHeight,
             );
-            this._state = ChannelRangeQueryState.Complete;
-            this._emitter.emit("complete", this._results);
+            this._transitionComplete();
+            return;
         }
     }
 
@@ -278,17 +297,15 @@ export class ChannelRangeQuery {
         // flag to a multi-message reply.
         if (msg.fullInformation && !this.results.length) {
             const error = new GossipError(GossipErrorCode.ReplyChannelRangeNoInformation, msg);
-            this._error = error;
-            this._state = ChannelRangeQueryState.Failed;
-            this._emitter.emit("error", error);
+            this._transitionFailed(error);
             return;
         }
 
         // If we see a fullInformation flag then we have received all parts of
         // the multipart message and are complete.
         if (msg.fullInformation) {
-            this._state = ChannelRangeQueryState.Complete;
-            this._emitter.emit("complete", this._results);
+            this._transitionComplete();
+            return;
         }
     }
 }
