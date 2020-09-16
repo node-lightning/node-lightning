@@ -124,5 +124,29 @@ describe("ChannelsQuery", () => {
                 promise.catch(() => done());
             });
         });
+
+        describe("msg_complete=false, status!=Active", () => {
+            it("not cause a failure", done => {
+                promise = sut.query(new ShortChannelId(1, 1, 1));
+                peer.sendMessage.reset();
+                const msg = new ReplyShortChannelIdsEndMessage();
+                msg.complete = false;
+                peer.emit("message", msg);
+                peer.emit("message", msg);
+                promise.catch(() => done());
+            });
+        });
+
+        describe("msg_complete=true, status!=Active", () => {
+            it("not cause a failure", async () => {
+                promise = sut.query(new ShortChannelId(1, 1, 1));
+                peer.sendMessage.reset();
+                const msg = new ReplyShortChannelIdsEndMessage();
+                msg.complete = true;
+                peer.emit("message", msg);
+                peer.emit("message", msg);
+                await promise;
+            });
+        });
     });
 });
