@@ -34,7 +34,8 @@ export class ChannelsQuery {
         readonly peer: IMessageSenderReceiver,
         readonly logger: ILogger,
     ) {
-        this.peer.on("message", this._handlePeerMessage.bind(this));
+        this._handlePeerMessage = this._handlePeerMessage.bind(this);
+        this.peer.on("message", this._handlePeerMessage);
         this._state = ChannelsQueryState.Idle;
     }
 
@@ -69,12 +70,14 @@ export class ChannelsQuery {
 
     private _transitionSuccess() {
         if (this._state !== ChannelsQueryState.Active) return;
+        this.peer.off("message", this._handlePeerMessage);
         this._state = ChannelsQueryState.Complete;
         this._resolve();
     }
 
     private _transitionFailed(error: GossipError) {
         if (this._state !== ChannelsQueryState.Active) return;
+        this.peer.off("message", this._handlePeerMessage);
         this._state = ChannelsQueryState.Failed;
         this._error = error;
         this._reject(error);

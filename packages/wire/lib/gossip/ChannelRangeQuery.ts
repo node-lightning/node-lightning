@@ -68,7 +68,8 @@ export class ChannelRangeQuery {
     ) {
         this._state = ChannelRangeQueryState.Idle;
         this._isLegacy = isLegacy;
-        this.peer.on("message", this._onMessage.bind(this));
+        this._onMessage = this._onMessage.bind(this);
+        this.peer.on("message", this._onMessage);
     }
 
     /**
@@ -135,6 +136,7 @@ export class ChannelRangeQuery {
      */
     private _transitionFailed(error: GossipError) {
         if (this._state !== ChannelRangeQueryState.Active) return;
+        this.peer.off("message", this._onMessage);
         this._error = error;
         this._state = ChannelRangeQueryState.Failed;
         this._reject(error);
@@ -145,6 +147,7 @@ export class ChannelRangeQuery {
      */
     private _transitionComplete() {
         if (this._state !== ChannelRangeQueryState.Active) return;
+        this.peer.off("message", this._onMessage);
         this._state = ChannelRangeQueryState.Complete;
         this._resolve(this._results);
     }
