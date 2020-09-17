@@ -276,20 +276,18 @@ export class GossipManager extends EventEmitter {
      */
     private async _syncPeer(peer: GossipPeer) {
         try {
-            // Change the current sync state
+            this.logger.trace("sync status now 'syncing'");
             this.syncState = SyncState.Syncing;
-
-            // Ensure that we are not relaying to peers
-            this.gossipRelay.stop();
 
             // perform synchronization
             await peer.syncRange();
 
             // finally transition to sync complete status
-            this.logger.info("sync status now: Synced");
+            this.logger.trace("sync status now 'synced'");
             this.syncState = SyncState.Synced;
 
             // enable gossip for all the peers
+            this.logger.trace("enabling gossip for all peers");
             for (const gossipPeer of this.peers) {
                 gossipPeer.enableGossip();
             }

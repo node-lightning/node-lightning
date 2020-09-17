@@ -92,6 +92,36 @@ describe("ChannelRangeQuery", () => {
         });
     });
 
+    describe("multiple errors", () => {
+        it("should reject with single error", done => {
+            const promise = sut.queryRange(0, 1000);
+
+            const msg = new ReplyChannelRangeMessage();
+            msg.fullInformation = false;
+            msg.firstBlocknum = 0;
+            msg.numberOfBlocks = 1000;
+            peer.emit("message", msg);
+            peer.emit("message", msg);
+            promise.catch(() => done());
+        });
+    });
+
+    describe("multiple success", () => {
+        it("should resolve with single success", async () => {
+            const promise = sut.queryRange(0, 1000);
+
+            const msg = new ReplyChannelRangeMessage();
+            msg.fullInformation = true;
+            msg.firstBlocknum = 0;
+            msg.numberOfBlocks = 1000;
+            msg.shortChannelIds.push(new ShortChannelId(1, 1, 1));
+            peer.emit("message", msg);
+            peer.emit("message", msg);
+
+            await promise;
+        });
+    });
+
     describe("single reply", () => {
         let promise: Promise<ShortChannelId[]>;
 

@@ -26,16 +26,17 @@ export class ChannelsQuery {
     private _queue: ShortChannelId[] = [];
     private _state: ChannelsQueryState;
     private _error: GossipError;
-    private _emitter: EventEmitter;
+    private _resolve: () => void;
+    private _reject: (error: GossipError) => void;
 
     constructor(
         readonly chainHash: Buffer,
         readonly peer: IMessageSenderReceiver,
         readonly logger: ILogger,
     ) {
-        this.peer.on("message", this._handlePeerMessage.bind(this));
+        this._handlePeerMessage = this._handlePeerMessage.bind(this);
+        this.peer.on("message", this._handlePeerMessage);
         this._state = ChannelsQueryState.Idle;
-        this._emitter = new EventEmitter();
     }
 
     public get state() {
@@ -61,10 +62,25 @@ export class ChannelsQuery {
             // send our query to the peer
             this._sendQuery();
 
-            // wait for an event signal to fire
-            this._emitter.once("complete", resolve);
-            this._emitter.once("error", reject);
+            // capture the promise method for use when complete
+            this._resolve = resolve;
+            this._reject = reject;
         });
+    }
+
+    private _transitionSuccess() {
+        if (this._state !== ChannelsQueryState.Active) return;
+        this.peer.off("message", this._handlePeerMessage);
+        this._state = ChannelsQueryState.Complete;
+        this._resolve();
+    }
+
+    private _transitionFailed(error: GossipError) {
+        if (this._state !== ChannelsQueryState.Active) return;
+        this.peer.off("message", this._handlePeerMessage);
+        this._state = ChannelsQueryState.Failed;
+        this._error = error;
+        this._reject(error);
     }
 
     private _handlePeerMessage(msg: IWireMessage) {
@@ -93,9 +109,7 @@ export class ChannelsQuery {
         // requested chain_hash
         if (!msg.complete) {
             const error = new GossipError(GossipErrorCode.ReplyChannelsNoInfo, msg);
-            this._state = ChannelsQueryState.Failed;
-            this._error = error;
-            this._emitter.emit("error", error);
+            this._transitionFailed(error);
             return;
         }
 
@@ -105,8 +119,8 @@ export class ChannelsQuery {
         if (this._queue.length > 0) {
             this._sendQuery();
         } else {
-            this._state = ChannelsQueryState.Complete;
-            this._emitter.emit("complete");
+            this._transitionSuccess();
+            return;
         }
     }
 }

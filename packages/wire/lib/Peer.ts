@@ -18,6 +18,7 @@ export interface IMessageSender {
 
 export interface IMessageReceiver {
     on(event: "message", listener: (msg: IWireMessage) => void): this;
+    off(event: "message", listener: (msg: IWireMessage) => void): this;
 }
 
 export type IMessageSenderReceiver = IMessageSender & IMessageReceiver;
