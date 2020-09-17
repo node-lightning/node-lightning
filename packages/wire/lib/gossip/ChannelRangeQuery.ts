@@ -49,7 +49,8 @@ export enum ChannelRangeQueryState {
  * gossip_queries was implemented in a different manner.
  *
  * - full_information indicated a multipart message that was incomplete
- * - first_blocknum+number_of_blocks matches the query for each reply message
+ * - lack of short_channel_ids and full_information=false can be treated
+ *   as a failure condition
  */
 export class ChannelRangeQuery {
     private _state: ChannelRangeQueryState;
@@ -177,20 +178,11 @@ export class ChannelRangeQuery {
 
     /**
      * Check if this has the signature of a legacy reply. We can detect this by
-     * looking at a complete=false, scids exist, and the first_blocknum and
-     * number_of_blocks matches the values in the target query.
+     * looking at a complete=false and that scids exist.
      * @param msg
      */
-    private _isLegacyReply(
-        msg: ReplyChannelRangeMessage,
-        query: QueryChannelRangeMessage,
-    ): boolean {
-        return (
-            !msg.fullInformation &&
-            msg.shortChannelIds.length &&
-            msg.firstBlocknum === query.firstBlocknum &&
-            msg.numberOfBlocks === query.numberOfBlocks
-        );
+    private _isLegacyReply(msg: ReplyChannelRangeMessage): boolean {
+        return !msg.fullInformation && msg.shortChannelIds.length > 0;
     }
 
     /**
@@ -202,7 +194,7 @@ export class ChannelRangeQuery {
             // check the incoming message to see if we need to transition to legacy
             // mode. If it is determined to be in legacy mode, we will switch the
             // strategy that is used to handle the reply.
-            if (!this._isLegacy && this._isLegacyReply(msg, this._query)) {
+            if (!this._isLegacy && this._isLegacyReply(msg)) {
                 this._isLegacy = true;
                 this.logger.info("using legacy LND query_channel_range technique");
             }
