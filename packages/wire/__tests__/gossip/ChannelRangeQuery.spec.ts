@@ -215,8 +215,8 @@ describe("ChannelRangeQuery", () => {
                 const msg = new ReplyChannelRangeMessage();
                 msg.fullInformation = false;
                 msg.shortChannelIds.push(new ShortChannelId(1, 1, 1));
-                msg.firstBlocknum = 0;
-                msg.numberOfBlocks = 4294967295;
+                msg.firstBlocknum = 1000;
+                msg.numberOfBlocks = 8000;
                 peer.emit("message", msg);
             });
 
@@ -243,8 +243,8 @@ describe("ChannelRangeQuery", () => {
                 const msg = new ReplyChannelRangeMessage();
                 msg.fullInformation = true;
                 msg.shortChannelIds.push(new ShortChannelId(1, 1, 1));
-                msg.firstBlocknum = 0;
-                msg.numberOfBlocks = 4294967295;
+                msg.firstBlocknum = 1000;
+                msg.numberOfBlocks = 8000;
                 peer.emit("message", msg);
             });
 
@@ -264,8 +264,8 @@ describe("ChannelRangeQuery", () => {
                 promise = sut.queryRange(0, 4294967295);
                 const msg = new ReplyChannelRangeMessage();
                 msg.fullInformation = true;
-                msg.firstBlocknum = 0;
-                msg.numberOfBlocks = 4294967295;
+                msg.firstBlocknum = 1000;
+                msg.numberOfBlocks = 8000;
                 msg.shortChannelIds = [];
                 peer.emit("message", msg);
             });
@@ -287,8 +287,8 @@ describe("ChannelRangeQuery", () => {
                 promise = sut.queryRange(0, 4294967295);
                 const msg = new ReplyChannelRangeMessage();
                 msg.fullInformation = false;
-                msg.firstBlocknum = 0;
-                msg.numberOfBlocks = 4294967295;
+                msg.firstBlocknum = 1000;
+                msg.numberOfBlocks = 8000;
                 msg.shortChannelIds.push(new ShortChannelId(1, 1, 1));
                 peer.emit("message", msg);
             });
