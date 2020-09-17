@@ -58,14 +58,14 @@ export interface IGossipRelay {
  */
 export enum GossipRelayState {
     /**
-     * Rumor mongering is active
-     */
-    Active,
-
-    /**
      * Rumor mongering is not active
      */
     Inactive,
+
+    /**
+     * Rumor mongering is active
+     */
+    Active,
 }
 
 /**
@@ -141,7 +141,7 @@ export class GossipRelay {
      * @param msg
      */
     public enqueue(msg: IWireMessage) {
-        if (this.state === GossipRelayState.Inactive) return;
+        if (this.state !== GossipRelayState.Active) return;
 
         // For chan_ann messages there is never an update so we only
         // need to check if the chan_ann exists and add it if it doesn't
