@@ -1,6 +1,6 @@
 # Node-Lightning, formerly LNTools
 
-[![CircleCI](https://circleci.com/gh/altangent/node-lightning/tree/master.svg?style=shield)](https://circleci.com/gh/altangent/node-lightning/tree/master)
+[![Node.js CI](https://github.com/altangent/node-lightning/workflows/Node.js%20CI/badge.svg)](https://github.com/altangent/node-lightning/actions?query=workflow%3A%22Node.js+CI%22+branch%3Amaster)
 [![codecov](https://codecov.io/gh/altangent/node-lightning/branch/master/graph/badge.svg)](https://codecov.io/gh/altangent/node-lightning)
 
 Node-Lightning is an implementation of the Bitcoin Lightning Network in the Node.js runtime. The goal of this project is to implement the BOLT specifications to enable testing, research, and education. This project is not intended to replace or compete with the major implementations, though our hope is that the implementation will be fully functional. This

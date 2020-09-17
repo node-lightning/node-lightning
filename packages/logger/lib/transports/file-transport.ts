@@ -11,8 +11,7 @@ export class FileTransport implements ITransport {
     }
 
     public write(line: string) {
-        // tslint:disable-next-line: no-empty
-        fs.write(this.fileDescriptor, line + "\n", () => {});
+        fs.writeSync(this.fileDescriptor, line + "\n");
     }
 }
 
