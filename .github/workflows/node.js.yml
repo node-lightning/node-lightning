@@ -27,5 +27,6 @@ jobs:
       - run: $(npm bin)/ts-node -vv
       - run: npm ls --depth 0
       - run: npm run bootstrap:ci
+      - run: npm run format
       - run: npm test
       - run: bash <(curl -s https://codecov.io/bash)

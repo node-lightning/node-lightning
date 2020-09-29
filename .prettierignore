@@ -1,0 +1,6 @@
+**/dist/**
+**/coverage/**
+**/.nyc_output/**
+**/*.txt
+**/package-lock.json
+

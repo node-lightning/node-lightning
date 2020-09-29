@@ -6,6 +6,7 @@
     "start": "cd packages/daemon; npm run start",
     "bootstrap": "lerna bootstrap",
     "lint": "eslint packages",
+    "format": "prettier --check \"packages/**\" \"examples/**\"",
     "test": "lerna run test",
     "build": "lerna run build",
     "bootstrap:ci": "lerna bootstrap --hoist"
