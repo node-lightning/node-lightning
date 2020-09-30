@@ -130,8 +130,9 @@ function _encodeData(invoice: Invoice, writer: WordCursor) {
                 }
                 break;
             default: {
-                if (!(datum.value instanceof Buffer))
+                if (!(datum.value instanceof Buffer)) {
                     throw new Error("Cannot process unknown field");
+                }
                 const dataLen = bech32Util.sizeofBytes(datum.value.byteLength);
                 writer.writeUIntBE(datum.type, 1);
                 writer.writeUIntBE(dataLen, 2);
