@@ -5,8 +5,8 @@
   "scripts": {
     "start": "cd packages/daemon; npm run start",
     "bootstrap": "lerna bootstrap",
-    "lint": "eslint packages",
     "format": "prettier --check \"packages/**\" \"examples/**\"",
+    "lint": "lerna run lint",
     "test": "lerna run test",
     "build": "lerna run build",
     "bootstrap:ci": "lerna bootstrap --hoist"
