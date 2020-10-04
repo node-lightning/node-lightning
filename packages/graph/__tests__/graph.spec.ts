@@ -1,6 +1,5 @@
 // tslint:disable: no-unused-expression
 import { ShortChannelId } from "@node-lightning/core";
-import { OutPoint } from "@node-lightning/wire";
 import { expect } from "chai";
 import { Channel } from "../lib/channel";
 import { Graph } from "../lib/graph";

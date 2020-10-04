@@ -1,12 +1,12 @@
 import { BufferReader } from "@node-lightning/bufio";
 import { ShortChannelId } from "@node-lightning/core";
 import { shortChannelIdFromBuffer } from "@node-lightning/core";
+import { OutPoint } from "@node-lightning/core";
 import { IGossipStore } from "@node-lightning/wire";
 import { NodeAnnouncementMessage } from "@node-lightning/wire";
 import { ChannelAnnouncementMessage } from "@node-lightning/wire";
 import { ExtendedChannelAnnouncementMessage } from "@node-lightning/wire";
 import { ChannelUpdateMessage } from "@node-lightning/wire";
-import { OutPoint } from "@node-lightning/wire";
 import { RocksdbBase } from "./rocksdb-base";
 
 enum Prefix {

@@ -1,7 +1,7 @@
 import { ShortChannelId } from "@node-lightning/core";
+import { OutPoint } from "@node-lightning/core";
 import { ILogger } from "@node-lightning/logger";
 import { EventEmitter } from "events";
-import { OutPoint } from "../domain/OutPoint";
 import { ChannelAnnouncementMessage } from "../messages/ChannelAnnouncementMessage";
 import { ExtendedChannelAnnouncementMessage } from "../messages/ExtendedChannelAnnouncementMessage";
 import { IWireMessage } from "../messages/IWireMessage";

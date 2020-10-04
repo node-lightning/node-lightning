@@ -1,6 +1,6 @@
 import { AsyncProcessingQueue } from "@node-lightning/core";
+import { OutPoint } from "@node-lightning/core";
 import { EventEmitter } from "events";
-import { OutPoint } from "../domain/OutPoint";
 import { ChannelAnnouncementMessage } from "../messages/ChannelAnnouncementMessage";
 import { ChannelUpdateMessage } from "../messages/ChannelUpdateMessage";
 import { ExtendedChannelAnnouncementMessage } from "../messages/ExtendedChannelAnnouncementMessage";

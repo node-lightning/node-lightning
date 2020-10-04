@@ -1,9 +1,10 @@
 // tslint:disable: no-unused-expression
 
 import { BitField } from "@node-lightning/core";
+import { OutPoint } from "@node-lightning/core";
+import { ShortChannelId } from "@node-lightning/core";
 import { expect } from "chai";
 import sinon from "sinon";
-import { OutPoint } from "../../lib/domain/OutPoint";
 import { InitFeatureFlags } from "../../lib/flags/InitFeatureFlags";
 import { GossipManager, SyncState } from "../../lib/gossip/GossipManager";
 import { GossipMemoryStore } from "../../lib/gossip/GossipMemoryStore";
@@ -14,7 +15,6 @@ import { ExtendedChannelAnnouncementMessage } from "../../lib/messages/ExtendedC
 import { NodeAnnouncementMessage } from "../../lib/messages/NodeAnnouncementMessage";
 import { Peer } from "../../lib/Peer";
 import { PeerState } from "../../lib/PeerState";
-import { ShortChannelId } from "@node-lightning/core";
 import { createFakeLogger, createFakePeer } from "../_test-utils";
 
 function createFakeChainClient() {

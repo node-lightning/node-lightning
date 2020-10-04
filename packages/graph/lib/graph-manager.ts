@@ -1,4 +1,5 @@
-import { IGossipEmitter, IWireMessage, OutPoint } from "@node-lightning/wire";
+import { OutPoint } from "@node-lightning/core";
+import { IGossipEmitter, IWireMessage } from "@node-lightning/wire";
 import { ChannelAnnouncementMessage } from "@node-lightning/wire";
 import { ChannelUpdateMessage } from "@node-lightning/wire";
 import { NodeAnnouncementMessage } from "@node-lightning/wire";

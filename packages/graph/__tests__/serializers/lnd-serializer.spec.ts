@@ -1,5 +1,6 @@
 import { shortChannelIdFromNumber } from "@node-lightning/core";
-import { AddressIPv4, AddressTor2, AddressTor3, OutPoint } from "@node-lightning/wire";
+import { OutPoint } from "@node-lightning/core";
+import { AddressIPv4, AddressTor2, AddressTor3 } from "@node-lightning/wire";
 import { expect } from "chai";
 import { Channel } from "../../lib/channel";
 import { ChannelSettings } from "../../lib/channel-settings";

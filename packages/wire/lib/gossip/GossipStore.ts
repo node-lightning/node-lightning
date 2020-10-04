@@ -1,5 +1,5 @@
 import { ShortChannelId } from "@node-lightning/core";
-import { OutPoint } from "../domain/OutPoint";
+import { OutPoint } from "@node-lightning/core";
 import { ChannelAnnouncementMessage } from "../messages/ChannelAnnouncementMessage";
 import { ChannelUpdateMessage } from "../messages/ChannelUpdateMessage";
 import { NodeAnnouncementMessage } from "../messages/NodeAnnouncementMessage";

@@ -1,7 +1,7 @@
 // @ts-check
 
 import { shortChannelIdFromString } from "@node-lightning/core";
-import { OutPoint } from "@node-lightning/wire";
+import { OutPoint } from "@node-lightning/core";
 import { Channel } from "../channel";
 import { channelSettingsFromJson } from "./channel-settings-from-json";
 

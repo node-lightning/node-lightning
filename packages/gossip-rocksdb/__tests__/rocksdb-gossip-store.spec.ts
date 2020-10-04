@@ -1,7 +1,8 @@
 // tslint:disable: no-unused-expression
 
 import { ShortChannelId } from "@node-lightning/core";
-import { ChannelAnnouncementMessage, OutPoint } from "@node-lightning/wire";
+import { OutPoint } from "@node-lightning/core";
+import { ChannelAnnouncementMessage } from "@node-lightning/wire";
 import { NodeAnnouncementMessage } from "@node-lightning/wire";
 import { ExtendedChannelAnnouncementMessage } from "@node-lightning/wire";
 import { ChannelUpdateMessage } from "@node-lightning/wire";

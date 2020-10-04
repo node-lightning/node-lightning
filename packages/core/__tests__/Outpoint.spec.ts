@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { OutPoint } from "../../lib/domain/OutPoint";
+import { OutPoint } from "../lib/OutPoint";
 
 describe("OutPoint", () => {
     describe("constructor", () => {

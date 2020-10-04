@@ -17,7 +17,6 @@ export * from "./domain/AddressTor2";
 export * from "./domain/AddressTor3";
 export * from "./domain/AddressType";
 export * from "./domain/NetworkType";
-export * from "./domain/OutPoint";
 
 export * from "./flags/ChanneUpdateChannelFlags";
 export * from "./flags/ChannelFeatureFlags";
