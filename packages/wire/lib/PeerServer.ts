@@ -1,10 +1,9 @@
+import { BitField } from "@node-lightning/core";
 import { ILogger } from "@node-lightning/logger";
 import { NoiseSocket } from "@node-lightning/noise";
 import { NoiseServer } from "@node-lightning/noise/lib/noise-server";
 import { EventEmitter } from "events";
-import { BitField } from "./BitField";
 import { InitFeatureFlags } from "./flags/InitFeatureFlags";
-import { InitMessage } from "./messages/InitMessage";
 import { Peer } from "./Peer";
 
 export class PeerServer extends EventEmitter {

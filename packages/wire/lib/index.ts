@@ -2,17 +2,12 @@ import * as MF from "./MessageFactory";
 
 // tslint:disable-next-line: variable-name
 export const MessageFactory = MF;
-export * from "./AsyncProcessingQueue";
 export * from "./Constants";
-export * from "./BitField";
-export * from "./LinkedList";
-export * from "./LinkedListNode";
 export * from "./MessageType";
 export * from "./Peer";
 export * from "./PeerServer";
 export * from "./PeerState";
 export * from "./PingPongState";
-export * from "./Queue";
 export * from "./ShortChannelId";
 export * from "./ShortChannelIdUtils";
 export * from "./WireError";

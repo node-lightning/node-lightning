@@ -1,7 +1,6 @@
+import { BitField } from "@node-lightning/core";
 import * as crypto from "@node-lightning/crypto";
-import { BitField } from "../lib/BitField";
 import { InitFeatureFlags } from "../lib/flags/InitFeatureFlags";
-import { InitMessage } from "../lib/messages/InitMessage";
 import { Peer } from "../lib/Peer";
 import { PeerServer } from "../lib/PeerServer";
 import { createFakeLogger } from "./_test-utils";

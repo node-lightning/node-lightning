@@ -1,8 +1,8 @@
 // tslint:disable: no-unused-expression
 
+import { BitField } from "@node-lightning/core";
 import { expect } from "chai";
 import sinon from "sinon";
-import { BitField } from "../../lib/BitField";
 import { OutPoint } from "../../lib/domain/OutPoint";
 import { InitFeatureFlags } from "../../lib/flags/InitFeatureFlags";
 import { GossipManager, SyncState } from "../../lib/gossip/GossipManager";

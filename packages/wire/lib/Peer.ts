@@ -1,9 +1,9 @@
+import { BitField } from "@node-lightning/core";
 import { ILogger } from "@node-lightning/logger";
 import * as noise from "@node-lightning/noise";
 import { NoiseSocket } from "@node-lightning/noise";
 import assert from "assert";
 import { EventEmitter } from "events";
-import { BitField } from "./BitField";
 import { InitFeatureFlags } from "./flags/InitFeatureFlags";
 import * as MessageFactory from "./MessageFactory";
 import { InitMessage } from "./messages/InitMessage";

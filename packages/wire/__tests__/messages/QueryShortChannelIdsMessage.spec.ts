@@ -1,5 +1,5 @@
+import { BitField } from "@node-lightning/core";
 import { expect } from "chai";
-import { BitField } from "../../lib/BitField";
 import { QueryScidFlags } from "../../lib/flags/QueryScidFlags";
 import { QueryShortChannelIdsMessage } from "../../lib/messages/QueryShortChannelIdsMessage";
 import { ShortChannelId } from "../../lib/ShortChannelId";
