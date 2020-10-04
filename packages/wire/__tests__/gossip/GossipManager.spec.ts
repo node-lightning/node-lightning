@@ -14,7 +14,7 @@ import { ExtendedChannelAnnouncementMessage } from "../../lib/messages/ExtendedC
 import { NodeAnnouncementMessage } from "../../lib/messages/NodeAnnouncementMessage";
 import { Peer } from "../../lib/Peer";
 import { PeerState } from "../../lib/PeerState";
-import { ShortChannelId } from "../../lib/ShortChannelId";
+import { ShortChannelId } from "@node-lightning/core";
 import { createFakeLogger, createFakePeer } from "../_test-utils";
 
 function createFakeChainClient() {

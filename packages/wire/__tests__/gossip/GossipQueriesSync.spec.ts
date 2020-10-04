@@ -1,10 +1,10 @@
+import { ShortChannelId } from "@node-lightning/core";
 import { ILogger } from "@node-lightning/logger";
 import { expect } from "chai";
 import { GossipError, GossipErrorCode } from "../../lib/gossip/GossipError";
 import { GossipQueriesSync, GossipQueriesSyncState } from "../../lib/gossip/GossipQueriesSync";
 import { ReplyChannelRangeMessage } from "../../lib/messages/ReplyChannelRangeMessage";
 import { ReplyShortChannelIdsEndMessage } from "../../lib/messages/ReplyShortChannelIdsEndMessage";
-import { ShortChannelId } from "../../lib/ShortChannelId";
 import { createFakeLogger, createFakePeer, wait } from "../_test-utils";
 
 describe("GossipQueriesSync", () => {

@@ -1,12 +1,12 @@
 import { BufferReader, BufferWriter } from "@node-lightning/bufio";
 import { BitField } from "@node-lightning/core";
+import { ShortChannelId } from "@node-lightning/core";
+import { shortChannelIdFromBuffer } from "@node-lightning/core";
 import { QueryScidFlags } from "../flags/QueryScidFlags";
 import { MessageType } from "../MessageType";
 import { Encoder } from "../serialize/Encoder";
 import { EncodingType } from "../serialize/EncodingType";
 import { readTlvs } from "../serialize/readTlvs";
-import { ShortChannelId } from "../ShortChannelId";
-import { shortChannelIdFromBuffer } from "../ShortChannelIdUtils";
 import { IWireMessage } from "./IWireMessage";
 
 export class QueryShortChannelIdsMessage implements IWireMessage {

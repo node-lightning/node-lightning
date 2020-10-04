@@ -1,11 +1,11 @@
 // tslint:disable: no-unused-expression
+import { ShortChannelId } from "@node-lightning/core";
 import { expect, use } from "chai";
 import { GossipRelay } from "../../lib/gossip/GossipRelay";
 import { GossipRelayState } from "../../lib/gossip/GossipRelay";
 import { ChannelAnnouncementMessage } from "../../lib/messages/ChannelAnnouncementMessage";
 import { ChannelUpdateMessage } from "../../lib/messages/ChannelUpdateMessage";
 import { NodeAnnouncementMessage } from "../../lib/messages/NodeAnnouncementMessage";
-import { ShortChannelId } from "../../lib/ShortChannelId";
 import { createFakeLogger, createFakePeer, wait } from "../_test-utils";
 
 describe("GossipRelay", () => {

@@ -8,8 +8,6 @@ export * from "./Peer";
 export * from "./PeerServer";
 export * from "./PeerState";
 export * from "./PingPongState";
-export * from "./ShortChannelId";
-export * from "./ShortChannelIdUtils";
 export * from "./WireError";
 
 export * from "./domain/Address";

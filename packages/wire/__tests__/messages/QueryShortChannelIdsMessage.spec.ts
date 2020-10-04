@@ -1,8 +1,8 @@
 import { BitField } from "@node-lightning/core";
+import { ShortChannelId } from "@node-lightning/core";
 import { expect } from "chai";
 import { QueryScidFlags } from "../../lib/flags/QueryScidFlags";
 import { QueryShortChannelIdsMessage } from "../../lib/messages/QueryShortChannelIdsMessage";
-import { ShortChannelId } from "../../lib/ShortChannelId";
 
 describe("QueryShortChannelIdsMessage", () => {
     describe(".deserialize", () => {

@@ -1,3 +1,4 @@
+import { ShortChannelId } from "@node-lightning/core";
 import { ILogger } from "@node-lightning/logger";
 import { ChannelUpdateChannelFlags } from "../flags/ChanneUpdateChannelFlags";
 import { ChannelAnnouncementMessage } from "../messages/ChannelAnnouncementMessage";
@@ -5,7 +6,6 @@ import { ChannelUpdateMessage } from "../messages/ChannelUpdateMessage";
 import { IWireMessage } from "../messages/IWireMessage";
 import { NodeAnnouncementMessage } from "../messages/NodeAnnouncementMessage";
 import { IPeer } from "../Peer";
-import { ShortChannelId } from "../ShortChannelId";
 
 /**
  * Interface for the sub-system for handling the gossip message relay,

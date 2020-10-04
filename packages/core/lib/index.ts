@@ -4,3 +4,5 @@ export * from "./BigIntUtils";
 export * from "./BitField";
 export * from "./LinkedList";
 export * from "./LinkedListNode";
+export * from "./ShortChannelId";
+export * from "./ShortChannelIdUtils";

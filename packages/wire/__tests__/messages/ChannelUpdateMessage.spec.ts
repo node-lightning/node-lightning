@@ -1,8 +1,8 @@
 // tslint:disable: no-unused-expression
 import { BitField } from "@node-lightning/core";
+import { ShortChannelId } from "@node-lightning/core";
 import { expect } from "chai";
 import { ChannelUpdateMessage } from "../../lib/messages/ChannelUpdateMessage";
-import { ShortChannelId } from "../../lib/ShortChannelId";
 
 describe("ChannelUpdateMessage", () => {
     let input: Buffer;

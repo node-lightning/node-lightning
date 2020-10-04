@@ -11,11 +11,11 @@ import { ChannelUpdateMessage } from "../../lib/messages/ChannelUpdateMessage";
 import { ExtendedChannelAnnouncementMessage } from "../../lib/messages/ExtendedChannelAnnouncementMessage";
 import { NodeAnnouncementMessage } from "../../lib/messages/NodeAnnouncementMessage";
 
+import { ShortChannelId } from "@node-lightning/core";
 import fs from "fs";
 import path from "path";
 import { GossipMemoryStore } from "../../lib/gossip/GossipMemoryStore";
 import * as MessageFactory from "../../lib/MessageFactory";
-import { ShortChannelId } from "../../lib/ShortChannelId";
 import { WireErrorCode } from "../../lib/WireError";
 
 class FakeChainClient implements IGossipFilterChainClient {
