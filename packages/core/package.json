@@ -1,7 +1,7 @@
 {
-  "name": "@node-lightning/wire",
-  "version": "0.19.0",
-  "description": "Lightning Network Wire Protocol",
+  "name": "@node-lightning/core",
+  "version": "0.1.0",
+  "description": "Core types, abstractions, utilities, and cross-cutting concerns",
   "scripts": {
     "test": "../../node_modules/.bin/nyc --reporter=lcov --reporter=text --extension=.ts ../../node_modules/.bin/mocha --require ts-node/register --recursive \"__tests__/**/*.spec.*\"",
     "lint": "../../node_modules/.bin/tslint --project tsconfig.json --config ../../tslint.json",
@@ -9,29 +9,18 @@
     "prepublish": "npm run build"
   },
   "keywords": [
-    "lightning",
-    "network",
-    "bolt2",
-    "bolt7",
-    "wire protocol",
-    "lightning-network"
+    "node-lightning",
+    "core"
   ],
   "author": "Brian Mancini <bmancini@gmail.com>",
-  "homepage": "https://github.com/altangent/node-lightning/tree/master/packages/wire",
+  "homepage": "https://github.com/altangent/node-lightning/tree/master/packages/<NAME>",
   "license": "MIT",
   "main": "dist/index.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/altangent/node-lightning.git"
   },
-  "dependencies": {
-    "@node-lightning/bufio": "^0.11.0",
-    "@node-lightning/checksum": "^0.3.0",
-    "@node-lightning/core": "^0.1.0",
-    "@node-lightning/crypto": "^0.11.0",
-    "@node-lightning/logger": "^0.11.0",
-    "@node-lightning/noise": "^0.16.0"
-  },
+  "dependencies": {},
   "publishConfig": {
     "access": "public"
   }

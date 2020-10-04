@@ -1,10 +1,10 @@
-import { OutPoint } from "../domain/OutPoint";
+import { ShortChannelId } from "@node-lightning/core";
+import { shortChannelIdFromNumber } from "@node-lightning/core";
+import { OutPoint } from "@node-lightning/core";
 import { ChannelAnnouncementMessage } from "../messages/ChannelAnnouncementMessage";
 import { ChannelUpdateMessage } from "../messages/ChannelUpdateMessage";
 import { ExtendedChannelAnnouncementMessage } from "../messages/ExtendedChannelAnnouncementMessage";
 import { NodeAnnouncementMessage } from "../messages/NodeAnnouncementMessage";
-import { ShortChannelId } from "../ShortChannelId";
-import { shortChannelIdFromNumber } from "../ShortChannelIdUtils";
 import { IGossipStore } from "./GossipStore";
 
 /**

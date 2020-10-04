@@ -1,7 +1,11 @@
 // tslint:disable: no-unused-expression
 import { expect } from "chai";
 import { BitField } from "../lib/BitField";
-import { InitFeatureFlags } from "../lib/flags/InitFeatureFlags";
+
+export enum TestFlags {
+    feature0 = 0,
+    feature1 = 1,
+}
 
 describe("BitField", () => {
     describe(".set()", () => {
@@ -190,18 +194,15 @@ describe("BitField", () => {
 
     describe(".flags()", () => {
         it("no flags", () => {
-            const a = new BitField<InitFeatureFlags>();
+            const a = new BitField<TestFlags>();
             expect(a.flags()).to.deep.equal([]);
         });
 
         it("with flags", () => {
-            const a = new BitField<InitFeatureFlags>();
-            a.set(InitFeatureFlags.initialRoutingSyncOptional);
-            a.set(InitFeatureFlags.gossipQueriesOptional);
-            expect(a.flags()).to.deep.equal([
-                InitFeatureFlags.initialRoutingSyncOptional,
-                InitFeatureFlags.gossipQueriesOptional,
-            ]);
+            const a = new BitField<TestFlags>();
+            a.set(TestFlags.feature0);
+            a.set(TestFlags.feature1);
+            expect(a.flags()).to.deep.equal([TestFlags.feature0, TestFlags.feature1]);
         });
     });
 });

@@ -1,7 +1,7 @@
 import { BufferReader, BufferWriter } from "@node-lightning/bufio";
+import { ShortChannelId } from "@node-lightning/core";
+import { shortChannelIdFromBuffer } from "@node-lightning/core";
 import { MessageType } from "../MessageType";
-import { ShortChannelId } from "../ShortChannelId";
-import { shortChannelIdFromBuffer } from "../ShortChannelIdUtils";
 import { IWireMessage } from "./IWireMessage";
 
 /**

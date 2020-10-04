@@ -1,10 +1,10 @@
+import { ShortChannelId } from "@node-lightning/core";
 import { ILogger } from "@node-lightning/logger";
 import { EventEmitter } from "events";
 import { IWireMessage } from "../messages/IWireMessage";
 import { QueryChannelRangeMessage } from "../messages/QueryChannelRangeMessage";
 import { ReplyChannelRangeMessage } from "../messages/ReplyChannelRangeMessage";
 import { IMessageSenderReceiver } from "../Peer";
-import { ShortChannelId } from "../ShortChannelId";
 import { GossipError, GossipErrorCode } from "./GossipError";
 
 export enum ChannelRangeQueryState {

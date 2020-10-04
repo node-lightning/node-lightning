@@ -1,7 +1,5 @@
 import { ConsoleTransport, Logger, LogLevel } from "@node-lightning/logger";
 import { BitField } from "@node-lightning/wire";
-import { QueryShortChannelIdsMessage } from "@node-lightning/wire";
-import { ShortChannelId } from "@node-lightning/wire";
 import { QueryChannelRangeMessage } from "@node-lightning/wire";
 import { Peer } from "@node-lightning/wire";
 import { InitFeatureFlags } from "@node-lightning/wire/dist/flags/InitFeatureFlags";

@@ -1,4 +1,4 @@
-import { Base32 } from "../../Base32";
+import { Base32 } from "@node-lightning/core";
 
 /**
  * Converts a Tor address in string notation into a Buffer

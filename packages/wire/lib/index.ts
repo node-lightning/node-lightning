@@ -2,19 +2,12 @@ import * as MF from "./MessageFactory";
 
 // tslint:disable-next-line: variable-name
 export const MessageFactory = MF;
-export * from "./AsyncProcessingQueue";
 export * from "./Constants";
-export * from "./BitField";
-export * from "./LinkedList";
-export * from "./LinkedListNode";
 export * from "./MessageType";
 export * from "./Peer";
 export * from "./PeerServer";
 export * from "./PeerState";
 export * from "./PingPongState";
-export * from "./Queue";
-export * from "./ShortChannelId";
-export * from "./ShortChannelIdUtils";
 export * from "./WireError";
 
 export * from "./domain/Address";
@@ -24,7 +17,6 @@ export * from "./domain/AddressTor2";
 export * from "./domain/AddressTor3";
 export * from "./domain/AddressType";
 export * from "./domain/NetworkType";
-export * from "./domain/OutPoint";
 
 export * from "./flags/ChanneUpdateChannelFlags";
 export * from "./flags/ChannelFeatureFlags";

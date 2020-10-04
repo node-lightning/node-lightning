@@ -1,12 +1,12 @@
 // tslint:disable: no-unused-expression
 // tslint:disable: no-floating-promises
 
+import { ShortChannelId } from "@node-lightning/core";
 import { ILogger } from "@node-lightning/logger";
 import { expect } from "chai";
 import { ChannelRangeQuery, ChannelRangeQueryState } from "../../lib/gossip/ChannelRangeQuery";
 import { QueryChannelRangeMessage } from "../../lib/messages/QueryChannelRangeMessage";
 import { ReplyChannelRangeMessage } from "../../lib/messages/ReplyChannelRangeMessage";
-import { ShortChannelId } from "../../lib/ShortChannelId";
 import { createFakeLogger, createFakePeer } from "../_test-utils";
 
 describe("ChannelRangeQuery", () => {

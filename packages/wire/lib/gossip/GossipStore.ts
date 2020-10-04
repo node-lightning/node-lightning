@@ -1,8 +1,8 @@
-import { OutPoint } from "../domain/OutPoint";
+import { ShortChannelId } from "@node-lightning/core";
+import { OutPoint } from "@node-lightning/core";
 import { ChannelAnnouncementMessage } from "../messages/ChannelAnnouncementMessage";
 import { ChannelUpdateMessage } from "../messages/ChannelUpdateMessage";
 import { NodeAnnouncementMessage } from "../messages/NodeAnnouncementMessage";
-import { ShortChannelId } from "../ShortChannelId";
 
 /**
  * Interface for storing, finding, and deleting gossip messages.

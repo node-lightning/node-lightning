@@ -1,13 +1,12 @@
 // tslint:disable: max-classes-per-file
 // tslint:disable: no-unused-expression
+import { BitField } from "@node-lightning/core";
 import { ILogger } from "@node-lightning/logger";
 import * as noise from "@node-lightning/noise";
 import { expect } from "chai";
 import { EventEmitter } from "events";
 import sinon from "sinon";
-import { BitField } from "../lib/BitField";
 import { InitFeatureFlags } from "../lib/flags/InitFeatureFlags";
-import { InitMessage } from "../lib/messages/InitMessage";
 import { Peer } from "../lib/Peer";
 import { PeerState } from "../lib/PeerState";
 import { PingPongState } from "../lib/PingPongState";

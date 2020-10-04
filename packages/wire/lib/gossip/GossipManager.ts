@@ -1,13 +1,13 @@
+import { ShortChannelId } from "@node-lightning/core";
+import { OutPoint } from "@node-lightning/core";
 import { ILogger } from "@node-lightning/logger";
 import { EventEmitter } from "events";
-import { OutPoint } from "../domain/OutPoint";
 import { ChannelAnnouncementMessage } from "../messages/ChannelAnnouncementMessage";
 import { ExtendedChannelAnnouncementMessage } from "../messages/ExtendedChannelAnnouncementMessage";
 import { IWireMessage } from "../messages/IWireMessage";
 import { MessageType } from "../MessageType";
 import { Peer } from "../Peer";
 import { PeerState } from "../PeerState";
-import { ShortChannelId } from "../ShortChannelId";
 import { WireError, WireErrorCode } from "../WireError";
 import { GossipFilter } from "./GossipFilter";
 import { GossipPeer } from "./GossipPeer";

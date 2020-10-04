@@ -1,6 +1,6 @@
+import { ShortChannelId } from "@node-lightning/core";
 import { expect } from "chai";
 import { ReplyChannelRangeMessage } from "../../lib/messages/ReplyChannelRangeMessage";
-import { ShortChannelId } from "../../lib/ShortChannelId";
 
 describe("ReplyChannelRangeMessage", () => {
     describe(".deserialize", () => {

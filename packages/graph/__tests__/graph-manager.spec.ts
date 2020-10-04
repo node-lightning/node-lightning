@@ -1,5 +1,8 @@
 // tslint:disable: no-unused-expression
-import { AddressIPv4, BitField, OutPoint, ShortChannelId } from "@node-lightning/wire";
+import { BitField } from "@node-lightning/core";
+import { ShortChannelId } from "@node-lightning/core";
+import { OutPoint } from "@node-lightning/core";
+import { AddressIPv4 } from "@node-lightning/wire";
 import { ExtendedChannelAnnouncementMessage } from "@node-lightning/wire";
 import { IGossipEmitter } from "@node-lightning/wire";
 import { ChannelAnnouncementMessage } from "@node-lightning/wire";

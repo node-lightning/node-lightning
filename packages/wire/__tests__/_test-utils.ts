@@ -1,6 +1,6 @@
-import { Logger, ILogger } from "@node-lightning/logger";
+import { BitField } from "@node-lightning/core";
+import { ILogger, Logger } from "@node-lightning/logger";
 import sinon from "sinon";
-import { BitField } from "../lib/BitField";
 import { InitFeatureFlags } from "../lib/flags/InitFeatureFlags";
 
 export function createFakePeer() {

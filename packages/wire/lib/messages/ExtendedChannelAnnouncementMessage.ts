@@ -1,8 +1,8 @@
 import { BufferReader, BufferWriter } from "@node-lightning/bufio";
-import { BitField } from "../BitField";
-import { OutPoint } from "../domain/OutPoint";
+import { BitField } from "@node-lightning/core";
+import { shortChannelIdFromBuffer } from "@node-lightning/core";
+import { OutPoint } from "@node-lightning/core";
 import { readTlvs } from "../serialize/readTlvs";
-import { shortChannelIdFromBuffer } from "../ShortChannelIdUtils";
 import { ChannelAnnouncementMessage } from "./ChannelAnnouncementMessage";
 
 /**
