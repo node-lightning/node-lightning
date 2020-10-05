@@ -1,6 +1,6 @@
 {
   "name": "@node-lightning/bufio",
-  "version": "0.11.0",
+  "version": "0.12.0",
   "description": "Buffer IO utilities ",
   "keywords": [],
   "author": "Brian Mancini <bmancini@gmail.com>",
