@@ -1,6 +1,6 @@
 {
   "name": "@node-lightning/bitcoin",
-  "version": "0.8.0",
+  "version": "0.20.1",
   "description": "Bitcoin utilities",
   "keywords": [
     "bitcoin",
@@ -23,8 +23,8 @@
     "prepublish": "npm run build"
   },
   "dependencies": {
-    "@node-lightning/bufio": "^0.12.0",
-    "@node-lightning/crypto": "^0.12.0"
+    "@node-lightning/bufio": "^0.20.1",
+    "@node-lightning/crypto": "^0.20.1"
   },
   "publishConfig": {
     "access": "public"
