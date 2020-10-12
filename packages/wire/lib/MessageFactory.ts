@@ -5,6 +5,7 @@ import { GossipTimestampFilterMessage } from "./messages/GossipTimestampFilterMe
 import { InitMessage } from "./messages/InitMessage";
 import { IWireMessage } from "./messages/IWireMessage";
 import { NodeAnnouncementMessage } from "./messages/NodeAnnouncementMessage";
+import { OpenChannelMessage } from "./messages/OpenChannelMessage";
 import { PingMessage } from "./messages/PingMessage";
 import { PongMessage } from "./messages/PongMessage";
 import { QueryChannelRangeMessage } from "./messages/QueryChannelRangeMessage";
@@ -28,6 +29,10 @@ export function deserialize(buffer: Buffer): IWireMessage {
             return PongMessage.deserialize(buffer);
 
         // channel messages
+        case MessageType.OpenChannel:
+            return OpenChannelMessage.deserialize(buffer);
+
+        // gossip messages
         // [MESSAGE_TYPE.ANNOUNCEMENT_SIGNATURES]: messages.AnnouncementSignaturesMessage,
         case MessageType.NodeAnnouncement:
             return NodeAnnouncementMessage.deserialize(buffer);
