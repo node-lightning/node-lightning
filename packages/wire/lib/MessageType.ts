@@ -9,7 +9,7 @@ export enum MessageType {
     Pong = 19,
 
     // Channel (32-127)
-    //
+    OpenChannel = 32,
 
     // Commitment (128-255)
     //

@@ -48,6 +48,7 @@ export * from "./messages/ExtendedChannelAnnouncementMessage";
 export * from "./messages/GossipTimestampFilterMessage";
 export * from "./messages/InitMessage";
 export * from "./messages/NodeAnnouncementMessage";
+export * from "./messages/OpenChannelMessage";
 export * from "./messages/PingMessage";
 export * from "./messages/PongMessage";
 export * from "./messages/QueryChannelRangeMessage";
