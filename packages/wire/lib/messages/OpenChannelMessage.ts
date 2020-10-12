@@ -1,6 +1,9 @@
+import { BufferReader, BufferWriter } from "@node-lightning/bufio";
 import { BitField } from "@node-lightning/core";
 import { OpenChannelFlags } from "../flags/OpenChannelFlags";
 import { MessageType } from "../MessageType";
+import { readTlvs } from "../serialize/readTlvs";
+import { IWireMessage } from "./IWireMessage";
 
 /**
  * OpenChannelMessage represents the open_channel message defined in
@@ -10,8 +13,51 @@ import { MessageType } from "../MessageType";
  * parameters to be used in the channel. The remote peer can accept the
  * channel using the accept_channel message.
  */
-export class OpenChannelMessage {
+export class OpenChannelMessage implements IWireMessage {
     public static type = MessageType.OpenChannel;
+
+    /**
+     * Deserializes an open_channel message
+     * @param buf
+     */
+    public static deserialize(buf: Buffer): OpenChannelMessage {
+        const instance = new OpenChannelMessage();
+        const reader = new BufferReader(buf);
+
+        reader.readUInt16BE(); // read type
+        instance.chainHash = reader.readBytes(32);
+        instance.temporaryChannelId = reader.readBytes(32);
+        instance.fundingSatoshis = reader.readUInt64BE();
+        instance.pushMsat = reader.readUInt64BE();
+        instance.dustLimitSatoshis = reader.readUInt64BE();
+        instance.maxHtlcValueInFlightMsat = reader.readUInt64BE();
+        instance.channelReserveSatoshis = reader.readUInt64BE();
+        instance.htlcMinimumMsat = reader.readUInt64BE();
+        instance.feeRatePerKw = reader.readUInt32BE();
+        instance.toSelfDelay = reader.readUInt16BE();
+        instance.maxAcceptedHtlcs = reader.readUInt16BE();
+        instance.fundingPubKey = reader.readBytes(33);
+        instance.revocationBasePoint = reader.readBytes(33);
+        instance.paymentBasePoint = reader.readBytes(33);
+        instance.delayedPaymentBasePoint = reader.readBytes(33);
+        instance.htlcBasePoint = reader.readBytes(33);
+        instance.firstPerCommitmentPoint = reader.readBytes(33);
+        instance.channelFlags = new BitField<OpenChannelFlags>(BigInt(reader.readUInt8()));
+
+        // Parse the TLVs
+        readTlvs(reader, (type: bigint, valueReader: BufferReader) => {
+            switch (type) {
+                case BigInt(0): {
+                    instance.upfrontShutdownScript = valueReader.readBytes();
+                    return true;
+                }
+                default:
+                    return false;
+            }
+        });
+
+        return instance;
+    }
 
     /**
      * The type for open_channel message. open_channel = 32
@@ -191,4 +237,46 @@ export class OpenChannelMessage {
      * is compromised.
      */
     public upfrontShutdownScript: Buffer;
+
+    /**
+     * Constructs a new OpenChannelMessage instance
+     */
+    constructor() {
+        this.channelFlags = new BitField<OpenChannelFlags>();
+    }
+
+    /**
+     * Serializes the open_channel message into a Buffer
+     */
+    public serialize(): Buffer {
+        const writer = new BufferWriter();
+        writer.writeUInt16BE(this.type);
+        writer.writeBytes(this.chainHash);
+        writer.writeBytes(this.temporaryChannelId);
+        writer.writeUInt64BE(this.fundingSatoshis);
+        writer.writeUInt64BE(this.pushMsat);
+        writer.writeUInt64BE(this.dustLimitSatoshis);
+        writer.writeUInt64BE(this.maxHtlcValueInFlightMsat);
+        writer.writeUInt64BE(this.channelReserveSatoshis);
+        writer.writeUInt64BE(this.htlcMinimumMsat);
+        writer.writeUInt32BE(this.feeRatePerKw);
+        writer.writeUInt16BE(this.toSelfDelay);
+        writer.writeUInt16BE(this.maxAcceptedHtlcs);
+        writer.writeBytes(this.fundingPubKey);
+        writer.writeBytes(this.revocationBasePoint);
+        writer.writeBytes(this.paymentBasePoint);
+        writer.writeBytes(this.delayedPaymentBasePoint);
+        writer.writeBytes(this.htlcBasePoint);
+        writer.writeBytes(this.firstPerCommitmentPoint);
+        writer.writeUInt8(this.announceChannel ? 0x01 : 0x00);
+
+        // upfront_shutdown_script TLV
+        if (this.upfrontShutdownScript) {
+            writer.writeBigSize(0);
+            writer.writeBigSize(this.upfrontShutdownScript.length);
+            writer.writeBytes(this.upfrontShutdownScript);
+        }
+
+        return writer.toBuffer();
+    }
 }
