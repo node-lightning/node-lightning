@@ -249,9 +249,9 @@ describe("OpenChannelMessage", () => {
             expect(instance.htlcBasePoint).to.deep.equal(htlcBasePoint);
             expect(instance.firstPerCommitmentPoint).to.deep.equal(firstCommitmentPoint);
             expect(instance.announceChannel).to.equal(true);
-            // expect(instance.upfrontShutdownScript).to.deep.equal(
-            //     Buffer.concat([Buffer.from([0x00]), crypto.hash160(paymentBasePoint)]),
-            // );
+            expect(instance.upfrontShutdownScript).to.deep.equal(
+                Buffer.concat([Buffer.from([0x00]), crypto.hash160(paymentBasePoint)]),
+            );
         });
     });
 });
