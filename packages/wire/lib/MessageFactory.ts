@@ -1,3 +1,4 @@
+import { AcceptChannelMessage } from "./messages/AcceptChannelMessage";
 import { ChannelAnnouncementMessage } from "./messages/ChannelAnnouncementMessage";
 import { ChannelUpdateMessage } from "./messages/ChannelUpdateMessage";
 import { ErrorMessage } from "./messages/ErrorMessage";
@@ -31,16 +32,16 @@ export function deserialize(buffer: Buffer): IWireMessage {
         // channel messages
         case MessageType.OpenChannel:
             return OpenChannelMessage.deserialize(buffer);
+        case MessageType.AcceptChannel:
+            return AcceptChannelMessage.deserialize(buffer);
 
         // gossip messages
-        // [MESSAGE_TYPE.ANNOUNCEMENT_SIGNATURES]: messages.AnnouncementSignaturesMessage,
         case MessageType.NodeAnnouncement:
             return NodeAnnouncementMessage.deserialize(buffer);
         case MessageType.ChannelAnnouncement:
             return ChannelAnnouncementMessage.deserialize(buffer);
         case MessageType.ChannelUpdate:
             return ChannelUpdateMessage.deserialize(buffer);
-
         case MessageType.QueryShortChannelIds:
             return QueryShortChannelIdsMessage.deserialize(buffer);
         case MessageType.ReplyShortChannelIdsEnd:
