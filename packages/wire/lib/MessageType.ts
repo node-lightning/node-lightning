@@ -10,6 +10,7 @@ export enum MessageType {
 
     // Channel (32-127)
     OpenChannel = 32,
+    AcceptChannel = 33,
 
     // Commitment (128-255)
     //
