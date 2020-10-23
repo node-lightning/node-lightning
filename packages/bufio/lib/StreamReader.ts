@@ -1,4 +1,5 @@
-import { Readable } from "stream";
+import { Readable, Stream } from "stream";
+import { bufToStream } from "./bufToStream";
 
 /**
  * Wraps a readable stream and provides utilities to assist with reading values
@@ -6,6 +7,22 @@ import { Readable } from "stream";
  * will thrown.
  */
 export class StreamReader {
+    /**
+     * Constructs a new StreamReader from the provided hex string.
+     * @param hex
+     */
+    public static fromHex(hex: string): StreamReader {
+        return StreamReader.fromBuffer(Buffer.from(hex, "hex"));
+    }
+
+    /**
+     * Constructs a new StreamReader from the provided Buffer
+     * @param buf
+     */
+    public static fromBuffer(buf: Buffer): StreamReader {
+        return new StreamReader(bufToStream(buf));
+    }
+
     constructor(readonly stream: Readable) {}
 
     /**

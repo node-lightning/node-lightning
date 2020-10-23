@@ -71,4 +71,21 @@ describe("StreamReader", () => {
             });
         }
     }
+
+    describe("#fromBuffer()", () => {
+        it("constructs from buffer", () => {
+            const buf = Buffer.from([0, 1, 2, 3]);
+            const sr = StreamReader.fromBuffer(buf);
+            const bytes = sr.readBytes(4);
+            expect(bytes).to.deep.equal(buf);
+        });
+    });
+
+    describe("#fromHex()", () => {
+        it("constructs from hex", () => {
+            const sr = StreamReader.fromHex("00010203");
+            const bytes = sr.readBytes(4);
+            expect(bytes).to.deep.equal(Buffer.from([0, 1, 2, 3]));
+        });
+    });
 });
