@@ -84,15 +84,14 @@ export class Script {
      * data blocks or op_codes depending on the meaning of the bytes
      * @param stream
      */
-    public static parse(stream: Readable) {
-        const sr = new StreamReader(stream);
+    public static parse(reader: StreamReader) {
 
         // read the length
-        const len = sr.readVarInt();
+        const len = reader.readVarInt();
 
         // read the length of bytes occupied by the script and then pass it
         // through the command parser.
-        const buf = sr.readBytes(Number(len));
+        const buf = reader.readBytes(Number(len));
         const cmds = Script.parseCmds(buf);
 
         // return the script object with the commands

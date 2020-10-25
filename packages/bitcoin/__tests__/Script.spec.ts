@@ -1,15 +1,14 @@
-import { bufToStream } from "@node-lightning/bufio";
+import { StreamReader } from "@node-lightning/bufio";
 import { hash160 } from "@node-lightning/crypto";
 import { expect } from "chai";
 import { OpCode } from "../lib/OpCodes";
 import { Script } from "../lib/Script";
 
 describe("Script", () => {
-    describe(".parse()", () => {
-        it("happy patth", () => {
-            const data = Buffer.from("6a47304402207899531a52d59a6de200179928ca900254a36b8dff8bb75f5f5d71b1cdc26125022008b422690b8461cb52c3cc30330b23d574351872b7c361e9aae3649071c1a7160121035d5c93d9ac96881f19ba1f686f15f009ded7c62efe85a872e6a19b43c15a2937", "hex"); // prettier-ignore
-            const stream = bufToStream(data);
-            const script = Script.parse(stream);
+    describe("#parse()", () => {
+        it("happy path", () => {
+            const sr = StreamReader.fromHex("6a47304402207899531a52d59a6de200179928ca900254a36b8dff8bb75f5f5d71b1cdc26125022008b422690b8461cb52c3cc30330b23d574351872b7c361e9aae3649071c1a7160121035d5c93d9ac96881f19ba1f686f15f009ded7c62efe85a872e6a19b43c15a2937");
+            const script = Script.parse(sr);
             expect((script.cmds[0] as Buffer).toString("hex")).to.equal(
                 "304402207899531a52d59a6de200179928ca900254a36b8dff8bb75f5f5d71b1cdc26125022008b422690b8461cb52c3cc30330b23d574351872b7c361e9aae3649071c1a71601",
             );
@@ -19,26 +18,26 @@ describe("Script", () => {
         });
 
         it("op_code", () => {
-            const buf = Buffer.from("0176", "hex");
-            const script = Script.parse(bufToStream(buf));
+            const sr = StreamReader.fromHex("0176");
+            const script = Script.parse(sr);
             expect(script.cmds[0]).to.equal(OpCode.OP_DUP);
         });
 
         it("op_rawpushbytes", () => {
-            const buf = Buffer.from("020100", "hex");
-            const script = Script.parse(bufToStream(buf));
+            const sr = StreamReader.fromHex("020100");
+            const script = Script.parse(sr);
             expect((script.cmds[0] as Buffer).toString("hex")).to.equal("00");
         });
 
         it("op_pushdata1", () => {
-            const buf = Buffer.from("66" + "4c64" + "00".repeat(100), "hex");
-            const script = Script.parse(bufToStream(buf));
+            const sr = StreamReader.fromHex("66" + "4c64" + "00".repeat(100));
+            const script = Script.parse(sr);
             expect((script.cmds[0] as Buffer).toString("hex")).to.equal("00".repeat(100));
         });
 
         it("op_pushdata2", () => {
-            const buf = Buffer.from("fd0301" + "4d0001" + "00".repeat(256), "hex");
-            const script = Script.parse(bufToStream(buf));
+            const sr = StreamReader.fromHex("fd0301" + "4d0001" + "00".repeat(256));
+            const script = Script.parse(sr);
             expect((script.cmds[0] as Buffer).toString("hex")).to.equal("00".repeat(256));
         });
     });
