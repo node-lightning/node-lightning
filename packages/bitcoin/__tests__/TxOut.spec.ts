@@ -1,0 +1,61 @@
+import { StreamReader } from "@node-lightning/bufio";
+import { expect } from "chai";
+import { OpCode } from "../lib/OpCodes";
+import { Script } from "../lib/Script";
+import { TxOut } from "../lib/TxOut";
+
+describe("TxOut", () => {
+    describe("#parse()", () => {
+        it("parses", () => {
+            const sr = StreamReader.fromHex(
+                "60ea00000000000017a914010101010101010101010101010101010101010187",
+            );
+            const sut = TxOut.parse(sr);
+            expect(sut.amount).to.equal(BigInt(60000));
+            expect(
+                sut.scriptPubKey.equals(
+                    new Script(OpCode.OP_HASH160, Buffer.alloc(20, 1), OpCode.OP_EQUAL),
+                ),
+            ).to.equal(true);
+        });
+    });
+
+    describe(".serialize()", () => {
+        it("serializes", () => {
+            const sut = new TxOut(
+                BigInt(60000),
+                new Script(OpCode.OP_HASH160, Buffer.alloc(20, 1), OpCode.OP_EQUAL),
+            );
+            expect(sut.serialize().toString("hex")).to.equal(
+                "60ea00000000000017a914010101010101010101010101010101010101010187",
+            );
+        });
+    });
+
+    describe(".toString()", () => {
+        it("returns a string", () => {
+            const sut = new TxOut(
+                BigInt(60000),
+                new Script(OpCode.OP_HASH160, Buffer.alloc(20, 1), OpCode.OP_EQUAL),
+            );
+            const actual = sut.toString();
+            expect(actual).to.equal(
+                'amount="60000", scriptPubKey="OP_HASH160 0101010101010101010101010101010101010101 OP_EQUAL"',
+            );
+        });
+    });
+
+    describe(".toJSON()", () => {
+        it("returns an object", () => {
+            const sut = new TxOut(
+                BigInt(60000),
+                new Script(OpCode.OP_HASH160, Buffer.alloc(20, 1), OpCode.OP_EQUAL),
+            );
+            const actual = sut.toJSON();
+            expect(actual.amount).to.equal("60000");
+            expect(actual.scriptPubKey).to.equal(
+                "OP_HASH160 0101010101010101010101010101010101010101 OP_EQUAL",
+            );
+        });
+    });
+});
