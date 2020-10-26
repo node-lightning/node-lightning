@@ -159,6 +159,26 @@ export class Script {
     }
 
     /**
+     * Returns true if other script is an exact match of the current script.
+     * This requires all data element sto be exact matches and all operations
+     * to be exact matches.
+     * @param other
+     */
+    public equals(other: Script): boolean {
+        if (this.cmds.length !== other.cmds.length) return false;
+        for (let i = 0; i < this.cmds.length; i++) {
+            const l = this.cmds[i];
+            const r = other.cmds[i];
+            if (Buffer.isBuffer(l) && Buffer.isBuffer(r)) {
+                if (!l.equals(r)) return false;
+            } else {
+                if (l !== r) return false;
+            }
+        }
+        return true;
+    }
+
+    /**
      * Returns a string with the friendly name of the opcode. For data,
      * it returns the value in hexadecimal format.
      */
