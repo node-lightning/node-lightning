@@ -1,6 +1,7 @@
 import { StreamReader } from "@node-lightning/bufio";
 import { hash160 } from "@node-lightning/crypto";
 import { expect } from "chai";
+import { Stream } from "stream";
 import { OpCode } from "../lib/OpCodes";
 import { Script } from "../lib/Script";
 
@@ -41,6 +42,66 @@ describe("Script", () => {
             const sr = StreamReader.fromHex("fd0301" + "4d0001" + "00".repeat(256));
             const script = Script.parse(sr);
             expect((script.cmds[0] as Buffer).toString("hex")).to.equal("00".repeat(256));
+        });
+    });
+
+    describe(".toString()", () => {
+        it("with opcodes", () => {
+            const script = new Script(
+                OpCode.OP_DUP,
+                OpCode.OP_HASH160,
+                Buffer.from("00".repeat(20), "hex"),
+                OpCode.OP_EQUALVERIFY,
+                OpCode.OP_CHECKSIG,
+            );
+            expect(script.toString()).to.equal(
+                "OP_DUP OP_HASH160 0000000000000000000000000000000000000000 OP_EQUALVERIFY OP_CHECKSIG",
+            );
+        });
+
+        it("with OP_PUSHBYTES", () => {
+            const script = new Script(Buffer.from("00".repeat(75), "hex"));
+            expect(script.toString()).to.equal("00".repeat(75));
+        });
+
+        it("with OP_PUSHDATA1", () => {
+            const script = new Script(Buffer.from("00".repeat(76), "hex"));
+            expect(script.toString()).to.equal("00".repeat(76));
+        });
+
+        it("with OP_PUSHDATA2", () => {
+            const script = new Script(Buffer.from("00".repeat(256), "hex"));
+            expect(script.toString()).to.equal("00".repeat(256));
+        });
+    });
+
+    describe(".toJSON()", () => {
+        it("with opcodes", () => {
+            const script = new Script(
+                OpCode.OP_DUP,
+                OpCode.OP_HASH160,
+                Buffer.from("00".repeat(20), "hex"),
+                OpCode.OP_EQUALVERIFY,
+                OpCode.OP_CHECKSIG,
+            );
+            expect(script.toJSON()).to.equal(
+                "OP_DUP OP_HASH160 0000000000000000000000000000000000000000 OP_EQUALVERIFY OP_CHECKSIG",
+            );
+        });
+
+        it("with OP_PUSHBYTES", () => {
+            const script = new Script(Buffer.from("00".repeat(75), "hex"));
+            expect(script.toJSON()).to.equal("00".repeat(75));
+        });
+
+        it("with OP_PUSHDATA1", () => {
+            const script = new Script(Buffer.from("00".repeat(76), "hex"));
+            expect(script.toJSON()).to.equal("00".repeat(76));
+        });
+
+        it("with OP_PUSHDATA2", () => {
+            const script = new Script(Buffer.from("00".repeat(256), "hex"));
+            expect(script.toJSON()).to.equal("00".repeat(256));
         });
     });
 
