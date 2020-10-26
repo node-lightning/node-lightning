@@ -85,7 +85,6 @@ export class Script {
      * @param stream
      */
     public static parse(reader: StreamReader) {
-
         // read the length
         const len = reader.readVarInt();
 

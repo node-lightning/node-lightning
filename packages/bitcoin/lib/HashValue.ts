@@ -41,7 +41,9 @@ export class HashValue {
      * Returns the hash value in RPC (reversed/big endian) order.
      */
     public toString(): string {
-        return Buffer.from(this._value).reverse().toString("hex");
+        return Buffer.from(this._value)
+            .reverse()
+            .toString("hex");
     }
 
     /**
