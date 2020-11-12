@@ -72,6 +72,16 @@ describe("StreamReader", () => {
         }
     }
 
+    describe(".unshift()", () => {
+        it("pushes read bytes back onto stream", () => {
+            const buf = Buffer.from([0, 1, 2, 3]);
+            const sr = StreamReader.fromBuffer(buf);
+            const chunk = sr.readBytes(2);
+            sr.unshift(chunk);
+            expect(sr.readBytes(4)).to.deep.equal(buf);
+        });
+    });
+
     describe("#fromBuffer()", () => {
         it("constructs from buffer", () => {
             const buf = Buffer.from([0, 1, 2, 3]);

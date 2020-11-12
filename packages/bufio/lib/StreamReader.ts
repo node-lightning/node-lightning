@@ -165,6 +165,14 @@ export class StreamReader {
         return bytes.readBigUInt64BE(0);
     }
 
+    /**
+     * Pushes bytes back on to the stream
+     * @param chunk
+     */
+    public unshift(chunk: Buffer): void {
+        this.stream.unshift(chunk);
+    }
+
     private _assertLen(val: Buffer, n: number) {
         if (val === null || val.length !== n) throw new RangeError("Out of range");
     }
