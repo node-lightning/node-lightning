@@ -60,4 +60,17 @@ describe("TxInSequence", () => {
         expect(sut.blockDelay).to.equal(144);
         expect(sut.value).to.equal(0x0000_0090);
     });
+
+    it("nLockTimeSignaled", () => {
+        expect(new TxInSequence(0xffffffff).isLockTimeSignaled).to.equal(false);
+        expect(new TxInSequence(0xfffffffe).isLockTimeSignaled).to.equal(true);
+        expect(new TxInSequence(0).isLockTimeSignaled).to.equal(true);
+    });
+
+    it("rbfSignaled", () => {
+        expect(new TxInSequence(0xffffffff).isRBFSignaled).to.equal(false);
+        expect(new TxInSequence(0xfffffffe).isRBFSignaled).to.equal(false);
+        expect(new TxInSequence(0xfffffffd).isRBFSignaled).to.equal(true);
+        expect(new TxInSequence(0).isRBFSignaled).to.equal(true);
+    });
 });

@@ -44,8 +44,26 @@ export class TxInSequence {
      * this occurs when the top-most bit is unset. This means that the
      * default value of 0xffff_ffff is unset.
      */
-    public get enabled() {
+    public get enabled(): boolean {
         return BigInt(this.value) >> 31n === 0n;
+    }
+
+    /**
+     * Returns true for a value that would enable nLockTime. To enable
+     * nLockTime, at least one input in the transaction must have a
+     * non-default nSequence value.
+     */
+    public get isLockTimeSignaled(): boolean {
+        return this.value < DEFAULT_SEQUENCE;
+    }
+
+    /**
+     * Returns true for a value that would signal opt-in replace-by-fee
+     * as defined in BIP 125. To signal this, the nSequence must be less
+     * than 0xffffffff-1.
+     */
+    public get isRBFSignaled(): boolean {
+        return this.value < DEFAULT_SEQUENCE - 1;
     }
 
     /**
