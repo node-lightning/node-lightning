@@ -1,3 +1,4 @@
+import { StreamReader } from "@node-lightning/bufio";
 import { TimeLockMode } from "./TimeLockMode";
 
 const MAX_SEQUENCE = 0xffff_ffff;
@@ -14,6 +15,14 @@ const DEFAULT_SEQUENCE = 0xffff_ffff;
  * In this condition, it is standard to use 0xffff_fffe.
  */
 export class TxInSequence {
+    /**
+     * Parses the value from a byte stream
+     * @param reader
+     */
+    public static parse(reader: StreamReader): TxInSequence {
+        return new TxInSequence(reader.readUInt32LE());
+    }
+
     /**
      * Gets or sets the raw nSequence value.
      */
@@ -114,5 +123,28 @@ export class TxInSequence {
         if (blocks < 0 || blocks > 0xffff) throw new Error("Invalid nSequence value");
 
         this.value = blocks;
+    }
+
+    /**
+     * Serializes the value to a buffer
+     */
+    public serialize(): Buffer {
+        const buf = Buffer.alloc(4);
+        buf.writeUInt32LE(this.value, 0);
+        return buf;
+    }
+
+    /**
+     * Returns the raw value as a hex encoded string, eg: 0xfffffffe
+     */
+    public toString(): string {
+        return "0x" + this.value.toString(16).padStart(8, "0");
+    }
+
+    /**
+     * Returns the raw value as a hex encoded string, eg: 0xfffffffe
+     */
+    public toJSON(): string {
+        return this.toString();
     }
 }

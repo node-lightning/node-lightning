@@ -2,6 +2,7 @@ import { BufferWriter, StreamReader } from "@node-lightning/bufio";
 import { HashValue } from "./HashValue";
 import { Script } from "./Script";
 import { ScriptCmd } from "./ScriptCmd";
+import { TxInSequence } from "./TxInSequence";
 
 export class TxIn {
     /**
@@ -12,7 +13,7 @@ export class TxIn {
         const prevTxId = HashValue.parse(reader);
         const prevTxIndex = reader.readUInt32LE();
         const scriptSig = Script.parse(reader);
-        const sequence = reader.readUInt32LE();
+        const sequence = new TxInSequence(reader.readUInt32LE());
         return new TxIn(prevTxId, prevTxIndex, scriptSig, sequence);
     }
 
@@ -36,7 +37,7 @@ export class TxIn {
      * nSequence value for the transaction. Defaults to 0xffffffff which
      * disables the absolute timelock.
      */
-    public sequence: number;
+    public sequence: TxInSequence;
 
     /**
      * Witness data that is required by the input
@@ -54,7 +55,7 @@ export class TxIn {
         prevTxId: HashValue,
         prevTxIndex: number,
         scriptSig: Script = new Script(),
-        sequence: number = 0xffffffff,
+        sequence: TxInSequence = new TxInSequence(),
     ) {
         this.prevTxId = prevTxId;
         this.prevTxIndex = prevTxIndex;
@@ -67,7 +68,7 @@ export class TxIn {
      * properties.
      */
     public toString() {
-        return `prev=${this.prevTxId.toString()}, prevIdx=${this.prevTxIndex}, scriptSig=${this.scriptSig.toString()}, sequence=${this.sequence}`; // prettier-ignore
+        return `prev=${this.prevTxId.toString()}, prevIdx=${this.prevTxIndex}, scriptSig=${this.scriptSig.toString()}, sequence=${this.sequence.toString()}`; // prettier-ignore
     }
 
     /**
@@ -79,7 +80,7 @@ export class TxIn {
             prevTxId: this.prevTxId.toJSON(),
             prevTxIndex: this.prevTxIndex,
             scriptSig: this.scriptSig.toJSON(),
-            sequence: this.sequence,
+            sequence: this.sequence.toJSON(),
         };
     }
 
@@ -91,7 +92,7 @@ export class TxIn {
         writer.writeBytes(this.prevTxId.serialize());
         writer.writeUInt32LE(this.prevTxIndex);
         writer.writeBytes(this.scriptSig.serialize());
-        writer.writeUInt32LE(this.sequence);
+        writer.writeBytes(this.sequence.serialize());
         return writer.toBuffer();
     }
 }

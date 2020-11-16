@@ -1,8 +1,40 @@
+import { StreamReader } from "@node-lightning/bufio";
 import { expect } from "chai";
 import { TimeLockMode } from "../lib/TimeLockMode";
 import { TxInSequence } from "../lib/TxInSequence";
 
 describe("TxInSequence", () => {
+    describe("#.parse()", () => {
+        it("should parse", () => {
+            const sr = StreamReader.fromHex("feffffff");
+            const sut = TxInSequence.parse(sr);
+            expect(sut.value).to.equal(0xfffffffe);
+        });
+    });
+
+    describe(".serialize()", () => {
+        it("should serialize", () => {
+            const sut = new TxInSequence(0xfffffffe);
+            expect(sut.serialize()).to.deep.equal(Buffer.from([254, 255, 255, 255]));
+        });
+    });
+
+    describe(".toString()", () => {
+        it("should print as hex", () => {
+            expect(new TxInSequence(0xfffffffe).toString()).to.equal("0xfffffffe");
+            expect(new TxInSequence(0x00400003).toString()).to.equal("0x00400003");
+            expect(new TxInSequence(0).toString()).to.equal("0x00000000");
+        });
+    });
+
+    describe(".toJSON()", () => {
+        it("should print as hex", () => {
+            expect(new TxInSequence(0xfffffffe).toJSON()).to.equal("0xfffffffe");
+            expect(new TxInSequence(0x00400003).toJSON()).to.equal("0x00400003");
+            expect(new TxInSequence(0).toJSON()).to.equal("0x00000000");
+        });
+    });
+
     it("defaults to 0xffff_ffff", () => {
         const sut = new TxInSequence();
         expect(sut.value).to.equal(0xffff_ffff);

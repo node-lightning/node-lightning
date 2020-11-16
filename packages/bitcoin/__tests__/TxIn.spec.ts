@@ -4,6 +4,7 @@ import { HashValue } from "../lib/HashValue";
 import { OpCode } from "../lib/OpCodes";
 import { Script } from "../lib/Script";
 import { TxIn } from "../lib/TxIn";
+import { TxInSequence } from "../lib/TxInSequence";
 
 describe("TxIn", () => {
     describe("#parse()", () => {
@@ -38,7 +39,7 @@ describe("TxIn", () => {
                     ),
                 ),
             );
-            expect(sut.sequence).to.equal(0xfffffffe);
+            expect(sut.sequence.value).to.equal(0xfffffffe);
         });
     });
 
@@ -60,7 +61,7 @@ describe("TxIn", () => {
                     "hex",
                 ),
             );
-            const sequence = 0xfffffffe;
+            const sequence = new TxInSequence(0xfffffffe);
             const sut = new TxIn(prevTxId, prevTxIndex, scriptSig, sequence);
             expect(sut.serialize().toString("hex")).to.equal(
                 "56919960ac691763688d3d3bcea9ad6ecaf875df5339e148a1fc61c6ed7a069e" +
@@ -81,10 +82,10 @@ describe("TxIn", () => {
             );
             const prevTxIndex = 1;
             const scriptSig = new Script(OpCode.OP_4);
-            const sequence = 0xfffffffe;
+            const sequence = new TxInSequence(0xfffffffe);
             const sut = new TxIn(prevTxId, prevTxIndex, scriptSig, sequence);
             expect(sut.toString()).to.equal(
-                "prev=9e067aedc661fca148e13953df75f8ca6eada9ce3b3d8d68631769ac60999156, prevIdx=1, scriptSig=OP_4, sequence=4294967294",
+                "prev=9e067aedc661fca148e13953df75f8ca6eada9ce3b3d8d68631769ac60999156, prevIdx=1, scriptSig=OP_4, sequence=0xfffffffe",
             );
         });
     });
@@ -98,7 +99,7 @@ describe("TxIn", () => {
             );
             const prevTxIndex = 1;
             const scriptSig = new Script(OpCode.OP_4);
-            const sequence = 0xfffffffe;
+            const sequence = new TxInSequence(0xfffffffe);
             const sut = new TxIn(prevTxId, prevTxIndex, scriptSig, sequence);
             const result = sut.toJSON();
             expect(result.prevTxId).to.equal(
@@ -106,7 +107,7 @@ describe("TxIn", () => {
             );
             expect(result.prevTxIndex).to.equal(1);
             expect(result.scriptSig).to.equal("OP_4");
-            expect(result.sequence).to.equal(4294967294);
+            expect(result.sequence).to.equal("0xfffffffe");
         });
     });
 });
