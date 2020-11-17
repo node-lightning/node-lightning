@@ -1,8 +1,8 @@
 import { BufferWriter, StreamReader } from "@node-lightning/bufio";
 import { HashValue } from "./HashValue";
 import { Script } from "./Script";
-import { ScriptCmd } from "./ScriptCmd";
 import { TxInSequence } from "./TxInSequence";
+import { Witness } from "./Witness";
 
 export class TxIn {
     /**
@@ -42,7 +42,7 @@ export class TxIn {
     /**
      * Witness data that is required by the input
      */
-    public witness: ScriptCmd[];
+    public witness: Witness[];
 
     /**
      * Constructs a new transaction input from the values
@@ -61,6 +61,7 @@ export class TxIn {
         this.prevTxIndex = prevTxIndex;
         this.scriptSig = scriptSig;
         this.sequence = sequence;
+        this.witness = [];
     }
 
     /**
