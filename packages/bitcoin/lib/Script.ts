@@ -2,7 +2,6 @@ import { bigToBufLE } from "@node-lightning/bufio";
 import { encodeVarInt } from "@node-lightning/bufio";
 import { BufferReader } from "@node-lightning/bufio";
 import { StreamReader } from "@node-lightning/bufio";
-import { Readable } from "stream";
 import { OpCode } from "./OpCodes";
 import { ScriptCmd } from "./ScriptCmd";
 
@@ -12,7 +11,7 @@ import { ScriptCmd } from "./ScriptCmd";
 export class Script {
     /**
      * Creates a standard Pay-to-Public-Key-Hash scriptPubKey by accepting a
-     * hash of a public key as input and generating the script in the standand
+     * hash of a public key as input and generating the script in the standard
      * P2PKH script format:
      *   OP_DUP OP_HASH160 <hash160pubkey> OP_EQUALVERIFY OP_CHECKSIG
      */
@@ -84,15 +83,13 @@ export class Script {
      * data blocks or op_codes depending on the meaning of the bytes
      * @param stream
      */
-    public static parse(stream: Readable) {
-        const sr = new StreamReader(stream);
-
+    public static parse(reader: StreamReader) {
         // read the length
-        const len = sr.readVarInt();
+        const len = reader.readVarInt();
 
         // read the length of bytes occupied by the script and then pass it
         // through the command parser.
-        const buf = sr.readBytes(Number(len));
+        const buf = reader.readBytes(Number(len));
         const cmds = Script.parseCmds(buf);
 
         // return the script object with the commands
@@ -115,7 +112,7 @@ export class Script {
             // read the current command from the stream
             const op = br.readUInt8();
 
-            // data range between 1-75 bytes is OP_PUSHBYTESxx and we simple
+            // data range between 1-75 bytes is OP_PUSHBYTES_xx and we simple
             // read the xx number of bytes off the script
             if (op >= 0x01 && op <= 0x4b) {
                 const n = op;
@@ -162,6 +159,49 @@ export class Script {
     }
 
     /**
+     * Returns true if other script is an exact match of the current script.
+     * This requires all data element sto be exact matches and all operations
+     * to be exact matches.
+     * @param other
+     */
+    public equals(other: Script): boolean {
+        if (this.cmds.length !== other.cmds.length) return false;
+        for (let i = 0; i < this.cmds.length; i++) {
+            const l = this.cmds[i];
+            const r = other.cmds[i];
+            if (Buffer.isBuffer(l) && Buffer.isBuffer(r)) {
+                if (!l.equals(r)) return false;
+            } else {
+                if (l !== r) return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Returns a string with the friendly name of the opcode. For data,
+     * it returns the value in hexadecimal format.
+     */
+    public toString(): string {
+        return this.cmds
+            .map(cmd => {
+                if (Buffer.isBuffer(cmd)) {
+                    return cmd.toString("hex");
+                } else {
+                    return OpCode[cmd as OpCode];
+                }
+            })
+            .join(" ");
+    }
+
+    /**
+     * Returns a JSON serialization of the Script.
+     */
+    public toJSON(): any {
+        return this.toString();
+    }
+
+    /**
      * Serializes the Script to a Buffer by serializing the cmds prefixed with
      * the overall length as a varint. Therefore the format of this method is
      * the format used when encoding a Script and is:
@@ -188,7 +228,7 @@ export class Script {
         const results: Buffer[] = [];
         for (const op of this.cmds) {
             // OP_CODES are just an integers and can just be pushed directly onto
-            // the byte array after being converted into a single byte byffer
+            // the byte array after being converted into a single byte buffer
             if (typeof op === "number") {
                 const opBuf = Buffer.from([op]);
                 results.push(opBuf);
@@ -199,7 +239,7 @@ export class Script {
             else if (op instanceof Buffer) {
                 // between 1 and 75 bytes are OP_PUSHBYTES_XX
                 // there is no op_code for these. We first need to push
-                // the length of the buffer arrray though as the operation
+                // the length of the buffer array though as the operation
                 if (op.length >= 1 && op.length <= 75) {
                     results.push(Buffer.from([op.length]));
                     results.push(op);

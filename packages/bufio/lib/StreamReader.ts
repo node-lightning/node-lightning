@@ -1,4 +1,5 @@
-import { Readable } from "stream";
+import { Readable, Stream } from "stream";
+import { bufToStream } from "./bufToStream";
 
 /**
  * Wraps a readable stream and provides utilities to assist with reading values
@@ -6,6 +7,22 @@ import { Readable } from "stream";
  * will thrown.
  */
 export class StreamReader {
+    /**
+     * Constructs a new StreamReader from the provided hex string.
+     * @param hex
+     */
+    public static fromHex(hex: string): StreamReader {
+        return StreamReader.fromBuffer(Buffer.from(hex, "hex"));
+    }
+
+    /**
+     * Constructs a new StreamReader from the provided Buffer
+     * @param buf
+     */
+    public static fromBuffer(buf: Buffer): StreamReader {
+        return new StreamReader(bufToStream(buf));
+    }
+
     constructor(readonly stream: Readable) {}
 
     /**
@@ -146,6 +163,14 @@ export class StreamReader {
     public readBigUInt64BE(): bigint {
         const bytes = this.readBytes(8);
         return bytes.readBigUInt64BE(0);
+    }
+
+    /**
+     * Pushes bytes back on to the stream
+     * @param chunk
+     */
+    public unshift(chunk: Buffer): void {
+        this.stream.unshift(chunk);
     }
 
     private _assertLen(val: Buffer, n: number) {
