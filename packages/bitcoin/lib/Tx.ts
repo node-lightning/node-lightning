@@ -1,4 +1,4 @@
-import { BufferWriter, StreamReader } from "@node-lightning/bufio";
+import { BufferWriter, StreamReader, varIntBytes } from "@node-lightning/bufio";
 import { hash256, sha256 } from "@node-lightning/crypto";
 import { write } from "fs";
 import { HashValue } from "./HashValue";
@@ -145,14 +145,17 @@ export class Tx {
     }
 
     public get size(): number {
+        if (!this._sizes) this._setCalcedProps();
         return this._sizes.size;
     }
 
     public get vsize(): number {
+        if (!this._sizes) this._setCalcedProps();
         return this._sizes.vsize;
     }
 
     public get weight(): number {
+        if (!this._sizes) this._setCalcedProps();
         return this._sizes.weight;
     }
 
@@ -271,122 +274,101 @@ export class Tx {
     }
 
     /**
-     * Decodes the size, virtual size, and weight properties from the raw
-     * transaction buffer.
+     * Calculates the size, virtual size, and weight properties from the
+     * based on the current inputs and outputs.
      *
      * `size` is the number of raw bytes.
      * `weight` is the number of witness bytes + the number of non-witness
      *   bytes multiplied by four.
      * `vsize` is the weight divided by four.
      */
-    private _calcSize(raw: Buffer): SizeResult {
-        // const cursor = new BufferReader(raw);
-        // const hasWitness = isSegWitTx(raw);
+    private _calcSize(): SizeResult {
+        const hasWitness = this.isSegWit;
 
-        // let nwBytes = 0;
-        // let wBytes = 0;
+        let standardBytes = 0;
+        let witnessBytes = 0;
 
-        // // version
-        // nwBytes += 4;
-        // cursor.position += 4;
+        // version is 4-bytes
+        standardBytes += 4;
 
-        // // witness flags
-        // if (hasWitness) {
-        //     wBytes += 2;
-        //     cursor.position += 2;
-        // }
+        // witness flags are 2 bytes
+        if (hasWitness) {
+            witnessBytes += 2;
+        }
 
-        // // number of inputs
-        // const vinLen = Number(cursor.readVarUint()); // safe to convert
-        // nwBytes += cursor.lastReadBytes;
+        // number of inputs
+        standardBytes += varIntBytes(this.inputs.length);
 
-        // for (let idx = 0; idx < vinLen; idx++) {
-        //     // prev output hash
-        //     cursor.position += 32;
-        //     nwBytes += 32;
+        // add each input
+        for (const input of this.inputs) {
+            // prev out hash
+            standardBytes += 32;
 
-        //     // prev output index
-        //     cursor.position += 4;
-        //     nwBytes += 4;
+            // prev out index
+            standardBytes += 4;
 
-        //     // script sig length
-        //     const scriptSigLen = Number(cursor.readVarUint()); // safe to convert
-        //     nwBytes += cursor.lastReadBytes;
+            // scriptSig length
+            const scriptSig = input.scriptSig.serializeCmds();
+            standardBytes += varIntBytes(scriptSig.length);
+            standardBytes += scriptSig.length;
 
-        //     // script sig
-        //     cursor.position += scriptSigLen;
-        //     nwBytes += scriptSigLen;
+            // sequence, 4-bytes
+            standardBytes += 4;
 
-        //     // seqeuence
-        //     cursor.position += 4;
-        //     nwBytes += 4;
-        // }
+            // input witness
+            if (hasWitness) {
+                // number of witness
+                witnessBytes += varIntBytes(input.witness.length);
 
-        // // number of outputs
-        // const voutLen = Number(cursor.readVarUint()); // safe to convert
-        // nwBytes += cursor.lastReadBytes;
+                // for each witness
+                for (const witness of input.witness) {
+                    witnessBytes += varIntBytes(witness.data.length);
+                    witnessBytes += witness.data.length;
+                }
+            }
+        }
 
-        // // process each output
-        // for (let idx = 0; idx < voutLen; idx++) {
-        //     // valid in sats
-        //     cursor.position += 8;
-        //     nwBytes += 8;
+        // number of outputs
+        standardBytes += varIntBytes(this.outputs.length);
 
-        //     // pubkey/redeem script len
-        //     const pubKeyScriptLen = Number(cursor.readVarUint()); // safe to convert
-        //     nwBytes += cursor.lastReadBytes;
+        // add each output
+        for (const output of this.outputs) {
+            // value
+            standardBytes += 8;
 
-        //     // pubkeyScript/redeemScript
-        //     cursor.position += pubKeyScriptLen;
-        //     nwBytes += pubKeyScriptLen;
-        // }
+            // scriptPubKey length
+            const scriptPubKey = output.scriptPubKey.serializeCmds();
+            standardBytes += varIntBytes(scriptPubKey.length);
+            standardBytes += scriptPubKey.length;
+        }
 
-        // // process witness data
-        // if (hasWitness) {
-        //     // for each input
-        //     for (let i = 0; i < vinLen; i++) {
-        //         // find how many witness components there are
-        //         const witnessItems = Number(cursor.readVarUint()); // safe to convert
-        //         wBytes += cursor.lastReadBytes;
+        // locktime
+        standardBytes += 4;
 
-        //         // read each witness component
-        //         for (let w = 0; w < witnessItems; w++) {
-        //             // read the item length
-        //             const itemLen = Number(cursor.readVarUint()); // safe to convert
-        //             wBytes += cursor.lastReadBytes;
+        // size will be the raw length of bytes
+        const size = standardBytes + witnessBytes;
 
-        //             // read the item data
-        //             cursor.position += itemLen;
-        //             wBytes += itemLen;
-        //         }
-        //     }
-        // }
+        // weight is non-witness bytes * 4 + witness bytes
+        const weight = standardBytes * 4 + witnessBytes;
 
-        // // locktime
-        // cursor.position += 4;
-        // nwBytes += 4;
+        // virtual size is weight / 4
+        // this is equivalent for non-segwit transactions
+        const vsize = Math.ceil(weight / 4);
 
-        // // size will be the raw length of bytes
-        // const size = raw.length;
-
-        // // weight is non-witness bytes * 4 + witness bytes
-        // const weight = nwBytes * 4 + wBytes;
-
-        // // virtual size is weight / 4
-        // // this is equivalent for non-segwit transactions
-        // const vsize = Math.ceil(weight / 4);
-
-        // return {
-        //     size,
-        //     vsize,
-        //     weight,
-        // };
-        throw new Error("Not implemented");
+        return {
+            size,
+            vsize,
+            weight,
+        };
     }
 
-    private _reset() {
+    private _clearCalcs() {
         this._txId = null;
         this._hash = null;
         this._sizes = null;
+    }
+
+    private _setCalcedProps() {
+        this._sizes = this._calcSize();
     }
 }

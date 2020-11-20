@@ -15,6 +15,11 @@ fa4a14d758de1c3db0c3b9ecef7efe02b5447f71f57abaa116ffffffff020000000000000000536a
             const sut = Tx.parse(reader);
             expect(sut.version).to.equal(1);
             expect(sut.locktime.value).to.equal(0);
+            // expect(sut.txId.toString()).to.equal("c3f11d1708ac20eff9137d4eadd62dd99d71ce22dc51bc51d4e5b83958d9596d"); // prettier-ignore
+            // expect(sut.hash.toString()).to.equal("c3f11d1708ac20eff9137d4eadd62dd99d71ce22dc51bc51d4e5b83958d9596d"); // prettier-ignore
+            expect(sut.size).to.equal(284);
+            expect(sut.vsize).to.equal(284);
+            expect(sut.weight).to.equal(1136);
             expect(sut.inputs.length).to.equal(1);
 
             expect(sut.inputs[0].prevTxId.toString()).to.equal("aea4e741ff1ab58b9f4c6ac21455aae0ba201c0ddf12e93458590e45d7939ed3"); // prettier-ignore
@@ -45,6 +50,11 @@ db6ffc0d3df8247bf5f202473044022079ffca5511b1a2cc59cb3a808cf85cfdd59a461ff511a4c3
             const sut = Tx.parse(reader);
             expect(sut.version).to.equal(2);
             expect(sut.locktime.value).to.equal(1892411);
+            // expect(sut.txId.toString()).to.equal("aab7beb533f774ed304ceadaea6c53ed706035f61d82e16fcd1b5e85be315b56"); // prettier-ignore
+            // expect(sut.hash.toString()).to.equal("8c6b20b7d0b07a6f88721a6ceb21286c55709f110bf41d686a59eb508bb4d33c"); // prettier-ignore
+            expect(sut.size).to.equal(245);
+            expect(sut.vsize).to.equal(164);
+            expect(sut.weight).to.equal(653);
 
             expect(sut.inputs.length).to.equal(1);
             expect(sut.inputs[0].prevTxId.toString()).to.equal("9631d4046d7f50087dd57fe3dc157bce0f318edb13ec0024eb09d78f88e58688"); // prettier-ignore
