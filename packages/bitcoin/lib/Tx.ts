@@ -1,42 +1,13 @@
 import { BufferWriter, StreamReader, varIntBytes } from "@node-lightning/bufio";
-import { hash256, sha256 } from "@node-lightning/crypto";
-import { write } from "fs";
+import { hash256 } from "@node-lightning/crypto";
 import { HashValue } from "./HashValue";
 import { Script } from "./Script";
 import { SizeResult } from "./SizeResult";
-import { decodeTx } from "./tx-decoder/decodeTx";
-import { decodeTxSize } from "./tx-decoder/decodeTxSize";
-import { TxIdResult } from "./TxIdResult";
 import { TxIn } from "./TxIn";
 import { TxInSequence } from "./TxInSequence";
 import { TxLockTime } from "./TxLockTime";
 import { TxOut } from "./TxOut";
 import { Witness } from "./Witness";
-
-// export type Tx = {
-//     txId: Buffer;
-//     hash: Buffer;
-//     version: number;
-//     size: number;
-//     vsize: number;
-//     weight: number;
-//     vin: TxIn[];
-//     vout: TxOut[];
-//     locktime: number;
-// };
-
-// export type TxIn = {
-//     txId: Buffer;
-//     vout: number;
-//     scriptSig?: Buffer;
-//     witness?: Buffer[];
-//     sequence: number;
-// };
-
-// export type TxOut = {
-//     value: bigint;
-//     pubKeyScript: Buffer;
-// };
 
 export class Tx {
     /**
@@ -109,10 +80,12 @@ export class Tx {
     }
 
     public get txId(): HashValue {
+        if (!this._txId) this._setCalcedProps();
         return this._txId;
     }
 
     public get hash(): HashValue {
+        if (!this._hash) this._setCalcedProps();
         return this._hash;
     }
 
@@ -262,14 +235,14 @@ export class Tx {
      * calculate the same as legacy transactions by performing a double
      * sha256 hash of the data minus segwit data and markers.
      */
-    private _calcTxId(): TxIdResult {
-        const txId: Buffer = hash256(this._serializeLegacy()).reverse();
+    private _calcTxId(): { txId: HashValue; hash: HashValue } {
+        const txId: Buffer = hash256(this._serializeLegacy());
         const hash: Buffer = this.isSegWit
-            ? hash256(this._serializeSegWit()).reverse()
-            : Buffer.from(txId);
+            ? hash256(this._serializeSegWit())
+            : Buffer.from(txId); // prettier-ignore
         return {
-            txId,
-            hash,
+            txId: new HashValue(txId),
+            hash: new HashValue(hash),
         };
     }
 
@@ -362,7 +335,7 @@ export class Tx {
         };
     }
 
-    private _clearCalcs() {
+    private _clearCalcProps() {
         this._txId = null;
         this._hash = null;
         this._sizes = null;
@@ -370,5 +343,8 @@ export class Tx {
 
     private _setCalcedProps() {
         this._sizes = this._calcSize();
+        const ids = this._calcTxId();
+        this._txId = ids.txId;
+        this._hash = ids.hash;
     }
 }
