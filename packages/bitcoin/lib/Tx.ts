@@ -71,6 +71,10 @@ export class Tx {
         return new Tx(version, inputs, outputs, locktime);
     }
 
+    public static fromBuffer(buf: Buffer): Tx {
+        return Tx.parse(StreamReader.fromBuffer(buf));
+    }
+
     public get version(): number {
         return this._version;
     }
