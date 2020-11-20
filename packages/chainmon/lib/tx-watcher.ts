@@ -1,4 +1,3 @@
-import { decodeTx } from "@node-lightning/bitcoin";
 import { Tx } from "@node-lightning/bitcoin";
 import { BitcoindClient } from "@node-lightning/bitcoind";
 import { EventEmitter } from "events";
@@ -51,8 +50,8 @@ export class TxWatcher extends EventEmitter {
     ////////////////////////////////////////////////////////////////
 
     private _checkOutpoints(tx: Tx) {
-        for (const vin of tx.vin) {
-            const key = `${vin.txId.toString("hex")}:${vin.vout}`;
+        for (const vin of tx.inputs) {
+            const key = `${vin.prevTxId.toString()}:${vin.prevTxIndex}`;
             const watchedOutpoint = this.watchedOutpoints.get(key);
             if (watchedOutpoint) {
                 this.watchedOutpoints.delete(key);
@@ -62,7 +61,7 @@ export class TxWatcher extends EventEmitter {
     }
 
     private _onRawTx(buf: Buffer) {
-        const tx = decodeTx(buf);
+        const tx = Tx.fromBuffer(buf);
         this.emit("tx", tx);
         this._checkOutpoints(tx);
     }
