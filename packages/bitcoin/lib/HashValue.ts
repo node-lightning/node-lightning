@@ -1,5 +1,5 @@
 import { StreamReader } from "@node-lightning/bufio";
-import { Readable } from "stream";
+import { HashByteOrder } from "./HashByteOrder";
 
 export class HashValue {
     /**
@@ -38,19 +38,23 @@ export class HashValue {
     }
 
     /**
-     * Returns the hash value in RPC (reversed/big endian) order.
+     * Returns the hash value as a hex string. Defaults to using RPC
+     * (reversed/big-endian) byte order.
      */
-    public toString(): string {
-        return Buffer.from(this._value)
-            .reverse()
-            .toString("hex");
+    public toString(byteOrder: HashByteOrder = HashByteOrder.RPC): string {
+        if (byteOrder === HashByteOrder.RPC) {
+            return Buffer.from(this._value).reverse().toString("hex"); // prettier-ignore
+        } else {
+            return Buffer.from(this._value).toString("hex");
+        }
     }
 
     /**
-     * Serializes to JSON in RPC (reversed/big endian) order.
+     * Serializes to JSON returning a hex string. Defaults to using
+     * RPC (reversed/big endian) byte order.
      */
-    public toJSON(): any {
-        return this.toString();
+    public toJSON(byteOrder?: HashByteOrder): any {
+        return this.toString(byteOrder);
     }
 
     /**
