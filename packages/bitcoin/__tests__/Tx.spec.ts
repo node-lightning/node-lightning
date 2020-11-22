@@ -219,7 +219,7 @@ db6ffc0d3df8247bf5f202473044022079ffca5511b1a2cc59cb3a808cf85cfdd59a461ff511a4c3
                 const result = Tx.parse(StreamReader.fromHex(input));
                 expect(result.version).to.equal(expected.version);
                 expect(result.txId.toString()).to.equal(expected.txid);
-                expect(result.hash.toString()).to.equal(expected.hash);
+                expect(result.witnessTxId.toString()).to.equal(expected.hash);
                 expect(result.size).to.equal(expected.size);
                 expect(result.vsize).to.equal(expected.vsize);
                 expect(result.weight).to.equal(expected.weight);

@@ -71,10 +71,20 @@ export class Tx {
         return new Tx(version, inputs, outputs, locktime);
     }
 
+    /**
+     * Parses a transaction from a buffer that contains the fully
+     * serialization transaction bytes.
+     * @param buf
+     */
     public static fromBuffer(buf: Buffer): Tx {
         return Tx.parse(StreamReader.fromBuffer(buf));
     }
 
+    /**
+     * Get or set the transaction version. The transaction version
+     * corresponds to features that are enabled for the transaction such
+     * as time locks.
+     */
     public get version(): number {
         return this._version;
     }
@@ -83,14 +93,31 @@ export class Tx {
         this._version = val;
     }
 
+    /**
+     * Gets the transaction identifier. The `txId` for both legacy and
+     * segwit transaction is the hash256 of
+     * `hash256(version||inputs||ouputs||locktime)`.
+     */
     public get txId(): HashValue {
         if (!this._txId) this._setCalcedProps();
         return this._txId;
     }
 
-    public get hash(): HashValue {
-        if (!this._hash) this._setCalcedProps();
-        return this._hash;
+    /**
+     * Gets the transaction segwit transaction identifier. For legacy
+     * transaction this is the same as the `txId` property. For segwit
+     * transaction this is the hash256 of
+     * `hash256(version||0x0001||inputs||outputs||witness||locktime)`.
+     *
+     * This is the same value as the `hash` property in bitcoind RPC
+     * results.
+     *
+     * Internally this value uses natural byte order. It can be
+     * displayed
+     */
+    public get witnessTxId(): HashValue {
+        if (!this._wtxid) this._setCalcedProps();
+        return this._wtxid;
     }
 
     public get inputs(): TxIn[] {
@@ -138,7 +165,7 @@ export class Tx {
 
     private _version: number;
     private _txId: HashValue;
-    private _hash: HashValue;
+    private _wtxid: HashValue;
     private _inputs: TxIn[];
     private _outputs: TxOut[];
     private _locktime: TxLockTime;
@@ -341,7 +368,7 @@ export class Tx {
 
     private _clearCalcProps() {
         this._txId = null;
-        this._hash = null;
+        this._wtxid = null;
         this._sizes = null;
     }
 
@@ -349,6 +376,6 @@ export class Tx {
         this._sizes = this._calcSize();
         const ids = this._calcTxId();
         this._txId = ids.txId;
-        this._hash = ids.hash;
+        this._wtxid = ids.hash;
     }
 }
