@@ -1,5 +1,6 @@
 import { BufferWriter, StreamReader } from "@node-lightning/bufio";
 import { Script } from "./Script";
+import { Value } from "./Value";
 
 export class TxOut {
     /**
@@ -7,17 +8,17 @@ export class TxOut {
      * @param reader
      */
     public static parse(reader: StreamReader): TxOut {
-        const amount = reader.readBigUInt64LE();
+        const value = Value.fromSats(reader.readBigUInt64LE());
         const scriptPubKey = Script.parse(reader);
-        return new TxOut(amount, scriptPubKey);
+        return new TxOut(value, scriptPubKey);
     }
 
     /**
-     * Amount in satoshis that will be locked into the output using the
-     * provided scriptPubKey. The combined outputs must be lte the
-     * combined input value for in transaction.
+     * Value (often in satoshi or bitcoin) that will be locked into the
+     * output using the provided scriptPubKey. The combined outputs must
+     * be lte the combined input value for in transaction.
      */
-    public amount: bigint;
+    public value: Value;
 
     /**
      * The locking script used to encumbered the value in the output.
@@ -29,11 +30,11 @@ export class TxOut {
 
     /**
      * Constructs a new TxOut from the supplied arguments
-     * @param amount
+     * @param value
      * @param scriptPubKey
      */
-    constructor(amount: bigint, scriptPubKey: Script) {
-        this.amount = amount;
+    constructor(value: Value, scriptPubKey: Script) {
+        this.value = value;
         this.scriptPubKey = scriptPubKey;
     }
 
@@ -41,7 +42,7 @@ export class TxOut {
      * Returns the TxOut as a string
      */
     public toString() {
-        return `amount="${this.amount}", scriptPubKey="${this.scriptPubKey}"`;
+        return `value="${this.value.sats}", scriptPubKey="${this.scriptPubKey}"`;
     }
 
     /**
@@ -49,7 +50,7 @@ export class TxOut {
      */
     public toJSON() {
         return {
-            amount: this.amount.toString(),
+            value: this.value.sats.toString(),
             scriptPubKey: this.scriptPubKey.toJSON(),
         };
     }
@@ -59,7 +60,7 @@ export class TxOut {
      */
     public serialize(): Buffer {
         const writer = new BufferWriter();
-        writer.writeUInt64LE(this.amount);
+        writer.writeUInt64LE(this.value.sats);
         writer.writeBytes(this.scriptPubKey.serialize());
         return writer.toBuffer();
     }

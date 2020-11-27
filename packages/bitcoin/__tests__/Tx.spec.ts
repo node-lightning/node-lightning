@@ -242,7 +242,7 @@ db6ffc0d3df8247bf5f202473044022079ffca5511b1a2cc59cb3a808cf85cfdd59a461ff511a4c3
                 expect(result.outputs.length).to.equal(expected.vout.length);
                 for (let i = 0; i < result.outputs.length; i++) {
                     const vout = result.outputs[i];
-                    expect(Number(vout.amount)).to.equal(expected.vout[i].value * 10 ** 8);
+                    expect(Number(vout.value.bitcoin)).to.equal(expected.vout[i].value);
                     expect(vout.scriptPubKey.toString()).to.equal(
                         expected.vout[i].scriptPubKey.asm,
                     );

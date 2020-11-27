@@ -7,6 +7,7 @@ import { TxIn } from "./TxIn";
 import { TxInSequence } from "./TxInSequence";
 import { TxLockTime } from "./TxLockTime";
 import { TxOut } from "./TxOut";
+import { Value } from "./Value";
 import { Witness } from "./Witness";
 
 export class Tx {
@@ -46,7 +47,7 @@ export class Tx {
         const outputs: TxOut[] = [];
         for (let idx = 0; idx < voutLen; idx++) {
             outputs.push(new TxOut(
-                reader.readBigUInt64LE(),
+                Value.fromSats(reader.readBigUInt64LE()),
                 Script.parse(reader),
             )); // prettier-ignore
         }
