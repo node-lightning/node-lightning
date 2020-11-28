@@ -3,17 +3,6 @@ import { HashByteOrder } from "./HashByteOrder";
 
 export class HashValue {
     /**
-     * Parses a hashed value in RPC byte order (which is the reverse) of
-     * the natural or internal byte order. This is often referred to as
-     * big-endian due to the reversed block target being big-endian.
-     * @param stream
-     */
-    public static parseRpcOrder(reader: StreamReader): HashValue {
-        const value = reader.readBytes(32).reverse();
-        return new HashValue(value);
-    }
-
-    /**
      * Parses a hashed value in internal byte order. This is often
      * referred to as little-endian due to the block target needing to
      * be reversed.
@@ -21,6 +10,28 @@ export class HashValue {
      */
     public static parse(reader: StreamReader): HashValue {
         return new HashValue(reader.readBytes(32));
+    }
+
+    /**
+     * Parses a hashed value in RPC byte order (which is the reverse) of
+     * the natural or internal byte order. This is often referred to as
+     * big-endian due to the reversed block target being big-endian.
+     * @param stream
+     */
+    public static fromRpcStream(reader: StreamReader): HashValue {
+        const value = reader.readBytes(32).reverse();
+        return new HashValue(value);
+    }
+
+    /**
+     * Parses a hashed value in RPC byte order (which is the reverse) of
+     * the natural or internal byte order. This is often referred to as
+     * big-endian due to the reversed block target being big-endian.
+     * @param value
+     */
+    public static fromRpc(value: string): HashValue {
+        const reader = StreamReader.fromHex(value);
+        return this.fromRpcStream(reader);
     }
 
     /**
