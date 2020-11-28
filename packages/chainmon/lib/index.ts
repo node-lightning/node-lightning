@@ -1,2 +1,1 @@
-export * from "./outpoint";
-export * from "./tx-watcher";
+export * from "./TxWatcher";

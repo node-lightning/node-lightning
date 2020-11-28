@@ -1,5 +1,3 @@
-import { SatoshiType } from "./SatoshiType";
-
 /**
  * Represents bitcoin value that can be converted to or from multiple
  * formats.
