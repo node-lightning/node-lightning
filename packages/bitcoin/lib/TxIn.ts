@@ -1,5 +1,6 @@
 import { BufferWriter, StreamReader } from "@node-lightning/bufio";
 import { HashValue } from "./HashValue";
+import { OutPoint } from "./OutPoint";
 import { Script } from "./Script";
 import { TxInSequence } from "./TxInSequence";
 import { Witness } from "./Witness";
@@ -10,23 +11,16 @@ export class TxIn {
      * @param stream
      */
     public static parse(reader: StreamReader): TxIn {
-        const prevTxId = HashValue.parse(reader);
-        const prevTxIndex = reader.readUInt32LE();
+        const outpoint = OutPoint.parse(reader);
         const scriptSig = Script.parse(reader);
         const sequence = new TxInSequence(reader.readUInt32LE());
-        return new TxIn(prevTxId, prevTxIndex, scriptSig, sequence);
+        return new TxIn(outpoint, scriptSig, sequence);
     }
 
     /**
-     * The identifier for the previous transaction that the input spends
-     * from.
+     * The previous transaction output tuple
      */
-    public prevTxId: HashValue;
-
-    /**
-     * The index of the previous transaction that the input spends from.
-     */
-    public prevTxIndex: number;
+    public outpoint: OutPoint;
 
     /**
      * ScriptSig for the input
@@ -46,19 +40,16 @@ export class TxIn {
 
     /**
      * Constructs a new transaction input from the values
-     * @param prevTxId
-     * @param prevTxIndex
+     * @param outpoint
      * @param scriptSig
      * @param sequence
      */
     constructor(
-        prevTxId: HashValue,
-        prevTxIndex: number,
+        outpoint: OutPoint,
         scriptSig: Script = new Script(),
         sequence: TxInSequence = new TxInSequence(),
     ) {
-        this.prevTxId = prevTxId;
-        this.prevTxIndex = prevTxIndex;
+        this.outpoint = outpoint;
         this.scriptSig = scriptSig;
         this.sequence = sequence;
         this.witness = [];
@@ -69,7 +60,7 @@ export class TxIn {
      * properties.
      */
     public toString() {
-        return `prev=${this.prevTxId.toString()}, prevIdx=${this.prevTxIndex}, scriptSig=${this.scriptSig.toString()}, sequence=${this.sequence.toString()}`; // prettier-ignore
+        return `prev=${this.outpoint.toString()}, scriptSig=${this.scriptSig.toString()}, sequence=${this.sequence.toString()}`; // prettier-ignore
     }
 
     /**
@@ -78,8 +69,7 @@ export class TxIn {
      */
     public toJSON() {
         return {
-            prevTxId: this.prevTxId.toJSON(),
-            prevTxIndex: this.prevTxIndex,
+            outpoint: this.outpoint.toJSON(),
             scriptSig: this.scriptSig.toJSON(),
             sequence: this.sequence.toJSON(),
         };
@@ -90,8 +80,7 @@ export class TxIn {
      */
     public serialize(): Buffer {
         const writer = new BufferWriter();
-        writer.writeBytes(this.prevTxId.serialize());
-        writer.writeUInt32LE(this.prevTxIndex);
+        writer.writeBytes(this.outpoint.serialize());
         writer.writeBytes(this.scriptSig.serialize());
         writer.writeBytes(this.sequence.serialize());
         return writer.toBuffer();

@@ -1,6 +1,7 @@
 import { BufferWriter, StreamReader, varIntBytes } from "@node-lightning/bufio";
 import { hash256 } from "@node-lightning/crypto";
 import { HashValue } from "./HashValue";
+import { OutPoint } from "./OutPoint";
 import { Script } from "./Script";
 import { SizeResult } from "./SizeResult";
 import { TxIn } from "./TxIn";
@@ -33,12 +34,7 @@ export class Tx {
         const inputs: TxIn[] = [];
         for (let idx = 0; idx < vinLen; idx++) {
             inputs.push(
-                new TxIn(
-                    HashValue.parse(reader),
-                    reader.readUInt32LE(),
-                    Script.parse(reader),
-                    TxInSequence.parse(reader),
-                ),
+                new TxIn(OutPoint.parse(reader), Script.parse(reader), TxInSequence.parse(reader)),
             );
         }
 

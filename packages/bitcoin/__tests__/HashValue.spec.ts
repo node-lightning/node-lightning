@@ -8,13 +8,13 @@ describe("HashValue", () => {
             const sr = StreamReader.fromHex(
                 "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce2",
             );
-            expect(() => HashValue.parseRpcOrder(sr)).to.throw();
+            expect(() => HashValue.fromRpcStream(sr)).to.throw();
         });
         it("parses value", () => {
             const sr = StreamReader.fromHex(
                 "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f",
             );
-            const val = HashValue.parseRpcOrder(sr);
+            const val = HashValue.fromRpcStream(sr);
             expect(val.toString()).to.equal(
                 "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f",
             );

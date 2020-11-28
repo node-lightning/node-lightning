@@ -1,5 +1,6 @@
 import { StreamReader } from "@node-lightning/bufio";
 import { expect } from "chai";
+import { HashByteOrder } from "../lib/HashByteOrder";
 import { Tx } from "../lib/Tx";
 
 describe("Tx", () => {
@@ -226,8 +227,8 @@ db6ffc0d3df8247bf5f202473044022079ffca5511b1a2cc59cb3a808cf85cfdd59a461ff511a4c3
                 expect(result.inputs.length).to.equal(expected.vin.length);
                 for (let i = 0; i < result.inputs.length; i++) {
                     const vin = result.inputs[i];
-                    expect(vin.prevTxId.toString()).to.equal(expected.vin[i].txid);
-                    expect(vin.prevTxIndex).to.equal(expected.vin[i].vout);
+                    expect(vin.outpoint.txid.toString(HashByteOrder.RPC)).to.equal(expected.vin[i].txid); // prettier-ignore
+                    expect(vin.outpoint.outputIndex).to.equal(expected.vin[i].vout);
                     expect(vin.scriptSig.toString()).to.equal(expected.vin[i].scriptSig.asm);
                     expect(vin.sequence.value).to.equal(expected.vin[i].sequence);
                     if (expected.vin[i].txinwitness) {
