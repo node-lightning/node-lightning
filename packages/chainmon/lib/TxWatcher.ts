@@ -1,13 +1,12 @@
-import { Tx } from "@node-lightning/bitcoin";
+import { OutPoint, Tx } from "@node-lightning/bitcoin";
 import { BitcoindClient } from "@node-lightning/bitcoind";
 import { EventEmitter } from "events";
-import { Outpoint } from "./outpoint";
 
 export class TxWatcher extends EventEmitter {
     /**
      * Outpoints that are being watched
      */
-    public watchedOutpoints: Map<string, Outpoint>;
+    public watchedOutPoints: Map<string, OutPoint>;
 
     private _client: BitcoindClient;
 
@@ -20,7 +19,7 @@ export class TxWatcher extends EventEmitter {
     constructor(client: BitcoindClient) {
         super();
         this._client = client;
-        this.watchedOutpoints = new Map<string, Outpoint>();
+        this.watchedOutPoints = new Map<string, OutPoint>();
     }
 
     /**
@@ -42,19 +41,19 @@ export class TxWatcher extends EventEmitter {
      * Watches an outpoint for broadcase in a new transaction
      * @param outpoint
      */
-    public watchOutpoint(outpoint: Outpoint) {
+    public watchOutpoint(outpoint: OutPoint) {
         const key = outpoint.toString();
-        this.watchedOutpoints.set(key, outpoint);
+        this.watchedOutPoints.set(key, outpoint);
     }
 
     ////////////////////////////////////////////////////////////////
 
     private _checkOutpoints(tx: Tx) {
         for (const vin of tx.inputs) {
-            const key = `${vin.prevTxId.toString()}:${vin.prevTxIndex}`;
-            const watchedOutpoint = this.watchedOutpoints.get(key);
+            const key = vin.outpoint.toString();
+            const watchedOutpoint = this.watchedOutPoints.get(key);
             if (watchedOutpoint) {
-                this.watchedOutpoints.delete(key);
+                this.watchedOutPoints.delete(key);
                 this.emit("outpointspent", tx, watchedOutpoint);
             }
         }
