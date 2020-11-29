@@ -1,8 +1,14 @@
 {
   "extends": "tslint:recommended",
   "rules": {
-    "arrow-parens": [true, "ban-single-arg-parens"],
-    "curly": [true, "ignore-same-line"],
+    "arrow-parens": [
+      true,
+      "ban-single-arg-parens"
+    ],
+    "curly": [
+      true,
+      "ignore-same-line"
+    ],
     "interface-over-type-literal": false,
     "max-line-length": false,
     "no-bitwise": false,
@@ -11,13 +17,13 @@
     "one-line": false,
     "prefer-for-of": false,
     "radix": false,
-    "unified-signatures":false,
+    "unified-signatures": false,
+    "trailing-comma": true,
     "variable-name": {
       "options": [
         "allow-leading-underscore"
       ]
     }
   },
-  "jsRules": {
-  }
+  "jsRules": {}
 }
