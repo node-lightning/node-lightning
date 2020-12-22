@@ -11,11 +11,16 @@ import { TxOut } from "./TxOut";
 import { Value } from "./Value";
 import { Witness } from "./Witness";
 
+/**
+ * This class is an immutable Bitcoin transaction. This class is used
+ * as a data container from parsed blocks, RPC, or other sources. To use
+ * a mutable transaction, you should use `TxBuilder` class.
+ */
 export class Tx {
     /**
      * Parses a transaction from its byte format in a stream. Capable of
      * parsing both legacy and segwit transactions. Size and ID
-     * calculation are performed in a lazy loaded way.
+     * are calculated lazily.
      * @param reader
      */
     public static parse(reader: StreamReader): Tx {
@@ -78,16 +83,12 @@ export class Tx {
     }
 
     /**
-     * Get or set the transaction version. The transaction version
-     * corresponds to features that are enabled for the transaction such
-     * as time locks.
+     * Get the transaction version. The transaction version corresponds
+     * to features that are enabled for the transaction such as time
+     * locks.
      */
     public get version(): number {
         return this._version;
-    }
-
-    public set version(val: number) {
-        this._version = val;
     }
 
     /**
@@ -96,7 +97,7 @@ export class Tx {
      * `hash256(version||inputs||ouputs||locktime)`.
      */
     public get txId(): HashValue {
-        if (!this._txId) this._setCalcedProps();
+        if (!this._txId) this._lazyCalc();
         return this._txId;
     }
 
@@ -108,37 +109,32 @@ export class Tx {
      *
      * This is the same value as the `hash` property in bitcoind RPC
      * results.
-     *
-     * Internally this value uses natural byte order. It can be
-     * displayed
      */
     public get witnessTxId(): HashValue {
-        if (!this._wtxid) this._setCalcedProps();
+        if (!this._wtxid) this._lazyCalc();
         return this._wtxid;
     }
 
+    /**
+     * Gets the transaction inputs.
+     */
     public get inputs(): TxIn[] {
         return this._inputs;
     }
 
-    public set inputs(val: TxIn[]) {
-        this._inputs = val;
-    }
-
+    /**
+     * Gets the transaction outputs
+     */
     public get outputs(): TxOut[] {
         return this._outputs;
     }
 
-    public set outputs(val: TxOut[]) {
-        this._outputs = val;
-    }
-
+    /**
+     * Gets the transaction `nLocktime` value that is used to control
+     * absolute timelocks.
+     */
     public get locktime(): TxLockTime {
         return this._locktime;
-    }
-
-    public set locktime(val: TxLockTime) {
-        this._locktime = val;
     }
 
     public get isSegWit(): boolean {
@@ -146,17 +142,17 @@ export class Tx {
     }
 
     public get size(): number {
-        if (!this._sizes) this._setCalcedProps();
+        if (!this._sizes) this._lazyCalc();
         return this._sizes.size;
     }
 
     public get vsize(): number {
-        if (!this._sizes) this._setCalcedProps();
+        if (!this._sizes) this._lazyCalc();
         return this._sizes.vsize;
     }
 
     public get weight(): number {
-        if (!this._sizes) this._setCalcedProps();
+        if (!this._sizes) this._lazyCalc();
         return this._sizes.weight;
     }
 
@@ -363,13 +359,7 @@ export class Tx {
         };
     }
 
-    private _clearCalcProps() {
-        this._txId = null;
-        this._wtxid = null;
-        this._sizes = null;
-    }
-
-    private _setCalcedProps() {
+    private _lazyCalc() {
         this._sizes = this._calcSize();
         const ids = this._calcTxId();
         this._txId = ids.txId;
