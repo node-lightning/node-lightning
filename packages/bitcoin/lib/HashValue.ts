@@ -71,7 +71,11 @@ export class HashValue {
     /**
      * Serializes the hash value into an internal-byte order Buffer
      */
-    public serialize(): Buffer {
-        return Buffer.from(this._value);
+    public serialize(byteOrder: HashByteOrder = HashByteOrder.Internal): Buffer {
+        if (byteOrder === HashByteOrder.Internal) {
+            return Buffer.from(this._value);
+        } else {
+            return Buffer.from(this._value).reverse();
+        }
     }
 }

@@ -1,5 +1,6 @@
 import { StreamReader } from "@node-lightning/bufio";
 import { expect } from "chai";
+import { HashByteOrder } from "../lib/HashByteOrder";
 import { HashValue } from "../lib/HashValue";
 
 describe("HashValue", () => {
@@ -77,6 +78,17 @@ describe("HashValue", () => {
             );
             expect(val.serialize().toString("hex")).to.equal(
                 "6fe28c0ab6f1b372c1a6a246ae63f74f931e8365e15a089c68d6190000000000",
+            );
+        });
+        it("serializes to RPC byte order", () => {
+            const val = new HashValue(
+                Buffer.from(
+                    "6fe28c0ab6f1b372c1a6a246ae63f74f931e8365e15a089c68d6190000000000",
+                    "hex",
+                ),
+            );
+            expect(val.serialize(HashByteOrder.RPC).toString("hex")).to.equal(
+                "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f",
             );
         });
     });
