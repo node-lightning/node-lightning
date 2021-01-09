@@ -19,7 +19,8 @@ export class OutPoint {
 
     /**
      * Creates an OutPoint instance from an Outpoint serialized
-     * to the standard string of "<txid>:<vout>"
+     * to the standard string of "txid:vout" where the txid is in RPC
+     * (reversed) byte order
      */
     public static fromString(text: string): OutPoint {
         const parts = text.match(/([0-9a-f]{64,64}):(\d+)/i);
