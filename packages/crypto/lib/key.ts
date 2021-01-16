@@ -46,5 +46,5 @@ export function createPrivateKey(): Buffer {
  * 65-byte buffer for uncompressed
  */
 export function getPublicKey(privKey: Buffer, compressed = true): Buffer {
-    return secp256k1.publicKeyCreate(privKey, compressed);
+    return Buffer.from(secp256k1.publicKeyCreate(privKey, compressed));
 }
