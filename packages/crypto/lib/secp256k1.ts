@@ -24,3 +24,39 @@ export function ecdh(publicKey: Buffer, privateKey: Buffer): Buffer {
 export function privateKeyMul(secret: Buffer, tweak: Buffer): Buffer {
     return Buffer.from(secp256k1.privateKeyTweakMul(secret, tweak));
 }
+
+/**
+ * Create an ECDSA signature for the 32-byte message using the private
+ * key. This method returns the normalized low-s version of the signature
+ * as a 64-byte Buffer (r,s) values.
+ * @param msg 32-byte message
+ * @param privateKey 32-byte secp256k1 private key
+ * @returns signatures as 64-byte buffer with (r,s) pair
+ */
+export function sign(msg: Buffer, privateKey: Buffer): Buffer {
+    const { signature } = secp256k1.ecdsaSign(msg, privateKey);
+    const lowS = secp256k1.signatureNormalize(signature);
+    return Buffer.from(lowS);
+}
+
+/**
+ * Encodes a signature into a DER encoding. This encoding is 8-73 bytes
+ * in length depending on the length of the s value in the signature.
+ * @param sig 64-byte buffer containing (r, s)
+ */
+export function sigToDER(sig: Buffer): Buffer {
+    return Buffer.from(secp256k1.signatureExport(sig));
+}
+
+/**
+ * Verifies an ECDSA signature and returns true or false
+ * if the signatures is valid.
+ *
+ * @param msg 32-byte message (256 hash or message)
+ * @param sig 64-byte
+ * @param pubkey 33-byte compressed pubkey
+ * @returns true when signature is valid
+ */
+export function verifySig(msg: Buffer, sig: Buffer, pubkey: Buffer): boolean {
+    return secp256k1.ecdsaVerify(sig, msg, pubkey);
+}

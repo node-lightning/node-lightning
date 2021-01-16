@@ -3,49 +3,29 @@ import * as key from "../lib/key";
 import * as s256 from "../lib/secp256k1";
 
 describe("secp256k1", () => {
-    describe(".pointAdd()", () => {
-        it("point addition", () => {
-            const s1 = Buffer.alloc(32, 1);
-            const p1 = key.getPublicKey(s1, true);
+    describe(".ecdh()", () => {
+        it("one way", () => {
+            const apriv = Buffer.alloc(32, 1);
+            const bpriv = Buffer.alloc(32, 2);
+            const apub = key.getPublicKey(apriv);
+            const point = s256.ecdh(apub, bpriv);
+            expect(point.toString("hex")).to.equal(
+                "b7c99dee100e6844572a8d9ee91975af09e602491d4ba32f6781261cd9c99173",
+            );
+        });
 
-            const s2 = Buffer.alloc(32, 2);
-            const p2 = key.getPublicKey(s2, true);
-
-            const p3 = s256.pointAdd([p1, p2], true);
-            expect(p3.toString("hex")).to.equal(
-                "02531fe6068134503d2723133227c867ac8fa6c83c537e9a44c3c5bdbdcb1fe337",
+        it("other way", () => {
+            const apriv = Buffer.alloc(32, 1);
+            const bpriv = Buffer.alloc(32, 2);
+            const bpub = key.getPublicKey(bpriv);
+            const point = s256.ecdh(bpub, apriv);
+            expect(point.toString("hex")).to.equal(
+                "b7c99dee100e6844572a8d9ee91975af09e602491d4ba32f6781261cd9c99173",
             );
         });
     });
 
-    describe(".scalarMul()", () => {
-        it("scalar multply", () => {
-            const s1 = Buffer.alloc(32, 1);
-            const p1 = key.getPublicKey(s1, true);
-
-            const scalar = Buffer.alloc(32);
-            scalar[0] = 1;
-
-            const p3 = s256.scalarMul(p1, scalar, true);
-            expect(p3.toString("hex")).to.equal(
-                "02e116903cfc4d471d4b6662098264ee0334f5f3e08db330cd2380dd9e7d51bab1",
-            );
-        });
-    });
-
-    describe(".privateKeyAdd", () => {
-        it("adds", () => {
-            const s1 = Buffer.alloc(32, 1);
-            const tweak = Buffer.alloc(32);
-            tweak[0] = 1;
-            const s2 = s256.privateKeyAdd(s1, tweak);
-            expect(s2.toString("hex")).to.equal(
-                "0201010101010101010101010101010101010101010101010101010101010101",
-            );
-        });
-    });
-
-    describe(".privateKeyMul", () => {
+    describe(".privateKeyMul()", () => {
         it("multiplies", () => {
             const s1 = Buffer.alloc(32, 1);
             const tweak = Buffer.alloc(32);
@@ -54,6 +34,44 @@ describe("secp256k1", () => {
             expect(s2.toString("hex")).to.equal(
                 "0202020202020202020202020202020202020202020202020202020202020202",
             );
+        });
+    });
+
+    describe(".sign()", () => {
+        it("signs message", () => {
+            const priv = Buffer.alloc(32, 1);
+            const msg = Buffer.alloc(32);
+            const signature = s256.sign(msg, priv);
+            expect(signature.toString("hex")).to.equal(
+                "6734cb4e3c071082482bf0f8579484f28dcdb1ca15b0cce72fbf130b2673d00c5fbeecc4075cfd6a52634210486f24ce6db20f2870e606acc43ade814d48394a",
+            );
+        });
+    });
+
+    describe(".sigToDER()", () => {
+        it("DER encodes the signature", () => {
+            const sig = Buffer.from(
+                "6734cb4e3c071082482bf0f8579484f28dcdb1ca15b0cce72fbf130b2673d00c5fbeecc4075cfd6a52634210486f24ce6db20f2870e606acc43ade814d48394a",
+                "hex",
+            );
+            const der = s256.sigToDER(sig);
+            expect(der.toString("hex")).to.equal(
+                "304402206734cb4e3c071082482bf0f8579484f28dcdb1ca15b0cce72fbf130b2673d00c02205fbeecc4075cfd6a52634210486f24ce6db20f2870e606acc43ade814d48394a",
+            );
+        });
+    });
+
+    describe(".verifySig()", () => {
+        it("verifies message", () => {
+            const msg = Buffer.alloc(32);
+            const sig = Buffer.from(
+                "6734cb4e3c071082482bf0f8579484f28dcdb1ca15b0cce72fbf130b2673d00c5fbeecc4075cfd6a52634210486f24ce6db20f2870e606acc43ade814d48394a",
+                "hex",
+            );
+            const priv = Buffer.alloc(32, 1);
+            const pub = key.getPublicKey(priv);
+            const result = s256.verifySig(msg, sig, pub);
+            expect(result).to.equal(true);
         });
     });
 });
