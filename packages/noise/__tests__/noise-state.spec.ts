@@ -164,9 +164,7 @@ describe("NoiseState", () => {
                     "0004466d7fcae563e5cb09a0d1870bb580344804617879a14949cf22285f1bae3f276e2470b93aac583c9ef6eafca3f730ae",
                     "hex",
                 );
-                expect(() => sut.initiatorAct2(input)).to.throw(
-                    "the public key could not be parsed or is invalid",
-                );
+                expect(() => sut.initiatorAct2(input)).to.throw();
             });
 
             it("transport-initiator act2 bad MAC test", () => {
@@ -364,9 +362,7 @@ describe("NoiseState", () => {
                     "00046360e856310ce5d294e8be33fc807077dc56ac80d95d9cd4ddbd21325eff73f70df6086551151f58b8afe6c195782c6a",
                     "hex",
                 );
-                expect(() => sut.receiveAct1(input)).to.throw(
-                    "the public key could not be parsed or is invalid",
-                );
+                expect(() => sut.receiveAct1(input)).to.throw();
             });
 
             it("transport-responder act1 bad MAC test", () => {
@@ -451,7 +447,7 @@ describe("NoiseState", () => {
                             "hex",
                         ),
                     ),
-                ).to.throw("the public key could not be parsed or is invalid");
+                ).to.throw();
             });
 
             it("transport-responder act3 bad MAC test", () => {
