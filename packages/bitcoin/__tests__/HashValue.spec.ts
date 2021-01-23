@@ -92,4 +92,13 @@ describe("HashValue", () => {
             );
         });
     });
+
+    describe(".clone()", () => {
+        it("performs deep copy", () => {
+            const a = new HashValue(Buffer.alloc(32, 0x01));
+            const b = a.clone();
+            expect(a).to.not.equal(b);
+            expect((a as any)._value).to.not.equal((b as any)._value);
+        });
+    });
 });

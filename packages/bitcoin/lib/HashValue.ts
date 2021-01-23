@@ -1,7 +1,8 @@
 import { StreamReader } from "@node-lightning/bufio";
 import { HashByteOrder } from "./HashByteOrder";
+import { ICloneable } from "./ICloneable";
 
-export class HashValue {
+export class HashValue implements ICloneable<HashValue> {
     /**
      * Parses a hashed value in internal byte order. This is often
      * referred to as little-endian due to the block target needing to
@@ -77,5 +78,12 @@ export class HashValue {
         } else {
             return Buffer.from(this._value).reverse();
         }
+    }
+
+    /**
+     * Deep copy clone
+     */
+    public clone(): HashValue {
+        return new HashValue(Buffer.from(this._value));
     }
 }
