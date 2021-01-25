@@ -30,4 +30,15 @@ describe("OutPoint", () => {
             );
         });
     });
+
+    describe(".clone()", () => {
+        it("should deep copy", () => {
+            const a = new OutPoint(hashValue, 0);
+            const b = a.clone();
+            expect(a).to.not.equal(b);
+            expect(a.txid).to.not.equal(b.txid);
+            expect(a.txid.toString()).to.equal(b.txid.toString());
+            expect(a.outputIndex).to.equal(b.outputIndex);
+        });
+    });
 });

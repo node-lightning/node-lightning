@@ -1,12 +1,13 @@
 import { BufferWriter, StreamReader } from "@node-lightning/bufio";
 import { HashByteOrder } from "./HashByteOrder";
 import { HashValue } from "./HashValue";
+import { ICloneable } from "./ICloneable";
 
 /**
  * A tuple defining a transaction output which contains the transaction
  * identifier and the output index.
  */
-export class OutPoint {
+export class OutPoint implements ICloneable<OutPoint> {
     /**
      * Creates an OutPoint from a byte stream.
      * @param reader
@@ -78,5 +79,12 @@ export class OutPoint {
         writer.writeBytes(this.txid.serialize());
         writer.writeUInt32LE(this.outputIndex);
         return writer.toBuffer();
+    }
+
+    /**
+     * Clones by performing deep copy
+     */
+    public clone(): OutPoint {
+        return new OutPoint(this.txid.clone(), this.outputIndex);
     }
 }
