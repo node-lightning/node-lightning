@@ -194,6 +194,21 @@ describe("Script", () => {
             );
         });
     });
+
+    describe(".clone()", () => {
+        it("clones via deep copy", () => {
+            const a = new Script(Buffer.alloc(20, 0x01), OpCode.OP_EQUAL);
+            const b = a.clone();
+
+            // assert deep
+            expect(a).to.not.equal(b);
+            expect(a.cmds[0]).to.not.equal(b.cmds[0]);
+
+            // assert values equailvalence
+            expect(b.cmds[0]).to.deep.equal(b.cmds[0]);
+            expect(b.cmds[1]).to.deep.equal(b.cmds[1]);
+        });
+    });
 });
 
 describe("Script.p2msLock", () => {

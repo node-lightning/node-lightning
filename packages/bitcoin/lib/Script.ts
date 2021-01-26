@@ -2,13 +2,14 @@ import { bigToBufLE } from "@node-lightning/bufio";
 import { encodeVarInt } from "@node-lightning/bufio";
 import { BufferReader } from "@node-lightning/bufio";
 import { StreamReader } from "@node-lightning/bufio";
+import { ICloneable } from "./ICloneable";
 import { OpCode } from "./OpCodes";
 import { ScriptCmd } from "./ScriptCmd";
 
 /**
  * Bitcoin Script
  */
-export class Script {
+export class Script implements ICloneable<Script> {
     /**
      * Creates a standard Pay-to-Public-Key-Hash scriptPubKey by accepting a
      * hash of a public key as input and generating the script in the standard
@@ -272,5 +273,20 @@ export class Script {
 
         // combine all parts of data
         return Buffer.concat(results);
+    }
+
+    /**
+     * Clone via deep copy
+     */
+    public clone(): Script {
+        return new Script(
+            ...this.cmds.map(cmd => {
+                if (Buffer.isBuffer(cmd)) {
+                    return Buffer.from(cmd);
+                } else {
+                    return cmd;
+                }
+            }),
+        );
     }
 }
