@@ -1,11 +1,11 @@
 import { BufferWriter, StreamReader } from "@node-lightning/bufio";
-import { HashValue } from "./HashValue";
+import { ICloneable } from "./ICloneable";
 import { OutPoint } from "./OutPoint";
 import { Script } from "./Script";
 import { TxInSequence } from "./TxInSequence";
 import { Witness } from "./Witness";
 
-export class TxIn {
+export class TxIn implements ICloneable<TxIn> {
     /**
      * Parses a TxIn from a a stream reader.
      * @param stream
@@ -43,16 +43,18 @@ export class TxIn {
      * @param outpoint
      * @param scriptSig
      * @param sequence
+     * @param witness
      */
     constructor(
         outpoint: OutPoint,
         scriptSig: Script = new Script(),
         sequence: TxInSequence = new TxInSequence(),
+        witness: Witness[] = [],
     ) {
         this.outpoint = outpoint;
         this.scriptSig = scriptSig;
         this.sequence = sequence;
-        this.witness = [];
+        this.witness = witness;
     }
 
     /**
@@ -84,5 +86,17 @@ export class TxIn {
         writer.writeBytes(this.scriptSig.serialize());
         writer.writeBytes(this.sequence.serialize());
         return writer.toBuffer();
+    }
+
+    /**
+     * Clone via deep copy
+     */
+    public clone(): TxIn {
+        return new TxIn(
+            this.outpoint.clone(),
+            this.scriptSig.clone(),
+            this.sequence.clone(),
+            this.witness.map(p => p.clone()),
+        );
     }
 }

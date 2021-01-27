@@ -1,10 +1,11 @@
 import { BufferWriter, StreamReader } from "@node-lightning/bufio";
+import { ICloneable } from "./ICloneable";
 
 /**
  * Represents segregated witness data. This data is nothing more than a
  * buffer.
  */
-export class Witness {
+export class Witness implements ICloneable<Witness> {
     /**
      * Parses witness data
      * @param reader
@@ -42,5 +43,12 @@ export class Witness {
      */
     public toJSON() {
         return this.toString();
+    }
+
+    /**
+     * Clone via deep copy
+     */
+    public clone(): Witness {
+        return new Witness(Buffer.from(this.data));
     }
 }

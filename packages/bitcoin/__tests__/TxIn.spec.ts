@@ -6,6 +6,7 @@ import { OutPoint } from "../lib/OutPoint";
 import { Script } from "../lib/Script";
 import { TxIn } from "../lib/TxIn";
 import { TxInSequence } from "../lib/TxInSequence";
+import { Witness } from "../lib/Witness";
 
 describe("TxIn", () => {
     describe("#parse()", () => {
@@ -112,6 +113,31 @@ describe("TxIn", () => {
             expect(result.outpoint.index).to.equal(1);
             expect(result.scriptSig).to.equal("OP_4");
             expect(result.sequence).to.equal("0xfffffffe");
+        });
+    });
+
+    describe(".clone()", () => {
+        it("clones via deep copy", () => {
+            const prevTxId = HashValue.parse(
+                StreamReader.fromHex(
+                    "56919960ac691763688d3d3bcea9ad6ecaf875df5339e148a1fc61c6ed7a069e",
+                ),
+            );
+            const prevTxIndex = 1;
+            const outpoint = new OutPoint(prevTxId, prevTxIndex);
+            const scriptSig = new Script(OpCode.OP_4);
+            const sequence = new TxInSequence(0xfffffffe);
+            const witness = [new Witness(Buffer.alloc(4))];
+            const a = new TxIn(outpoint, scriptSig, sequence, witness);
+            const b = a.clone();
+
+            expect(a).to.not.equal(b);
+            expect(a.outpoint).to.not.equal(b.outpoint);
+            expect(a.scriptSig).to.not.equal(b.scriptSig);
+            expect(a.sequence).to.not.equal(b.sequence);
+            expect(a.witness).to.not.equal(b.witness);
+
+            expect(b.serialize()).to.deep.equal(a.serialize());
         });
     });
 });

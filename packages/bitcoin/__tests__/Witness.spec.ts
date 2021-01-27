@@ -31,4 +31,15 @@ describe("Witness", () => {
             expect(sut.toJSON()).to.equal("0001020304");
         });
     });
+
+    describe(".clone()", () => {
+        it("clones via deep copy", () => {
+            const a = new Witness(Buffer.alloc(4));
+            const b = a.clone();
+            expect(a).to.not.equal(b);
+            expect(a.data).to.not.equal(b.data);
+
+            expect(b.data).to.deep.equal(a.data);
+        });
+    });
 });
