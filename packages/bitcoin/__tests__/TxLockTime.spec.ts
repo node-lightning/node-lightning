@@ -72,4 +72,14 @@ describe("TxLockTime", () => {
             expect(new TxLockTime().toJSON()).to.equal(4294967295);
         });
     });
+
+    describe(".clone()", () => {
+        it("clones via deep copy", () => {
+            const a = new TxLockTime(1000);
+            const b = a.clone();
+            expect(a).to.not.equal(b);
+            expect(b.type).to.equal(a.type);
+            expect(b.value).to.equal(b.value);
+        });
+    });
 });

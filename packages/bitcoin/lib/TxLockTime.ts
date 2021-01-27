@@ -1,4 +1,5 @@
 import { BufferWriter, StreamReader } from "@node-lightning/bufio";
+import { ICloneable } from "./ICloneable";
 import { TimeLockMode } from "./TimeLockMode";
 
 const DEFAULT_LOCKTIME = 0xffff_ffff;
@@ -10,7 +11,7 @@ const TIME_THRESHOLD = 500_000_000;
  * active when its value is less than 0xffff_ffff and at least one
  * transaction input has a non-0xffff_ffff nSequence.
  */
-export class TxLockTime {
+export class TxLockTime implements ICloneable<TxLockTime> {
     /**
      * Parses a locktime from a reader
      * @param reader
@@ -81,5 +82,12 @@ export class TxLockTime {
         const writer = new BufferWriter(Buffer.alloc(4));
         writer.writeUInt32LE(this.value);
         return writer.toBuffer();
+    }
+
+    /**
+     * Clone via deep copy
+     */
+    public clone(): TxLockTime {
+        return new TxLockTime(this._value);
     }
 }

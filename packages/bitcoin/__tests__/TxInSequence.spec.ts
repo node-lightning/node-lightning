@@ -35,6 +35,17 @@ describe("TxInSequence", () => {
         });
     });
 
+    describe(".clone()", () => {
+        it("clones via deep copy", () => {
+            const a = new TxInSequence(0x00400008);
+            const b = a.clone();
+            expect(a).to.not.equal(b);
+            expect(b.enabled).to.equal(a.enabled);
+            expect(b.mode).to.equal(a.mode);
+            expect(b.value).to.equal(a.value);
+        });
+    });
+
     it("defaults to 0xffff_ffff", () => {
         const sut = new TxInSequence();
         expect(sut.value).to.equal(0xffff_ffff);

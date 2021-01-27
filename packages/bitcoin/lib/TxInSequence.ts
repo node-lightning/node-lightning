@@ -1,4 +1,5 @@
 import { StreamReader } from "@node-lightning/bufio";
+import { ICloneable } from "./ICloneable";
 import { TimeLockMode } from "./TimeLockMode";
 
 const MAX_SEQUENCE = 0xffff_ffff;
@@ -14,7 +15,7 @@ const DEFAULT_SEQUENCE = 0xffff_ffff;
  * When using a nLocktime, at least one transaction must be non-default.
  * In this condition, it is standard to use 0xffff_fffe.
  */
-export class TxInSequence {
+export class TxInSequence implements ICloneable<TxInSequence> {
     /**
      * Parses the value from a byte stream
      * @param reader
@@ -146,5 +147,12 @@ export class TxInSequence {
      */
     public toJSON(): string {
         return this.toString();
+    }
+
+    /**
+     * Clone via deep copy
+     */
+    public clone(): TxInSequence {
+        return new TxInSequence(this._value);
     }
 }
