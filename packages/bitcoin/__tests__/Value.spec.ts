@@ -76,4 +76,13 @@ describe("Value", () => {
         expect(Value.fromPicoSats(1000000000).msats.toString()).to.equal("1");
         expect(Value.fromPicoSats(1000000000000).msats.toString()).to.equal("1000");
     });
+
+    describe(".clone()", () => {
+        it("clones via deep copy", () => {
+            const a = Value.fromBitcoin(1);
+            const b = a.clone();
+            expect(a).to.not.equal(b);
+            expect(b.bitcoin).to.equal(a.bitcoin);
+        });
+    });
 });

@@ -1,8 +1,9 @@
 import { BufferWriter, StreamReader } from "@node-lightning/bufio";
+import { ICloneable } from "./ICloneable";
 import { Script } from "./Script";
 import { Value } from "./Value";
 
-export class TxOut {
+export class TxOut implements ICloneable<TxOut> {
     /**
      * Parses a TxOut from a stream and returns a new instance of TxOut
      * @param reader
@@ -63,5 +64,12 @@ export class TxOut {
         writer.writeUInt64LE(this.value.sats);
         writer.writeBytes(this.scriptPubKey.serialize());
         return writer.toBuffer();
+    }
+
+    /**
+     * Clone via deep copy
+     */
+    public clone(): TxOut {
+        return new TxOut(this.value.clone(), this.scriptPubKey.clone());
     }
 }

@@ -1,8 +1,10 @@
+import { ICloneable } from "./ICloneable";
+
 /**
  * Represents bitcoin value that can be converted to or from multiple
  * formats.
  */
-export class Value {
+export class Value implements ICloneable<Value> {
     /**
      * Creates a value object from value in bitcoin, eg: 1.12345678
      * @param num
@@ -74,5 +76,12 @@ export class Value {
 
     private constructor(picoSats: bigint) {
         this._picoSats = picoSats;
+    }
+
+    /**
+     * Clone via deep copy
+     */
+    public clone(): Value {
+        return new Value(this._picoSats);
     }
 }

@@ -59,4 +59,18 @@ describe("TxOut", () => {
             );
         });
     });
+
+    describe(".clone()", () => {
+        it("clones via deep copy", () => {
+            const a = new TxOut(
+                Value.fromSats(60000),
+                new Script(OpCode.OP_HASH160, Buffer.alloc(20, 1), OpCode.OP_EQUAL),
+            );
+            const b = a.clone();
+            expect(b).to.not.equal(a);
+            expect(b.value).to.not.equal(a.value);
+            expect(b.scriptPubKey).to.not.equal(a.scriptPubKey);
+            expect(b.serialize()).to.deep.equal(a.serialize());
+        });
+    });
 });
