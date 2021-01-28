@@ -186,6 +186,15 @@ export class Tx {
         else return this._serializeLegacy();
     }
 
+    public toJSON() {
+        return {
+            version: this.version,
+            inputs: this.inputs.map(vin => vin.toJSON()),
+            outputs: this.outputs.map(vout => vout.toJSON()),
+            locktime: this.locktime.toJSON(),
+        };
+    }
+
     private _serializeLegacy(): Buffer {
         const writer = new BufferWriter();
 
