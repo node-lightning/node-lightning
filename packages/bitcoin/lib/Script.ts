@@ -2,6 +2,7 @@ import { bigToBufLE } from "@node-lightning/bufio";
 import { encodeVarInt } from "@node-lightning/bufio";
 import { BufferReader } from "@node-lightning/bufio";
 import { StreamReader } from "@node-lightning/bufio";
+import { hash160 } from "@node-lightning/crypto";
 import { ICloneable } from "./ICloneable";
 import { OpCode } from "./OpCodes";
 import { ScriptCmd } from "./ScriptCmd";
@@ -10,6 +11,33 @@ import { ScriptCmd } from "./ScriptCmd";
  * Bitcoin Script
  */
 export class Script implements ICloneable<Script> {
+    /**
+     * Creates a standard (though no longer used) pay-to-pubkey
+     * scriptPubKey using the provided pubkey.
+     *
+     * P2PK format:
+     *      <pubkey> OP_CHECKSIG
+     *
+     * @param pubkey 33-byte compressed or 65-byte uncompressed SEC
+     * encoded pubkey
+     */
+    public static p2pkLock(pubkey: Buffer): Script {
+        return new Script(pubkey, OpCode.OP_CHECKSIG);
+    }
+
+    /**
+     * Creates a standard (though no longer used) pay-to-pubkey
+     * scriptSig using the provided signature.
+     *
+     * P2PK format:
+     *      <sig>
+     *
+     * @param sig DER encoded signature + 1-byte sighash type
+     */
+    public static p2pkUnlock(sig: Buffer): Script {
+        return new Script(sig);
+    }
+
     /**
      * Creates a standard Pay-to-Public-Key-Hash scriptPubKey by accepting a
      * hash of a public key as input and generating the script in the standard
@@ -24,6 +52,15 @@ export class Script implements ICloneable<Script> {
             OpCode.OP_EQUALVERIFY,
             OpCode.OP_CHECKSIG,
         );
+    }
+
+    /**
+     * Creates a standard Pay-to-Public-Key-Hash scriptSig
+     * @param sig BIP66 compliant DER encoded signuture + hash byte
+     * @param pubkey SEC encoded public key
+     */
+    public static p2pkhUnlock(sig: Buffer, pubkey: Buffer): Script {
+        return new Script(sig, pubkey);
     }
 
     /**
@@ -288,5 +325,13 @@ export class Script implements ICloneable<Script> {
                 }
             }),
         );
+    }
+
+    /**
+     * Performs a hash160 on the serialized commands. This is useful for
+     * turning a script into a P2SH redeem script.
+     */
+    public hash160(): Buffer {
+        return hash160(this.serializeCmds());
     }
 }
