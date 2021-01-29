@@ -247,5 +247,63 @@ describe("TxBuilder", () => {
                 "02000000016cc111fe0c8649e6af4c429e0d9c3ae8ffa2bce1929c98340f0839271eb76ba70000000006530457935a87ffffffff01d07c052a0100000017a9149a21dbd362501cd7b7790f1c696c55563a8b602c87ffffffff",
             );
         });
+
+        it("spends p2pkh to p2sh-p2ms", () => {
+            const sut = new TxBuilder();
+            sut.version = 2;
+            sut.addInput(
+                OutPoint.fromString(
+                    "0382e83cc4692fbd554d621c214263a3414ec0cbbdef0fee73b16992613b8809:0",
+                ),
+            );
+            sut.addOutput(
+                Value.fromBitcoin(49.9999),
+                Script.p2shLock(
+                    new Script(
+                        OpCode.OP_2,
+                        pubkeyA,
+                        pubkeyB,
+                        OpCode.OP_2,
+                        OpCode.OP_CHECKMULTISIG,
+                    ).hash160(),
+                ),
+            );
+
+            const commit0 = Script.p2pkhLock(pubkeyHashA);
+            const sig0 = sut.sign(privA, 0, commit0);
+            const scriptSig0 = Script.p2pkhUnlock(sig0, pubkeyA);
+            sut.setScriptSig(0, scriptSig0);
+
+            expect(sut.serialize().toString("hex")).to.equal(
+                "020000000109883b619269b173ee0fefbdcbc04e41a36342211c624d55bd2f69c43ce88203000000006b483045022100b5e8805ca04c0c360fad14768792aaeb80b1be3480e3d69b830ae4903dbc731d02206a4ca0e5e650b709ad94bfb8762bd81d4b31192417d1f9d1956b3b27bce616c6012102c13bf903d6147a7fec59b450e2e8a6c174c35a11a7675570d10bd05bc3597996ffffffff01f0ca052a0100000017a914c5421130046c411fc4616d54d6ba0412328c32cf87ffffffff",
+            );
+        });
+
+        it("spends p2sh-p2ms to p2pkh", () => {
+            const sut = new TxBuilder();
+            sut.version = 2;
+            sut.addInput(
+                OutPoint.fromString(
+                    "26aec57587f3e093f8236706873e3c71f95c18310b688925e657ef9b9ce0309d:0",
+                ),
+            );
+            sut.addOutput(Value.fromBitcoin(49.9998), Script.p2pkhLock(pubkeyHashB));
+
+            const commitScript0 = new Script(
+                OpCode.OP_2,
+                pubkeyA,
+                pubkeyB,
+                OpCode.OP_2,
+                OpCode.OP_CHECKMULTISIG,
+            );
+            const sig0a = sut.sign(privA, 0, commitScript0);
+            const sig0b = sut.sign(privB, 0, commitScript0);
+            const scriptSig0 = new Script(OpCode.OP_0, sig0a, sig0b, commitScript0.serializeCmds());
+            sut.setScriptSig(0, scriptSig0);
+
+            expect(sut.serialize().toString("hex")).to.equal(
+                "02000000019d30e09c9bef57e62589680b31185cf9713c3e87066723f893e0f38775c5ae2600000000da004830450221008870bcd4ec57b2dbca90b6c3271829f1c2cd519bfd9d3c32e20bfc1d4b3e8419022006ad98bf13ce78636d159587e41683e6053231740b99ac9ec72e7f3201c5a26301473044022045b5beb5060ae43d873b8becda7c62c53968619d49e23a5094705f2e50156c6802206e6f40b795348d756c176c15fbbe61b0ddcb2eecb51623c5f89618ffccca90fc0147522102c13bf903d6147a7fec59b450e2e8a6c174c35a11a7675570d10bd05bc3597996210334acee9adf0e3e490a422dfe98bc10a8091b43047b793b8d840657b6b6a46c5652aeffffffff01e0a3052a010000001976a914c538c517797dfefdf30142dc1684bfd947532dbb88acffffffff",
+            );
+        });
     });
 });
