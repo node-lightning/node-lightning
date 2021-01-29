@@ -117,10 +117,9 @@ export class TxBuilder {
      * take the hash256 of that serialized transaction.
      *
      * @param input signatory input index
-     * @param prevout previous output information
-     * @param redeemScript optional redeem script
+     * @param commitScript the scriptSig used for the signature input
      */
-    public hashAll(input: number, prevout: TxOut, redeemScript?: Buffer): Buffer {
+    public hashAll(input: number, commitScript: Script): Buffer {
         const writer = new BufferWriter();
 
         // write the version
@@ -130,25 +129,16 @@ export class TxBuilder {
         const inputs = this.inputs;
         writer.writeVarInt(inputs.length);
         for (let i = 0; i < inputs.length; i++) {
-            let scriptSig: Script;
-
             // blank out scriptSig for non-signatory inputs
-            if (i !== input) {
-                scriptSig = new Script();
-                continue;
-            }
+            let scriptSig = new Script();
 
-            // p2sh signatory uses the redeem script
-            if (redeemScript) {
-                scriptSig = new Script(redeemScript);
-            }
-            // other signatory use the scriptPubKey of the prev output
-            else {
-                scriptSig = new Script(...prevout.scriptPubKey.cmds);
+            // use the commit script for signatory input
+            if (i === input) {
+                scriptSig = commitScript;
             }
 
             // write the input
-            const vin = new TxIn(inputs[i].outpoint, scriptSig, inputs[i].sequence);
+            const vin = new TxIn(inputs[i].outpoint, commitScript, inputs[i].sequence);
             writer.writeBytes(vin.serialize());
         }
 
@@ -170,15 +160,20 @@ export class TxBuilder {
     }
 
     /**
-     * Signs an input and returns the DER encoded signature
-     * @param input
-     * @param prevout
-     * @param redeemScript
-     * @param key
+     * Signs an input and returns the DER encoded signature. The
+     * script that is committed to will depend on the type of the
+     * signature. This is usually the locking script used in the prior
+     * output, but in the case of p2sh transactions, this is the
+     * redeem script, or the underlying script that is hashed in the
+     * prior output.
+     *
+     * @param privateKey 32-byte private key
+     * @param input index of input that should be signed
+     * @param commitScript Script that is committed during signature
      */
-    public sign(privateKey: Buffer, input: number, prevout: TxOut, redeemScript?: Buffer): Buffer {
+    public sign(privateKey: Buffer, input: number, commitScript: Script): Buffer {
         // create the hash of the transaction for the input
-        const hash = this.hashAll(input, prevout, redeemScript);
+        const hash = this.hashAll(input, commitScript);
 
         // sign DER encode signature
         const sig = sign(hash, privateKey);
