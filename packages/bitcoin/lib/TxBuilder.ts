@@ -1,12 +1,16 @@
 import { BufferWriter } from "@node-lightning/bufio";
-import { hash256 } from "@node-lightning/crypto";
+import { hash256, sign, sigToDER } from "@node-lightning/crypto";
+import { write } from "fs";
+import { OutPoint } from "./OutPoint";
 import { Script } from "./Script";
 import { SigHashType } from "./SigHashType";
 import { Sorter } from "./Sorter";
 import { Tx } from "./Tx";
 import { TxIn } from "./TxIn";
+import { TxInSequence } from "./TxInSequence";
 import { TxLockTime } from "./TxLockTime";
 import { TxOut } from "./TxOut";
+import { Value } from "./Value";
 import { Witness } from "./Witness";
 
 export class TxBuilder {
@@ -69,19 +73,37 @@ export class TxBuilder {
     }
 
     /**
-     * Adds a transaction input
+     * Adds a new transaction input
      * @param input
      */
-    public addInput(input: TxIn) {
-        this._inputs.push(input);
+    public addInput(outpoint: OutPoint, sequence?: TxInSequence, scriptSig?: Script) {
+        this._inputs.push(new TxIn(outpoint, scriptSig, sequence));
+    }
+
+    /**
+     * Sets the scriptSig for an input
+     * @param index
+     * @param scriptSig
+     */
+    public setScriptSig(index: number, scriptSig: Script) {
+        this.inputs[0].scriptSig = scriptSig;
+    }
+
+    /**
+     * Sets the witness data for an input
+     * @param index
+     * @param witness
+     */
+    public setWitness(index: number, witness: Witness[]) {
+        this.inputs[index].witness = witness;
     }
 
     /**
      * Adds a transaction output
      * @param output
      */
-    public addOutput(output: TxOut) {
-        this._outputs.push(output);
+    public addOutput(value: Value, scriptPubKey: Script) {
+        this._outputs.push(new TxOut(value, scriptPubKey));
     }
 
     /**
@@ -145,5 +167,40 @@ export class TxBuilder {
 
         // return hashed value
         return hash256(writer.toBuffer());
+    }
+
+    /**
+     * Signs an input and returns the DER encoded signature
+     * @param input
+     * @param prevout
+     * @param redeemScript
+     * @param key
+     */
+    public sign(privateKey: Buffer, input: number, prevout: TxOut, redeemScript?: Buffer): Buffer {
+        // create the hash of the transaction for the input
+        const hash = this.hashAll(input, prevout, redeemScript);
+
+        // sign DER encode signature
+        const sig = sign(hash, privateKey);
+        const der = sigToDER(sig);
+
+        // return signature with 1-byte sighash type
+        return Buffer.concat([der, Buffer.from([1])]);
+    }
+
+    /**
+     * Returns an immutable transaction
+     */
+    public toTx(): Tx {
+        return new Tx(
+            this.version,
+            this.inputs.map(vin => vin.clone()),
+            this.outputs.map(vout => vout.clone()),
+            this.locktime.clone(),
+        );
+    }
+
+    public serialize(): Buffer {
+        return this.toTx().serialize();
     }
 }
