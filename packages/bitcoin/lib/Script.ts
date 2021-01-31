@@ -107,12 +107,34 @@ export class Script implements ICloneable<Script> {
      * public keys as inputs in the format:
      *   OP_<m> <pubkey1> <pubkey2> <pubkey..m> OP_<n> OP_CHECKMULTISIG
      */
-    public static p2msLock(m: number, n: number, pubkeys: Buffer[]): Script {
+    public static p2msLock(m: number, ...pubkeys: Buffer[]): Script {
+        const n = pubkeys.length;
         return new Script(
             0x50 + m,
             ...pubkeys,
             0x50 + n,
             OpCode.OP_CHECKMULTISIG,
+        ); // prettier-ignore
+    }
+
+    /**
+     * Creates a standard Pay-to-MultiSig scripSig using the provided
+     * signatures. The signatures must be in the order of the pub keys
+     * used in the lock script. This function also correctly adds OP_0
+     * as the first element on the stack to ensure the p2ms off-by-one
+     * error is correctly accounted for.
+     *
+     * Each signature must be DER encoded using BIP66 and
+     * include a 1-byte sighash type at the end. The builder validates
+     * the signatures. As such they will be 10 to 74 bytes.
+     *
+     * @param pubkeys
+     */
+    public static p2msUnlock(...sigs: Buffer[]): Script {
+        // TODO validations
+        return new Script(
+            OpCode.OP_0,
+            ...sigs
         ); // prettier-ignore
     }
 

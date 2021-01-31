@@ -217,7 +217,6 @@ describe("Script.p2msLock", () => {
             assert: "2 of 2 multisig",
             input: {
                 m: 2,
-                n: 2,
                 pubkeys: [
                     Buffer.from(
                         "02e577d441d501cace792c02bfe2cc15e59672199e2195770a61fd3288fc9f934f",
@@ -236,8 +235,29 @@ describe("Script.p2msLock", () => {
 
     for (const { assert, input, expected } of fixtures) {
         it(assert, () => {
-            const { m, n, pubkeys } = input;
-            const actual = Script.p2msLock(m, n, pubkeys);
+            const { m, pubkeys } = input;
+            const actual = Script.p2msLock(m, ...pubkeys);
+            expect(actual.serializeCmds().toString("hex")).to.equal(expected);
+        });
+    }
+});
+
+describe("Script.p2msUnlock", () => {
+    const fixtures: any = [
+        {
+            assert: "2 of 2 multisig",
+            input: {
+                sigs: [Buffer.alloc(74, 0x01), Buffer.alloc(74, 0x02)],
+            },
+            expected:
+                "004a01010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101014a0202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202",
+        },
+    ];
+
+    for (const { assert, input, expected } of fixtures) {
+        it(assert, () => {
+            const { sigs } = input;
+            const actual = Script.p2msUnlock(...sigs);
             expect(actual.serializeCmds().toString("hex")).to.equal(expected);
         });
     }
