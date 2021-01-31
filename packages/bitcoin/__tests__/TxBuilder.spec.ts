@@ -1,3 +1,4 @@
+import { BufferReader } from "@node-lightning/bufio";
 import { getPublicKey, hash160 } from "@node-lightning/crypto";
 import { expect } from "chai";
 import { OpCode } from "../lib/OpCodes";
@@ -262,6 +263,29 @@ describe("TxBuilder", () => {
 
             expect(sut.serialize().toString("hex")).to.equal(
                 "02000000019d30e09c9bef57e62589680b31185cf9713c3e87066723f893e0f38775c5ae2600000000da004830450221008870bcd4ec57b2dbca90b6c3271829f1c2cd519bfd9d3c32e20bfc1d4b3e8419022006ad98bf13ce78636d159587e41683e6053231740b99ac9ec72e7f3201c5a26301473044022045b5beb5060ae43d873b8becda7c62c53968619d49e23a5094705f2e50156c6802206e6f40b795348d756c176c15fbbe61b0ddcb2eecb51623c5f89618ffccca90fc0147522102c13bf903d6147a7fec59b450e2e8a6c174c35a11a7675570d10bd05bc3597996210334acee9adf0e3e490a422dfe98bc10a8091b43047b793b8d840657b6b6a46c5652aeffffffff01e0a3052a010000001976a914c538c517797dfefdf30142dc1684bfd947532dbb88acffffffff",
+            );
+        });
+
+        it("spends p2pkh to p2pkh and OP_RETURN", () => {
+            const sut = new TxBuilder();
+            sut.version = 2;
+            sut.addInput(
+                OutPoint.fromString(
+                    "5d9c67fe1260f9b13bbf6e3b33156bd2b12e56d26be7168467d681032da16ade:0",
+                ),
+            );
+            sut.addOutput(Value.fromBitcoin(49.9999), Script.p2pkhLock(pubkeyHashA));
+            sut.addOutput(
+                Value.zero(),
+                new Script(OpCode.OP_RETURN, Buffer.from("Satoshi is my homeboy")),
+            );
+
+            const commitScript = Script.p2pkhLock(pubkeyHashA);
+            const sig = sut.sign(privA, 0, commitScript);
+            sut.inputs[0].scriptSig = Script.p2pkhUnlock(sig, pubkeyA);
+
+            expect(sut.serialize().toString("hex")).to.equal(
+                "0200000001de6aa12d0381d6678416e76bd2562eb1d26b15333b6ebf3bb1f96012fe679c5d000000006b483045022100922d11bf27877bb36a9090b3d71ea39b653b3f21d3019e82243c1021b781b8dd022071bfded587414b0a833d9f9c06db8745ff05a199066e05a8f3dc3b2a6a670a5c012102c13bf903d6147a7fec59b450e2e8a6c174c35a11a7675570d10bd05bc3597996ffffffff02f0ca052a010000001976a9149b40f5b05efd99e4b0c4f62ca63eec3e580e95c788ac0000000000000000176a155361746f736869206973206d7920686f6d65626f79ffffffff",
             );
         });
     });
