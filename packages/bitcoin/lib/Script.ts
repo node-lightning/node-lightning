@@ -67,13 +67,39 @@ export class Script implements ICloneable<Script> {
      * Creates a standard Pay-to-Script-Hash scriptPubKey by accepting a hash of
      * the redeem script as input and generating the P2SH script:
      *   OP_HASH160 <hashScript> OP_EQUAL
+     *
+     * Accepts the redeem script either as a Script object or as the
+     * hash160 of the redeem script. When the hash160 Buffer is provided
+     * it will throw if the Buffer is not 20-bytes.
+     *
+     * @param value can be either the redeem script as a Script type or
+     * the hash160 as a 20-byte buffer
      */
-    public static p2shLock(hash160Script: Buffer): Script {
+    public static p2shLock(value: Script | Buffer): Script {
+        const scriptHash160 = value instanceof Script ? value.hash160() : value;
+
+        if (scriptHash160.length !== 20) {
+            throw new Error("Invalid hash160 length");
+        }
+
         return new Script(
             OpCode.OP_HASH160,
-            hash160Script,
+            scriptHash160,
             OpCode.OP_EQUAL,
         ); // prettier-ignore
+    }
+
+    /**
+     * Creates a p2sh unlock script for use in a transaction input
+     * scriptSig value. The redeem script, which is the preimage of the
+     * of the script hash used to lock the p2sh output, must be provided
+     * along with any additional data required to unlock the script.
+     *
+     * @param redeemScript preimage of the script hash
+     * @param data any data required to make the redeem script value
+     */
+    public static p2shUnlock(redeemScript: Script, ...data: ScriptCmd[]) {
+        return new Script(...data, redeemScript.serializeCmds());
     }
 
     /**

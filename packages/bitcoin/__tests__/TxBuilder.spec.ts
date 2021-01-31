@@ -169,7 +169,7 @@ describe("TxBuilder", () => {
 
             const commitScript = Script.p2pkhLock(pubkeyHashA);
             const sig = sut.sign(0, commitScript, privA);
-            sut.inputs[0].scriptSig = new Script(sig, pubkeyA, commitScript.serializeCmds());
+            sut.inputs[0].scriptSig = Script.p2shUnlock(commitScript, sig, pubkeyA);
 
             expect(sut.serialize().toString("hex")).to.equal(
                 "0200000001d9c8b29caba1b353d90fde1f83dc6cf386be147c282e2f2abeb140160cbbe533000000008447304402206cada8b4b6caeadf293627f841244f730aaed74f53709982fd24776643a658d8022026614f756642e08c08b20546f894396187ec1a4ea709a1c69cd036b3ac2f6441012102c13bf903d6147a7fec59b450e2e8a6c174c35a11a7675570d10bd05bc35979961976a9149b40f5b05efd99e4b0c4f62ca63eec3e580e95c788acffffffff01e0a3052a0100000017a9141fec31deece63a911dd9b22fa974ba9760d1bc3d87ffffffff",
@@ -198,7 +198,7 @@ describe("TxBuilder", () => {
                 OpCode.OP_10,
                 OpCode.OP_EQUAL,
             );
-            sut.inputs[0].scriptSig = new Script(OpCode.OP_3, commitScript.serializeCmds());
+            sut.inputs[0].scriptSig = Script.p2shUnlock(commitScript, OpCode.OP_3);
 
             expect(sut.serialize().toString("hex")).to.equal(
                 "02000000016cc111fe0c8649e6af4c429e0d9c3ae8ffa2bce1929c98340f0839271eb76ba70000000006530457935a87ffffffff01d07c052a0100000017a9149a21dbd362501cd7b7790f1c696c55563a8b602c87ffffffff",
