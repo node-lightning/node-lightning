@@ -156,11 +156,11 @@ export class TxBuilder {
      * redeem script, or the underlying script that is hashed in the
      * prior output.
      *
-     * @param privateKey 32-byte private key
      * @param input index of input that should be signed
      * @param commitScript Script that is committed during signature
+     * @param privateKey 32-byte private key
      */
-    public sign(privateKey: Buffer, input: number, commitScript: Script): Buffer {
+    public sign(input: number, commitScript: Script, privateKey: Buffer): Buffer {
         // create the hash of the transaction for the input
         const hash = this.hashAll(input, commitScript);
 
