@@ -1,9 +1,7 @@
 import { BufferWriter } from "@node-lightning/bufio";
 import { hash256, sign, sigToDER } from "@node-lightning/crypto";
-import { write } from "fs";
 import { OutPoint } from "./OutPoint";
 import { Script } from "./Script";
-import { SigHashType } from "./SigHashType";
 import { Sorter } from "./Sorter";
 import { Tx } from "./Tx";
 import { TxIn } from "./TxIn";
@@ -78,15 +76,6 @@ export class TxBuilder {
      */
     public addInput(outpoint: OutPoint, sequence?: TxInSequence, scriptSig?: Script) {
         this._inputs.push(new TxIn(outpoint, scriptSig, sequence));
-    }
-
-    /**
-     * Sets the scriptSig for an input
-     * @param index
-     * @param scriptSig
-     */
-    public setScriptSig(index: number, scriptSig: Script) {
-        this.inputs[0].scriptSig = scriptSig;
     }
 
     /**
