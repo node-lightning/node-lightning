@@ -96,10 +96,27 @@ export class Script implements ICloneable<Script> {
      * along with any additional data required to unlock the script.
      *
      * @param redeemScript preimage of the script hash
-     * @param data any data required to make the redeem script value
+     * @param data script commands will be added as unlock data
      */
-    public static p2shUnlock(redeemScript: Script, ...data: ScriptCmd[]) {
-        return new Script(...data, redeemScript.serializeCmds());
+    public static p2shUnlock(redeemScript: Script, data: Script): Script;
+
+    /**
+     * Creates a p2sh unlock script for use in a transaction input
+     * scriptSig value. The redeem script, which is the preimage of the
+     * of the script hash used to lock the p2sh output, must be provided
+     * along with any additional data required to unlock the script.
+     *
+     * @param redeemScript preimage of the script hash
+     * @param data ScriptCmd data used to unlock the script
+     */
+    public static p2shUnlock(redeemScript: Script, ...data: ScriptCmd[]): Script;
+
+    public static p2shUnlock(redeemScript: Script, ...data: Script[] | ScriptCmd[]): Script {
+        if (data[0] instanceof Script) {
+            return new Script(...data[0].cmds, redeemScript.serializeCmds());
+        } else {
+            return new Script(...(data as ScriptCmd[]), redeemScript.serializeCmds());
+        }
     }
 
     /**

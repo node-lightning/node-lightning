@@ -29,8 +29,8 @@ describe("TxBuilder", () => {
             sut.addInput(OutPoint.fromString("9d0e63ad73020a9fad0106b6727e31d36e3ab4b9a01451233926d4759569de68:0")); // prettier-ignore
             sut.addOutput(Value.fromBitcoin(49.9999), Script.p2pkhLock(pubkeyHashB)); // prettier-ignore
 
-            const scriptSig = Script.p2pkhLock(pubkeyHashA);
-            const sig = sut.sign(0, scriptSig, privA);
+            const commitScript = Script.p2pkhLock(pubkeyHashA);
+            const sig = sut.sign(0, commitScript, privA);
             expect(sig.toString("hex")).to.equal(
                 "30450221009fdc678141bfad627023ae38336716543f91c1b12462673bc9d4fddd6cba5f3c02202e8dd9c9ce538c6bc9b29612ccbf07b3051c13e0f40e92ce3e663060da4c803a01",
             );
@@ -91,7 +91,7 @@ describe("TxBuilder", () => {
             );
             sut.addOutput(
                 Value.fromBitcoin(49.9999),
-                Script.p2shLock(Script.p2pkhLock(pubkeyHashA).hash160()),
+                Script.p2shLock(Script.p2pkhLock(pubkeyHashA)),
             );
 
             const commitScript = Script.p2pkhLock(pubkeyHashA);
@@ -113,8 +113,8 @@ describe("TxBuilder", () => {
             );
             sut.addOutput(
                 Value.fromBitcoin(49.9999),
-                new Script(OpCode.OP_2, pubkeyA, pubkeyB, OpCode.OP_2, OpCode.OP_CHECKMULTISIG),
-            );
+                Script.p2msLock(2, pubkeyA, pubkeyB)
+            ); // prettier-ignore
 
             const commitScript = Script.p2pkhLock(pubkeyHashA);
             const sig = sut.sign(0, commitScript, privA);
@@ -135,16 +135,10 @@ describe("TxBuilder", () => {
             );
             sut.addOutput(Value.fromBitcoin(49.9998), Script.p2pkhLock(pubkeyHashB));
 
-            const commitScript = new Script(
-                OpCode.OP_2,
-                pubkeyA,
-                pubkeyB,
-                OpCode.OP_2,
-                OpCode.OP_CHECKMULTISIG,
-            );
+            const commitScript = Script.p2msLock(2, pubkeyA, pubkeyB);
             const sigA = sut.sign(0, commitScript, privA);
             const sigB = sut.sign(0, commitScript, privB);
-            const scriptSig = new Script(OpCode.OP_0, sigA, sigB);
+            const scriptSig = Script.p2msUnlock(sigA, sigB);
             sut.inputs[0].scriptSig = scriptSig;
 
             expect(sut.serialize().toString("hex")).to.equal(
@@ -163,7 +157,7 @@ describe("TxBuilder", () => {
             sut.addOutput(
                 Value.fromBitcoin(49.9998),
                 Script.p2shLock(
-                    new Script(OpCode.OP_7, OpCode.OP_ADD, OpCode.OP_10, OpCode.OP_EQUAL).hash160(),
+                    new Script(OpCode.OP_7, OpCode.OP_ADD, OpCode.OP_10, OpCode.OP_EQUAL),
                 ),
             );
 
@@ -188,7 +182,7 @@ describe("TxBuilder", () => {
             sut.addOutput(
                 Value.fromBitcoin(49.9997),
                 Script.p2shLock(
-                    new Script(OpCode.OP_7, OpCode.OP_ADD, OpCode.OP_12, OpCode.OP_EQUAL).hash160(),
+                    new Script(OpCode.OP_7, OpCode.OP_ADD, OpCode.OP_12, OpCode.OP_EQUAL),
                 ),
             );
 
@@ -215,15 +209,7 @@ describe("TxBuilder", () => {
             );
             sut.addOutput(
                 Value.fromBitcoin(49.9999),
-                Script.p2shLock(
-                    new Script(
-                        OpCode.OP_2,
-                        pubkeyA,
-                        pubkeyB,
-                        OpCode.OP_2,
-                        OpCode.OP_CHECKMULTISIG,
-                    ).hash160(),
-                ),
+                Script.p2shLock(Script.p2msLock(2, pubkeyA, pubkeyB)),
             );
 
             const commitScript = Script.p2pkhLock(pubkeyHashA);
@@ -245,20 +231,12 @@ describe("TxBuilder", () => {
             );
             sut.addOutput(Value.fromBitcoin(49.9998), Script.p2pkhLock(pubkeyHashB));
 
-            const commitScript = new Script(
-                OpCode.OP_2,
-                pubkeyA,
-                pubkeyB,
-                OpCode.OP_2,
-                OpCode.OP_CHECKMULTISIG,
-            );
+            const commitScript = Script.p2msLock(2, pubkeyA, pubkeyB);
             const sigA = sut.sign(0, commitScript, privA);
             const sigB = sut.sign(0, commitScript, privB);
-            sut.inputs[0].scriptSig = new Script(
-                OpCode.OP_0,
-                sigA,
-                sigB,
-                commitScript.serializeCmds(),
+            sut.inputs[0].scriptSig = Script.p2shUnlock(
+                commitScript,
+                Script.p2msUnlock(sigA, sigB),
             );
 
             expect(sut.serialize().toString("hex")).to.equal(
