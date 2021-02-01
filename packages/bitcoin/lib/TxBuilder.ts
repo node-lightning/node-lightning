@@ -23,7 +23,7 @@ export class TxBuilder {
     constructor(inputSorter: Sorter<TxIn> = () => 0, outputSorter: Sorter<TxOut> = () => 0) {
         this._inputs = [];
         this._outputs = [];
-        this._version = 1;
+        this._version = 2;
         this._locktime = new TxLockTime();
         this.inputSorter = inputSorter;
         this.outputSorter = outputSorter;
