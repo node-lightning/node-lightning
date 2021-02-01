@@ -1,7 +1,6 @@
 import { StreamReader } from "@node-lightning/bufio";
-import { hash160 } from "@node-lightning/crypto";
+import * as crypto from "@node-lightning/crypto";
 import { expect } from "chai";
-import { Stream } from "stream";
 import { OpCode } from "../lib/OpCodes";
 import { Script } from "../lib/Script";
 
@@ -209,6 +208,58 @@ describe("Script", () => {
             expect(b.cmds[1]).to.deep.equal(b.cmds[1]);
         });
     });
+
+    describe("Factory Helpers", () => {
+        // comp: 031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f
+        // ucom: 041b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f70beaf8f588b541507fed6a642c5ab42dfdf8120a7f639de5122d47a69a8e8d1
+        const privkeyA = Buffer.alloc(32, 1);
+
+        // comp: 024d4b6cd1361032ca9bd2aeb9d900aa4d45d9ead80ac9423374c451a7254d0766
+        // ucom: 044d4b6cd1361032ca9bd2aeb9d900aa4d45d9ead80ac9423374c451a7254d07662a3eada2d0fe208b6d257ceb0f064284662e857f57b66b54c198bd310ded36d0
+        const privkeyB = Buffer.alloc(32, 2);
+
+        const invalidPubkey = Buffer.alloc(33);
+
+        describe("#p2pkLock()", () => {
+            const fixtures: any = [
+                {
+                    assert: "throws for invalid pubkey",
+                    input: {
+                        pubkey: invalidPubkey,
+                    },
+                    throws: true,
+                },
+                {
+                    assert: "compressed pubkey",
+                    input: {
+                        pubkey: crypto.getPublicKey(privkeyA, true),
+                    },
+                    expected:
+                        "21031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078fac",
+                },
+                {
+                    assert: "uncompressed pubkey",
+                    input: {
+                        pubkey: crypto.getPublicKey(privkeyA, false),
+                    },
+                    expected:
+                        "41041b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f70beaf8f588b541507fed6a642c5ab42dfdf8120a7f639de5122d47a69a8e8d1ac",
+                },
+            ];
+
+            for (const { assert, input, expected, throws } of fixtures) {
+                it(assert, () => {
+                    if (throws) {
+                        expect(() => Script.p2pkLock(invalidPubkey)).to.throw();
+                        return;
+                    }
+                    const { pubkey } = input;
+                    const actual = Script.p2pkLock(pubkey);
+                    expect(actual.serializeCmds().toString("hex")).to.equal(expected);
+                });
+            }
+        });
+    });
 });
 
 describe("Script.p2msLock", () => {
@@ -284,7 +335,7 @@ describe("Script.p2shLock", () => {
     const fixtures = [
         {
             assert: "non-standard script",
-            input: hash160(
+            input: crypto.hash160(
                 new Script(
                     OpCode.OP_SHA256,
                     Buffer.from(
@@ -298,7 +349,7 @@ describe("Script.p2shLock", () => {
         },
         {
             assert: "p2sh(p2ms) script",
-            input: hash160(
+            input: crypto.hash160(
                 Buffer.from(
                     "522102e577d441d501cace792c02bfe2cc15e59672199e2195770a61fd3288fc9f934f2102c65e30c3ff38e79e3eb73cebe9c4747007b6eef4ee40a01fc53b991dfaf1838752ae",
                     "hex",
@@ -308,7 +359,7 @@ describe("Script.p2shLock", () => {
         },
         {
             assert: "p2sh(p2pkh) script",
-            input: hash160(
+            input: crypto.hash160(
                 Buffer.from("76a914c34015187941b20ecda9378bb3cade86e80d2bfe88ac", "hex"),
             ),
             expected: "a91421478d4f1adfe18d59ccb5ca0e135fa6a5f3467687",

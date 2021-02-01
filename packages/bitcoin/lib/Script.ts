@@ -2,7 +2,9 @@ import { bigToBufLE } from "@node-lightning/bufio";
 import { encodeVarInt } from "@node-lightning/bufio";
 import { BufferReader } from "@node-lightning/bufio";
 import { StreamReader } from "@node-lightning/bufio";
-import { hash160 } from "@node-lightning/crypto";
+import { hash160, validPublicKey } from "@node-lightning/crypto";
+import { BitcoinError } from "./BitcoinError";
+import { BitcoinErrorCode } from "./BitcoinErrorCode";
 import { ICloneable } from "./ICloneable";
 import { OpCode } from "./OpCodes";
 import { ScriptCmd } from "./ScriptCmd";
@@ -22,6 +24,9 @@ export class Script implements ICloneable<Script> {
      * encoded pubkey
      */
     public static p2pkLock(pubkey: Buffer): Script {
+        if (!validPublicKey(pubkey)) {
+            throw new BitcoinError(BitcoinErrorCode.InvalidPubKey);
+        }
         return new Script(pubkey, OpCode.OP_CHECKSIG);
     }
 
