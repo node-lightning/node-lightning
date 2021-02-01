@@ -1,11 +1,23 @@
+import { OpCode } from "./OpCodes";
+import { ScriptCmd } from "./ScriptCmd";
+
 /**
- * Encodes the number into the script format, signed magnitude representation.
+ * Minimally encodes a number into the appropriate numeric opcode or
+ * into a buffer in signed-magnitude representation to avoid collisions
+ * other OpCode enum values.
  * @param num
  */
-export function encodeNum(input: number | bigint): Buffer {
+export function encodeNum(input: number | bigint): ScriptCmd {
     const num = BigInt(input);
+
+    // use OP_0 when 0
     if (num === 0n) {
-        return Buffer.alloc(0);
+        return OpCode.OP_0;
+    }
+
+    // use OP_1 to OP_16 when one of these
+    if (num >= 1 && num <= 16) {
+        return 0x50 + Number(num);
     }
 
     const bytes = [];

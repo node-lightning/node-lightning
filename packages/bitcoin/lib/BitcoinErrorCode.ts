@@ -4,4 +4,5 @@ export enum BitcoinErrorCode {
     PubKeyHashInvalid,
     SigEncodingInvalid,
     SigHashTypeInvalid,
+    MultiSigSetupInvalid,
 }

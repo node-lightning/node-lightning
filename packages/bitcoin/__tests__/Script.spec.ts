@@ -367,59 +367,151 @@ describe("Script", () => {
 
             testFixtures(fixtures, run, assert);
         });
+
+        describe("#p2msLock()", () => {
+            const fixtures = [
+                {
+                    title: "invalid pubkey",
+                    input: {
+                        m: 2,
+                        pubkeys: [Buffer.alloc(33, 0), Buffer.alloc(33, 1)],
+                    },
+                    throws: true,
+                },
+                {
+                    title: "requires at least 1 sig",
+                    input: {
+                        m: 0,
+                        pubkeys: new Array(20)
+                            .fill(undefined)
+                            .map((u, i) => crypto.getPublicKey(Buffer.alloc(32, i + 1), true)),
+                    },
+                    throws: true,
+                },
+                {
+                    title: "requires m be less than n",
+                    input: {
+                        m: 3,
+
+                        pubkeys: new Array(2)
+                            .fill(undefined)
+                            .map((u, i) => crypto.getPublicKey(Buffer.alloc(32, i + 1), true)),
+                    },
+                    throws: true,
+                },
+                {
+                    title: "requires n be 20 or fewer",
+                    input: {
+                        m: 2,
+                        pubkeys: new Array(21)
+                            .fill(undefined)
+                            .map((u, i) => crypto.getPublicKey(Buffer.alloc(32, i + 1), true)),
+                    },
+                    throws: true,
+                },
+                {
+                    title: "2 of 2 multisig",
+                    input: {
+                        m: 2,
+                        pubkeys: [
+                            Buffer.from(
+                                "02e577d441d501cace792c02bfe2cc15e59672199e2195770a61fd3288fc9f934f",
+                                "hex",
+                            ),
+                            Buffer.from(
+                                "02c65e30c3ff38e79e3eb73cebe9c4747007b6eef4ee40a01fc53b991dfaf18387",
+                                "hex",
+                            ),
+                        ],
+                    },
+                    expected:
+                        "522102e577d441d501cace792c02bfe2cc15e59672199e2195770a61fd3288fc9f934f2102c65e30c3ff38e79e3eb73cebe9c4747007b6eef4ee40a01fc53b991dfaf1838752ae",
+                },
+                {
+                    title: "2 of 20 multisig",
+                    input: {
+                        m: 2,
+                        pubkeys: new Array(20)
+                            .fill(undefined)
+                            .map((u, i) => crypto.getPublicKey(Buffer.alloc(32, i + 1), true)),
+                    },
+                    expected:
+                        "52\
+21031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f\
+21024d4b6cd1361032ca9bd2aeb9d900aa4d45d9ead80ac9423374c451a7254d0766\
+2102531fe6068134503d2723133227c867ac8fa6c83c537e9a44c3c5bdbdcb1fe337\
+2103462779ad4aad39514614751a71085f2f10e1c7a593e4e030efb5b8721ce55b0b\
+210362c0a046dacce86ddd0343c6d3c7c79c2208ba0d9c9cf24a6d046d21d21f90f7\
+2103f006a18d5653c4edf5391ff23a61f03ff83d237e880ee61187fa9f379a028e0a\
+2102989c0b76cb563971fdc9bef31ec06c3560f3249d6ee9e5d83c57625596e05f6f\
+2103f991f944d1e1954a7fc8b9bf62e0d78f015f4c07762d505e20e6c45260a3661b\
+210256b328b30c8bf5839e24058747879408bdb36241dc9c2e7c619faa12b2920967\
+2103f76a39d05686e34a4420897e359371836145dd3973e3982568b60f8433adde6e\
+2102552c630b64b54bf50210c9e253d38bd4949c72e22873500f6285c2bede312a84\
+21030f0fb9a244ad31a369ee02b7abfbbb0bfa3812b9a39ed93346d03d67d412d177\
+21022f1b310f4c065331bc0d79ba4661bb9822d67d7c4a1b0a1892e1fd0cd23aa68d\
+210299c2aa85d2b21a62f396907a802a58e521dafd5bddaccbd72786eea189bc4dc9\
+21021a7a569e91dbf60581509c7fc946d1003b60c7dee85299538db6353538d59574\
+2103a92c9b7cac68758de5783ed8e5123598e4ad137091e42987d3bad8a08e35bf3d\
+21034f355bdcb7cc0af728ef3cceb9615d90684bb5b2ca5f859ab0f0b704075871aa\
+21036360e856310ce5d294e8be33fc807077dc56ac80d95d9cd4ddbd21325eff73f7\
+21031d16453b3ab3132acb0a5bc16cc49690d819a585267a15cd5a064e2a0ad40599\
+2103ff8adab52623bcb2717fc71d7edc6f55e98396e6c234dff01f307a12b2af1c99\
+0114\
+ae",
+                },
+            ];
+
+            const run = (input: { m: number; pubkeys: Buffer[] }) => {
+                const { m, pubkeys } = input;
+                return Script.p2msLock(m, ...pubkeys);
+            };
+
+            const assert = (actual: Script, expected: string) => {
+                expect(actual.serializeCmds().toString("hex")).to.equal(expected);
+            };
+
+            testFixtures(fixtures, run, assert);
+        });
+
+        describe("Script.p2msUnlock", () => {
+            const fixtures = [
+                {
+                    title: "invalid sig buffer fails",
+                    input: {
+                        sigs: [Buffer.alloc(32, 1)],
+                    },
+                    throws: true,
+                },
+                {
+                    title: "invalid sig hash type fails",
+                    input: {
+                        sigs: [Buffer.concat([aSignHello, Buffer.alloc(1, 20)])],
+                    },
+                    throws: true,
+                },
+                {
+                    title: "1 of 2 multisig",
+                    input: {
+                        sigs: [aSignHelloSigHash],
+                    },
+                    expected:
+                        "0047304402207efc6629be179f7322378883507f434d2814a45369870795d538ca3497efb451022041640c6c86e4c7fd3d17eb859624e3fb37777d494eaf50fc0546b552bfcd2fbc01",
+                },
+            ];
+
+            const run = (input: { sigs: Buffer[] }) => {
+                const { sigs } = input;
+                return Script.p2msUnlock(...sigs);
+            };
+
+            const assert = (actual: Script, expected: string) => {
+                expect(actual.serializeCmds().toString("hex")).to.equal(expected);
+            };
+
+            testFixtures(fixtures, run, assert);
+        });
     });
-});
-
-describe("Script.p2msLock", () => {
-    const fixtures: any = [
-        {
-            assert: "2 of 2 multisig",
-            input: {
-                m: 2,
-                pubkeys: [
-                    Buffer.from(
-                        "02e577d441d501cace792c02bfe2cc15e59672199e2195770a61fd3288fc9f934f",
-                        "hex",
-                    ),
-                    Buffer.from(
-                        "02c65e30c3ff38e79e3eb73cebe9c4747007b6eef4ee40a01fc53b991dfaf18387",
-                        "hex",
-                    ),
-                ],
-            },
-            expected:
-                "522102e577d441d501cace792c02bfe2cc15e59672199e2195770a61fd3288fc9f934f2102c65e30c3ff38e79e3eb73cebe9c4747007b6eef4ee40a01fc53b991dfaf1838752ae",
-        },
-    ];
-
-    for (const { assert, input, expected } of fixtures) {
-        it(assert, () => {
-            const { m, pubkeys } = input;
-            const actual = Script.p2msLock(m, ...pubkeys);
-            expect(actual.serializeCmds().toString("hex")).to.equal(expected);
-        });
-    }
-});
-
-describe("Script.p2msUnlock", () => {
-    const fixtures: any = [
-        {
-            assert: "2 of 2 multisig",
-            input: {
-                sigs: [Buffer.alloc(74, 0x01), Buffer.alloc(74, 0x02)],
-            },
-            expected:
-                "004a01010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101014a0202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202",
-        },
-    ];
-
-    for (const { assert, input, expected } of fixtures) {
-        it(assert, () => {
-            const { sigs } = input;
-            const actual = Script.p2msUnlock(...sigs);
-            expect(actual.serializeCmds().toString("hex")).to.equal(expected);
-        });
-    }
 });
 
 describe("Script.p2shLock", () => {

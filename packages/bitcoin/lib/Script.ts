@@ -5,6 +5,7 @@ import { StreamReader } from "@node-lightning/bufio";
 import { hash160, validPublicKey, isDERSig } from "@node-lightning/crypto";
 import { BitcoinError } from "./BitcoinError";
 import { BitcoinErrorCode } from "./BitcoinErrorCode";
+import { encodeNum } from "./encodeNum";
 import { ICloneable } from "./ICloneable";
 import { OpCode } from "./OpCodes";
 import { ScriptCmd } from "./ScriptCmd";
@@ -101,6 +102,54 @@ export class Script implements ICloneable<Script> {
     }
 
     /**
+     * Creates a standard Pay-to-MultiSig scriptPubKey by accepting m of n
+     * public keys as inputs in the format:
+     *   OP_<m> <pubkey1> <pubkey2> <pubkey..m> OP_<n> OP_CHECKMULTISIG
+     */
+    public static p2msLock(m: number, ...pubkeys: Buffer[]): Script {
+        // assert all public keys are valid
+        for (const pubkey of pubkeys) {
+            assertValidPubKey(pubkey);
+        }
+
+        // ensure proper number of keys
+        if (m < 1 || m > pubkeys.length || pubkeys.length === 0 || pubkeys.length > 20) {
+            throw new BitcoinError(BitcoinErrorCode.MultiSigSetupInvalid);
+        }
+
+        return new Script(
+            encodeNum(m),
+            ...pubkeys,
+            encodeNum(pubkeys.length),
+            OpCode.OP_CHECKMULTISIG,
+        ); // prettier-ignore
+    }
+
+    /**
+     * Creates a standard Pay-to-MultiSig scripSig using the provided
+     * signatures. The signatures must be in the order of the pub keys
+     * used in the lock script. This function also correctly adds OP_0
+     * as the first element on the stack to ensure the p2ms off-by-one
+     * error is correctly accounted for.
+     *
+     * Each signature must be DER encoded using BIP66 and
+     * include a 1-byte sighash type at the end. The builder validates
+     * the signatures. As such they will be 10 to 74 bytes.
+     *
+     * @param pubkeys
+     */
+    public static p2msUnlock(...sigs: Buffer[]): Script {
+        // assert all signatures
+        for (const sig of sigs) {
+            asssertValidSig(sig);
+        }
+        return new Script(
+            OpCode.OP_0,
+            ...sigs
+        ); // prettier-ignore
+    }
+
+    /**
      * Creates a standard Pay-to-Script-Hash scriptPubKey by accepting a hash of
      * the redeem script as input and generating the P2SH script:
      *   OP_HASH160 <hashScript> OP_EQUAL
@@ -154,42 +203,6 @@ export class Script implements ICloneable<Script> {
         } else {
             return new Script(...(data as ScriptCmd[]), redeemScript.serializeCmds());
         }
-    }
-
-    /**
-     * Creates a standard Pay-to-MultiSig scriptPubKey by accepting m of n
-     * public keys as inputs in the format:
-     *   OP_<m> <pubkey1> <pubkey2> <pubkey..m> OP_<n> OP_CHECKMULTISIG
-     */
-    public static p2msLock(m: number, ...pubkeys: Buffer[]): Script {
-        const n = pubkeys.length;
-        return new Script(
-            0x50 + m,
-            ...pubkeys,
-            0x50 + n,
-            OpCode.OP_CHECKMULTISIG,
-        ); // prettier-ignore
-    }
-
-    /**
-     * Creates a standard Pay-to-MultiSig scripSig using the provided
-     * signatures. The signatures must be in the order of the pub keys
-     * used in the lock script. This function also correctly adds OP_0
-     * as the first element on the stack to ensure the p2ms off-by-one
-     * error is correctly accounted for.
-     *
-     * Each signature must be DER encoded using BIP66 and
-     * include a 1-byte sighash type at the end. The builder validates
-     * the signatures. As such they will be 10 to 74 bytes.
-     *
-     * @param pubkeys
-     */
-    public static p2msUnlock(...sigs: Buffer[]): Script {
-        // TODO validations
-        return new Script(
-            OpCode.OP_0,
-            ...sigs
-        ); // prettier-ignore
     }
 
     /**
