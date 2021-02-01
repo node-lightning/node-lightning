@@ -72,9 +72,10 @@ export class TxBuilder {
 
     /**
      * Adds a new transaction input
-     * @param input
+     * @param outpoint the previous output represented as an outpoint
      */
-    public addInput(outpoint: OutPoint, sequence?: TxInSequence, scriptSig?: Script) {
+    public addInput(outpoint: string | OutPoint, sequence?: TxInSequence, scriptSig?: Script) {
+        outpoint = outpoint instanceof OutPoint ? outpoint : OutPoint.fromString(outpoint);
         this._inputs.push(new TxIn(outpoint, scriptSig, sequence));
     }
 
