@@ -80,19 +80,14 @@ export class TxBuilder {
     }
 
     /**
-     * Sets the witness data for an input
-     * @param index
-     * @param witness
-     */
-    public setWitness(index: number, witness: Witness[]) {
-        this.inputs[index].witness = witness;
-    }
-
-    /**
      * Adds a transaction output
-     * @param output
+     * @param value value sent to the lock script. When represented as a
+     * number, the value is in Bitcoin.
+     * @param scriptPubKey the locking script encumbering the funds send
+     * to this output
      */
-    public addOutput(value: Value, scriptPubKey: Script) {
+    public addOutput(value: number | Value, scriptPubKey: Script) {
+        value = value instanceof Value ? value : Value.fromBitcoin(value);
         this._outputs.push(new TxOut(value, scriptPubKey));
     }
 

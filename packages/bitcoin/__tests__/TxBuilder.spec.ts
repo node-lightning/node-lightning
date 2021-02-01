@@ -27,7 +27,7 @@ describe("TxBuilder", () => {
             const sut = new TxBuilder();
             sut.version = 2;
             sut.addInput("9d0e63ad73020a9fad0106b6727e31d36e3ab4b9a01451233926d4759569de68:0");
-            sut.addOutput(Value.fromBitcoin(49.9999), Script.p2pkhLock(pubkeyHashB)); // prettier-ignore
+            sut.addOutput(49.9999, Script.p2pkhLock(pubkeyHashB)); // prettier-ignore
 
             const commitScript = Script.p2pkhLock(pubkeyHashA);
             const sig = sut.sign(0, commitScript, privA);
@@ -40,7 +40,7 @@ describe("TxBuilder", () => {
             const sut = new TxBuilder();
             sut.version = 2;
             sut.addInput("68ce1030a63bd7ff44a95f497d3535731cfa3e6b89eda5ce38eb37a6d527d0dc:0"); // prettier-ignore
-            sut.addOutput(Value.fromBitcoin(49.9998), Script.p2pkLock(pubkeyB));
+            sut.addOutput(49.9998, Script.p2pkLock(pubkeyB));
 
             const commitScript = Script.p2pkLock(pubkeyA);
             const sig = sut.sign(0, commitScript, privA);
@@ -55,7 +55,7 @@ describe("TxBuilder", () => {
             const sut = new TxBuilder();
             sut.version = 2;
             sut.addInput("9d0e63ad73020a9fad0106b6727e31d36e3ab4b9a01451233926d4759569de68:0"); // prettier-ignore
-            sut.addOutput(Value.fromBitcoin(49.9999), Script.p2pkhLock(pubkeyHashB)); // prettier-ignore
+            sut.addOutput(49.9999, Script.p2pkhLock(pubkeyHashB)); // prettier-ignore
 
             const commitScript = Script.p2pkhLock(pubkeyHashA);
             const sig = sut.sign(0, commitScript, privA);
@@ -70,7 +70,7 @@ describe("TxBuilder", () => {
             const sut = new TxBuilder();
             sut.version = 2;
             sut.addInput("68ce1030a63bd7ff44a95f497d3535731cfa3e6b89eda5ce38eb37a6d527d0dc:0"); // prettier-ignore
-            sut.addOutput(Value.fromBitcoin(49.9998), Script.p2pkLock(pubkeyB));
+            sut.addOutput(49.9998, Script.p2pkLock(pubkeyB));
 
             const commitScript = Script.p2pkLock(pubkeyA);
             const sig = sut.sign(0, commitScript, privA);
@@ -85,10 +85,7 @@ describe("TxBuilder", () => {
             const sut = new TxBuilder();
             sut.version = 2;
             sut.addInput("ca5bbd3eec382f2148d8a3f0abe92ee0156bb3657ca9400eecb0812aa2f6f0d9:0");
-            sut.addOutput(
-                Value.fromBitcoin(49.9999),
-                Script.p2shLock(Script.p2pkhLock(pubkeyHashA)),
-            );
+            sut.addOutput(49.9999, Script.p2shLock(Script.p2pkhLock(pubkeyHashA)));
 
             const commitScript = Script.p2pkhLock(pubkeyHashA);
             const sig = sut.sign(0, commitScript, privA);
@@ -103,10 +100,7 @@ describe("TxBuilder", () => {
             const sut = new TxBuilder();
             sut.version = 2;
             sut.addInput("997fd2dd17a5d5843edc23ab7f043130dfe737cf0e02336c75fe37c1eda51195:0");
-            sut.addOutput(
-                Value.fromBitcoin(49.9999),
-                Script.p2msLock(2, pubkeyA, pubkeyB)
-            ); // prettier-ignore
+            sut.addOutput(49.9999, Script.p2msLock(2, pubkeyA, pubkeyB));
 
             const commitScript = Script.p2pkhLock(pubkeyHashA);
             const sig = sut.sign(0, commitScript, privA);
@@ -121,7 +115,7 @@ describe("TxBuilder", () => {
             const sut = new TxBuilder();
             sut.version = 2;
             sut.addInput("d6422b4b4c9ec2e8f5f6eaff948241c494397f7e6ca4a2ca2783e3ea3581e27f:0");
-            sut.addOutput(Value.fromBitcoin(49.9998), Script.p2pkhLock(pubkeyHashB));
+            sut.addOutput(49.9998, Script.p2pkhLock(pubkeyHashB));
 
             const commitScript = Script.p2msLock(2, pubkeyA, pubkeyB);
             const sigA = sut.sign(0, commitScript, privA);
@@ -139,7 +133,7 @@ describe("TxBuilder", () => {
             sut.version = 2;
             sut.addInput("33e5bb0c1640b1be2a2f2e287c14be86f36cdc831fde0fd953b3a1ab9cb2c8d9:0");
             sut.addOutput(
-                Value.fromBitcoin(49.9998),
+                49.9998,
                 Script.p2shLock(
                     new Script(OpCode.OP_7, OpCode.OP_ADD, OpCode.OP_10, OpCode.OP_EQUAL),
                 ),
@@ -160,7 +154,7 @@ describe("TxBuilder", () => {
             sut.addInput("a76bb71e2739080f34989c92e1bca2ffe83a9c0d9e424cafe649860cfe11c16c:0");
 
             sut.addOutput(
-                Value.fromBitcoin(49.9997),
+                49.9997,
                 Script.p2shLock(
                     new Script(OpCode.OP_7, OpCode.OP_ADD, OpCode.OP_12, OpCode.OP_EQUAL),
                 ),
@@ -183,10 +177,7 @@ describe("TxBuilder", () => {
             const sut = new TxBuilder();
             sut.version = 2;
             sut.addInput("0382e83cc4692fbd554d621c214263a3414ec0cbbdef0fee73b16992613b8809:0");
-            sut.addOutput(
-                Value.fromBitcoin(49.9999),
-                Script.p2shLock(Script.p2msLock(2, pubkeyA, pubkeyB)),
-            );
+            sut.addOutput(49.9999, Script.p2shLock(Script.p2msLock(2, pubkeyA, pubkeyB)));
 
             const commitScript = Script.p2pkhLock(pubkeyHashA);
             const sig = sut.sign(0, commitScript, privA);
@@ -201,7 +192,7 @@ describe("TxBuilder", () => {
             const sut = new TxBuilder();
             sut.version = 2;
             sut.addInput("26aec57587f3e093f8236706873e3c71f95c18310b688925e657ef9b9ce0309d:0");
-            sut.addOutput(Value.fromBitcoin(49.9998), Script.p2pkhLock(pubkeyHashB));
+            sut.addOutput(49.9998, Script.p2pkhLock(pubkeyHashB));
 
             const commitScript = Script.p2msLock(2, pubkeyA, pubkeyB);
             const sigA = sut.sign(0, commitScript, privA);
