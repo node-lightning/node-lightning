@@ -5,6 +5,8 @@ import { OpCode } from "../lib/OpCodes";
 import { OutPoint } from "../lib/OutPoint";
 import { Script } from "../lib/Script";
 import { TxBuilder } from "../lib/TxBuilder";
+import { TxInSequence } from "../lib/TxInSequence";
+import { TxLockTime } from "../lib/TxLockTime";
 import { Value } from "../lib/Value";
 
 describe("TxBuilder", () => {
@@ -211,6 +213,40 @@ describe("TxBuilder", () => {
 
             expect(sut.serialize().toString("hex")).to.equal(
                 "0200000001de6aa12d0381d6678416e76bd2562eb1d26b15333b6ebf3bb1f96012fe679c5d000000006b483045022100922d11bf27877bb36a9090b3d71ea39b653b3f21d3019e82243c1021b781b8dd022071bfded587414b0a833d9f9c06db8745ff05a199066e05a8f3dc3b2a6a670a5c012102c13bf903d6147a7fec59b450e2e8a6c174c35a11a7675570d10bd05bc3597996ffffffff02f0ca052a010000001976a9149b40f5b05efd99e4b0c4f62ca63eec3e580e95c788ac0000000000000000176a155361746f736869206973206d7920686f6d65626f79ffffffff",
+            );
+        });
+
+        it("spends BIP125 RBF", () => {
+            const original = new TxBuilder();
+            original.addInput(
+                "0085855136b41b0318ba66a33704e1b4a0903e4cf30563a47185e9ce4842f8cb:0",
+                new TxInSequence(0),
+            );
+            original.addOutput(49.9999, Script.p2pkhLock(pubkeyB));
+            original.locktime = new TxLockTime(0);
+            original.inputs[0].scriptSig = Script.p2pkhUnlock(
+                original.sign(0, Script.p2pkhLock(pubkeyA), privA),
+                pubkeyA,
+            );
+
+            expect(original.serialize().toString("hex")).to.equal(
+                "0200000001cbf84248cee98571a46305f34c3e90a0b4e10437a366ba18031bb43651858500000000006b483045022100e0a81464b211f0af994e24e3d474b19312724ae2cb2f3f5bf90459527313eea9022029730f7b9339292c010236ab136e0fb07b27a053460213615df6c65492933afb012102c13bf903d6147a7fec59b450e2e8a6c174c35a11a7675570d10bd05bc35979960000000001f0ca052a010000001976a914c538c517797dfefdf30142dc1684bfd947532dbb88ac00000000",
+            );
+
+            const replacement = new TxBuilder();
+            replacement.addInput(
+                "0085855136b41b0318ba66a33704e1b4a0903e4cf30563a47185e9ce4842f8cb:0",
+                new TxInSequence(0xfffffffd),
+            );
+            replacement.addOutput(49.9998, Script.p2pkhLock(pubkeyB));
+            replacement.locktime = new TxLockTime(0);
+            replacement.inputs[0].scriptSig = Script.p2pkhUnlock(
+                replacement.sign(0, Script.p2pkhLock(pubkeyA), privA),
+                pubkeyA,
+            );
+
+            expect(replacement.serialize().toString("hex")).to.equal(
+                "0200000001cbf84248cee98571a46305f34c3e90a0b4e10437a366ba18031bb43651858500000000006a473044022049c06ae808ec6593b5c6c0401bb2fd63893c04761bca73da665b60088e9071fa022049cbf7654aca20a460131a9bc6f953e5ea8a9caee77c81178c8d891544725373012102c13bf903d6147a7fec59b450e2e8a6c174c35a11a7675570d10bd05bc3597996fdffffff01e0a3052a010000001976a914c538c517797dfefdf30142dc1684bfd947532dbb88ac00000000",
             );
         });
     });
