@@ -10,6 +10,25 @@ import { OpCode } from "./OpCodes";
 import { ScriptCmd } from "./ScriptCmd";
 import { isSigHashTypeValid, SigHashType } from "./SigHashType";
 
+function asssertValidSig(sig: Buffer) {
+    const der = sig.slice(0, sig.length - 1);
+    const hashtype = sig[sig.length - 1];
+
+    if (!isDERSig(der)) {
+        throw new BitcoinError(BitcoinErrorCode.SigEncodingInvalid);
+    }
+
+    if (!isSigHashTypeValid(hashtype)) {
+        throw new BitcoinError(BitcoinErrorCode.SigHashTypeInvalid, hashtype);
+    }
+}
+
+function assertValidPubKey(pubkey: Buffer) {
+    if (!validPublicKey(pubkey)) {
+        throw new BitcoinError(BitcoinErrorCode.PubKeyInvalid);
+    }
+}
+
 /**
  * Bitcoin Script
  */
@@ -25,9 +44,7 @@ export class Script implements ICloneable<Script> {
      * encoded pubkey
      */
     public static p2pkLock(pubkey: Buffer): Script {
-        if (!validPublicKey(pubkey)) {
-            throw new BitcoinError(BitcoinErrorCode.PubKeyInvalid);
-        }
+        assertValidPubKey(pubkey);
         return new Script(pubkey, OpCode.OP_CHECKSIG);
     }
 
@@ -41,17 +58,7 @@ export class Script implements ICloneable<Script> {
      * @param sig DER encoded signature + 1-byte sighash type
      */
     public static p2pkUnlock(sig: Buffer): Script {
-        const der = sig.slice(0, sig.length - 1);
-        const hashtype = sig[sig.length - 1];
-
-        if (!isDERSig(der)) {
-            throw new BitcoinError(BitcoinErrorCode.SigEncodingInvalid);
-        }
-
-        if (!isSigHashTypeValid(hashtype)) {
-            throw new BitcoinError(BitcoinErrorCode.SigHashTypeInvalid, hashtype);
-        }
-
+        asssertValidSig(sig);
         return new Script(sig);
     }
 
@@ -60,8 +67,19 @@ export class Script implements ICloneable<Script> {
      * hash of a public key as input and generating the script in the standard
      * P2PKH script format:
      *   OP_DUP OP_HASH160 <hash160pubkey> OP_EQUALVERIFY OP_CHECKSIG
+     *
+     * @param value either the 20-byte hash160 of a pubkey or an SEC
+     * encoded compressed or uncompressed pubkey
      */
-    public static p2pkhLock(hash160PubKey: Buffer): Script {
+    public static p2pkhLock(value: Buffer): Script {
+        // if not a hash160, then it must be a valid pubkey
+        if (value.length !== 20) {
+            assertValidPubKey(value);
+        }
+
+        // either the hash value or a valid pubkey that needs to be hashed
+        const hash160PubKey = value.length === 20 ? value : hash160(value);
+
         return new Script(
             OpCode.OP_DUP,
             OpCode.OP_HASH160,
@@ -77,6 +95,8 @@ export class Script implements ICloneable<Script> {
      * @param pubkey SEC encoded public key
      */
     public static p2pkhUnlock(sig: Buffer, pubkey: Buffer): Script {
+        asssertValidSig(sig);
+        assertValidPubKey(pubkey);
         return new Script(sig, pubkey);
     }
 

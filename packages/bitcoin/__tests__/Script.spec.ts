@@ -221,6 +221,16 @@ describe("Script", () => {
 
         const invalidPubkey = Buffer.alloc(33);
 
+        const aSignHello = Buffer.from(
+            "304402207efc6629be179f7322378883507f434d2814a45369870795d538ca3497efb451022041640c6c86e4c7fd3d17eb859624e3fb37777d494eaf50fc0546b552bfcd2fbc",
+            "hex",
+        );
+
+        const aSignHelloSigHash = Buffer.from(
+            "304402207efc6629be179f7322378883507f434d2814a45369870795d538ca3497efb451022041640c6c86e4c7fd3d17eb859624e3fb37777d494eaf50fc0546b552bfcd2fbc01",
+            "hex",
+        );
+
         describe("#p2pkLock()", () => {
             const fixtures: Array<Fixture<Buffer, string>> = [
                 {
@@ -252,11 +262,6 @@ describe("Script", () => {
         });
 
         describe("#p2pkUnlock()", () => {
-            const aSignHello = Buffer.from(
-                "304402207efc6629be179f7322378883507f434d2814a45369870795d538ca3497efb451022041640c6c86e4c7fd3d17eb859624e3fb37777d494eaf50fc0546b552bfcd2fbc",
-                "hex",
-            );
-
             const fixtures: Array<Fixture<Buffer, string>> = [
                 {
                     title: "throws for invalid signature",
@@ -275,13 +280,86 @@ describe("Script", () => {
                 },
                 {
                     title: "correct key",
-                    input: Buffer.concat([aSignHello, Buffer.alloc(1, 1)]),
+                    input: aSignHelloSigHash,
                     expected:
                         "47304402207efc6629be179f7322378883507f434d2814a45369870795d538ca3497efb451022041640c6c86e4c7fd3d17eb859624e3fb37777d494eaf50fc0546b552bfcd2fbc01",
                 },
             ];
 
             const run = (input: Buffer) => Script.p2pkUnlock(input);
+
+            const assert = (actual: Script, expected: string) => {
+                expect(actual.serializeCmds().toString("hex")).to.equal(expected);
+            };
+
+            testFixtures(fixtures, run, assert);
+        });
+
+        describe("#p2pkhLock()", () => {
+            const fixtures = [
+                {
+                    title: "hash160",
+                    input: Buffer.from("c34015187941b20ecda9378bb3cade86e80d2bfe", "hex"),
+                    expected: "76a914c34015187941b20ecda9378bb3cade86e80d2bfe88ac",
+                },
+                {
+                    title: "compressed pubkey",
+                    input: crypto.getPublicKey(privkeyA, true),
+                    expected: "76a91479b000887626b294a914501a4cd226b58b23598388ac",
+                },
+                {
+                    title: "uncompressed pubkey",
+                    input: crypto.getPublicKey(privkeyA, false),
+                    expected: "76a9146ff3443c994fb2c821969dae53bd5b5052d8394f88ac",
+                },
+                {
+                    title: "invalid",
+                    input: Buffer.alloc(32),
+                    throws: true,
+                },
+            ];
+
+            const run = (input: Buffer) => Script.p2pkhLock(input);
+
+            const assert = (actual: Script, expected: string) => {
+                expect(actual.serializeCmds().toString("hex")).to.equal(expected);
+            };
+
+            testFixtures(fixtures, run, assert);
+        });
+
+        describe("#p2pkhUnlock()", () => {
+            const fixtures = [
+                {
+                    title: "throws for invalid signature",
+                    input: [Buffer.alloc(32, 1), crypto.getPublicKey(privkeyA)],
+                    throws: true,
+                },
+                {
+                    title: "throws for missing sighash byte",
+                    input: [aSignHello, crypto.getPublicKey(privkeyA)],
+                    throws: true,
+                },
+                {
+                    title: "throws for invalid pubkey",
+                    input: [aSignHelloSigHash, Buffer.alloc(1)],
+                    throws: true,
+                },
+                {
+                    title: "valid signature and compressed pubkey",
+                    input: [aSignHelloSigHash, crypto.getPublicKey(privkeyA, true)],
+                    expected:
+                        "47304402207efc6629be179f7322378883507f434d2814a45369870795d538ca3497efb451022041640c6c86e4c7fd3d17eb859624e3fb37777d494eaf50fc0546b552bfcd2fbc0121031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f",
+                },
+                {
+                    title: "valid signature and uncompressed pubkey",
+                    input: [aSignHelloSigHash, crypto.getPublicKey(privkeyA, false)],
+                    expected:
+                        "47304402207efc6629be179f7322378883507f434d2814a45369870795d538ca3497efb451022041640c6c86e4c7fd3d17eb859624e3fb37777d494eaf50fc0546b552bfcd2fbc0141041b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f70beaf8f588b541507fed6a642c5ab42dfdf8120a7f639de5122d47a69a8e8d1",
+                },
+            ];
+
+            const run = (input: Buffer[]) => Script.p2pkhUnlock(input[0], input[1]);
 
             const assert = (actual: Script, expected: string) => {
                 expect(actual.serializeCmds().toString("hex")).to.equal(expected);
@@ -339,23 +417,6 @@ describe("Script.p2msUnlock", () => {
         it(assert, () => {
             const { sigs } = input;
             const actual = Script.p2msUnlock(...sigs);
-            expect(actual.serializeCmds().toString("hex")).to.equal(expected);
-        });
-    }
-});
-
-describe("Script.p2pkhLock", () => {
-    const fixtures = [
-        {
-            assert: "standard script",
-            input: Buffer.from("c34015187941b20ecda9378bb3cade86e80d2bfe", "hex"),
-            expected: "76a914c34015187941b20ecda9378bb3cade86e80d2bfe88ac",
-        },
-    ];
-
-    for (const { assert, input, expected } of fixtures) {
-        it(assert, () => {
-            const actual = Script.p2pkhLock(input);
             expect(actual.serializeCmds().toString("hex")).to.equal(expected);
         });
     }
