@@ -74,4 +74,19 @@ describe("secp256k1", () => {
             expect(result).to.equal(true);
         });
     });
+
+    describe(".isDERSig()", () => {
+        it("returns false when not DER encoded signature", () => {
+            const sig = Buffer.alloc(64);
+            expect(s256.isDERSig(sig)).to.equal(false);
+        });
+
+        it("returns true when DER encoded signature", () => {
+            const sig = Buffer.from(
+                "304402206734cb4e3c071082482bf0f8579484f28dcdb1ca15b0cce72fbf130b2673d00c02205fbeecc4075cfd6a52634210486f24ce6db20f2870e606acc43ade814d48394a",
+                "hex",
+            );
+            expect(s256.isDERSig(sig)).to.equal(true);
+        });
+    });
 });

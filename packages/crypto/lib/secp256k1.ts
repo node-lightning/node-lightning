@@ -60,3 +60,16 @@ export function sigToDER(sig: Buffer): Buffer {
 export function verifySig(msg: Buffer, sig: Buffer, pubkey: Buffer): boolean {
     return secp256k1.ecdsaVerify(sig, msg, pubkey);
 }
+
+/**
+ * Returns true if the signature is a DER encoded signature
+ * @param sig a DER encoded signature
+ */
+export function isDERSig(sig: Buffer): boolean {
+    try {
+        secp256k1.signatureImport(sig);
+        return true;
+    } catch (ex) {
+        return false;
+    }
+}
