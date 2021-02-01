@@ -3,6 +3,7 @@ import * as crypto from "@node-lightning/crypto";
 import { expect } from "chai";
 import { OpCode } from "../lib/OpCodes";
 import { Script } from "../lib/Script";
+import { Fixture, testFixtures } from "./_TestHelper";
 
 describe("Script", () => {
     describe("#parse()", () => {
@@ -221,43 +222,72 @@ describe("Script", () => {
         const invalidPubkey = Buffer.alloc(33);
 
         describe("#p2pkLock()", () => {
-            const fixtures: any = [
+            const fixtures: Array<Fixture<Buffer, string>> = [
                 {
-                    assert: "throws for invalid pubkey",
-                    input: {
-                        pubkey: invalidPubkey,
-                    },
+                    title: "throws for invalid pubkey",
+                    input: invalidPubkey,
                     throws: true,
                 },
                 {
-                    assert: "compressed pubkey",
-                    input: {
-                        pubkey: crypto.getPublicKey(privkeyA, true),
-                    },
+                    title: "compressed pubkey",
+                    input: crypto.getPublicKey(privkeyA, true),
                     expected:
                         "21031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078fac",
                 },
                 {
-                    assert: "uncompressed pubkey",
-                    input: {
-                        pubkey: crypto.getPublicKey(privkeyA, false),
-                    },
+                    title: "uncompressed pubkey",
+                    input: crypto.getPublicKey(privkeyA, false),
                     expected:
                         "41041b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f70beaf8f588b541507fed6a642c5ab42dfdf8120a7f639de5122d47a69a8e8d1ac",
                 },
             ];
 
-            for (const { assert, input, expected, throws } of fixtures) {
-                it(assert, () => {
-                    if (throws) {
-                        expect(() => Script.p2pkLock(invalidPubkey)).to.throw();
-                        return;
-                    }
-                    const { pubkey } = input;
-                    const actual = Script.p2pkLock(pubkey);
-                    expect(actual.serializeCmds().toString("hex")).to.equal(expected);
-                });
-            }
+            const run = (input: Buffer) => Script.p2pkLock(input);
+
+            const assert = (actual: Script, expected: string) => {
+                expect(actual.serializeCmds().toString("hex")).to.equal(expected);
+            };
+
+            testFixtures(fixtures, run, assert);
+        });
+
+        describe("#p2pkUnlock()", () => {
+            const aSignHello = Buffer.from(
+                "304402207efc6629be179f7322378883507f434d2814a45369870795d538ca3497efb451022041640c6c86e4c7fd3d17eb859624e3fb37777d494eaf50fc0546b552bfcd2fbc",
+                "hex",
+            );
+
+            const fixtures: Array<Fixture<Buffer, string>> = [
+                {
+                    title: "throws for invalid signature",
+                    input: Buffer.alloc(32, 1),
+                    throws: true,
+                },
+                {
+                    title: "throws for missing sighash byte",
+                    input: aSignHello,
+                    throws: true,
+                },
+                {
+                    title: "throws for invalid sighash byte",
+                    input: Buffer.concat([aSignHello, Buffer.alloc(1, 20)]),
+                    throws: true,
+                },
+                {
+                    title: "correct key",
+                    input: Buffer.concat([aSignHello, Buffer.alloc(1, 1)]),
+                    expected:
+                        "47304402207efc6629be179f7322378883507f434d2814a45369870795d538ca3497efb451022041640c6c86e4c7fd3d17eb859624e3fb37777d494eaf50fc0546b552bfcd2fbc01",
+                },
+            ];
+
+            const run = (input: Buffer) => Script.p2pkUnlock(input);
+
+            const assert = (actual: Script, expected: string) => {
+                expect(actual.serializeCmds().toString("hex")).to.equal(expected);
+            };
+
+            testFixtures(fixtures, run, assert);
         });
     });
 });

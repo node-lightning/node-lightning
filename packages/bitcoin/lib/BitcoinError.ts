@@ -4,10 +4,14 @@ function getMessage(code: BitcoinErrorCode) {
     switch (code) {
         case BitcoinErrorCode.Base58ChecksumFailed:
             return "Base58Check checksum failed";
-        case BitcoinErrorCode.InvalidPubKey:
+        case BitcoinErrorCode.PubKeyInvalid:
             return "Invalid pubkey";
-        case BitcoinErrorCode.InvalidPubKeyHash:
+        case BitcoinErrorCode.PubKeyHashInvalid:
             return "Invalid pubkeyhash";
+        case BitcoinErrorCode.SigEncodingInvalid:
+            return "Signatures requires BIP66 DER encoding";
+        case BitcoinErrorCode.SigHashTypeInvalid:
+            return "Invalid Signature SIGHASH type";
         default:
             return "Unknown";
     }

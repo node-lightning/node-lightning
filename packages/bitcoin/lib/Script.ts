@@ -2,12 +2,13 @@ import { bigToBufLE } from "@node-lightning/bufio";
 import { encodeVarInt } from "@node-lightning/bufio";
 import { BufferReader } from "@node-lightning/bufio";
 import { StreamReader } from "@node-lightning/bufio";
-import { hash160, validPublicKey } from "@node-lightning/crypto";
+import { hash160, validPublicKey, isDERSig } from "@node-lightning/crypto";
 import { BitcoinError } from "./BitcoinError";
 import { BitcoinErrorCode } from "./BitcoinErrorCode";
 import { ICloneable } from "./ICloneable";
 import { OpCode } from "./OpCodes";
 import { ScriptCmd } from "./ScriptCmd";
+import { isSigHashTypeValid, SigHashType } from "./SigHashType";
 
 /**
  * Bitcoin Script
@@ -25,7 +26,7 @@ export class Script implements ICloneable<Script> {
      */
     public static p2pkLock(pubkey: Buffer): Script {
         if (!validPublicKey(pubkey)) {
-            throw new BitcoinError(BitcoinErrorCode.InvalidPubKey);
+            throw new BitcoinError(BitcoinErrorCode.PubKeyInvalid);
         }
         return new Script(pubkey, OpCode.OP_CHECKSIG);
     }
@@ -40,6 +41,17 @@ export class Script implements ICloneable<Script> {
      * @param sig DER encoded signature + 1-byte sighash type
      */
     public static p2pkUnlock(sig: Buffer): Script {
+        const der = sig.slice(0, sig.length - 1);
+        const hashtype = sig[sig.length - 1];
+
+        if (!isDERSig(der)) {
+            throw new BitcoinError(BitcoinErrorCode.SigEncodingInvalid);
+        }
+
+        if (!isSigHashTypeValid(hashtype)) {
+            throw new BitcoinError(BitcoinErrorCode.SigHashTypeInvalid, hashtype);
+        }
+
         return new Script(sig);
     }
 
