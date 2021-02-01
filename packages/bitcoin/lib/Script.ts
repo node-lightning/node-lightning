@@ -165,7 +165,10 @@ export class Script implements ICloneable<Script> {
         const scriptHash160 = value instanceof Script ? value.hash160() : value;
 
         if (scriptHash160.length !== 20) {
-            throw new Error("Invalid hash160 length");
+            throw new BitcoinError(BitcoinErrorCode.Hash160Invalid, {
+                got: scriptHash160.length,
+                expected: 20,
+            });
         }
 
         return new Script(

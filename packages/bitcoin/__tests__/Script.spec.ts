@@ -3,6 +3,7 @@ import * as crypto from "@node-lightning/crypto";
 import { expect } from "chai";
 import { OpCode } from "../lib/OpCodes";
 import { Script } from "../lib/Script";
+import { ScriptCmd } from "../lib/ScriptCmd";
 import { Fixture, testFixtures } from "./_TestHelper";
 
 describe("Script", () => {
@@ -474,7 +475,7 @@ ae",
             testFixtures(fixtures, run, assert);
         });
 
-        describe("Script.p2msUnlock", () => {
+        describe("#p2msUnlock()", () => {
             const fixtures = [
                 {
                     title: "invalid sig buffer fails",
@@ -511,50 +512,102 @@ ae",
 
             testFixtures(fixtures, run, assert);
         });
-    });
-});
 
-describe("Script.p2shLock", () => {
-    const fixtures = [
-        {
-            assert: "non-standard script",
-            input: crypto.hash160(
-                new Script(
-                    OpCode.OP_SHA256,
-                    Buffer.from(
-                        "253c853e2915f5979e3c6b248b028cc5e3b4e7be3d0884db6c3632fd85702def",
-                        "hex",
+        describe("#p2shLock()", () => {
+            const fixtures: Array<Fixture<Script | Buffer, string>> = [
+                {
+                    title: "invalid hash length",
+                    input: Buffer.alloc(19),
+                    throws: true,
+                },
+                {
+                    title: "non-standard script",
+                    input: new Script(
+                        OpCode.OP_SHA256,
+                        Buffer.from(
+                            "253c853e2915f5979e3c6b248b028cc5e3b4e7be3d0884db6c3632fd85702def",
+                            "hex",
+                        ),
+                        OpCode.OP_EQUAL,
                     ),
-                    OpCode.OP_EQUAL,
-                ).serializeCmds(),
-            ),
-            expected: "a9140714c97d999d7e3f1c68b015fec735b857e9064987",
-        },
-        {
-            assert: "p2sh(p2ms) script",
-            input: crypto.hash160(
-                Buffer.from(
-                    "522102e577d441d501cace792c02bfe2cc15e59672199e2195770a61fd3288fc9f934f2102c65e30c3ff38e79e3eb73cebe9c4747007b6eef4ee40a01fc53b991dfaf1838752ae",
-                    "hex",
-                ),
-            ),
-            expected: "a91451a92be9c57d4b865e69daad982c5ab6c1d7bea187",
-        },
-        {
-            assert: "p2sh(p2pkh) script",
-            input: crypto.hash160(
-                Buffer.from("76a914c34015187941b20ecda9378bb3cade86e80d2bfe88ac", "hex"),
-            ),
-            expected: "a91421478d4f1adfe18d59ccb5ca0e135fa6a5f3467687",
-        },
-    ];
+                    expected: "a9140714c97d999d7e3f1c68b015fec735b857e9064987",
+                },
+                {
+                    title: "non-standard hash160",
+                    input: crypto.hash160(
+                        new Script(
+                            OpCode.OP_SHA256,
+                            Buffer.from(
+                                "253c853e2915f5979e3c6b248b028cc5e3b4e7be3d0884db6c3632fd85702def",
+                                "hex",
+                            ),
+                            OpCode.OP_EQUAL,
+                        ).serializeCmds(),
+                    ),
+                    expected: "a9140714c97d999d7e3f1c68b015fec735b857e9064987",
+                },
+                {
+                    title: "p2sh(p2ms) script",
+                    input: crypto.hash160(
+                        Buffer.from(
+                            "522102e577d441d501cace792c02bfe2cc15e59672199e2195770a61fd3288fc9f934f2102c65e30c3ff38e79e3eb73cebe9c4747007b6eef4ee40a01fc53b991dfaf1838752ae",
+                            "hex",
+                        ),
+                    ),
+                    expected: "a91451a92be9c57d4b865e69daad982c5ab6c1d7bea187",
+                },
+                {
+                    title: "p2sh(p2pkh) script",
+                    input: crypto.hash160(
+                        Buffer.from("76a914c34015187941b20ecda9378bb3cade86e80d2bfe88ac", "hex"),
+                    ),
+                    expected: "a91421478d4f1adfe18d59ccb5ca0e135fa6a5f3467687",
+                },
+            ];
 
-    for (const { assert, input, expected } of fixtures) {
-        it(assert, () => {
-            const actual = Script.p2shLock(input);
-            expect(actual.serializeCmds().toString("hex")).to.equal(expected);
+            const run = (input: Buffer | Script) => Script.p2shLock(input);
+
+            const assert = (actual: Script, expected: string) => {
+                expect(actual.serializeCmds().toString("hex")).to.equal(expected);
+            };
+
+            testFixtures(fixtures, run, assert);
         });
-    }
+
+        describe("#p2shUnlock", () => {
+            const fixtures: Array<Fixture<[Script, Script] | [Script, ...ScriptCmd[]], string>> = [
+                {
+                    title: "no extra data",
+                    input: [new Script(OpCode.OP_1), undefined],
+                    expected: "0151",
+                },
+                {
+                    title: "extra data as Script",
+                    input: [new Script(OpCode.OP_EQUAL), new Script(OpCode.OP_1, OpCode.OP_1)],
+                    expected: "51510187",
+                },
+                {
+                    title: "extra data as ScriptCmd",
+                    input: [new Script(OpCode.OP_EQUAL), OpCode.OP_1, OpCode.OP_1],
+                    expected: "51510187",
+                },
+            ];
+
+            const run = ([script, ...rest]: [Script, Script] | [Script, ...ScriptCmd[]]) => {
+                if (rest[0] instanceof Script) {
+                    return Script.p2shUnlock(script, rest[0]);
+                } else {
+                    return Script.p2shUnlock(script, ...(rest as ScriptCmd[]));
+                }
+            };
+
+            const assert = (actual: Script, expected: string) => {
+                expect(actual.serializeCmds().toString("hex")).to.equal(expected);
+            };
+
+            testFixtures(fixtures, run, assert);
+        });
+    });
 });
 
 describe("Script.p2wpkhLock", () => {

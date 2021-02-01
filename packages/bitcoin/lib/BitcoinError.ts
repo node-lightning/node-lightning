@@ -12,6 +12,10 @@ function getMessage(code: BitcoinErrorCode) {
             return "Signatures requires BIP66 DER encoding";
         case BitcoinErrorCode.SigHashTypeInvalid:
             return "Invalid Signature SIGHASH type";
+        case BitcoinErrorCode.MultiSigSetupInvalid:
+            return "MultiSig structure is invalid";
+        case BitcoinErrorCode.Hash160Invalid:
+            return "Hash160 requires 20-bytes Buffer";
         default:
             return "Unknown";
     }
