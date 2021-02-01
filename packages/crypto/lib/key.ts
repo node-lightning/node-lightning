@@ -12,11 +12,25 @@ const maxPrivateKey = BigInt("0xfffffffffffffffffffffffffffffffebaaedce6af48a03b
  * @param privKey 32-byte/256-bit buffer
  */
 export function validPrivateKey(privKey: Buffer): boolean {
-    if (!Buffer.isBuffer(privKey)) return false;
-    if (privKey.length !== 32) return false;
+    try {
+        return secp256k1.privateKeyVerify(privKey);
+    } catch (ex) {
+        return false;
+    }
+}
 
-    const val = BigInt("0x" + privKey.toString("hex"));
-    return val >= minPrivateKey && val <= maxPrivateKey;
+/**
+ * Returns true when the Buffer represents a valid SEC encoded public
+ * key stored in a buffer. This expects the prefix and length to be
+ * correct.
+ * @param pubkey
+ */
+export function validPublicKey(pubkey: Buffer): boolean {
+    try {
+        return secp256k1.publicKeyVerify(pubkey);
+    } catch (ex) {
+        return false;
+    }
 }
 
 /**

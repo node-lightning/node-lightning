@@ -38,6 +38,46 @@ describe(".validPrivateKey()", () => {
     });
 });
 
+describe(".validPublicKey", () => {
+    it("returns false with invalid compressed length", () => {
+        const privkey = Buffer.alloc(32, 1);
+        const pubkey = key.getPublicKey(privkey, true);
+        expect(key.validPublicKey(pubkey.slice(0, 30))).to.equal(false);
+    });
+
+    it("returns false with invalid uncompressed length", () => {
+        const privkey = Buffer.alloc(32, 1);
+        const pubkey = key.getPublicKey(privkey, false);
+        expect(key.validPublicKey(pubkey.slice(0, 60))).to.equal(false);
+    });
+
+    it("returns false with invalid compressed prefix", () => {
+        const privkey = Buffer.alloc(32, 1);
+        const pubkey = key.getPublicKey(privkey, true);
+        pubkey[0] = 1;
+        expect(key.validPublicKey(pubkey)).to.equal(false);
+    });
+
+    it("returns false with invalid uncompressed prefix", () => {
+        const privkey = Buffer.alloc(32, 1);
+        const pubkey = key.getPublicKey(privkey, false);
+        pubkey[0] = 1;
+        expect(key.validPublicKey(pubkey)).to.equal(false);
+    });
+
+    it("returns true with valid compressed pubkey", () => {
+        const privkey = Buffer.alloc(32, 1);
+        const pubkey = key.getPublicKey(privkey, true);
+        expect(key.validPublicKey(pubkey)).to.equal(true);
+    });
+
+    it("returns true with valid uncompressed pubkey", () => {
+        const privkey = Buffer.alloc(32, 1);
+        const pubkey = key.getPublicKey(privkey, false);
+        expect(key.validPublicKey(pubkey)).to.equal(true);
+    });
+});
+
 describe(".createPrivateKey()", () => {
     it("should return valid key", () => {
         const actual = key.createPrivateKey();
