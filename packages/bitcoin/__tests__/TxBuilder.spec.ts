@@ -311,5 +311,40 @@ describe("TxBuilder", () => {
                 "0200000001895ba9c421fbd5926f35ef47c78323349f6efe003eb42e6a798745c092b582db0000000072483045022100cfbb72cf18451da98fa093bb333d88895f50ff41804916f9c120c8f8e398e63a022030fc9c98259d4f98573b753cd5adba5aba6b206743ed9e7a67efb9b16eaf32b5012802c800b175210334acee9adf0e3e490a422dfe98bc10a8091b43047b793b8d840657b6b6a46c56acfeffffff01e0a3052a010000001976a914c538c517797dfefdf30142dc1684bfd947532dbb88acc8000000",
             );
         });
+
+        it("spends time-based CLTV", () => {
+            const redeem = new Script(
+                encodeNum(1612137600),
+                OpCode.OP_CHECKLOCKTIMEVERIFY,  // output is unspendable until Feb 01 2021
+                OpCode.OP_DROP,                 // drop the timelock
+                pubkeyB,
+                OpCode.OP_CHECKSIG,             // only spendable to B
+            ); // prettier-ignore
+
+            const tx1 = new TxBuilder();
+            tx1.addInput("366401232aa585346495fed6fa5e88e5f220e6eaf5423b952ef03d41903cd680:0");
+            tx1.addOutput(49.9999, Script.p2shLock(redeem)); // use p2sh to wrap script
+            tx1.inputs[0].scriptSig = Script.p2pkhUnlock(
+                tx1.sign(0, Script.p2pkhLock(pubkeyA), privA),
+                pubkeyA,
+            );
+
+            expect(tx1.serialize().toString("hex")).to.equal(
+                "020000000180d63c90413df02e953b42f5eae620f2e5885efad6fe95643485a52a23016436000000006a473044022050f7bf534dd1a001b62c861ff49c4d5cab9cb81bf2e3c36529df877cbcbcd89c0220618554468a644c9ea204df842e819369f76c15bb34ddd3f947bb53b397704216012102c13bf903d6147a7fec59b450e2e8a6c174c35a11a7675570d10bd05bc3597996ffffffff01f0ca052a0100000017a914cda8dc88b3433c055566bf12e4d855b011185a1387ffffffff",
+            );
+
+            const tx2 = new TxBuilder();
+            tx2.addInput(
+                "94bdc0c7d032a487b2d4637dfc9d6bd8788e5cf2ea8bde542dc2e99383f07877:0",
+                new TxInSequence(0xfffffffe), // required to enable locktime
+            );
+            tx2.addOutput(49.9998, Script.p2pkhLock(pubkeyB));
+            tx2.locktime = new TxLockTime(1612137600); // locktime must be >= the input value for CLTV
+            tx2.inputs[0].scriptSig = Script.p2shUnlock(redeem, tx2.sign(0, redeem, privB)); // provide the redeem script and the signature
+
+            expect(tx2.serialize().toString("hex")).to.equal(
+                "02000000017778f08393e9c22d54de8beaf25c8e78d86b9dfc7d63d4b287a432d0c7c0bd94000000007347304402202e3d313be0b7c5719020c7bab6812cad7efaf37b9c5acffcc9106be041da34670220585e39f85f96e204434dee5328df7b66399160197a91f768abd0638f0a40f065012a0480441760b175210334acee9adf0e3e490a422dfe98bc10a8091b43047b793b8d840657b6b6a46c56acfeffffff01e0a3052a010000001976a914c538c517797dfefdf30142dc1684bfd947532dbb88ac80441760",
+            );
+        });
     });
 });
