@@ -1,15 +1,14 @@
 import { BufferWriter } from "@node-lightning/bufio";
 import { hash256, sign, sigToDER } from "@node-lightning/crypto";
+import { LockTime } from "./LockTime";
 import { OutPoint } from "./OutPoint";
 import { Script } from "./Script";
+import { Sequence } from "./Sequence";
 import { Sorter } from "./Sorter";
 import { Tx } from "./Tx";
 import { TxIn } from "./TxIn";
-import { Sequence } from "./Sequence";
-import { LockTime } from "./LockTime";
 import { TxOut } from "./TxOut";
 import { Value } from "./Value";
-import { Witness } from "./Witness";
 
 export class TxBuilder {
     public inputSorter: Sorter<TxIn>;

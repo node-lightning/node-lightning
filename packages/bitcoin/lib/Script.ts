@@ -2,14 +2,14 @@ import { bigToBufLE } from "@node-lightning/bufio";
 import { encodeVarInt } from "@node-lightning/bufio";
 import { BufferReader } from "@node-lightning/bufio";
 import { StreamReader } from "@node-lightning/bufio";
-import { hash160, validPublicKey, isDERSig } from "@node-lightning/crypto";
+import { hash160, isDERSig, validPublicKey } from "@node-lightning/crypto";
 import { BitcoinError } from "./BitcoinError";
 import { BitcoinErrorCode } from "./BitcoinErrorCode";
 import { encodeNum } from "./encodeNum";
 import { ICloneable } from "./ICloneable";
 import { OpCode } from "./OpCodes";
 import { ScriptCmd } from "./ScriptCmd";
-import { isSigHashTypeValid, SigHashType } from "./SigHashType";
+import { isSigHashTypeValid } from "./SigHashType";
 
 function asssertValidSig(sig: Buffer) {
     const der = sig.slice(0, sig.length - 1);

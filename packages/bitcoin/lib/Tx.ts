@@ -1,12 +1,12 @@
 import { BufferWriter, StreamReader, varIntBytes } from "@node-lightning/bufio";
 import { hash256 } from "@node-lightning/crypto";
 import { HashValue } from "./HashValue";
+import { LockTime } from "./LockTime";
 import { OutPoint } from "./OutPoint";
 import { Script } from "./Script";
+import { Sequence } from "./Sequence";
 import { SizeResult } from "./SizeResult";
 import { TxIn } from "./TxIn";
-import { Sequence } from "./Sequence";
-import { LockTime } from "./LockTime";
 import { TxOut } from "./TxOut";
 import { Value } from "./Value";
 import { Witness } from "./Witness";
