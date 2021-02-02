@@ -40,6 +40,25 @@ export function sign(msg: Buffer, privateKey: Buffer): Buffer {
 }
 
 /**
+ * Create an ECDSA signature for the 32-byte message using the private
+ * key. This method returns both the signature in the normalized low-s
+ * version of the signature as a 64-bte Buffer (r,s) and the recovery
+ * identifier.
+ * @param msg 32-byte message
+ * @param privateKey 32-byte secp256k1 private key
+ */
+export function signWithRecovery(
+    msg: Buffer,
+    privateKey: Buffer,
+): { signature: Buffer; recovery: number } {
+    const { signature, recid } = secp256k1.ecdsaSign(msg, privateKey);
+    return {
+        signature: Buffer.from(signature),
+        recovery: recid,
+    };
+}
+
+/**
  * Encodes a signature into a DER encoding. This encoding is 8-73 bytes
  * in length depending on the length of the s value in the signature.
  * @param sig 64-byte buffer containing (r, s)
@@ -72,4 +91,22 @@ export function isDERSig(sig: Buffer): boolean {
     } catch (ex) {
         return false;
     }
+}
+
+/**
+ * Recovers the public key from the signature and recovery identifier
+ * for the signed message.
+ * @param signature 64-byte signature
+ * @param recovery recovery id
+ * @param message message that was signed
+ * @param compressed whether the pubkey is compressed
+ */
+export function recoverPubKey(
+    signature: Buffer,
+    recovery: number,
+    message: Buffer,
+    compressed: boolean = true,
+): Buffer {
+    const result = secp256k1.ecdsaRecover(signature, recovery, message, compressed);
+    return Buffer.from(result);
 }
