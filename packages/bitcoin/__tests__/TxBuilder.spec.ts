@@ -1,6 +1,7 @@
 import { BufferReader } from "@node-lightning/bufio";
 import { getPublicKey, hash160 } from "@node-lightning/crypto";
 import { expect } from "chai";
+import { encodeNum } from "../lib/encodeNum";
 import { OpCode } from "../lib/OpCodes";
 import { OutPoint } from "../lib/OutPoint";
 import { Script } from "../lib/Script";
@@ -273,6 +274,41 @@ describe("TxBuilder", () => {
 
             expect(parent.serialize().toString("hex")).to.equal(
                 "0200000001a59400829bb9d727d7479700fa3febfdc7b6e8b34cd81c08e32faffa71101555000000006a473044022045ca57fb426080e001e531c8a6fe3203da575ca4dc95ae6fac785911bc0bb1180220636998b4a0d93b55b17006a5eab8dd4533c9e81cbdbc383305c678c3e248c967012102c13bf903d6147a7fec59b450e2e8a6c174c35a11a7675570d10bd05bc3597996ffffffff0118ee052a010000001976a914c538c517797dfefdf30142dc1684bfd947532dbb88acffffffff",
+            );
+        });
+
+        it("spends block based CLTV", () => {
+            const redeem = new Script(
+                encodeNum(200),
+                OpCode.OP_CHECKLOCKTIMEVERIFY,  // output is unspendable until block 200
+                OpCode.OP_DROP,                 // drop the 200
+                pubkeyB,
+                OpCode.OP_CHECKSIG,             // only spendable to B
+            ); // prettier-ignore
+
+            const tx1 = new TxBuilder();
+            tx1.addInput("23a4f5660d5460a110bd38685f315becaf1137b1571371e780987c77ea113125:0");
+            tx1.addOutput(49.9999, Script.p2shLock(redeem)); // use p2sh to wrap script
+            tx1.inputs[0].scriptSig = Script.p2pkhUnlock(
+                tx1.sign(0, Script.p2pkhLock(pubkeyA), privA),
+                pubkeyA,
+            );
+
+            expect(tx1.serialize().toString("hex")).to.equal(
+                "0200000001253111ea777c9880e7711357b13711afec5b315f6838bd10a160540d66f5a423000000006b483045022100c4b4e1a3d2790ebbf8dab7fa6921f3eb5800fa534504084146aa8952117c8d8502201a2e0526e5fcc3a622e05a10c42b0fd38cd7d2731bc5cf0f401d115842311d82012102c13bf903d6147a7fec59b450e2e8a6c174c35a11a7675570d10bd05bc3597996ffffffff01f0ca052a0100000017a914742c427198c79f53f0ddbbd1cf40416ce99fc07387ffffffff",
+            );
+
+            const tx2 = new TxBuilder();
+            tx2.addInput(
+                "db82b592c04587796a2eb43e00fe6e9f342383c747ef356f92d5fb21c4a95b89:0",
+                new TxInSequence(0xfffffffe), // required to enable locktime
+            );
+            tx2.addOutput(49.9998, Script.p2pkhLock(pubkeyB));
+            tx2.locktime = new TxLockTime(200); // locktime must be >= the input value for CLTV
+            tx2.inputs[0].scriptSig = Script.p2shUnlock(redeem, tx2.sign(0, redeem, privB)); // provide the redeem script and the signature
+
+            expect(tx2.serialize().toString("hex")).to.equal(
+                "0200000001895ba9c421fbd5926f35ef47c78323349f6efe003eb42e6a798745c092b582db0000000072483045022100cfbb72cf18451da98fa093bb333d88895f50ff41804916f9c120c8f8e398e63a022030fc9c98259d4f98573b753cd5adba5aba6b206743ed9e7a67efb9b16eaf32b5012802c800b175210334acee9adf0e3e490a422dfe98bc10a8091b43047b793b8d840657b6b6a46c56acfeffffff01e0a3052a010000001976a914c538c517797dfefdf30142dc1684bfd947532dbb88acc8000000",
             );
         });
     });
