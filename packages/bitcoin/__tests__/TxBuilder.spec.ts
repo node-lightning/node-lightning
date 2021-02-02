@@ -1,13 +1,11 @@
-import { BufferReader } from "@node-lightning/bufio";
 import { getPublicKey, hash160 } from "@node-lightning/crypto";
 import { expect } from "chai";
 import { encodeNum } from "../lib/encodeNum";
+import { LockTime } from "../lib/LockTime";
 import { OpCode } from "../lib/OpCodes";
-import { OutPoint } from "../lib/OutPoint";
 import { Script } from "../lib/Script";
+import { Sequence } from "../lib/Sequence";
 import { TxBuilder } from "../lib/TxBuilder";
-import { TxInSequence } from "../lib/TxInSequence";
-import { TxLockTime } from "../lib/TxLockTime";
 import { Value } from "../lib/Value";
 
 describe("TxBuilder", () => {
@@ -221,10 +219,10 @@ describe("TxBuilder", () => {
             const original = new TxBuilder();
             original.addInput(
                 "0085855136b41b0318ba66a33704e1b4a0903e4cf30563a47185e9ce4842f8cb:0",
-                new TxInSequence(0),
+                new Sequence(0),
             );
             original.addOutput(49.9999, Script.p2pkhLock(pubkeyB));
-            original.locktime = new TxLockTime(0);
+            original.locktime = new LockTime(0);
             original.inputs[0].scriptSig = Script.p2pkhUnlock(
                 original.sign(0, Script.p2pkhLock(pubkeyA), privA),
                 pubkeyA,
@@ -237,10 +235,10 @@ describe("TxBuilder", () => {
             const replacement = new TxBuilder();
             replacement.addInput(
                 "0085855136b41b0318ba66a33704e1b4a0903e4cf30563a47185e9ce4842f8cb:0",
-                new TxInSequence(0xfffffffd),
+                new Sequence(0xfffffffd),
             );
             replacement.addOutput(49.9998, Script.p2pkhLock(pubkeyB));
-            replacement.locktime = new TxLockTime(0);
+            replacement.locktime = new LockTime(0);
             replacement.inputs[0].scriptSig = Script.p2pkhUnlock(
                 replacement.sign(0, Script.p2pkhLock(pubkeyA), privA),
                 pubkeyA,
@@ -301,10 +299,10 @@ describe("TxBuilder", () => {
             const tx2 = new TxBuilder();
             tx2.addInput(
                 "db82b592c04587796a2eb43e00fe6e9f342383c747ef356f92d5fb21c4a95b89:0",
-                new TxInSequence(0xfffffffe), // required to enable locktime
+                new Sequence(0xfffffffe), // required to enable locktime
             );
             tx2.addOutput(49.9998, Script.p2pkhLock(pubkeyB));
-            tx2.locktime = new TxLockTime(200); // locktime must be >= the input value for CLTV
+            tx2.locktime = new LockTime(200); // locktime must be >= the input value for CLTV
             tx2.inputs[0].scriptSig = Script.p2shUnlock(redeem, tx2.sign(0, redeem, privB)); // provide the redeem script and the signature
 
             expect(tx2.serialize().toString("hex")).to.equal(
@@ -336,10 +334,10 @@ describe("TxBuilder", () => {
             const tx2 = new TxBuilder();
             tx2.addInput(
                 "94bdc0c7d032a487b2d4637dfc9d6bd8788e5cf2ea8bde542dc2e99383f07877:0",
-                new TxInSequence(0xfffffffe), // required to enable locktime
+                new Sequence(0xfffffffe), // required to enable locktime
             );
             tx2.addOutput(49.9998, Script.p2pkhLock(pubkeyB));
-            tx2.locktime = new TxLockTime(1612137600); // locktime must be >= the input value for CLTV
+            tx2.locktime = new LockTime(1612137600); // locktime must be >= the input value for CLTV
             tx2.inputs[0].scriptSig = Script.p2shUnlock(redeem, tx2.sign(0, redeem, privB)); // provide the redeem script and the signature
 
             expect(tx2.serialize().toString("hex")).to.equal(
@@ -348,7 +346,7 @@ describe("TxBuilder", () => {
         });
 
         it("spends CSV block delay", () => {
-            const delay = new TxInSequence();
+            const delay = new Sequence();
             delay.blockDelay = 10;
 
             const redeem = new Script(
@@ -379,7 +377,7 @@ describe("TxBuilder", () => {
                 delay,
             );
             tx2.addOutput(49.9998, Script.p2pkhLock(pubkeyB));
-            tx2.locktime = new TxLockTime(0); // required to enable csv
+            tx2.locktime = new LockTime(0); // required to enable csv
             tx2.inputs[0].scriptSig = Script.p2shUnlock(redeem, tx2.sign(0, redeem, privB));
 
             expect(tx2.serialize().toString("hex")).to.equal(
@@ -388,7 +386,7 @@ describe("TxBuilder", () => {
         });
 
         it("spends CSV time delay", () => {
-            const delay = new TxInSequence();
+            const delay = new Sequence();
             delay.timeDelay = 512;
 
             const redeem = new Script(
@@ -419,7 +417,7 @@ describe("TxBuilder", () => {
                 delay,
             );
             tx2.addOutput(49.9998, Script.p2pkhLock(pubkeyB));
-            tx2.locktime = new TxLockTime(0); // required to enable csv
+            tx2.locktime = new LockTime(0); // required to enable csv
             tx2.inputs[0].scriptSig = Script.p2shUnlock(redeem, tx2.sign(0, redeem, privB));
 
             expect(tx2.serialize().toString("hex")).to.equal(

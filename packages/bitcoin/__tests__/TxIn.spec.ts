@@ -4,8 +4,8 @@ import { HashValue } from "../lib/HashValue";
 import { OpCode } from "../lib/OpCodes";
 import { OutPoint } from "../lib/OutPoint";
 import { Script } from "../lib/Script";
+import { Sequence } from "../lib/Sequence";
 import { TxIn } from "../lib/TxIn";
-import { TxInSequence } from "../lib/TxInSequence";
 import { Witness } from "../lib/Witness";
 
 describe("TxIn", () => {
@@ -64,7 +64,7 @@ describe("TxIn", () => {
                     "hex",
                 ),
             );
-            const sequence = new TxInSequence(0xfffffffe);
+            const sequence = new Sequence(0xfffffffe);
             const sut = new TxIn(outpoint, scriptSig, sequence);
             expect(sut.serialize().toString("hex")).to.equal(
                 "56919960ac691763688d3d3bcea9ad6ecaf875df5339e148a1fc61c6ed7a069e" +
@@ -86,7 +86,7 @@ describe("TxIn", () => {
             const prevTxIndex = 1;
             const outpoint = new OutPoint(prevTxId, prevTxIndex);
             const scriptSig = new Script(OpCode.OP_4);
-            const sequence = new TxInSequence(0xfffffffe);
+            const sequence = new Sequence(0xfffffffe);
             const sut = new TxIn(outpoint, scriptSig, sequence);
             expect(sut.toString()).to.equal(
                 "prev=9e067aedc661fca148e13953df75f8ca6eada9ce3b3d8d68631769ac60999156:1, scriptSig=OP_4, sequence=0xfffffffe",
@@ -104,7 +104,7 @@ describe("TxIn", () => {
             const prevTxIndex = 1;
             const outpoint = new OutPoint(prevTxId, prevTxIndex);
             const scriptSig = new Script(OpCode.OP_4);
-            const sequence = new TxInSequence(0xfffffffe);
+            const sequence = new Sequence(0xfffffffe);
             const sut = new TxIn(outpoint, scriptSig, sequence);
             const result = sut.toJSON();
             expect(result.outpoint.txid.toString()).to.equal(
@@ -126,7 +126,7 @@ describe("TxIn", () => {
             const prevTxIndex = 1;
             const outpoint = new OutPoint(prevTxId, prevTxIndex);
             const scriptSig = new Script(OpCode.OP_4);
-            const sequence = new TxInSequence(0xfffffffe);
+            const sequence = new Sequence(0xfffffffe);
             const witness = [new Witness(Buffer.alloc(4))];
             const a = new TxIn(outpoint, scriptSig, sequence, witness);
             const b = a.clone();

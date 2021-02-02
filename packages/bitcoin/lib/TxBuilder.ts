@@ -5,8 +5,8 @@ import { Script } from "./Script";
 import { Sorter } from "./Sorter";
 import { Tx } from "./Tx";
 import { TxIn } from "./TxIn";
-import { TxInSequence } from "./TxInSequence";
-import { TxLockTime } from "./TxLockTime";
+import { Sequence } from "./Sequence";
+import { LockTime } from "./LockTime";
 import { TxOut } from "./TxOut";
 import { Value } from "./Value";
 import { Witness } from "./Witness";
@@ -16,7 +16,7 @@ export class TxBuilder {
     public outputSorter: Sorter<TxOut>;
 
     private _version: number;
-    private _locktime: TxLockTime;
+    private _locktime: LockTime;
     private _inputs: TxIn[];
     private _outputs: TxOut[];
 
@@ -24,7 +24,7 @@ export class TxBuilder {
         this._inputs = [];
         this._outputs = [];
         this._version = 2;
-        this._locktime = new TxLockTime();
+        this._locktime = new LockTime();
         this.inputSorter = inputSorter;
         this.outputSorter = outputSorter;
     }
@@ -44,11 +44,11 @@ export class TxBuilder {
     /**
      * Gets or sets the absolute locktime for the transaction
      */
-    public get locktime(): TxLockTime {
+    public get locktime(): LockTime {
         return this._locktime;
     }
 
-    public set locktime(val: TxLockTime) {
+    public set locktime(val: LockTime) {
         this._locktime = val;
     }
 
@@ -74,7 +74,7 @@ export class TxBuilder {
      * Adds a new transaction input
      * @param outpoint the previous output represented as an outpoint
      */
-    public addInput(outpoint: string | OutPoint, sequence?: TxInSequence, scriptSig?: Script) {
+    public addInput(outpoint: string | OutPoint, sequence?: Sequence, scriptSig?: Script) {
         outpoint = outpoint instanceof OutPoint ? outpoint : OutPoint.fromString(outpoint);
         this._inputs.push(new TxIn(outpoint, scriptSig, sequence));
     }

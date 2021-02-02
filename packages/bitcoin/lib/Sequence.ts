@@ -15,13 +15,29 @@ const DEFAULT_SEQUENCE = 0xffff_ffff;
  * When using a nLocktime, at least one transaction must be non-default.
  * In this condition, it is standard to use 0xffff_fffe.
  */
-export class TxInSequence implements ICloneable<TxInSequence> {
+export class Sequence implements ICloneable<Sequence> {
     /**
      * Parses the value from a byte stream
      * @param reader
      */
-    public static parse(reader: StreamReader): TxInSequence {
-        return new TxInSequence(reader.readUInt32LE());
+    public static parse(reader: StreamReader): Sequence {
+        return new Sequence(reader.readUInt32LE());
+    }
+
+    /**
+     * Creates an nSequence value of 0xffff_fffe which is used to enable
+     * nLockTime.
+     */
+    public static enableLockTime(): Sequence {
+        return new Sequence(0xffff_fffe);
+    }
+
+    /**
+     * Creates an nSequence value of 0xffff_fffd which is used to
+     * enable opt-in full replace-by-fee.
+     */
+    public static enableRBF(): Sequence {
+        return new Sequence(0xffff_fffd);
     }
 
     /**
@@ -152,7 +168,7 @@ export class TxInSequence implements ICloneable<TxInSequence> {
     /**
      * Clone via deep copy
      */
-    public clone(): TxInSequence {
-        return new TxInSequence(this._value);
+    public clone(): Sequence {
+        return new Sequence(this._value);
     }
 }
