@@ -12,6 +12,13 @@ describe("TxLockTime", () => {
         });
     });
 
+    describe("#.zero()", () => {
+        it("creates an nLockTime with zero", () => {
+            const sut = LockTime.zero();
+            expect(sut.value).to.equal(0);
+        });
+    });
+
     describe(".value", () => {
         it("gets or sets values", () => {
             expect(new LockTime().value).to.equal(0xffff_ffff);

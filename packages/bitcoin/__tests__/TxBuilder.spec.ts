@@ -222,7 +222,7 @@ describe("TxBuilder", () => {
                 Sequence.zero(),
             );
             original.addOutput(49.9999, Script.p2pkhLock(pubkeyB));
-            original.locktime = new LockTime(0);
+            original.locktime = LockTime.zero();
             original.inputs[0].scriptSig = Script.p2pkhUnlock(
                 original.sign(0, Script.p2pkhLock(pubkeyA), privA),
                 pubkeyA,
@@ -238,7 +238,7 @@ describe("TxBuilder", () => {
                 Sequence.rbf(),
             );
             replacement.addOutput(49.9998, Script.p2pkhLock(pubkeyB));
-            replacement.locktime = new LockTime(0);
+            replacement.locktime = LockTime.zero();
             replacement.inputs[0].scriptSig = Script.p2pkhUnlock(
                 replacement.sign(0, Script.p2pkhLock(pubkeyA), privA),
                 pubkeyA,
@@ -376,7 +376,7 @@ describe("TxBuilder", () => {
                 delay,
             );
             tx2.addOutput(49.9998, Script.p2pkhLock(pubkeyB));
-            tx2.locktime = new LockTime(0); // required to enable csv
+            tx2.locktime = LockTime.zero(); // required to enable csv
             tx2.inputs[0].scriptSig = Script.p2shUnlock(redeem, tx2.sign(0, redeem, privB));
 
             expect(tx2.serialize().toString("hex")).to.equal(
@@ -415,7 +415,7 @@ describe("TxBuilder", () => {
                 delay,
             );
             tx2.addOutput(49.9998, Script.p2pkhLock(pubkeyB));
-            tx2.locktime = new LockTime(0); // required to enable csv
+            tx2.locktime = LockTime.zero(); // required to enable csv
             tx2.inputs[0].scriptSig = Script.p2shUnlock(redeem, tx2.sign(0, redeem, privB));
 
             expect(tx2.serialize().toString("hex")).to.equal(

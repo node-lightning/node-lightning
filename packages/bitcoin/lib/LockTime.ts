@@ -21,6 +21,14 @@ export class LockTime implements ICloneable<LockTime> {
     }
 
     /**
+     * Creates an nLockTime of zero which enforces finality for the
+     * transaction.
+     */
+    public static zero() {
+        return new LockTime(0);
+    }
+
+    /**
      * Gets or sets the value of the timelock. The value must be less than
      * the maximum allowed value of 0xffff_ffff. When set to the max
      * value, the locktime is disabled.
