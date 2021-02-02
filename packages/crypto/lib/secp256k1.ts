@@ -22,7 +22,7 @@ export function ecdh(publicKey: Buffer, privateKey: Buffer): Buffer {
  * @returns 32-byte secret
  */
 export function privateKeyMul(secret: Buffer, tweak: Buffer): Buffer {
-    return Buffer.from(secp256k1.privateKeyTweakMul(secret, tweak));
+    return Buffer.from(secp256k1.privateKeyTweakMul(Buffer.from(secret), tweak));
 }
 
 /**
@@ -35,8 +35,8 @@ export function privateKeyMul(secret: Buffer, tweak: Buffer): Buffer {
  */
 export function sign(msg: Buffer, privateKey: Buffer): Buffer {
     const { signature } = secp256k1.ecdsaSign(msg, privateKey);
-    const lowS = secp256k1.signatureNormalize(signature);
-    return Buffer.from(lowS);
+    secp256k1.signatureNormalize(signature);
+    return Buffer.from(signature);
 }
 
 /**
@@ -109,4 +109,61 @@ export function recoverPubKey(
 ): Buffer {
     const result = secp256k1.ecdsaRecover(signature, recovery, message, compressed);
     return Buffer.from(result);
+}
+
+/**
+ * Tweaks a public key by adding tweak * G to the point. The equation is
+ * T = P + t*G
+ *
+ * @param publicKey 33-byte or 65-byte public key
+ * @param tweak 32-byte scalar value that is multiplied by G
+ * @param compressed true to compress the resulting point
+ * @returns the 33-byte compressed or 65-byte uncompressed public key point
+ */
+export function publicKeyTweakAdd(publicKey: Buffer, tweak: Buffer, compressed: boolean = true) {
+    return Buffer.from(secp256k1.publicKeyTweakAdd(publicKey, tweak, compressed));
+}
+
+/**
+ * Tweaks a public key by multiplying it against a scalar. The equation is
+ * T = P * t
+ *
+ * @param publicKey 33-byte or 65-byte public key
+ * @param tweak 32-byte tweak to multiply against the public key
+ * @param compressed true to compress the resulting point
+ * @returns the 33-byte compressed or 65-byte uncompressed public key point
+ */
+export function publicKeyTweakMul(publicKey: Buffer, tweak: Buffer, compressed: boolean = true) {
+    return Buffer.from(secp256k1.publicKeyTweakMul(publicKey, tweak, compressed));
+}
+
+/**
+ * Performs point addition
+ *
+ * @param pubkeys list of 33-byte or 65-byte public keys
+ * @param compressed true to compress the resulting point
+ * @returns the 33-byte compressed or 65-byte uncompressed public key point
+ */
+export function publicKeyCombine(pubkeys: Buffer[], compressed: boolean = true): Buffer {
+    return Buffer.from(secp256k1.publicKeyCombine(pubkeys, compressed));
+}
+
+/**
+ * Tweaks a private key by adding a value to it. The question is: e + t.
+ *
+ * @param privateKey the 32-byte private key
+ * @param tweak a 32-byte tweak
+ */
+export function privateKeyTweakAdd(privateKey: Buffer, tweak: Buffer): Buffer {
+    return Buffer.from(secp256k1.privateKeyTweakAdd(Buffer.from(privateKey), tweak));
+}
+
+/**
+ * Tweaks a private key by multiplying it. The equation is: e * t.
+ *
+ * @param privateKey the 32-byte private key
+ * @param tweak a 32-byte tweak
+ */
+export function privateKeyTweakMul(privateKey: Buffer, tweak: Buffer): Buffer {
+    return Buffer.from(secp256k1.privateKeyTweakMul(Buffer.from(privateKey), tweak));
 }

@@ -89,4 +89,106 @@ describe("secp256k1", () => {
             expect(s256.isDERSig(sig)).to.equal(true);
         });
     });
+
+    const privA = Buffer.alloc(32, 1);
+    const pubkeyA = key.getPublicKey(privA);
+
+    const privB = Buffer.alloc(32, 2);
+    const pubkeyB = key.getPublicKey(privB);
+
+    describe(".publicKeyTweakAdd", () => {
+        it("adds tweak * generator to the point", () => {
+            const tweak = Buffer.from("0000000000000000000000000000000000000000000000000000000000000000", "hex"); // prettier-ignore
+            const result = s256.publicKeyTweakAdd(pubkeyA, tweak);
+            expect(result.toString("hex")).to.equal(
+                "031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f",
+            );
+        });
+
+        it("adds tweak * generator to the point", () => {
+            const tweak = Buffer.from("0000000000000000000000000000000000000000000000000000000000000001", "hex"); // prettier-ignore
+            const result = s256.publicKeyTweakAdd(pubkeyA, tweak);
+            expect(result.toString("hex")).to.equal(
+                "03c050c3f0b8d45b9e093a91cb96d097b24100e66585d0d8561e01c1231837493f",
+            );
+        });
+    });
+
+    describe(".publicKeyTweakMul", () => {
+        it("multiplies the point by the tweak point", () => {
+            const tweak = Buffer.from("0000000000000000000000000000000000000000000000000000000000000001", "hex"); // prettier-ignore
+            const result = s256.publicKeyTweakMul(pubkeyA, tweak);
+            expect(result.toString("hex")).to.equal(
+                "031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f",
+            );
+        });
+
+        it("multiplies a tweak * generator and adds it to the point", () => {
+            const tweak = Buffer.from("0000000000000000000000000000000000000000000000000000000000000002", "hex"); // prettier-ignore
+            const result = s256.publicKeyTweakMul(pubkeyA, tweak);
+            expect(result.toString("hex")).to.equal(
+                "024d4b6cd1361032ca9bd2aeb9d900aa4d45d9ead80ac9423374c451a7254d0766",
+            );
+        });
+    });
+
+    describe(".publicKeyCombine()", () => {
+        it("adds points to create compressed key", () => {
+            const result = s256.publicKeyCombine([pubkeyA, pubkeyB], true);
+            expect(result.toString("hex")).to.equal(
+                "02531fe6068134503d2723133227c867ac8fa6c83c537e9a44c3c5bdbdcb1fe337",
+            );
+        });
+
+        it("adds points to create uncompressed key", () => {
+            const result = s256.publicKeyCombine([pubkeyA, pubkeyB], false);
+            expect(result.toString("hex")).to.equal(
+                "04531fe6068134503d2723133227c867ac8fa6c83c537e9a44c3c5bdbdcb1fe3379e92c265e71e481ba82a84675a47ac705a200fcd524e92d93b0e7386f26a5458",
+            );
+        });
+    });
+
+    describe(".privateKeyTweakAdd()", () => {
+        it("adds identity to private key", () => {
+            const tweak = Buffer.from("0000000000000000000000000000000000000000000000000000000000000000", "hex"); // prettier-ignore
+            const result = s256.privateKeyTweakAdd(privA, tweak);
+            expect(result.toString("hex")).to.equal(
+                "0101010101010101010101010101010101010101010101010101010101010101",
+            );
+        });
+
+        it("adds tweak to private key", () => {
+            const tweak = Buffer.from("0000000000000000000000000000000000000000000000000000000000000001", "hex"); // prettier-ignore
+            const result = s256.privateKeyTweakAdd(privA, tweak);
+            expect(result.toString("hex")).to.equal(
+                "0101010101010101010101010101010101010101010101010101010101010102",
+            );
+        });
+
+        it("doesn't mutate the value", () => {
+            expect(privA).to.deep.equal(Buffer.alloc(32, 1));
+        });
+    });
+
+    describe(".privateKeyTweakMul()", () => {
+        it("multiplies by identity", () => {
+            const tweak = Buffer.from("0000000000000000000000000000000000000000000000000000000000000001", "hex"); // prettier-ignore
+            const result = s256.privateKeyTweakMul(privA, tweak);
+            expect(result.toString("hex")).to.equal(
+                "0101010101010101010101010101010101010101010101010101010101010101",
+            );
+        });
+
+        it("multiplies by a tweak", () => {
+            const tweak = Buffer.from("0000000000000000000000000000000000000000000000000000000000000002", "hex"); // prettier-ignore
+            const result = s256.privateKeyTweakMul(privA, tweak);
+            expect(result.toString("hex")).to.equal(
+                "0202020202020202020202020202020202020202020202020202020202020202",
+            );
+        });
+
+        it("doesn't mutate the value", () => {
+            expect(privA).to.deep.equal(Buffer.alloc(32, 1));
+        });
+    });
 });
