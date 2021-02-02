@@ -249,5 +249,31 @@ describe("TxBuilder", () => {
                 "0200000001cbf84248cee98571a46305f34c3e90a0b4e10437a366ba18031bb43651858500000000006a473044022049c06ae808ec6593b5c6c0401bb2fd63893c04761bca73da665b60088e9071fa022049cbf7654aca20a460131a9bc6f953e5ea8a9caee77c81178c8d891544725373012102c13bf903d6147a7fec59b450e2e8a6c174c35a11a7675570d10bd05bc3597996fdffffff01e0a3052a010000001976a914c538c517797dfefdf30142dc1684bfd947532dbb88ac00000000",
             );
         });
+
+        it("spends CPFP transaction", () => {
+            const parent = new TxBuilder();
+            parent.addInput("55151071faaf2fe3081cd84cb3e8b6c7fdeb3ffa009747d727d7b99b820094a5:0");
+            parent.addOutput(49.99999, Script.p2pkhLock(pubkeyB));
+            parent.inputs[0].scriptSig = Script.p2pkhUnlock(
+                parent.sign(0, Script.p2pkhLock(pubkeyA), privA),
+                pubkeyA,
+            );
+
+            expect(parent.serialize().toString("hex")).to.equal(
+                "0200000001a59400829bb9d727d7479700fa3febfdc7b6e8b34cd81c08e32faffa71101555000000006a473044022045ca57fb426080e001e531c8a6fe3203da575ca4dc95ae6fac785911bc0bb1180220636998b4a0d93b55b17006a5eab8dd4533c9e81cbdbc383305c678c3e248c967012102c13bf903d6147a7fec59b450e2e8a6c174c35a11a7675570d10bd05bc3597996ffffffff0118ee052a010000001976a914c538c517797dfefdf30142dc1684bfd947532dbb88acffffffff",
+            );
+
+            const child = new TxBuilder();
+            child.addInput("5553a10a7eed240ee96f7274159b039f7df22c76c580193ef2f4e7f70b4537e0:0");
+            child.addOutput(49.9999, Script.p2pkhLock(pubkeyB));
+            child.inputs[0].scriptSig = Script.p2pkhUnlock(
+                parent.sign(0, Script.p2pkhLock(pubkeyB), privB),
+                pubkeyB,
+            );
+
+            expect(parent.serialize().toString("hex")).to.equal(
+                "0200000001a59400829bb9d727d7479700fa3febfdc7b6e8b34cd81c08e32faffa71101555000000006a473044022045ca57fb426080e001e531c8a6fe3203da575ca4dc95ae6fac785911bc0bb1180220636998b4a0d93b55b17006a5eab8dd4533c9e81cbdbc383305c678c3e248c967012102c13bf903d6147a7fec59b450e2e8a6c174c35a11a7675570d10bd05bc3597996ffffffff0118ee052a010000001976a914c538c517797dfefdf30142dc1684bfd947532dbb88acffffffff",
+            );
+        });
     });
 });
