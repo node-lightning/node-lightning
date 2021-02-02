@@ -346,5 +346,85 @@ describe("TxBuilder", () => {
                 "02000000017778f08393e9c22d54de8beaf25c8e78d86b9dfc7d63d4b287a432d0c7c0bd94000000007347304402202e3d313be0b7c5719020c7bab6812cad7efaf37b9c5acffcc9106be041da34670220585e39f85f96e204434dee5328df7b66399160197a91f768abd0638f0a40f065012a0480441760b175210334acee9adf0e3e490a422dfe98bc10a8091b43047b793b8d840657b6b6a46c56acfeffffff01e0a3052a010000001976a914c538c517797dfefdf30142dc1684bfd947532dbb88ac80441760",
             );
         });
+
+        it("spends CSV block delay", () => {
+            const delay = new TxInSequence();
+            delay.blockDelay = 10;
+
+            const redeem = new Script(
+                encodeNum(delay.value),
+                OpCode.OP_CHECKSEQUENCEVERIFY,
+                OpCode.OP_DROP,
+                pubkeyB,
+                OpCode.OP_CHECKSIG,
+            );
+
+            const tx1 = new TxBuilder();
+            tx1.addInput("b6a17e12642a0b922fe519392c1427fd172673fd60ba4cb2ffc34edfb34a8075:0");
+            tx1.addOutput(49.9999, Script.p2shLock(redeem));
+            tx1.inputs[0].scriptSig = Script.p2pkhUnlock(
+                tx1.sign(0, Script.p2pkhLock(pubkeyA), privA),
+                pubkeyA,
+            );
+
+            expect(tx1.serialize().toString("hex")).to.equal(
+                "020000000175804ab3df4ec3ffb24cba60fd732617fd27142c3919e52f920b2a64127ea1b6000000006a47304402204327e53982f3e74c4d4aef2c885ba1c1eb9f25e6295822fc925186c3e7e292c8022036d592e8d2dcec4bd59dc7e59ab0a835efecd0f5e9c57ccf85e322b059c1a184012102c13bf903d6147a7fec59b450e2e8a6c174c35a11a7675570d10bd05bc3597996ffffffff01f0ca052a0100000017a914ed3c8dd59a6e8e75ce036c7c31c872623f2b1a9387ffffffff",
+            );
+
+            // must wait until 10 blocks have been mined
+
+            const tx2 = new TxBuilder();
+            tx2.addInput(
+                "6648789a901fb81d267ea6fdd63ce037487c2a43ddeaa2dde55daf49a7456c2f:0",
+                delay,
+            );
+            tx2.addOutput(49.9998, Script.p2pkhLock(pubkeyB));
+            tx2.locktime = new TxLockTime(0); // required to enable csv
+            tx2.inputs[0].scriptSig = Script.p2shUnlock(redeem, tx2.sign(0, redeem, privB));
+
+            expect(tx2.serialize().toString("hex")).to.equal(
+                "02000000012f6c45a749af5de5dda2eadd432a7c4837e03cd6fda67e261db81f909a78486600000000704830450221009f8f1108cbccff797d44cefd43ebce703e761760ce5a6e466392732a3ac243b102202a5209d21c8f6491140a8a75572ed35cdc0b2b8f39079f72bf275a365b82deb101265ab275210334acee9adf0e3e490a422dfe98bc10a8091b43047b793b8d840657b6b6a46c56ac0a00000001e0a3052a010000001976a914c538c517797dfefdf30142dc1684bfd947532dbb88ac00000000",
+            );
+        });
+
+        it("spends CSV time delay", () => {
+            const delay = new TxInSequence();
+            delay.timeDelay = 512;
+
+            const redeem = new Script(
+                encodeNum(delay.value),
+                OpCode.OP_CHECKSEQUENCEVERIFY,
+                OpCode.OP_DROP,
+                pubkeyB,
+                OpCode.OP_CHECKSIG,
+            );
+
+            const tx1 = new TxBuilder();
+            tx1.addInput("913aa0afb8e76ed1f7d8fff1d612d16b89845d2c26156d79dd80b860f343e264:0");
+            tx1.addOutput(49.9999, Script.p2shLock(redeem));
+            tx1.inputs[0].scriptSig = Script.p2pkhUnlock(
+                tx1.sign(0, Script.p2pkhLock(pubkeyA), privA),
+                pubkeyA,
+            );
+
+            expect(tx1.serialize().toString("hex")).to.equal(
+                "020000000164e243f360b880dd796d15262c5d84896bd112d6f1ffd8f7d16ee7b8afa03a91000000006b483045022100bfe13ec04ceae98bc48dee4a09c65382e3fb55b66f5ee4371264c061b3357afd022077cfc2811489f494d574868608d6b23fcee2fc207ed80fec207941760dc04e76012102c13bf903d6147a7fec59b450e2e8a6c174c35a11a7675570d10bd05bc3597996ffffffff01f0ca052a0100000017a914260335081af6076153c097891a27ebc4c52bc98887ffffffff",
+            );
+
+            // must wait until 512 seconds after MTP of included tx
+
+            const tx2 = new TxBuilder();
+            tx2.addInput(
+                "affd587c75bc4ca8d9963f8c4a184e71bf8ca983ed67ee74749885c52df18e3d:0",
+                delay,
+            );
+            tx2.addOutput(49.9998, Script.p2pkhLock(pubkeyB));
+            tx2.locktime = new TxLockTime(0); // required to enable csv
+            tx2.inputs[0].scriptSig = Script.p2shUnlock(redeem, tx2.sign(0, redeem, privB));
+
+            expect(tx2.serialize().toString("hex")).to.equal(
+                "02000000013d8ef12dc585987474ee67ed83a98cbf714e184a8c3f96d9a84cbc757c58fdaf0000000073483045022100ac805ac0ab29fdf1c9c4419a6e862f4ca9d44b0ee446ff2b89318499f34fc07702205efbc4d0badd316a7fc9086f24f39f4a9b03032d630abc916cbe643e1198ab24012903010040b275210334acee9adf0e3e490a422dfe98bc10a8091b43047b793b8d840657b6b6a46c56ac0100400001e0a3052a010000001976a914c538c517797dfefdf30142dc1684bfd947532dbb88ac00000000",
+            );
+        });
     });
 });
