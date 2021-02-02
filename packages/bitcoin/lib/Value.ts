@@ -44,6 +44,13 @@ export class Value implements ICloneable<Value> {
         return new Value(BigInt(num));
     }
 
+    /**
+     * Generates a value instance of zero
+     */
+    public static zero(): Value {
+        return new Value(BigInt(0));
+    }
+
     private _picoSats: bigint;
 
     /**

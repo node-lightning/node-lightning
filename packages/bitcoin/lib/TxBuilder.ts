@@ -1,28 +1,29 @@
 import { BufferWriter } from "@node-lightning/bufio";
-import { hash256 } from "@node-lightning/crypto";
+import { hash256, sign, sigToDER } from "@node-lightning/crypto";
+import { LockTime } from "./LockTime";
+import { OutPoint } from "./OutPoint";
 import { Script } from "./Script";
-import { SigHashType } from "./SigHashType";
+import { Sequence } from "./Sequence";
 import { Sorter } from "./Sorter";
 import { Tx } from "./Tx";
 import { TxIn } from "./TxIn";
-import { TxLockTime } from "./TxLockTime";
 import { TxOut } from "./TxOut";
-import { Witness } from "./Witness";
+import { Value } from "./Value";
 
 export class TxBuilder {
     public inputSorter: Sorter<TxIn>;
     public outputSorter: Sorter<TxOut>;
 
     private _version: number;
-    private _locktime: TxLockTime;
+    private _locktime: LockTime;
     private _inputs: TxIn[];
     private _outputs: TxOut[];
 
     constructor(inputSorter: Sorter<TxIn> = () => 0, outputSorter: Sorter<TxOut> = () => 0) {
         this._inputs = [];
         this._outputs = [];
-        this._version = 1;
-        this._locktime = new TxLockTime();
+        this._version = 2;
+        this._locktime = new LockTime();
         this.inputSorter = inputSorter;
         this.outputSorter = outputSorter;
     }
@@ -42,11 +43,11 @@ export class TxBuilder {
     /**
      * Gets or sets the absolute locktime for the transaction
      */
-    public get locktime(): TxLockTime {
+    public get locktime(): LockTime {
         return this._locktime;
     }
 
-    public set locktime(val: TxLockTime) {
+    public set locktime(val: LockTime) {
         this._locktime = val;
     }
 
@@ -69,19 +70,24 @@ export class TxBuilder {
     }
 
     /**
-     * Adds a transaction input
-     * @param input
+     * Adds a new transaction input
+     * @param outpoint the previous output represented as an outpoint
      */
-    public addInput(input: TxIn) {
-        this._inputs.push(input);
+    public addInput(outpoint: string | OutPoint, sequence?: Sequence, scriptSig?: Script) {
+        outpoint = outpoint instanceof OutPoint ? outpoint : OutPoint.fromString(outpoint);
+        this._inputs.push(new TxIn(outpoint, scriptSig, sequence));
     }
 
     /**
      * Adds a transaction output
-     * @param output
+     * @param value value sent to the lock script. When represented as a
+     * number, the value is in Bitcoin.
+     * @param scriptPubKey the locking script encumbering the funds send
+     * to this output
      */
-    public addOutput(output: TxOut) {
-        this._outputs.push(output);
+    public addOutput(value: number | Value, scriptPubKey: Script) {
+        value = value instanceof Value ? value : Value.fromBitcoin(value);
+        this._outputs.push(new TxOut(value, scriptPubKey));
     }
 
     /**
@@ -95,10 +101,9 @@ export class TxBuilder {
      * take the hash256 of that serialized transaction.
      *
      * @param input signatory input index
-     * @param prevout previous output information
-     * @param redeemScript optional redeem script
+     * @param commitScript the scriptSig used for the signature input
      */
-    public hashAll(input: number, prevout: TxOut, redeemScript?: Buffer): Buffer {
+    public hashAll(input: number, commitScript: Script): Buffer {
         const writer = new BufferWriter();
 
         // write the version
@@ -108,25 +113,16 @@ export class TxBuilder {
         const inputs = this.inputs;
         writer.writeVarInt(inputs.length);
         for (let i = 0; i < inputs.length; i++) {
-            let scriptSig: Script;
-
             // blank out scriptSig for non-signatory inputs
-            if (i !== input) {
-                scriptSig = new Script();
-                continue;
-            }
+            let scriptSig = new Script();
 
-            // p2sh signatory uses the redeem script
-            if (redeemScript) {
-                scriptSig = new Script(redeemScript);
-            }
-            // other signatory use the scriptPubKey of the prev output
-            else {
-                scriptSig = new Script(...prevout.scriptPubKey.cmds);
+            // use the commit script for signatory input
+            if (i === input) {
+                scriptSig = commitScript;
             }
 
             // write the input
-            const vin = new TxIn(inputs[i].outpoint, scriptSig, inputs[i].sequence);
+            const vin = new TxIn(inputs[i].outpoint, commitScript, inputs[i].sequence);
             writer.writeBytes(vin.serialize());
         }
 
@@ -145,5 +141,45 @@ export class TxBuilder {
 
         // return hashed value
         return hash256(writer.toBuffer());
+    }
+
+    /**
+     * Signs an input and returns the DER encoded signature. The
+     * script that is committed to will depend on the type of the
+     * signature. This is usually the locking script used in the prior
+     * output, but in the case of p2sh transactions, this is the
+     * redeem script, or the underlying script that is hashed in the
+     * prior output.
+     *
+     * @param input index of input that should be signed
+     * @param commitScript Script that is committed during signature
+     * @param privateKey 32-byte private key
+     */
+    public sign(input: number, commitScript: Script, privateKey: Buffer): Buffer {
+        // create the hash of the transaction for the input
+        const hash = this.hashAll(input, commitScript);
+
+        // sign DER encode signature
+        const sig = sign(hash, privateKey);
+        const der = sigToDER(sig);
+
+        // return signature with 1-byte sighash type
+        return Buffer.concat([der, Buffer.from([1])]);
+    }
+
+    /**
+     * Returns an immutable transaction
+     */
+    public toTx(): Tx {
+        return new Tx(
+            this.version,
+            this.inputs.map(vin => vin.clone()),
+            this.outputs.map(vout => vout.clone()),
+            this.locktime.clone(),
+        );
+    }
+
+    public serialize(): Buffer {
+        return this.toTx().serialize();
     }
 }

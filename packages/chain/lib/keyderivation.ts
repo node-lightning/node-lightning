@@ -1,5 +1,4 @@
-import { sha256 } from "@node-lightning/crypto";
-import secp256k1 from "secp256k1";
+import * as crypto from "@node-lightning/crypto";
 
 /**
  * Derives a public key that can be used for: localpubkey, remotepubkey,
@@ -13,8 +12,8 @@ import secp256k1 from "secp256k1";
  * @returns 32-byte buffer
  */
 export function derivePubKey(perCommitmentPoint: Buffer, basePoint: Buffer): Buffer {
-    const tweak = sha256(Buffer.concat([perCommitmentPoint, basePoint]));
-    return secp256k1.publicKeyTweakAdd(basePoint, tweak, true);
+    const tweak = crypto.sha256(Buffer.concat([perCommitmentPoint, basePoint]));
+    return crypto.publicKeyTweakAdd(basePoint, tweak, true);
 }
 
 /**
@@ -29,9 +28,9 @@ export function derivePubKey(perCommitmentPoint: Buffer, basePoint: Buffer): Buf
  * @return 32-byte buffer
  */
 export function derivePrivKey(perCommitmentPoint: Buffer, basePointSecret: Buffer): Buffer {
-    const basePoint = secp256k1.publicKeyCreate(basePointSecret, true);
-    const tweak = sha256(Buffer.concat([perCommitmentPoint, basePoint]));
-    return secp256k1.privateKeyTweakAdd(basePointSecret, tweak);
+    const basePoint = crypto.getPublicKey(basePointSecret, true);
+    const tweak = crypto.sha256(Buffer.concat([perCommitmentPoint, basePoint]));
+    return crypto.privateKeyTweakAdd(basePointSecret, tweak);
 }
 
 /**
@@ -46,13 +45,13 @@ export function derivePrivKey(perCommitmentPoint: Buffer, basePointSecret: Buffe
  * @returns 32-byte buffer
  */
 export function deriveRevocationPubKey(perCommitmentPoint: Buffer, basePoint: Buffer): Buffer {
-    const tweakA = sha256(Buffer.concat([basePoint, perCommitmentPoint]));
-    const a = secp256k1.publicKeyTweakMul(basePoint, tweakA, true);
+    const tweakA = crypto.sha256(Buffer.concat([basePoint, perCommitmentPoint]));
+    const a = crypto.publicKeyTweakMul(basePoint, tweakA, true);
 
-    const tweakB = sha256(Buffer.concat([perCommitmentPoint, basePoint]));
-    const b = secp256k1.publicKeyTweakMul(perCommitmentPoint, tweakB, true);
+    const tweakB = crypto.sha256(Buffer.concat([perCommitmentPoint, basePoint]));
+    const b = crypto.publicKeyTweakMul(perCommitmentPoint, tweakB, true);
 
-    return secp256k1.publicKeyCombine([a, b], true);
+    return crypto.publicKeyCombine([a, b], true);
 }
 
 /**
@@ -65,14 +64,15 @@ export function deriveRevocationPubKey(perCommitmentPoint: Buffer, basePoint: Bu
  * @param basePointSecret 32-byte buffer
  */
 export function deriveRevocationPrivKey(perCommitmentPointSecret: Buffer, basePointSecret: Buffer): Buffer {
-  const basePoint = secp256k1.publicKeyCreate(basePointSecret);
-  const perCommitmentPoint = secp256k1.publicKeyCreate(perCommitmentPointSecret);
+  const basePoint = crypto.getPublicKey(basePointSecret, true);
+  const perCommitmentPoint = crypto.getPublicKey(perCommitmentPointSecret, true);
 
-  const tweakA = sha256(Buffer.concat([basePoint, perCommitmentPoint]));
-  const a = secp256k1.privateKeyTweakMul(basePointSecret, tweakA);
+  const tweakA = crypto.sha256(Buffer.concat([basePoint, perCommitmentPoint]));
+  const a = crypto.privateKeyTweakMul(basePointSecret, tweakA);
 
-  const tweakB = sha256(Buffer.concat([perCommitmentPoint, basePoint]));
-  const b = secp256k1.privateKeyTweakMul(perCommitmentPointSecret, tweakB);
+  const tweakB = crypto.sha256(Buffer.concat([perCommitmentPoint, basePoint]));
+  const b = crypto.privateKeyTweakMul(perCommitmentPointSecret, tweakB);
 
-  return secp256k1.privateKeyTweakAdd(a, b);
+  const result = crypto.privateKeyTweakAdd(a, b);
+  return result;
 } // prettier-ignore

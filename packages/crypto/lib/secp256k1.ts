@@ -22,7 +22,7 @@ export function ecdh(publicKey: Buffer, privateKey: Buffer): Buffer {
  * @returns 32-byte secret
  */
 export function privateKeyMul(secret: Buffer, tweak: Buffer): Buffer {
-    return Buffer.from(secp256k1.privateKeyTweakMul(secret, tweak));
+    return Buffer.from(secp256k1.privateKeyTweakMul(Buffer.from(secret), tweak));
 }
 
 /**
@@ -35,8 +35,27 @@ export function privateKeyMul(secret: Buffer, tweak: Buffer): Buffer {
  */
 export function sign(msg: Buffer, privateKey: Buffer): Buffer {
     const { signature } = secp256k1.ecdsaSign(msg, privateKey);
-    const lowS = secp256k1.signatureNormalize(signature);
-    return Buffer.from(lowS);
+    secp256k1.signatureNormalize(signature);
+    return Buffer.from(signature);
+}
+
+/**
+ * Create an ECDSA signature for the 32-byte message using the private
+ * key. This method returns both the signature in the normalized low-s
+ * version of the signature as a 64-bte Buffer (r,s) and the recovery
+ * identifier.
+ * @param msg 32-byte message
+ * @param privateKey 32-byte secp256k1 private key
+ */
+export function signWithRecovery(
+    msg: Buffer,
+    privateKey: Buffer,
+): { signature: Buffer; recovery: number } {
+    const { signature, recid } = secp256k1.ecdsaSign(msg, privateKey);
+    return {
+        signature: Buffer.from(signature),
+        recovery: recid,
+    };
 }
 
 /**
@@ -59,4 +78,92 @@ export function sigToDER(sig: Buffer): Buffer {
  */
 export function verifySig(msg: Buffer, sig: Buffer, pubkey: Buffer): boolean {
     return secp256k1.ecdsaVerify(sig, msg, pubkey);
+}
+
+/**
+ * Returns true if the signature is a DER encoded signature
+ * @param sig a DER encoded signature
+ */
+export function isDERSig(sig: Buffer): boolean {
+    try {
+        secp256k1.signatureImport(sig);
+        return true;
+    } catch (ex) {
+        return false;
+    }
+}
+
+/**
+ * Recovers the public key from the signature and recovery identifier
+ * for the signed message.
+ * @param signature 64-byte signature
+ * @param recovery recovery id
+ * @param message message that was signed
+ * @param compressed whether the pubkey is compressed
+ */
+export function recoverPubKey(
+    signature: Buffer,
+    recovery: number,
+    message: Buffer,
+    compressed: boolean = true,
+): Buffer {
+    const result = secp256k1.ecdsaRecover(signature, recovery, message, compressed);
+    return Buffer.from(result);
+}
+
+/**
+ * Tweaks a public key by adding tweak * G to the point. The equation is
+ * T = P + t*G
+ *
+ * @param publicKey 33-byte or 65-byte public key
+ * @param tweak 32-byte scalar value that is multiplied by G
+ * @param compressed true to compress the resulting point
+ * @returns the 33-byte compressed or 65-byte uncompressed public key point
+ */
+export function publicKeyTweakAdd(publicKey: Buffer, tweak: Buffer, compressed: boolean = true) {
+    return Buffer.from(secp256k1.publicKeyTweakAdd(publicKey, tweak, compressed));
+}
+
+/**
+ * Tweaks a public key by multiplying it against a scalar. The equation is
+ * T = P * t
+ *
+ * @param publicKey 33-byte or 65-byte public key
+ * @param tweak 32-byte tweak to multiply against the public key
+ * @param compressed true to compress the resulting point
+ * @returns the 33-byte compressed or 65-byte uncompressed public key point
+ */
+export function publicKeyTweakMul(publicKey: Buffer, tweak: Buffer, compressed: boolean = true) {
+    return Buffer.from(secp256k1.publicKeyTweakMul(publicKey, tweak, compressed));
+}
+
+/**
+ * Performs point addition
+ *
+ * @param pubkeys list of 33-byte or 65-byte public keys
+ * @param compressed true to compress the resulting point
+ * @returns the 33-byte compressed or 65-byte uncompressed public key point
+ */
+export function publicKeyCombine(pubkeys: Buffer[], compressed: boolean = true): Buffer {
+    return Buffer.from(secp256k1.publicKeyCombine(pubkeys, compressed));
+}
+
+/**
+ * Tweaks a private key by adding a value to it. The question is: e + t.
+ *
+ * @param privateKey the 32-byte private key
+ * @param tweak a 32-byte tweak
+ */
+export function privateKeyTweakAdd(privateKey: Buffer, tweak: Buffer): Buffer {
+    return Buffer.from(secp256k1.privateKeyTweakAdd(Buffer.from(privateKey), tweak));
+}
+
+/**
+ * Tweaks a private key by multiplying it. The equation is: e * t.
+ *
+ * @param privateKey the 32-byte private key
+ * @param tweak a 32-byte tweak
+ */
+export function privateKeyTweakMul(privateKey: Buffer, tweak: Buffer): Buffer {
+    return Buffer.from(secp256k1.privateKeyTweakMul(Buffer.from(privateKey), tweak));
 }

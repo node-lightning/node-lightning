@@ -11,13 +11,21 @@ const TIME_THRESHOLD = 500_000_000;
  * active when its value is less than 0xffff_ffff and at least one
  * transaction input has a non-0xffff_ffff nSequence.
  */
-export class TxLockTime implements ICloneable<TxLockTime> {
+export class LockTime implements ICloneable<LockTime> {
     /**
      * Parses a locktime from a reader
      * @param reader
      */
-    public static parse(reader: StreamReader): TxLockTime {
-        return new TxLockTime(reader.readUInt32LE());
+    public static parse(reader: StreamReader): LockTime {
+        return new LockTime(reader.readUInt32LE());
+    }
+
+    /**
+     * Creates an nLockTime of zero which enforces finality for the
+     * transaction.
+     */
+    public static zero() {
+        return new LockTime(0);
     }
 
     /**
@@ -87,7 +95,7 @@ export class TxLockTime implements ICloneable<TxLockTime> {
     /**
      * Clone via deep copy
      */
-    public clone(): TxLockTime {
-        return new TxLockTime(this._value);
+    public clone(): LockTime {
+        return new LockTime(this._value);
     }
 }

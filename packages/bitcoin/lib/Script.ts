@@ -2,21 +2,85 @@ import { bigToBufLE } from "@node-lightning/bufio";
 import { encodeVarInt } from "@node-lightning/bufio";
 import { BufferReader } from "@node-lightning/bufio";
 import { StreamReader } from "@node-lightning/bufio";
+import { hash160, isDERSig, validPublicKey } from "@node-lightning/crypto";
+import { BitcoinError } from "./BitcoinError";
+import { BitcoinErrorCode } from "./BitcoinErrorCode";
+import { encodeNum } from "./encodeNum";
 import { ICloneable } from "./ICloneable";
 import { OpCode } from "./OpCodes";
 import { ScriptCmd } from "./ScriptCmd";
+import { isSigHashTypeValid } from "./SigHashType";
+
+function asssertValidSig(sig: Buffer) {
+    const der = sig.slice(0, sig.length - 1);
+    const hashtype = sig[sig.length - 1];
+
+    if (!isDERSig(der)) {
+        throw new BitcoinError(BitcoinErrorCode.SigEncodingInvalid);
+    }
+
+    if (!isSigHashTypeValid(hashtype)) {
+        throw new BitcoinError(BitcoinErrorCode.SigHashTypeInvalid, hashtype);
+    }
+}
+
+function assertValidPubKey(pubkey: Buffer) {
+    if (!validPublicKey(pubkey)) {
+        throw new BitcoinError(BitcoinErrorCode.PubKeyInvalid);
+    }
+}
 
 /**
  * Bitcoin Script
  */
 export class Script implements ICloneable<Script> {
     /**
+     * Creates a standard (though no longer used) pay-to-pubkey
+     * scriptPubKey using the provided pubkey.
+     *
+     * P2PK format:
+     *      <pubkey> OP_CHECKSIG
+     *
+     * @param pubkey 33-byte compressed or 65-byte uncompressed SEC
+     * encoded pubkey
+     */
+    public static p2pkLock(pubkey: Buffer): Script {
+        assertValidPubKey(pubkey);
+        return new Script(pubkey, OpCode.OP_CHECKSIG);
+    }
+
+    /**
+     * Creates a standard (though no longer used) pay-to-pubkey
+     * scriptSig using the provided signature.
+     *
+     * P2PK format:
+     *      <sig>
+     *
+     * @param sig DER encoded signature + 1-byte sighash type
+     */
+    public static p2pkUnlock(sig: Buffer): Script {
+        asssertValidSig(sig);
+        return new Script(sig);
+    }
+
+    /**
      * Creates a standard Pay-to-Public-Key-Hash scriptPubKey by accepting a
      * hash of a public key as input and generating the script in the standard
      * P2PKH script format:
      *   OP_DUP OP_HASH160 <hash160pubkey> OP_EQUALVERIFY OP_CHECKSIG
+     *
+     * @param value either the 20-byte hash160 of a pubkey or an SEC
+     * encoded compressed or uncompressed pubkey
      */
-    public static p2pkhLock(hash160PubKey: Buffer): Script {
+    public static p2pkhLock(value: Buffer): Script {
+        // if not a hash160, then it must be a valid pubkey
+        if (value.length !== 20) {
+            assertValidPubKey(value);
+        }
+
+        // either the hash value or a valid pubkey that needs to be hashed
+        const hash160PubKey = value.length === 20 ? value : hash160(value);
+
         return new Script(
             OpCode.OP_DUP,
             OpCode.OP_HASH160,
@@ -27,16 +91,14 @@ export class Script implements ICloneable<Script> {
     }
 
     /**
-     * Creates a standard Pay-to-Script-Hash scriptPubKey by accepting a hash of
-     * the redeem script as input and generating the P2SH script:
-     *   OP_HASH160 <hashScript> OP_EQUAL
+     * Creates a standard Pay-to-Public-Key-Hash scriptSig
+     * @param sig BIP66 compliant DER encoded signuture + hash byte
+     * @param pubkey SEC encoded public key
      */
-    public static p2shLock(hash160Script: Buffer): Script {
-        return new Script(
-            OpCode.OP_HASH160,
-            hash160Script,
-            OpCode.OP_EQUAL,
-        ); // prettier-ignore
+    public static p2pkhUnlock(sig: Buffer, pubkey: Buffer): Script {
+        asssertValidSig(sig);
+        assertValidPubKey(pubkey);
+        return new Script(sig, pubkey);
     }
 
     /**
@@ -44,13 +106,106 @@ export class Script implements ICloneable<Script> {
      * public keys as inputs in the format:
      *   OP_<m> <pubkey1> <pubkey2> <pubkey..m> OP_<n> OP_CHECKMULTISIG
      */
-    public static p2msLock(m: number, n: number, pubkeys: Buffer[]): Script {
+    public static p2msLock(m: number, ...pubkeys: Buffer[]): Script {
+        // assert all public keys are valid
+        for (const pubkey of pubkeys) {
+            assertValidPubKey(pubkey);
+        }
+
+        // ensure proper number of keys
+        if (m < 1 || m > pubkeys.length || pubkeys.length === 0 || pubkeys.length > 20) {
+            throw new BitcoinError(BitcoinErrorCode.MultiSigSetupInvalid);
+        }
+
         return new Script(
-            0x50 + m,
+            encodeNum(m),
             ...pubkeys,
-            0x50 + n,
+            encodeNum(pubkeys.length),
             OpCode.OP_CHECKMULTISIG,
         ); // prettier-ignore
+    }
+
+    /**
+     * Creates a standard Pay-to-MultiSig scripSig using the provided
+     * signatures. The signatures must be in the order of the pub keys
+     * used in the lock script. This function also correctly adds OP_0
+     * as the first element on the stack to ensure the p2ms off-by-one
+     * error is correctly accounted for.
+     *
+     * Each signature must be DER encoded using BIP66 and
+     * include a 1-byte sighash type at the end. The builder validates
+     * the signatures. As such they will be 10 to 74 bytes.
+     *
+     * @param pubkeys
+     */
+    public static p2msUnlock(...sigs: Buffer[]): Script {
+        // assert all signatures
+        for (const sig of sigs) {
+            asssertValidSig(sig);
+        }
+        return new Script(
+            OpCode.OP_0,
+            ...sigs
+        ); // prettier-ignore
+    }
+
+    /**
+     * Creates a standard Pay-to-Script-Hash scriptPubKey by accepting a hash of
+     * the redeem script as input and generating the P2SH script:
+     *   OP_HASH160 <hashScript> OP_EQUAL
+     *
+     * Accepts the redeem script either as a Script object or as the
+     * hash160 of the redeem script. When the hash160 Buffer is provided
+     * it will throw if the Buffer is not 20-bytes.
+     *
+     * @param value can be either the redeem script as a Script type or
+     * the hash160 as a 20-byte buffer
+     */
+    public static p2shLock(value: Script | Buffer): Script {
+        const scriptHash160 = value instanceof Script ? value.hash160() : value;
+
+        if (scriptHash160.length !== 20) {
+            throw new BitcoinError(BitcoinErrorCode.Hash160Invalid, {
+                got: scriptHash160.length,
+                expected: 20,
+            });
+        }
+
+        return new Script(
+            OpCode.OP_HASH160,
+            scriptHash160,
+            OpCode.OP_EQUAL,
+        ); // prettier-ignore
+    }
+
+    /**
+     * Creates a p2sh unlock script for use in a transaction input
+     * scriptSig value. The redeem script, which is the preimage of the
+     * of the script hash used to lock the p2sh output, must be provided
+     * along with any additional data required to unlock the script.
+     *
+     * @param redeemScript preimage of the script hash
+     * @param data script commands will be added as unlock data
+     */
+    public static p2shUnlock(redeemScript: Script, data: Script): Script;
+
+    /**
+     * Creates a p2sh unlock script for use in a transaction input
+     * scriptSig value. The redeem script, which is the preimage of the
+     * of the script hash used to lock the p2sh output, must be provided
+     * along with any additional data required to unlock the script.
+     *
+     * @param redeemScript preimage of the script hash
+     * @param data ScriptCmd data used to unlock the script
+     */
+    public static p2shUnlock(redeemScript: Script, ...data: ScriptCmd[]): Script;
+
+    public static p2shUnlock(redeemScript: Script, ...data: Script[] | ScriptCmd[]): Script {
+        if (data[0] instanceof Script) {
+            return new Script(...data[0].cmds, redeemScript.serializeCmds());
+        } else {
+            return new Script(...(data as ScriptCmd[]), redeemScript.serializeCmds());
+        }
     }
 
     /**
@@ -288,5 +443,13 @@ export class Script implements ICloneable<Script> {
                 }
             }),
         );
+    }
+
+    /**
+     * Performs a hash160 on the serialized commands. This is useful for
+     * turning a script into a P2SH redeem script.
+     */
+    public hash160(): Buffer {
+        return hash160(this.serializeCmds());
     }
 }

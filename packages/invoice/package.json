@@ -27,9 +27,9 @@
   "license": "MIT",
   "dependencies": {
     "@node-lightning/bufio": "^0.20.1",
+    "@node-lightning/crypto": "^0.20.1",
     "bech32": "^1.1.3",
-    "bs58check": "^2.1.2",
-    "secp256k1": "^3.5.0"
+    "bs58check": "^2.1.2"
   },
   "publishConfig": {
     "access": "public"

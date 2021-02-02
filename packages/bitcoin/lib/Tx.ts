@@ -1,12 +1,12 @@
 import { BufferWriter, StreamReader, varIntBytes } from "@node-lightning/bufio";
 import { hash256 } from "@node-lightning/crypto";
 import { HashValue } from "./HashValue";
+import { LockTime } from "./LockTime";
 import { OutPoint } from "./OutPoint";
 import { Script } from "./Script";
+import { Sequence } from "./Sequence";
 import { SizeResult } from "./SizeResult";
 import { TxIn } from "./TxIn";
-import { TxInSequence } from "./TxInSequence";
-import { TxLockTime } from "./TxLockTime";
 import { TxOut } from "./TxOut";
 import { Value } from "./Value";
 import { Witness } from "./Witness";
@@ -39,7 +39,7 @@ export class Tx {
         const inputs: TxIn[] = [];
         for (let idx = 0; idx < vinLen; idx++) {
             inputs.push(
-                new TxIn(OutPoint.parse(reader), Script.parse(reader), TxInSequence.parse(reader)),
+                new TxIn(OutPoint.parse(reader), Script.parse(reader), Sequence.parse(reader)),
             );
         }
 
@@ -68,7 +68,7 @@ export class Tx {
         }
 
         // read the locktime
-        const locktime = TxLockTime.parse(reader);
+        const locktime = LockTime.parse(reader);
 
         return new Tx(version, inputs, outputs, locktime);
     }
@@ -133,7 +133,7 @@ export class Tx {
      * Gets the transaction `nLocktime` value that is used to control
      * absolute timelocks.
      */
-    public get locktime(): TxLockTime {
+    public get locktime(): LockTime {
         return this._locktime;
     }
 
@@ -161,14 +161,14 @@ export class Tx {
     private _wtxid: HashValue;
     private _inputs: TxIn[];
     private _outputs: TxOut[];
-    private _locktime: TxLockTime;
+    private _locktime: LockTime;
     private _sizes: SizeResult;
 
     public constructor(
         version: number = 2,
         inputs: TxIn[] = [],
         outputs: TxOut[] = [],
-        locktime: TxLockTime = new TxLockTime(),
+        locktime: LockTime = new LockTime(),
         sizes?: SizeResult,
     ) {
         this._version = version;
@@ -184,6 +184,15 @@ export class Tx {
     public serialize(): Buffer {
         if (this.isSegWit) return this._serializeSegWit();
         else return this._serializeLegacy();
+    }
+
+    public toJSON() {
+        return {
+            version: this.version,
+            inputs: this.inputs.map(vin => vin.toJSON()),
+            outputs: this.outputs.map(vout => vout.toJSON()),
+            locktime: this.locktime.toJSON(),
+        };
     }
 
     private _serializeLegacy(): Buffer {

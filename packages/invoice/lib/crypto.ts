@@ -1,23 +1,20 @@
-import crypto from "crypto";
-import secp256k1 from "secp256k1";
+import * as crypto from "@node-lightning/crypto";
 
 export function sha256(data: Buffer): Buffer {
-    const hash = crypto.createHash("sha256");
-    hash.update(data);
-    return hash.digest();
+    return crypto.sha256(data);
 }
 
 export function ecdsaSign(
     message: Buffer,
     privKey: Buffer,
 ): { signature: Buffer; recovery: number } {
-    return secp256k1.sign(message, privKey);
+    return crypto.signWithRecovery(message, privKey);
 }
 
 export function ecdsaRecovery(message: Buffer, signature: Buffer, recoveryFlag: number): Buffer {
-    return secp256k1.recover(message, signature, recoveryFlag, true);
+    return crypto.recoverPubKey(signature, recoveryFlag, message, true);
 }
 
 export function ecdsaVerify(pubkey: Buffer, message: Buffer, signature: Buffer): boolean {
-    return secp256k1.verify(message, signature, pubkey);
+    return crypto.verifySig(message, signature, pubkey);
 }
