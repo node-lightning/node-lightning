@@ -219,7 +219,7 @@ describe("TxBuilder", () => {
             const original = new TxBuilder();
             original.addInput(
                 "0085855136b41b0318ba66a33704e1b4a0903e4cf30563a47185e9ce4842f8cb:0",
-                new Sequence(0),
+                Sequence.zero(),
             );
             original.addOutput(49.9999, Script.p2pkhLock(pubkeyB));
             original.locktime = new LockTime(0);
@@ -235,7 +235,7 @@ describe("TxBuilder", () => {
             const replacement = new TxBuilder();
             replacement.addInput(
                 "0085855136b41b0318ba66a33704e1b4a0903e4cf30563a47185e9ce4842f8cb:0",
-                new Sequence(0xfffffffd),
+                Sequence.rbf(),
             );
             replacement.addOutput(49.9998, Script.p2pkhLock(pubkeyB));
             replacement.locktime = new LockTime(0);
@@ -299,7 +299,7 @@ describe("TxBuilder", () => {
             const tx2 = new TxBuilder();
             tx2.addInput(
                 "db82b592c04587796a2eb43e00fe6e9f342383c747ef356f92d5fb21c4a95b89:0",
-                new Sequence(0xfffffffe), // required to enable locktime
+                Sequence.locktime(), // required to enable locktime
             );
             tx2.addOutput(49.9998, Script.p2pkhLock(pubkeyB));
             tx2.locktime = new LockTime(200); // locktime must be >= the input value for CLTV
@@ -334,7 +334,7 @@ describe("TxBuilder", () => {
             const tx2 = new TxBuilder();
             tx2.addInput(
                 "94bdc0c7d032a487b2d4637dfc9d6bd8788e5cf2ea8bde542dc2e99383f07877:0",
-                new Sequence(0xfffffffe), // required to enable locktime
+                Sequence.locktime(), // required to enable locktime
             );
             tx2.addOutput(49.9998, Script.p2pkhLock(pubkeyB));
             tx2.locktime = new LockTime(1612137600); // locktime must be >= the input value for CLTV
@@ -346,8 +346,7 @@ describe("TxBuilder", () => {
         });
 
         it("spends CSV block delay", () => {
-            const delay = new Sequence();
-            delay.blockDelay = 10;
+            const delay = Sequence.blockDelay(10);
 
             const redeem = new Script(
                 encodeNum(delay.value),
@@ -386,8 +385,7 @@ describe("TxBuilder", () => {
         });
 
         it("spends CSV time delay", () => {
-            const delay = new Sequence();
-            delay.timeDelay = 512;
+            const delay = Sequence.timeDelay(512);
 
             const redeem = new Script(
                 encodeNum(delay.value),

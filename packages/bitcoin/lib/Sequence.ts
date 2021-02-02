@@ -28,7 +28,7 @@ export class Sequence implements ICloneable<Sequence> {
      * Creates an nSequence value of 0xffff_fffe which is used to enable
      * nLockTime.
      */
-    public static enableLockTime(): Sequence {
+    public static locktime(): Sequence {
         return new Sequence(0xffff_fffe);
     }
 
@@ -36,8 +36,43 @@ export class Sequence implements ICloneable<Sequence> {
      * Creates an nSequence value of 0xffff_fffd which is used to
      * enable opt-in full replace-by-fee.
      */
-    public static enableRBF(): Sequence {
+    public static rbf(): Sequence {
         return new Sequence(0xffff_fffd);
+    }
+
+    /**
+     * Creates an nSequence value of 0xffff_ffff
+     */
+    public static default(): Sequence {
+        return new Sequence();
+    }
+
+    /**
+     * Creates an nSequence value of 0
+     */
+    public static zero(): Sequence {
+        return new Sequence(0);
+    }
+
+    /**
+     * Creates an nSequence value with the specified block delay
+     * @param blocks number of blocks sequence must wait
+     */
+    public static blockDelay(blocks: number): Sequence {
+        const sut = new Sequence();
+        sut.blockDelay = blocks;
+        return sut;
+    }
+
+    /**
+     * Creates an nSequence value with the specified time delay
+     * @param seconds delay in seconds which will be rounded up to the
+     * nearest 512 second interval
+     */
+    public static timeDelay(seconds: number): Sequence {
+        const sut = new Sequence();
+        sut.timeDelay = seconds;
+        return sut;
     }
 
     /**

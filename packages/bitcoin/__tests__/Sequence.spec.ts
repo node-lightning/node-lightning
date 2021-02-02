@@ -12,6 +12,48 @@ describe("Sequence", () => {
         });
     });
 
+    describe("#.locktime()", () => {
+        it("should create nLockTime enabling nSequence", () => {
+            expect(Sequence.locktime().value).to.equal(0xffff_fffe);
+        });
+    });
+
+    describe("#.rbf()", () => {
+        it("should create RBF enabling nSequence", () => {
+            expect(Sequence.rbf().value).to.equal(0xffff_fffd);
+        });
+    });
+
+    describe("#.default()", () => {
+        it("should create nSequence that is final", () => {
+            expect(Sequence.default().value).to.equal(0xffff_ffff);
+        });
+    });
+
+    describe("#.zero()", () => {
+        it("should create nSequence of zero", () => {
+            expect(Sequence.zero().value).to.equal(0);
+        });
+    });
+
+    describe("#.blockDelay()", () => {
+        it("should create nSequence with a block delay", () => {
+            const sut = Sequence.blockDelay(10);
+            expect(sut.enabled).to.equal(true);
+            expect(sut.mode).to.equal(TimeLockMode.Block);
+            expect(sut.blockDelay).to.equal(10);
+        });
+    });
+
+    describe("#.timeDelay()", () => {
+        it("should create nSequence with a time delay", () => {
+            const sut = Sequence.timeDelay(600);
+            expect(sut.enabled).to.equal(true);
+            expect(sut.mode).to.equal(TimeLockMode.Time);
+            expect(sut.timeDelay).to.equal(512 * 2);
+        });
+    });
+
     describe(".serialize()", () => {
         it("should serialize", () => {
             const sut = new Sequence(0xfffffffe);
