@@ -122,7 +122,7 @@ export class TxBuilder {
             }
 
             // write the input
-            const vin = new TxIn(inputs[i].outpoint, commitScript, inputs[i].sequence);
+            const vin = new TxIn(inputs[i].outpoint, scriptSig, inputs[i].sequence);
             writer.writeBytes(vin.serialize());
         }
 
