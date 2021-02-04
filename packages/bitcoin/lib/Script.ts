@@ -213,11 +213,21 @@ export class Script implements ICloneable<Script> {
      * the hash160 of a compressed public key point as input. It is of the
      * format:
      *   OP_0 <hash160_pubkey>
+     *
+     * @param value either a 20-byte pubkeyhash or a valid pubkey
      */
-    public static p2wpkhLock(hash160Script: Buffer): Script {
+    public static p2wpkhLock(value: Buffer): Script {
+        // if not a hash160, then it must be a valid pubkey
+        if (value.length !== 20) {
+            assertValidPubKey(value);
+        }
+
+        // either the hash value or a valid pubkey that needs to be hashed
+        const hash160PubKey = value.length === 20 ? value : hash160(value);
+
         return new Script(
             OpCode.OP_0,
-            hash160Script,
+            hash160PubKey,
         ); // prettier-ignore
     }
 

@@ -607,24 +607,40 @@ ae",
 
             testFixtures(fixtures, run, assert);
         });
-    });
-});
 
-describe("Script.p2wpkhLock", () => {
-    const fixtures = [
-        {
-            assert: "standard script",
-            input: Buffer.from("c34015187941b20ecda9378bb3cade86e80d2bfe", "hex"),
-            expected: "0014c34015187941b20ecda9378bb3cade86e80d2bfe",
-        },
-    ];
+        describe("#p2wpkhLock()", () => {
+            const fixtures: Array<Fixture<Buffer, string>> = [
+                {
+                    title: "invalid pubkey fails",
+                    input: invalidPubkey,
+                    throws: true,
+                },
+                {
+                    title: "hash160 input",
+                    input: Buffer.from("c34015187941b20ecda9378bb3cade86e80d2bfe", "hex"),
+                    expected: "0014c34015187941b20ecda9378bb3cade86e80d2bfe",
+                },
+                {
+                    title: "compressed pubkey",
+                    input: crypto.getPublicKey(privkeyA, true),
+                    expected: "001479b000887626b294a914501a4cd226b58b235983",
+                },
+                {
+                    title: "uncompressed pubkey",
+                    input: crypto.getPublicKey(privkeyA, false),
+                    expected: "00146ff3443c994fb2c821969dae53bd5b5052d8394f",
+                },
+            ];
 
-    for (const { assert, input, expected } of fixtures) {
-        it(assert, () => {
-            const actual = Script.p2wpkhLock(input);
-            expect(actual.serializeCmds().toString("hex")).to.equal(expected);
+            const run = (input: Buffer) => Script.p2wpkhLock(input);
+
+            const assert = (actual: Script, expected: string) => {
+                expect(actual.serializeCmds().toString("hex")).to.equal(expected);
+            };
+
+            testFixtures(fixtures, run, assert);
         });
-    }
+    });
 });
 
 describe("Script.p2wshLock", () => {
@@ -641,7 +657,7 @@ describe("Script.p2wshLock", () => {
 
     for (const { assert, input, expected } of fixtures) {
         it(assert, () => {
-            const actual = Script.p2wpkhLock(input);
+            const actual = Script.p2wshScript(input);
             expect(actual.serializeCmds().toString("hex")).to.equal(expected);
         });
     }
