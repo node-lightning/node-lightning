@@ -15,6 +15,17 @@ export class TxOut implements ICloneable<TxOut> {
     }
 
     /**
+     * Parses a hex string serialization of a transaction output. This
+     * is a helper function instead of having to do `StreamReader.fromHex`
+     * on a string directly.
+     * @param hex
+     */
+    public static fromHex(hex: string): TxOut {
+        const reader = StreamReader.fromHex(hex);
+        return TxOut.parse(reader);
+    }
+
+    /**
      * Value (often in satoshi or bitcoin) that will be locked into the
      * output using the provided scriptPubKey. The combined outputs must
      * be lte the combined input value for in transaction.
