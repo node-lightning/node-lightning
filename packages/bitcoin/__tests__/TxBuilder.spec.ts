@@ -1,3 +1,4 @@
+import { StreamReader } from "@node-lightning/bufio";
 import { getPublicKey, hash160 } from "@node-lightning/crypto";
 import { expect } from "chai";
 import { encodeNum } from "../lib/encodeNum";
@@ -6,7 +7,10 @@ import { OpCode } from "../lib/OpCodes";
 import { Script } from "../lib/Script";
 import { Sequence } from "../lib/Sequence";
 import { TxBuilder } from "../lib/TxBuilder";
+import { TxIn } from "../lib/TxIn";
+import { TxOut } from "../lib/TxOut";
 import { Value } from "../lib/Value";
+import { Witness } from "../lib/Witness";
 
 describe("TxBuilder", () => {
     // address: mufrrGX5ei1g2GBjKBBYvidioNqN7GWJsD
@@ -45,6 +49,25 @@ describe("TxBuilder", () => {
             const sig = sut.sign(0, commitScript, privA);
             expect(sig.toString("hex")).to.equal(
                 "3045022100d87f7a819cb6ff3140c5ab0f20def422ae1eaa8aade78c33c2368b6be2609d2b022049581379f827bb08f088591d40f7890526aa17403d3e77d2af411774338de7ce01",
+            );
+        });
+
+        it("p2wpkh test vector", () => {
+            const priv2 = Buffer.from("619c335025c7f4012e556c2a58b2506e30b8511b53ade95ea316fd8c3286feb9", "hex"); // prettier-ignore
+            const pubkey2 = Buffer.from("025476c2e83188368da1ff3e292e7acafcdb3566bb0ad253f62fc70f07aeee6357", "hex"); // prettier-ignore
+
+            const tx = new TxBuilder();
+            tx.version = 1;
+            tx.addInput(TxIn.fromHex("fff7f7881a8099afa6940d42d1e7f6362bec38171ea3edf433541db4e4ad969f0000000000eeffffff")); // prettier-ignore
+            tx.addInput(TxIn.fromHex("ef51e1b804cc89d182d279655c3aa89e815b1b309fe287d9b2b55d57b90ec68a0100000000ffffffff")); // prettier-ignore
+            tx.addOutput(TxOut.fromHex("202cb206000000001976a9148280b37df378db99f66f85c95a783a76ac7a6d5988ac")); // prettier-ignore
+            tx.addOutput(TxOut.fromHex("9093510d000000001976a9143bde42dbee7e4dbe6a21b2d50ce2f0167faa815988ac")); // prettier-ignore
+
+            tx.locktime = LockTime.parse(StreamReader.fromHex("11000000"));
+
+            const sig = tx.signSegWitV0(1, Script.p2pkhLock(pubkey2), priv2, Value.fromBitcoin(6));
+            expect(sig.toString("hex")).to.equal(
+                "304402203609e17b84f6a7d30c80bfa610b5b4542f32a8a0d5447a12fb1366d7f01cc44a0220573a954c4518331561406f90300e8f3358f51928d43c212a8caed02de67eebee01",
             );
         });
     });
@@ -420,6 +443,76 @@ describe("TxBuilder", () => {
 
             expect(tx2.serialize().toString("hex")).to.equal(
                 "02000000013d8ef12dc585987474ee67ed83a98cbf714e184a8c3f96d9a84cbc757c58fdaf0000000073483045022100ac805ac0ab29fdf1c9c4419a6e862f4ca9d44b0ee446ff2b89318499f34fc07702205efbc4d0badd316a7fc9086f24f39f4a9b03032d630abc916cbe643e1198ab24012903010040b275210334acee9adf0e3e490a422dfe98bc10a8091b43047b793b8d840657b6b6a46c56ac0100400001e0a3052a010000001976a914c538c517797dfefdf30142dc1684bfd947532dbb88ac00000000",
+            );
+        });
+
+        it("spends P2PKH to P2WPKH", () => {
+            const tx = new TxBuilder();
+            tx.addInput("5a31aa621739c5643c542538ca99d7c46a4462d0f32c81cb6bdb33dbb838ebb0:0");
+            tx.addOutput(49.9999, Script.p2wpkhLock(pubkeyB));
+
+            // spends legacy p2pkh
+            tx.inputs[0].scriptSig = Script.p2pkhUnlock(
+                tx.sign(0, Script.p2pkhLock(pubkeyA), privA),
+                pubkeyA,
+            );
+
+            expect(tx.serialize().toString("hex")).to.equal(
+                "0200000001b0eb38b8db33db6bcb812cf3d062446ac4d799ca3825543c64c5391762aa315a000000006a4730440220347ee6d681390ed67c63c7c496799cff84faa1c176821e270213aaa98f9b653a02202967a1b8d79843d8680a0020752906e3211480b549c58827c34b44444b0e8766012102c13bf903d6147a7fec59b450e2e8a6c174c35a11a7675570d10bd05bc3597996ffffffff01f0ca052a01000000160014c538c517797dfefdf30142dc1684bfd947532dbbffffffff",
+            );
+        });
+
+        it("BIP143 P2PKH Test Vector", () => {
+            const priv1 = Buffer.from("bbc27228ddcb9209d7fd6f36b02f7dfa6252af40bb2f1cbc7a557da8027ff866", "hex"); // prettier-ignore
+            const pubkey1 = Buffer.from("03c9f4836b9a4f77fc0d81f7bcb01b7f1b35916864b9476c241ce9fc198bd25432", "hex"); // prettier-ignore
+
+            const priv2 = Buffer.from("619c335025c7f4012e556c2a58b2506e30b8511b53ade95ea316fd8c3286feb9", "hex"); // prettier-ignore
+            const pubkey2 = Buffer.from("025476c2e83188368da1ff3e292e7acafcdb3566bb0ad253f62fc70f07aeee6357", "hex"); // prettier-ignore
+
+            const tx = new TxBuilder();
+            tx.version = 1;
+            tx.addInput(TxIn.fromHex("fff7f7881a8099afa6940d42d1e7f6362bec38171ea3edf433541db4e4ad969f0000000000eeffffff")); // prettier-ignore
+            tx.addInput(TxIn.fromHex("ef51e1b804cc89d182d279655c3aa89e815b1b309fe287d9b2b55d57b90ec68a0100000000ffffffff")); // prettier-ignore
+            tx.addOutput(TxOut.fromHex("202cb206000000001976a9148280b37df378db99f66f85c95a783a76ac7a6d5988ac")); // prettier-ignore
+            tx.addOutput(TxOut.fromHex("9093510d000000001976a9143bde42dbee7e4dbe6a21b2d50ce2f0167faa815988ac")); // prettier-ignore
+            tx.locktime = LockTime.parse(StreamReader.fromHex("11000000"));
+
+            // sign p2pk input and apply scriptsig
+            tx.inputs[0].scriptSig = Script.p2pkUnlock(tx.sign(0, Script.p2pkLock(pubkey1), priv1));
+
+            // sign p2wpkh input and apply to witness
+            tx.inputs[1].witness.push(
+                new Witness(
+                    tx.signSegWitV0(1, Script.p2pkhLock(pubkey2), priv2, Value.fromBitcoin(6)),
+                ),
+            );
+            tx.inputs[1].witness.push(new Witness(pubkey2));
+
+            expect(tx.serialize().toString("hex")).to.equal(
+                "01000000000102fff7f7881a8099afa6940d42d1e7f6362bec38171ea3edf433541db4e4ad969f00000000494830450221008b9d1dc26ba6a9cb62127b02742fa9d754cd3bebf337f7a55d114c8e5cdd30be022040529b194ba3f9281a99f2b1c0a19c0489bc22ede944ccf4ecbab4cc618ef3ed01eeffffffef51e1b804cc89d182d279655c3aa89e815b1b309fe287d9b2b55d57b90ec68a0100000000ffffffff02202cb206000000001976a9148280b37df378db99f66f85c95a783a76ac7a6d5988ac9093510d000000001976a9143bde42dbee7e4dbe6a21b2d50ce2f0167faa815988ac000247304402203609e17b84f6a7d30c80bfa610b5b4542f32a8a0d5447a12fb1366d7f01cc44a0220573a954c4518331561406f90300e8f3358f51928d43c212a8caed02de67eebee0121025476c2e83188368da1ff3e292e7acafcdb3566bb0ad253f62fc70f07aeee635711000000",
+            );
+        });
+
+        it("spends P2WPKH to P2WPKH", () => {
+            const tx = new TxBuilder();
+            tx.addInput("41e441eb2cfc6bc7dd238361daa4660677a1e253d4749a508ba26a83b84ce815:0");
+            tx.addOutput(49.9998, Script.p2wpkhLock(pubkeyA));
+
+            // provide witness data to spend p2wpkh
+            tx.inputs[0].witness.push(
+                new Witness(
+                    tx.signSegWitV0(
+                        0,
+                        Script.p2pkhLock(pubkeyB),
+                        privB,
+                        Value.fromBitcoin(49.9999),
+                    ),
+                ),
+            );
+            tx.inputs[0].witness.push(new Witness(pubkeyB));
+
+            expect(tx.serialize().toString("hex")).to.equal(
+                "0200000000010115e84cb8836aa28b509a74d453e2a1770666a4da618323ddc76bfc2ceb41e4410000000000ffffffff01e0a3052a010000001600149b40f5b05efd99e4b0c4f62ca63eec3e580e95c702483045022100a355feb29d36e89c3693a2d5e33c8143ffba3428db2cc0ace021d955a649d2c5022001298dddb1627e313664dbce0311c453939c6fa88ad3cb8ff6f49287d13b3d9f01210334acee9adf0e3e490a422dfe98bc10a8091b43047b793b8d840657b6b6a46c56ffffffff",
             );
         });
     });
