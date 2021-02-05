@@ -2,7 +2,7 @@ import { bigToBufLE } from "@node-lightning/bufio";
 import { encodeVarInt } from "@node-lightning/bufio";
 import { BufferReader } from "@node-lightning/bufio";
 import { StreamReader } from "@node-lightning/bufio";
-import { hash160, isDERSig, validPublicKey } from "@node-lightning/crypto";
+import { hash160, isDERSig, sha256, validPublicKey } from "@node-lightning/crypto";
 import { BitcoinError } from "./BitcoinError";
 import { BitcoinErrorCode } from "./BitcoinErrorCode";
 import { encodeNum } from "./encodeNum";
@@ -461,5 +461,13 @@ export class Script implements ICloneable<Script> {
      */
     public hash160(): Buffer {
         return hash160(this.serializeCmds());
+    }
+
+    /**
+     * Performs a sha256 hash on the serialized commands. This is useful
+     * fro turning a script into a P2WSH lock script.
+     */
+    public sha256(): Buffer {
+        return sha256(this.serializeCmds());
     }
 }
