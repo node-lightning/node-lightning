@@ -236,12 +236,20 @@ export class Script implements ICloneable<Script> {
      * the sha256 of the witness script as input. It is of the format:
      *   OP_0 <sha256_redeem_script>
      */
-    public static p2wshScript(sha256Script: Buffer): Script {
+    public static p2wshLock(value: Buffer | Script): Script {
+        const sha256Script = value instanceof Buffer ? value : sha256(value.serializeCmds());
+
+        if (sha256Script.length !== 32) {
+            throw new BitcoinError(BitcoinErrorCode.Hash256Invalid);
+        }
+
         return new Script(
             OpCode.OP_0,
             sha256Script,
         ); // prettier-ignore
     }
+
+    public static p2wsh;
 
     /**
      * Parses a stream of bytes representing a Script. The stream must start

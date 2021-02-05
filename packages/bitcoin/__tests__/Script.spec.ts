@@ -640,25 +640,38 @@ ae",
 
             testFixtures(fixtures, run, assert);
         });
-    });
-});
 
-describe("Script.p2wshLock", () => {
-    const fixtures = [
-        {
-            assert: "standard script",
-            input: Buffer.from(
-                "0000000000000000000000000000000000000000000000000000000000000000",
-                "hex",
-            ),
-            expected: "00200000000000000000000000000000000000000000000000000000000000000000",
-        },
-    ];
+        describe("#p2wshLock", () => {
+            const fixtures: Array<Fixture<Buffer | Script, string>> = [
+                {
+                    title: "bad buffer throws",
+                    input: Buffer.alloc(30),
+                    throws: true,
+                },
+                {
+                    title: "buffer input",
+                    input: Buffer.from(
+                        "0000000000000000000000000000000000000000000000000000000000000000",
+                        "hex",
+                    ),
+                    expected:
+                        "00200000000000000000000000000000000000000000000000000000000000000000",
+                },
+                {
+                    title: "script input",
+                    input: Script.p2pkhLock(crypto.getPublicKey(privkeyA, true)),
+                    expected:
+                        "00206f1b349d7fed5240ad719948529e8b06abf038438f9b523820489375af513a3f",
+                },
+            ];
 
-    for (const { assert, input, expected } of fixtures) {
-        it(assert, () => {
-            const actual = Script.p2wshScript(input);
-            expect(actual.serializeCmds().toString("hex")).to.equal(expected);
+            const run = (input: Buffer | Script) => Script.p2wshLock(input);
+
+            const assert = (actual: Script, expected: string) => {
+                expect(actual.serializeCmds().toString("hex")).to.equal(expected);
+            };
+
+            testFixtures(fixtures, run, assert);
         });
-    }
+    });
 });
