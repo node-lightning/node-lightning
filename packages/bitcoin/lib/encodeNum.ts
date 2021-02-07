@@ -2,23 +2,13 @@ import { OpCode } from "./OpCodes";
 import { ScriptCmd } from "./ScriptCmd";
 
 /**
- * Minimally encodes a number into the appropriate numeric opcode or
- * into a buffer in signed-magnitude representation to avoid collisions
- * other OpCode enum values.
+ * Encodes a number tha tgoes onto the stack which only contains byte
+ * arrays. The number is encoded using little-endian signed-magnitude
+ * representation.
  * @param num
  */
-export function encodeNum(input: number | bigint): ScriptCmd {
+export function encodeNum(input: number | bigint): Buffer {
     const num = BigInt(input);
-
-    // use OP_0 when 0
-    if (num === 0n) {
-        return OpCode.OP_0;
-    }
-
-    // use OP_1 to OP_16 when one of these
-    if (num >= 1 && num <= 16) {
-        return 0x50 + Number(num);
-    }
 
     const bytes = [];
     const neg = num < 0;

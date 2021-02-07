@@ -3,23 +3,23 @@ import { encodeNum } from "../lib/encodeNum";
 
 describe(".encodeNum()", () => {
     const tests: Array<[bigint, string]> = [
-    [0n, "OP_CODE 0x0"],
-    [1n, "OP_CODE 0x51"],
-    [2n, "OP_CODE 0x52"],
-    [3n, "OP_CODE 0x53"],
-    [4n, "OP_CODE 0x54"],
-    [5n, "OP_CODE 0x55"],
-    [6n, "OP_CODE 0x56"],
-    [7n, "OP_CODE 0x57"],
-    [8n, "OP_CODE 0x58"],
-    [9n, "OP_CODE 0x59"],
-    [10n, "OP_CODE 0x5a"],
-    [11n, "OP_CODE 0x5b"],
-    [12n, "OP_CODE 0x5c"],
-    [13n, "OP_CODE 0x5d"],
-    [14n, "OP_CODE 0x5e"],
-    [15n, "OP_CODE 0x5f"],
-    [16n, "OP_CODE 0x60"],
+    [0n, ""],
+    [1n, "01"],
+    [2n, "02"],
+    [3n, "03"],
+    [4n, "04"],
+    [5n, "05"],
+    [6n, "06"],
+    [7n, "07"],
+    [8n, "08"],
+    [9n, "09"],
+    [10n, "0a"],
+    [11n, "0b"],
+    [12n, "0c"],
+    [13n, "0d"],
+    [14n, "0e"],
+    [15n, "0f"],
+    [16n, "10"],
     [17n, "11"],
     [18n, "12"],
     [19n, "13"],
@@ -35,11 +35,7 @@ describe(".encodeNum()", () => {
     for (const test of tests) {
         it(`${test[0].toString().padStart(8, " ")} => ${test[1]}`, () => {
             const actual = encodeNum(test[0]);
-            if (actual instanceof Buffer) {
-                expect(actual.toString("hex")).to.equal(test[1]);
-            } else {
-                expect("OP_CODE 0x" + actual.toString(16)).to.equal(test[1]);
-            }
+            expect(actual.toString("hex")).to.equal(test[1]);
         });
     }
 });
