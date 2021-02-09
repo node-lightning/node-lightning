@@ -269,8 +269,6 @@ export class Script implements ICloneable<Script> {
         ); // prettier-ignore
     }
 
-    public static p2wsh;
-
     /**
      * Parses a stream of bytes representing a Script. The stream must start
      * with a Varint length of Script data. The Script data is then parsed into

@@ -733,7 +733,9 @@ describe("TxBuilder", () => {
             tx.inputs[0].witness.push(new Witness(Stack.encodeNum(7)));
             tx.inputs[0].witness.push(new Witness(witnessScript.serializeCmds()));
 
-            expect(tx.serialize().toString("hex")).to.equal("");
+            expect(tx.serialize().toString("hex")).to.equal(
+                "020000000001015110a1662954d8d85450b2599c213f06efbb28aff25ef5cba1b96e12b640a0090000000023220020e37b180c5e060a87ebf395bfdfb766346c71325a059a047a5572f5df5d88e9f6ffffffff01e0a3052a01000000160014c538c517797dfefdf30142dc1684bfd947532dbb0201070453935a87ffffffff",
+            );
         });
     });
 });

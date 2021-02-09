@@ -166,21 +166,21 @@ export class TxBuilder {
      * should not change after signing, though the code does not yet
      * enforce this.
      *
-     * @param input signatory input index
+     * @param index signatory input index
      * @param commitScript the scriptSig used for the signature input
      * @param value the value of the input
      */
-    public hashSegwitv0(input: number, commitScript: Script, value: Value): Buffer {
+    public hashSegwitv0(index: number, commitScript: Script, value: Value): Buffer {
         const writer = new BufferWriter();
 
         // Combines the previous outputs for all inputs in the
         // transaction by serializing and hash256 the concated values:
         //   prevtx:  32-byte IBO
         //   prevIdx: 4-byte LE
-        if (this._hashPrevOuts == undefined) {
+        if (this._hashPrevOuts === undefined) {
             const hashWriter = new BufferWriter(Buffer.alloc(this.inputs.length * 36));
-            for (const vin of this.inputs) {
-                hashWriter.writeBytes(vin.outpoint.serialize());
+            for (const input of this.inputs) {
+                hashWriter.writeBytes(input.outpoint.serialize());
             }
             this._hashPrevOuts = hash256(hashWriter.toBuffer());
         }
@@ -189,8 +189,8 @@ export class TxBuilder {
         // transaction and then hash256 the values
         if (this._hashSequence === undefined) {
             const hashWriter = new BufferWriter(Buffer.alloc(this.inputs.length * 4));
-            for (const vin of this.inputs) {
-                hashWriter.writeBytes(vin.sequence.serialize());
+            for (const input of this.inputs) {
+                hashWriter.writeBytes(input.sequence.serialize());
             }
             this._hashSequence = hash256(hashWriter.toBuffer());
         }
@@ -210,7 +210,7 @@ export class TxBuilder {
         writer.writeBytes(this._hashPrevOuts);
         writer.writeBytes(this._hashSequence);
 
-        const vin = this.inputs[input];
+        const vin = this.inputs[index];
         writer.writeBytes(vin.outpoint.serialize());
         writer.writeBytes(commitScript.serialize());
         writer.writeUInt64LE(value.sats);
