@@ -5,6 +5,7 @@ import { LockTime } from "./LockTime";
 import { OutPoint } from "./OutPoint";
 import { Script } from "./Script";
 import { Sequence } from "./Sequence";
+import { SigHashType } from "./SigHashType";
 import { Sorter } from "./Sorter";
 import { Tx } from "./Tx";
 import { TxIn } from "./TxIn";
@@ -155,14 +156,28 @@ export class TxBuilder {
         return hash256(writer.toBuffer());
     }
 
-    public hashSegwitV0(input: number, commitScript: Script, value: Value): Buffer {
+    /**
+     * Creates a signature hash using the new segregated witness digets
+     * alorithm defined in BIP143. The current version only supports
+     * SIGHASH_ALL and does not account for OP_CODESEPARATOR.
+     *
+     * This algorithm has side-effects in that it caches hashPrevOut,
+     * hashSequence, and hashOutput values used. This means transaction
+     * should not change after signing, though the code does not yet
+     * enforce this.
+     *
+     * @param input signatory input index
+     * @param commitScript the scriptSig used for the signature input
+     * @param value the value of the input
+     */
+    public hashSegwitv0(input: number, commitScript: Script, value: Value): Buffer {
         const writer = new BufferWriter();
 
         // Combines the previous outputs for all inputs in the
         // transaction by serializing and hash256 the concated values:
         //   prevtx:  32-byte IBO
         //   prevIdx: 4-byte LE
-        if (this._hashPrevOuts === undefined) {
+        if (this._hashPrevOuts == undefined) {
             const hashWriter = new BufferWriter(Buffer.alloc(this.inputs.length * 36));
             for (const vin of this.inputs) {
                 hashWriter.writeBytes(vin.outpoint.serialize());
@@ -242,14 +257,14 @@ export class TxBuilder {
      * @param privateKey 32-byte private key
      * @param value value of the prior input
      */
-    public signSegWitV0(
+    public signSegWitv0(
         input: number,
         commitScript: Script,
         privateKey: Buffer,
         value: Value,
     ): Buffer {
         // create the hash of the transaction for the input
-        const hash = this.hashSegwitV0(input, commitScript, value);
+        const hash = this.hashSegwitv0(input, commitScript, value);
 
         // sign DER encode signature
         const sig = sign(hash, privateKey);
