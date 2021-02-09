@@ -5,6 +5,7 @@ import { LockTime } from "../lib/LockTime";
 import { OpCode } from "../lib/OpCodes";
 import { Script } from "../lib/Script";
 import { Sequence } from "../lib/Sequence";
+import { Stack } from "../lib/Stack";
 import { TxBuilder } from "../lib/TxBuilder";
 import { TxIn } from "../lib/TxIn";
 import { TxOut } from "../lib/TxOut";
@@ -636,6 +637,103 @@ describe("TxBuilder", () => {
             expect(tx.serialize().toString("hex")).to.equal(
                 "01000000000101db6b1b20aa0fd7b23880be2ecbd4a98130974cf4748fb66092ac4d3ceb1a5477010000001716001479091972186c449eb1ded22b78e40d009bdf0089feffffff02b8b4eb0b000000001976a914a457b684d7f0d539a46a45bbc043f35b59d0d96388ac0008af2f000000001976a914fd270b1ee6abcaea97fea7ad0402e8bd8ad6d77c88ac02473044022047ac8e878352d3ebbde1c94ce3a10d057c24175747116f8288e5d794d12d482f0220217f36a485cae903c713331d877c1f64677e3622ad4010726870540656fe9dcb012103ad1d8e89212f0b92c74d23bb710c00662ad1470198ac48c43f7d6f93a2a2687392040000",
             );
+        });
+
+        it("spends P2PKH to P2SH-P2WSH-P2MS", () => {
+            const tx = new TxBuilder();
+            tx.addInput("d9a81605b0ecb6df24812333194df07584ed32c4c5717c6b448c458114090fa4:0");
+            tx.addOutput(
+                49.9999,
+                Script.p2shLock(Script.p2wshLock(Script.p2msLock(2, pubkeyA, pubkeyB))),
+            );
+            tx.inputs[0].scriptSig = Script.p2pkhUnlock(
+                tx.sign(0, Script.p2pkhLock(pubkeyA), privA),
+                pubkeyA,
+            );
+
+            expect(tx.serialize().toString("hex")).to.equal(
+                "0200000001a40f091481458c446b7c71c5c432ed8475f04d1933238124dfb6ecb00516a8d9000000006a4730440220270bc7ab5f68002c19035974478970443977200feacfb8a0e8414e976327ba9b0220289a1463f8a8cf454b88c331fe60b70f7810a854f6f2034f7612c76c08d9cb24012102c13bf903d6147a7fec59b450e2e8a6c174c35a11a7675570d10bd05bc3597996ffffffff01f0ca052a0100000017a914b940731d3de22bbd7b75144dba433c1ef34a1e6c87ffffffff",
+            );
+        });
+
+        it("spends P2SH-P2WSH-P2MS to P2WPKH", () => {
+            const tx = new TxBuilder();
+            tx.addInput("b2118a5883bd69ad9e4812105874a8725cb80dd5c2df899bb218371bbf07ae7d:0");
+            tx.addOutput(49.9998, Script.p2wpkhLock(pubkeyB));
+
+            // witnessScript is used to generate the sha256 in the witness program
+            // witnessScript is also the commitScript for the signatures
+            const witnessScript = Script.p2msLock(2, pubkeyA, pubkeyB);
+
+            // redeemScript is a P2WSH witness program hash sha256 hashes the witness Script
+            const redeemScript = Script.p2wshLock(witnessScript);
+
+            // scriptSig only contains the redeemScript
+            tx.inputs[0].scriptSig = Script.p2shUnlock(redeemScript);
+
+            // commit to the prior input value
+            const value = Value.fromBitcoin(49.9999);
+
+            // push the signatures and witness script onto the witness data
+            tx.inputs[0].witness.push(new Witness(Buffer.alloc(0)));
+            tx.inputs[0].witness.push(new Witness(tx.signSegWitv0(0, witnessScript, privA, value)));
+            tx.inputs[0].witness.push(new Witness(tx.signSegWitv0(0, witnessScript, privB, value)));
+            tx.inputs[0].witness.push(new Witness(witnessScript.serializeCmds()));
+
+            expect(tx.serialize().toString("hex")).to.equal(
+                "020000000001017dae07bf1b3718b29b89dfc2d50db85c72a874581012489ead69bd83588a11b20000000023220020f667d4b67b93ccd86992d8cd6f183210c6c12ddb3f6c78123118211e823e2776ffffffff01e0a3052a01000000160014c538c517797dfefdf30142dc1684bfd947532dbb0400483045022100dfde803231cb986e0d1e1201813b0f0ee221d93d1fa34fc75cc349298c1de880022055dc330df7f296ae28a0f26549eed8d177269818bc1c97e2ee73a6de0d4069bd01473044022040cc31d846e73739218d71803c105e30f32d586f773a8760da228817aee5cd7402204f9030e3b1e53100ef5732b7de1461bc2c16d6709962053e6b1707bce8f679e00147522102c13bf903d6147a7fec59b450e2e8a6c174c35a11a7675570d10bd05bc3597996210334acee9adf0e3e490a422dfe98bc10a8091b43047b793b8d840657b6b6a46c5652aeffffffff",
+            );
+        });
+
+        it("spends P2PKH to P2SH-P2WSH", () => {
+            const tx = new TxBuilder();
+            tx.addInput("7141a4e6bf580183109d218b3071d877b4395c0cc90f2434372e5c2d9e673876:0");
+            tx.addOutput(
+                49.9999,
+                Script.p2shLock(
+                    Script.p2wshLock(
+                        new Script(OpCode.OP_3, OpCode.OP_ADD, OpCode.OP_10, OpCode.OP_EQUAL),
+                    ),
+                ),
+            );
+            tx.inputs[0].scriptSig = Script.p2pkhUnlock(
+                tx.sign(0, Script.p2pkhLock(pubkeyA), privA),
+                pubkeyA,
+            );
+
+            expect(tx.serialize().toString("hex")).to.equal(
+                "02000000017638679e2d5c2e3734240fc90c5c39b477d871308b219d10830158bfe6a44171000000006b483045022100f27cbe1d5999629c31f956e2dfaf612c591e2fa6a168d10cd8bcdf70169866d50220372d9ada03127377c6c1fb8767e4c4cdc7239799f470f4b0c30176a537a8b04d012102c13bf903d6147a7fec59b450e2e8a6c174c35a11a7675570d10bd05bc3597996ffffffff01f0ca052a0100000017a914d439a1a387a85dd19b1ed212233c603d5e6916b687ffffffff",
+            );
+        });
+
+        it("spends P2SH-P2WSH to P2WPKH", () => {
+            const tx = new TxBuilder();
+            tx.addInput("09a040b6126eb9a1cbf55ef2af28bbef063f219c59b25054d8d8542966a11051:0");
+            tx.addOutput(49.9998, Script.p2wpkhLock(pubkeyB));
+
+            // witnessScript is used to generate the sha256 in the witness program
+            // witnessScript is also the commitScript for the signatures
+            const witnessScript = new Script(
+                OpCode.OP_3,
+                OpCode.OP_ADD,
+                OpCode.OP_10,
+                OpCode.OP_EQUAL,
+            );
+
+            // redeemScript is a P2WSH witness program hash sha256 hashes the witness Script
+            const redeemScript = Script.p2wshLock(witnessScript);
+
+            // scriptSig only contains the redeemScript
+            tx.inputs[0].scriptSig = Script.p2shUnlock(redeemScript);
+
+            // commit to the prior input value
+            const value = Value.fromBitcoin(49.9999);
+
+            // push witness data as bytes and witness script onto the witness stack
+            tx.inputs[0].witness.push(new Witness(Stack.encodeNum(7)));
+            tx.inputs[0].witness.push(new Witness(witnessScript.serializeCmds()));
+
+            expect(tx.serialize().toString("hex")).to.equal("");
         });
     });
 });
