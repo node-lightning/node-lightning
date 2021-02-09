@@ -15,7 +15,9 @@ function getMessage(code: BitcoinErrorCode) {
         case BitcoinErrorCode.MultiSigSetupInvalid:
             return "MultiSig structure is invalid";
         case BitcoinErrorCode.Hash160Invalid:
-            return "Hash160 requires 20-bytes Buffer";
+            return "Hash160 requires 20-byte Buffer";
+        case BitcoinErrorCode.Hash256Invalid:
+            return "return Hash256 requires 32-byte Buffer";
         default:
             return "Unknown";
     }

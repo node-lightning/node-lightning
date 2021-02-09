@@ -18,6 +18,17 @@ export class TxIn implements ICloneable<TxIn> {
     }
 
     /**
+     * Parses a hex string serialization of a transaction input. This
+     * is a helper function instead of having to do `StreamReader.fromHex`
+     * on a string directly.
+     * @param hex
+     */
+    public static fromHex(hex: string): TxIn {
+        const reader = StreamReader.fromHex(hex);
+        return this.parse(reader);
+    }
+
+    /**
      * The previous transaction output tuple
      */
     public outpoint: OutPoint;

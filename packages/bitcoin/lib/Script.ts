@@ -2,14 +2,14 @@ import { bigToBufLE } from "@node-lightning/bufio";
 import { encodeVarInt } from "@node-lightning/bufio";
 import { BufferReader } from "@node-lightning/bufio";
 import { StreamReader } from "@node-lightning/bufio";
-import { hash160, isDERSig, validPublicKey } from "@node-lightning/crypto";
+import { hash160, isDERSig, sha256, validPublicKey } from "@node-lightning/crypto";
 import { BitcoinError } from "./BitcoinError";
 import { BitcoinErrorCode } from "./BitcoinErrorCode";
-import { encodeNum } from "./encodeNum";
 import { ICloneable } from "./ICloneable";
 import { OpCode } from "./OpCodes";
 import { ScriptCmd } from "./ScriptCmd";
 import { isSigHashTypeValid } from "./SigHashType";
+import { Stack } from "./Stack";
 
 function asssertValidSig(sig: Buffer) {
     const der = sig.slice(0, sig.length - 1);
@@ -34,6 +34,26 @@ function assertValidPubKey(pubkey: Buffer) {
  * Bitcoin Script
  */
 export class Script implements ICloneable<Script> {
+    /**
+     *
+     * @param val
+     */
+    public static number(val: number | bigint): ScriptCmd {
+        // Zero is encoded as OP_0
+        if (val === 0 || val === 0n) {
+            return OpCode.OP_0;
+        }
+
+        // 1-16 is encoded as OP_1 to OP_16
+        if (val >= 1 && val <= 16) {
+            return 0x50 + Number(val);
+        }
+
+        // anything else is encoded as signed-magnitude value
+        // and added to the script as raw push bytes
+        return Stack.encodeNum(val);
+    }
+
     /**
      * Creates a standard (though no longer used) pay-to-pubkey
      * scriptPubKey using the provided pubkey.
@@ -118,9 +138,9 @@ export class Script implements ICloneable<Script> {
         }
 
         return new Script(
-            encodeNum(m),
+            Script.number(m),
             ...pubkeys,
-            encodeNum(pubkeys.length),
+            Script.number(pubkeys.length),
             OpCode.OP_CHECKMULTISIG,
         ); // prettier-ignore
     }
@@ -213,11 +233,21 @@ export class Script implements ICloneable<Script> {
      * the hash160 of a compressed public key point as input. It is of the
      * format:
      *   OP_0 <hash160_pubkey>
+     *
+     * @param value either a 20-byte pubkeyhash or a valid pubkey
      */
-    public static p2wpkhLock(hash160Script: Buffer): Script {
+    public static p2wpkhLock(value: Buffer): Script {
+        // if not a hash160, then it must be a valid pubkey
+        if (value.length !== 20) {
+            assertValidPubKey(value);
+        }
+
+        // either the hash value or a valid pubkey that needs to be hashed
+        const hash160PubKey = value.length === 20 ? value : hash160(value);
+
         return new Script(
             OpCode.OP_0,
-            hash160Script,
+            hash160PubKey,
         ); // prettier-ignore
     }
 
@@ -226,7 +256,13 @@ export class Script implements ICloneable<Script> {
      * the sha256 of the witness script as input. It is of the format:
      *   OP_0 <sha256_redeem_script>
      */
-    public static p2wshScript(sha256Script: Buffer): Script {
+    public static p2wshLock(value: Buffer | Script): Script {
+        const sha256Script = value instanceof Buffer ? value : sha256(value.serializeCmds());
+
+        if (sha256Script.length !== 32) {
+            throw new BitcoinError(BitcoinErrorCode.Hash256Invalid);
+        }
+
         return new Script(
             OpCode.OP_0,
             sha256Script,
@@ -451,5 +487,13 @@ export class Script implements ICloneable<Script> {
      */
     public hash160(): Buffer {
         return hash160(this.serializeCmds());
+    }
+
+    /**
+     * Performs a sha256 hash on the serialized commands. This is useful
+     * fro turning a script into a P2WSH lock script.
+     */
+    public sha256(): Buffer {
+        return sha256(this.serializeCmds());
     }
 }

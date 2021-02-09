@@ -6,4 +6,5 @@ export enum BitcoinErrorCode {
     SigHashTypeInvalid,
     MultiSigSetupInvalid,
     Hash160Invalid,
+    Hash256Invalid,
 }
