@@ -4,9 +4,38 @@ import { expect } from "chai";
 import { OpCode } from "../lib/OpCodes";
 import { Script } from "../lib/Script";
 import { ScriptCmd } from "../lib/ScriptCmd";
-import { Fixture, testFixtures } from "./_TestHelper";
+import { Fixture, FixtureArray, testFixtures } from "./_TestHelper";
 
 describe("Script", () => {
+    describe("#number()", () => {
+        const fixtures: Fixture<bigint, string>[] = [
+            [0n, "OP 0x0"],
+            [1n, "OP 0x51"],
+            [16n, "OP 0x60"],
+            [17n, "0x11"],
+            [127n, "0x7f"],
+            [128n, "0x8000"],
+            [255n, "0xff00"],
+            [65535n, "0xffff00"],
+            [4294967295n, "0xffffffff00"],
+            [4294967296n, "0x0000000001"],
+            [-1n, "0x81"],
+            [-255n, "0xff80"],
+        ];
+
+        const run = (input: bigint) => Script.number(input);
+
+        const assert = (actual: ScriptCmd, expected: string) => {
+            if (actual instanceof Buffer) {
+                expect("0x" + actual.toString("hex")).to.equal(expected);
+            } else {
+                expect("OP 0x" + actual.toString(16)).to.equal(expected);
+            }
+        };
+
+        testFixtures(fixtures, run, assert);
+    });
+
     describe("#parse()", () => {
         it("happy path", () => {
             const sr = StreamReader.fromHex(

@@ -5,11 +5,11 @@ import { StreamReader } from "@node-lightning/bufio";
 import { hash160, isDERSig, sha256, validPublicKey } from "@node-lightning/crypto";
 import { BitcoinError } from "./BitcoinError";
 import { BitcoinErrorCode } from "./BitcoinErrorCode";
-import { encodeNum } from "./encodeNum";
 import { ICloneable } from "./ICloneable";
 import { OpCode } from "./OpCodes";
 import { ScriptCmd } from "./ScriptCmd";
 import { isSigHashTypeValid } from "./SigHashType";
+import { Stack } from "./Stack";
 
 function asssertValidSig(sig: Buffer) {
     const der = sig.slice(0, sig.length - 1);
@@ -34,6 +34,26 @@ function assertValidPubKey(pubkey: Buffer) {
  * Bitcoin Script
  */
 export class Script implements ICloneable<Script> {
+    /**
+     *
+     * @param val
+     */
+    public static number(val: number | bigint): ScriptCmd {
+        // Zero is encoded as OP_0
+        if (val === 0 || val === 0n) {
+            return OpCode.OP_0;
+        }
+
+        // 1-16 is encoded as OP_1 to OP_16
+        if (val >= 1 && val <= 16) {
+            return 0x50 + Number(val);
+        }
+
+        // anything else is encoded as signed-magnitude value
+        // and added to the script as raw push bytes
+        return Stack.encodeNum(val);
+    }
+
     /**
      * Creates a standard (though no longer used) pay-to-pubkey
      * scriptPubKey using the provided pubkey.
@@ -118,9 +138,9 @@ export class Script implements ICloneable<Script> {
         }
 
         return new Script(
-            encodeNum(m),
+            Script.number(m),
             ...pubkeys,
-            encodeNum(pubkeys.length),
+            Script.number(pubkeys.length),
             OpCode.OP_CHECKMULTISIG,
         ); // prettier-ignore
     }
