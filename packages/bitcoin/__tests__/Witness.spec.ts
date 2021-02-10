@@ -11,6 +11,13 @@ describe("Witness", () => {
         });
     });
 
+    describe("#.fromHex()", () => {
+        it("should parse valid data", () => {
+            const sut = Witness.fromHex("050001020304");
+            expect(sut.data).to.deep.equal(Buffer.from([0, 1, 2, 3, 4]));
+        });
+    });
+
     describe(".serialize()", () => {
         it("should serialize data", () => {
             const sut = new Witness(Buffer.from([0, 1, 2, 3, 4]));

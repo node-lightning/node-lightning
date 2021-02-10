@@ -1,4 +1,4 @@
-import { BufferWriter, StreamReader } from "@node-lightning/bufio";
+import { BufferWriter, StreamReader, varIntBytes } from "@node-lightning/bufio";
 import { ICloneable } from "./ICloneable";
 
 /**
@@ -14,6 +14,15 @@ export class Witness implements ICloneable<Witness> {
         const len = reader.readVarInt();
         const data = reader.readBytes(Number(len));
         return new Witness(data);
+    }
+
+    /**
+     * Hex-encoded Witness data. This method interally creates a
+     * StreamReader and uses the parse function
+     * @param hex encoded as a string
+     */
+    public static fromHex(hex: string) {
+        return Witness.parse(StreamReader.fromHex(hex));
     }
 
     constructor(readonly data: Buffer) {}
