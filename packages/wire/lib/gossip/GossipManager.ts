@@ -1,4 +1,4 @@
-import { ShortChannelId } from "@node-lightning/core";
+import { HashByteOrder, ShortChannelId } from "@node-lightning/core";
 import { OutPoint } from "@node-lightning/core";
 import { ILogger } from "@node-lightning/logger";
 import { EventEmitter } from "events";
@@ -343,8 +343,8 @@ export class GossipManager extends EventEmitter {
             }
             if (chanAnn instanceof ExtendedChannelAnnouncementMessage) {
                 const utxo = await this.chainClient.getUtxo(
-                    chanAnn.outpoint.txId,
-                    chanAnn.outpoint.voutIdx,
+                    chanAnn.outpoint.txid.toString(HashByteOrder.RPC),
+                    chanAnn.outpoint.outputIndex,
                 );
                 if (!utxo) {
                     await this.removeChannel(chanAnn.shortChannelId);

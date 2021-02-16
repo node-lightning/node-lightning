@@ -22,5 +22,8 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "dependencies": {
+    "@node-lightning/bitcoin": "^0.20.1"
   }
 }
