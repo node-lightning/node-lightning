@@ -1,5 +1,5 @@
 import { AsyncProcessingQueue } from "@node-lightning/core";
-import { OutPoint } from "@node-lightning/core";
+import { OutPoint, HashValue } from "@node-lightning/core";
 import { EventEmitter } from "events";
 import { ChannelAnnouncementMessage } from "../messages/ChannelAnnouncementMessage";
 import { ChannelUpdateMessage } from "../messages/ChannelUpdateMessage";
@@ -200,7 +200,7 @@ export class GossipFilter extends EventEmitter {
             }
 
             // construct outpoint
-            const outpoint = new OutPoint(txId, msg.shortChannelId.voutIdx);
+            const outpoint = new OutPoint(HashValue.fromRpc(txId), msg.shortChannelId.voutIdx);
 
             // calculate capacity in satoshi
             // Not sure about this code. MAX_SAFE_INTEGER is still safe

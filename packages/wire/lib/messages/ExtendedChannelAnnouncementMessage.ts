@@ -1,5 +1,5 @@
 import { BufferReader, BufferWriter } from "@node-lightning/bufio";
-import { BitField } from "@node-lightning/core";
+import { BitField, HashByteOrder, HashValue } from "@node-lightning/core";
 import { shortChannelIdFromBuffer } from "@node-lightning/core";
 import { OutPoint } from "@node-lightning/core";
 import { readTlvs } from "../serialize/readTlvs";
@@ -66,7 +66,7 @@ export class ExtendedChannelAnnouncementMessage extends ChannelAnnouncementMessa
                 // and a 2 byte uint output index
                 case BigInt(16777271): {
                     instance.outpoint = new OutPoint(
-                        valueReader.readBytes(32).toString("hex"),
+                        HashValue.fromRpc(valueReader.readBytes(32).toString("hex")),
                         valueReader.readTUInt16(),
                     );
                     return true;
@@ -105,8 +105,8 @@ export class ExtendedChannelAnnouncementMessage extends ChannelAnnouncementMessa
 
         // outpoint value
         let valueWriter = new BufferWriter();
-        valueWriter.writeBytes(Buffer.from(this.outpoint.txId, "hex"));
-        valueWriter.writeTUInt16(this.outpoint.voutIdx);
+        valueWriter.writeBytes(this.outpoint.txid.serialize(HashByteOrder.RPC));
+        valueWriter.writeTUInt16(this.outpoint.outputIndex);
         let value = valueWriter.toBuffer();
 
         // outpoint tlv
