@@ -2,6 +2,19 @@ import { OpCode, Script } from "@node-lightning/bitcoin";
 
 export class ScriptFactory {
     /**
+     * Constructs the P2MS commit script used in in the funding transaction
+     * as defined in BOLT3. The pubkeys must be sorted in lexicographical
+     * order.
+     *
+     * @param openPubKey funding_pubkey sent in open_channel
+     * @param acceptPubKey funding_pubkey sent in accept_channel
+     */
+    public static fundingScript(openPubKey: Buffer, acceptPubKey: Buffer): Script {
+        const pubkeys = [openPubKey, acceptPubKey].sort((a, b) => a.compare(b));
+        return Script.p2msLock(2, ...pubkeys);
+    }
+
+    /**
      * Constructs an revocable sequence maturing contract using the
      * provided keys and delay. This script is used in the `to_local`
      * output of the commmitment transaction as well as the secondary
