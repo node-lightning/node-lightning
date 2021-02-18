@@ -1,5 +1,5 @@
 import { ConsoleTransport, Logger, LogLevel } from "@node-lightning/logger";
-import { BitField, ChannelAnnouncementMessage } from "@node-lightning/wire";
+import { ChannelAnnouncementMessage } from "@node-lightning/wire";
 import { ChannelUpdateMessage } from "@node-lightning/wire";
 import { NodeAnnouncementMessage } from "@node-lightning/wire";
 import { ExtendedChannelAnnouncementMessage } from "@node-lightning/wire";
@@ -7,6 +7,7 @@ import { Peer } from "@node-lightning/wire";
 import { GossipMemoryStore } from "@node-lightning/wire";
 import { GossipManager } from "@node-lightning/wire";
 import { InitFeatureFlags } from "@node-lightning/wire";
+import { BitField } from "@node-lightning/core";
 
 // tslint:disable-next-line: no-var-requires
 const config = require("../config.json");

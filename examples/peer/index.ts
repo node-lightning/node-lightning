@@ -1,5 +1,5 @@
 import { ConsoleTransport, Logger, LogLevel } from "@node-lightning/logger";
-import { BitField } from "@node-lightning/wire";
+import { BitField } from "@node-lightning/core";
 import { QueryChannelRangeMessage } from "@node-lightning/wire";
 import { Peer } from "@node-lightning/wire";
 import { InitFeatureFlags } from "@node-lightning/wire/dist/flags/InitFeatureFlags";

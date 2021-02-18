@@ -1,8 +1,9 @@
 import { ILogger } from "@node-lightning/logger";
-import { EventEmitter } from "events";
+import { ChannelAnnouncementMessage } from "../messages/ChannelAnnouncementMessage";
+import { ChannelUpdateMessage } from "../messages/ChannelUpdateMessage";
 import { IWireMessage } from "../messages/IWireMessage";
-import { GossipError, GossipErrorCode } from "./GossipError";
-import { GossipPeer } from "./GossipPeer";
+import { NodeAnnouncementMessage } from "../messages/NodeAnnouncementMessage";
+import { MessageType } from "../MessageType";
 
 export enum GossipSyncWatcherState {
     Idle,
@@ -20,12 +21,14 @@ export class GossipSyncWatcher {
     public completeAfterMs = 5000;
 
     private _state: GossipSyncWatcherState;
-    private _emitter: EventEmitter;
     private _timeoutHandle: NodeJS.Timeout;
     private _messageCounter: number;
 
-    constructor(readonly peer: GossipPeer, readonly logger: ILogger) {
-        this._emitter = new EventEmitter();
+    private _resolve: (value: void) => void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    private _reject: (reason: any) => void;
+
+    constructor(readonly logger: ILogger) {
         this._state = GossipSyncWatcherState.Idle;
         this._messageCounter = 0;
         this._onTimeout = this._onTimeout.bind(this);
@@ -52,36 +55,33 @@ export class GossipSyncWatcher {
     public watch(): Promise<void> {
         return new Promise((resolve, reject) => {
             this._state = GossipSyncWatcherState.Watching;
-            this._subMessages();
             this._setTimeout();
-            this._emitter.once("complete", resolve);
-            this._emitter.once("error", reject);
+            this._resolve = resolve;
+            this._reject = reject;
         });
+    }
+
+    /**
+     * Process a message and debounce when it is a gossip message
+     * @param msg
+     */
+    public onGossipMessage(
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        msg: ChannelAnnouncementMessage | ChannelUpdateMessage | NodeAnnouncementMessage,
+    ): void {
+        this._messageCounter += 1;
+        this._clearTimeout();
+        this._setTimeout();
     }
 
     /**
      * Cancels watching and sends a failure signal.
      */
-    public cancel() {
-        this._unsubMessages();
+    public cancel(): void {
         this._clearTimeout();
 
         this._state = GossipSyncWatcherState.Canceled;
-        this._emitter.emit("complete");
-    }
-
-    private _subMessages() {
-        this.peer.on("message", this._onMessage.bind(this));
-    }
-
-    private _unsubMessages() {
-        this.peer.off("message", this._onMessage.bind(this));
-    }
-
-    private _onMessage(msg: IWireMessage) {
-        this._messageCounter += 1;
-        this._clearTimeout();
-        this._setTimeout();
+        this._resolve();
     }
 
     private _clearTimeout() {
@@ -93,8 +93,7 @@ export class GossipSyncWatcher {
     }
 
     private _onTimeout() {
-        this._unsubMessages();
         this._state = GossipSyncWatcherState.Complete;
-        this._emitter.emit("complete");
+        this._resolve();
     }
 }
