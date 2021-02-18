@@ -6,7 +6,7 @@ import { GraphManager } from "@node-lightning/graph";
 import { GraphError } from "@node-lightning/graph";
 import { LndSerializer } from "@node-lightning/graph";
 import { ConsoleTransport, Logger, LogLevel } from "@node-lightning/logger";
-import { BitField } from "@node-lightning/wire";
+import { BitField } from "@node-lightning/core";
 import { ExtendedChannelAnnouncementMessage } from "@node-lightning/wire";
 import { Peer } from "@node-lightning/wire";
 import { GossipMemoryStore } from "@node-lightning/wire";
