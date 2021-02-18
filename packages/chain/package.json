@@ -1,7 +1,7 @@
 {
   "name": "@node-lightning/chain",
   "private": true,
-  "version": "0.20.1",
+  "version": "0.21.0",
   "description": "Lightning Network on-chain transaction handling tools",
   "author": "Brian Mancini <bmancini@gmail.com>",
   "homepage": "https://github.com/altangent/node-lightning/tree/master/packages/chain",
@@ -18,7 +18,7 @@
     "url": "git+https://github.com/altangent/node-lightning.git"
   },
   "dependencies": {
-    "@node-lightning/crypto": "^0.20.1"
+    "@node-lightning/crypto": "^0.21.0"
   },
   "publishConfig": {
     "access": "public"

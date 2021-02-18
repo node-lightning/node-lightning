@@ -1,6 +1,6 @@
 {
   "name": "@node-lightning/graph",
-  "version": "0.20.1",
+  "version": "0.21.0",
   "description": "Lightning Network P2P Graph",
   "keywords": [
     "lightning network",
@@ -22,8 +22,8 @@
     "prepublish": "npm run build"
   },
   "dependencies": {
-    "@node-lightning/core": "^0.20.1",
-    "@node-lightning/wire": "^0.20.1"
+    "@node-lightning/core": "^0.21.0",
+    "@node-lightning/wire": "^0.21.0"
   },
   "publishConfig": {
     "access": "public"

@@ -1,6 +1,6 @@
 {
   "name": "@node-lightning/crypto",
-  "version": "0.20.1",
+  "version": "0.21.0",
   "description": "Crypto suite for Node-Lightning",
   "author": "Brian Mancini <bmancini@gmail.com>",
   "homepage": "https://github.com/altangent/node-lightning/tree/master/packages/crypto",
