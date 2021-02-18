@@ -1,5 +1,5 @@
 import { OutPoint } from "@node-lightning/core";
-import { IGossipEmitter, IWireMessage } from "@node-lightning/wire";
+import { IGossipEmitter, IWireMessage, MessageType } from "@node-lightning/wire";
 import { ChannelAnnouncementMessage } from "@node-lightning/wire";
 import { ChannelUpdateMessage } from "@node-lightning/wire";
 import { NodeAnnouncementMessage } from "@node-lightning/wire";
@@ -60,7 +60,7 @@ export class GraphManager extends EventEmitter {
         // may receieve a channel_announcement without ever receiving
         // node_announcement messages.
 
-        if (msg instanceof ChannelAnnouncementMessage) {
+        if (isChannelAnnouncment(msg)) {
             const channel = channelFromMessage(msg);
 
             // abort processing if the channel already exists
@@ -95,7 +95,7 @@ export class GraphManager extends EventEmitter {
         // * updating the existing channel
         // The GossipFilter in Wire should ensure that channel_announcement messages
         // are always transmitted prior to channel_update messages being announced.
-        if (msg instanceof ChannelUpdateMessage) {
+        if (isChannelUpdate(msg)) {
             // first validate we have a channel
             const channel = this.graph.getChannel(msg.shortChannelId);
             if (!channel) {
@@ -113,7 +113,7 @@ export class GraphManager extends EventEmitter {
         // node_announcement messages are processed by:
         // * finding or creating the node (if it doesn't exist)
         // * updating the node with values from the announcement
-        if (msg instanceof NodeAnnouncementMessage) {
+        if (isNodeAnnouncement(msg)) {
             let node = this.graph.getNode(msg.nodeId);
             if (!node) {
                 node = new Node();
@@ -128,4 +128,16 @@ export class GraphManager extends EventEmitter {
             this.emit("node", node);
         }
     }
+}
+
+function isChannelAnnouncment(msg: IWireMessage): msg is ChannelAnnouncementMessage {
+    return msg.type === MessageType.ChannelAnnouncement;
+}
+
+function isChannelUpdate(msg: IWireMessage): msg is ChannelUpdateMessage {
+    return msg.type === MessageType.ChannelUpdate;
+}
+
+function isNodeAnnouncement(msg: IWireMessage): msg is NodeAnnouncementMessage {
+    return msg.type === MessageType.NodeAnnouncement;
 }

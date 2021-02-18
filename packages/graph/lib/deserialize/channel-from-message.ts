@@ -7,13 +7,15 @@ import { Channel } from "../channel";
  * not include outpoint, capacity, or per node settings found in channel_update
  * messages. These values need to be set elsewhere.
  */
-export function channelFromMessage(msg: ChannelAnnouncementMessage): Channel {
+export function channelFromMessage(
+    msg: ChannelAnnouncementMessage | ExtendedChannelAnnouncementMessage,
+): Channel {
     const c = new Channel();
     c.shortChannelId = msg.shortChannelId;
     c.features = msg.features;
     c.nodeId1 = msg.nodeId1;
     c.nodeId2 = msg.nodeId2;
-    if (msg instanceof ExtendedChannelAnnouncementMessage) {
+    if ("outpoint" in msg) {
         c.channelPoint = msg.outpoint;
         c.capacity = msg.capacity;
     }
