@@ -28,7 +28,7 @@ export class LndSerializer {
             last_update: node.lastUpdate,
             pub_key: node.nodeId.toString("hex"),
             alias: node.aliasString,
-            addresses: node.addresses.map(address => this.serializeAddress(address)),
+            addresses: node.addresses.filter(p => p).map(address => this.serializeAddress(address)),
             color: node.rgbColorString,
         };
     }
@@ -43,11 +43,11 @@ export class LndSerializer {
     public serializeChannel(chan: Channel) {
         return {
             channel_id: chan.shortChannelId.toNumber().toString(),
-            chan_point: chan.channelPoint.toString(),
+            chan_point: chan.channelPoint && chan.channelPoint.toString(),
             last_update: chan.lastUpdate,
             node1_pub: chan.nodeId1.toString("hex"),
             node2_pub: chan.nodeId2.toString("hex"),
-            capacity: chan.capacity.toString(),
+            capacity: chan.capacity && chan.capacity.toString(),
             node1_policy: this.serializeRoutingPolicy(chan.node1Settings),
             node2_policy: this.serializeRoutingPolicy(chan.node2Settings),
         };
