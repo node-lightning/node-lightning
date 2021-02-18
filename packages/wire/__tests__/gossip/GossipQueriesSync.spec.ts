@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ShortChannelId } from "@node-lightning/core";
 import { ILogger } from "@node-lightning/logger";
 import { expect } from "chai";
@@ -54,7 +55,7 @@ describe("GossipQueriesSync", () => {
         // for the channels query result along with
         const replyChannelsMsg = new ReplyShortChannelIdsEndMessage();
         replyChannelsMsg.complete = true;
-        peer.emit("message", replyChannelsMsg);
+        sut.handleWireMessage(replyChannelsMsg);
         await wait(0); // wait for promise to tick
 
         // After this reply, we are just waiting for the final messages to
@@ -132,7 +133,7 @@ describe("GossipQueriesSync", () => {
         // for the channels query result along with
         const replyChannelsMsg = new ReplyShortChannelIdsEndMessage();
         replyChannelsMsg.complete = false;
-        peer.emit("message", replyChannelsMsg);
+        sut.handleWireMessage(replyChannelsMsg);
 
         // Wait for the promise to fail
         return promise.catch((err: GossipError) => {

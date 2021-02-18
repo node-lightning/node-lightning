@@ -1,6 +1,7 @@
 import { ILogger } from "@node-lightning/logger";
 import { IWireMessage } from "../messages/IWireMessage";
 import { ReplyChannelRangeMessage } from "../messages/ReplyChannelRangeMessage";
+import { ReplyShortChannelIdsEndMessage } from "../messages/ReplyShortChannelIdsEndMessage";
 import { ChannelRangeQuery } from "./ChannelRangeQuery";
 import { ChannelsQuery } from "./ChannelsQuery";
 import { GossipPeer } from "./GossipPeer";
@@ -62,6 +63,8 @@ export class GossipQueriesSync {
         if (msg instanceof ReplyChannelRangeMessage) {
             this._rangeQuery.handleReplyChannelRange(msg);
             return;
+        } else if (msg instanceof ReplyShortChannelIdsEndMessage) {
+            this._channelsQuery.handleReplyShortChannelIdsEnd(msg);
         }
     }
 }

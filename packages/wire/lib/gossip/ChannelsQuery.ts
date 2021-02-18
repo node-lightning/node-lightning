@@ -1,10 +1,8 @@
 import { ShortChannelId } from "@node-lightning/core";
 import { ILogger } from "@node-lightning/logger";
-import { EventEmitter } from "events";
-import { IWireMessage } from "../messages/IWireMessage";
 import { QueryShortChannelIdsMessage } from "../messages/QueryShortChannelIdsMessage";
 import { ReplyShortChannelIdsEndMessage } from "../messages/ReplyShortChannelIdsEndMessage";
-import { IMessageSenderReceiver } from "../Peer";
+import { IMessageSender } from "../Peer";
 import { GossipError, GossipErrorCode } from "./GossipError";
 
 export enum ChannelsQueryState {
@@ -31,20 +29,41 @@ export class ChannelsQuery {
 
     constructor(
         readonly chainHash: Buffer,
-        readonly peer: IMessageSenderReceiver,
+        readonly peer: IMessageSender,
         readonly logger: ILogger,
     ) {
-        this._handlePeerMessage = this._handlePeerMessage.bind(this);
-        this.peer.on("message", this._handlePeerMessage);
         this._state = ChannelsQueryState.Idle;
     }
 
-    public get state() {
+    public get state(): ChannelsQueryState {
         return this._state;
     }
 
-    public get error() {
+    public get error(): Error {
         return this._error;
+    }
+
+    public handleReplyShortChannelIdsEnd(msg: ReplyShortChannelIdsEndMessage): void {
+        this.logger.debug("received reply_short_channel_ids_end - complete: %d", msg.complete);
+
+        // If we receive a reply with complete=false, the remote peer
+        // does not maintain up-to-date channel information for the
+        // requested chain_hash
+        if (!msg.complete) {
+            const error = new GossipError(GossipErrorCode.ReplyChannelsNoInfo, msg);
+            this._transitionFailed(error);
+            return;
+        }
+
+        // This occurs when the last batch of information has been received
+        // but there is still more short_channel_ids to request. This scenario
+        // requires sending another QueryShortIds message
+        if (this._queue.length > 0) {
+            this._sendQuery();
+        } else {
+            this._transitionSuccess();
+            return;
+        }
     }
 
     /**
@@ -70,24 +89,15 @@ export class ChannelsQuery {
 
     private _transitionSuccess() {
         if (this._state !== ChannelsQueryState.Active) return;
-        this.peer.off("message", this._handlePeerMessage);
         this._state = ChannelsQueryState.Complete;
         this._resolve();
     }
 
     private _transitionFailed(error: GossipError) {
         if (this._state !== ChannelsQueryState.Active) return;
-        this.peer.off("message", this._handlePeerMessage);
         this._state = ChannelsQueryState.Failed;
         this._error = error;
         this._reject(error);
-    }
-
-    private _handlePeerMessage(msg: IWireMessage) {
-        if (msg instanceof ReplyShortChannelIdsEndMessage) {
-            this._onReplyShortIdsEnd(msg);
-            return;
-        }
     }
 
     private _sendQuery() {
@@ -99,28 +109,5 @@ export class ChannelsQuery {
         msg.shortChannelIds = scids;
         this.logger.debug("sending query_short_channel_ids - scid_count:", scids.length);
         this.peer.sendMessage(msg);
-    }
-
-    private _onReplyShortIdsEnd(msg: ReplyShortChannelIdsEndMessage) {
-        this.logger.debug("received reply_short_channel_ids_end - complete: %d", msg.complete);
-
-        // If we receive a reply with complete=false, the remote peer
-        // does not maintain up-to-date channel information for the
-        // requested chain_hash
-        if (!msg.complete) {
-            const error = new GossipError(GossipErrorCode.ReplyChannelsNoInfo, msg);
-            this._transitionFailed(error);
-            return;
-        }
-
-        // This occurs when the last batch of information has been received
-        // but there is still more short_channel_ids to request. This scenario
-        // requires sending another QueryShortIds message
-        if (this._queue.length > 0) {
-            this._sendQuery();
-        } else {
-            this._transitionSuccess();
-            return;
-        }
     }
 }
