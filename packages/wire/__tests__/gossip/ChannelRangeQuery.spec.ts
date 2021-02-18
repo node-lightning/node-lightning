@@ -1,18 +1,21 @@
-// tslint:disable: no-unused-expression
-// tslint:disable: no-floating-promises
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* tslint:disable: no-unused-expression */
+/* tslint:disable: no-floating-promises */
 
 import { ShortChannelId } from "@node-lightning/core";
 import { ILogger } from "@node-lightning/logger";
 import { expect } from "chai";
+import Sinon from "sinon";
 import { ChannelRangeQuery, ChannelRangeQueryState } from "../../lib/gossip/ChannelRangeQuery";
 import { QueryChannelRangeMessage } from "../../lib/messages/QueryChannelRangeMessage";
 import { ReplyChannelRangeMessage } from "../../lib/messages/ReplyChannelRangeMessage";
+import { IMessageSender } from "../../lib/Peer";
 import { createFakeLogger, createFakePeer } from "../_test-utils";
 
 describe("ChannelRangeQuery", () => {
     let chainHash: Buffer;
     let sut: ChannelRangeQuery;
-    let peer: any;
+    let peer: Sinon.SinonStubbedInstance<IMessageSender>;
     let logger: ILogger;
 
     beforeEach(() => {
@@ -23,46 +26,44 @@ describe("ChannelRangeQuery", () => {
     });
 
     describe(".queryRange()", () => {
-        let promise: Promise<ShortChannelId[]>;
-
         describe("with defaults", async () => {
             it("should send query_channel_range", () => {
-                promise = sut.queryRange();
+                sut.queryRange();
                 const msg = peer.sendMessage.args[0][0] as QueryChannelRangeMessage;
                 expect(msg.firstBlocknum).to.equal(0);
                 expect(msg.numberOfBlocks).to.equal(4294967295);
             });
 
             it("should be in active state", () => {
-                promise = sut.queryRange();
+                sut.queryRange();
                 expect(sut.state).to.equal(ChannelRangeQueryState.Active);
             });
         });
 
         describe("with options", () => {
             it("should send query_channel_range", () => {
-                promise = sut.queryRange(1000000, 1000);
+                sut.queryRange(1000000, 1000);
                 const msg = peer.sendMessage.args[0][0] as QueryChannelRangeMessage;
                 expect(msg.firstBlocknum).to.equal(1000000);
                 expect(msg.numberOfBlocks).to.equal(1000);
             });
 
             it("should be in active state", () => {
-                promise = sut.queryRange(1000000, 1000);
+                sut.queryRange(1000000, 1000);
                 expect(sut.state).to.equal(ChannelRangeQueryState.Active);
             });
         });
 
         describe("with overflow", () => {
             it("should send query_channel_range", () => {
-                promise = sut.queryRange(1000);
+                sut.queryRange(1000);
                 const msg = peer.sendMessage.args[0][0] as QueryChannelRangeMessage;
                 expect(msg.firstBlocknum).to.equal(1000);
                 expect(msg.numberOfBlocks).to.equal(4294966295);
             });
 
             it("should be in active state", () => {
-                promise = sut.queryRange(1000);
+                sut.queryRange(1000);
                 expect(sut.state).to.equal(ChannelRangeQueryState.Active);
             });
         });
@@ -78,7 +79,8 @@ describe("ChannelRangeQuery", () => {
             msg.fullInformation = false;
             msg.firstBlocknum = 0;
             msg.numberOfBlocks = 1000;
-            peer.emit("message", msg);
+
+            sut.handleReplyChannelRange(msg);
         });
 
         it("should reject with error", done => {
@@ -100,8 +102,8 @@ describe("ChannelRangeQuery", () => {
             msg.fullInformation = false;
             msg.firstBlocknum = 0;
             msg.numberOfBlocks = 1000;
-            peer.emit("message", msg);
-            peer.emit("message", msg);
+            sut.handleReplyChannelRange(msg);
+            sut.handleReplyChannelRange(msg);
             promise.catch(() => done());
         });
     });
@@ -115,8 +117,8 @@ describe("ChannelRangeQuery", () => {
             msg.firstBlocknum = 0;
             msg.numberOfBlocks = 1000;
             msg.shortChannelIds.push(new ShortChannelId(1, 1, 1));
-            peer.emit("message", msg);
-            peer.emit("message", msg);
+            sut.handleReplyChannelRange(msg);
+            sut.handleReplyChannelRange(msg);
 
             await promise;
         });
@@ -133,7 +135,7 @@ describe("ChannelRangeQuery", () => {
             msg.firstBlocknum = 0;
             msg.numberOfBlocks = 1000;
             msg.shortChannelIds.push(new ShortChannelId(1, 1, 1));
-            peer.emit("message", msg);
+            sut.handleReplyChannelRange(msg);
         });
 
         it("should returns scids", async () => {
@@ -148,17 +150,15 @@ describe("ChannelRangeQuery", () => {
     });
 
     describe("multi reply incomplete", () => {
-        let promise: Promise<ShortChannelId[]>;
-
         beforeEach(() => {
-            promise = sut.queryRange(0, 1000);
+            sut.queryRange(0, 1000);
 
             const msg = new ReplyChannelRangeMessage();
             msg.fullInformation = true;
             msg.firstBlocknum = 0;
             msg.numberOfBlocks = 500;
             msg.shortChannelIds.push(new ShortChannelId(1, 1, 1));
-            peer.emit("message", msg);
+            sut.handleReplyChannelRange(msg);
         });
 
         it("should enqueue scids", () => {
@@ -181,14 +181,14 @@ describe("ChannelRangeQuery", () => {
             msg.firstBlocknum = 0;
             msg.numberOfBlocks = 500;
             msg.shortChannelIds.push(new ShortChannelId(1, 1, 1));
-            peer.emit("message", msg);
+            sut.handleReplyChannelRange(msg);
 
             const msg2 = new ReplyChannelRangeMessage();
             msg2.fullInformation = true;
             msg2.firstBlocknum = 500;
             msg2.numberOfBlocks = 500;
             msg2.shortChannelIds.push(new ShortChannelId(500, 1, 1));
-            peer.emit("message", msg2);
+            sut.handleReplyChannelRange(msg2);
         });
 
         it("should enqueue scids", async () => {
@@ -206,18 +206,16 @@ describe("ChannelRangeQuery", () => {
     });
 
     describe("detect legacy", () => {
-        let promise: Promise<ShortChannelId[]>;
-
         describe("full_info=false, with_scids=true", () => {
             beforeEach(() => {
-                promise = sut.queryRange(0, 4294967295);
+                sut.queryRange(0, 4294967295);
                 (sut as any)._isLegacy = true;
                 const msg = new ReplyChannelRangeMessage();
                 msg.fullInformation = false;
                 msg.shortChannelIds.push(new ShortChannelId(1, 1, 1));
                 msg.firstBlocknum = 1000;
                 msg.numberOfBlocks = 8000;
-                peer.emit("message", msg);
+                sut.handleReplyChannelRange(msg);
             });
 
             it("should be active", async () => {
@@ -245,7 +243,7 @@ describe("ChannelRangeQuery", () => {
                 msg.shortChannelIds.push(new ShortChannelId(1, 1, 1));
                 msg.firstBlocknum = 1000;
                 msg.numberOfBlocks = 8000;
-                peer.emit("message", msg);
+                sut.handleReplyChannelRange(msg);
             });
 
             it("should emit complete", async () => {
@@ -267,7 +265,7 @@ describe("ChannelRangeQuery", () => {
                 msg.firstBlocknum = 1000;
                 msg.numberOfBlocks = 8000;
                 msg.shortChannelIds = [];
-                peer.emit("message", msg);
+                sut.handleReplyChannelRange(msg);
             });
 
             it("should error", done => {
@@ -290,7 +288,7 @@ describe("ChannelRangeQuery", () => {
                 msg.firstBlocknum = 1000;
                 msg.numberOfBlocks = 8000;
                 msg.shortChannelIds.push(new ShortChannelId(1, 1, 1));
-                peer.emit("message", msg);
+                sut.handleReplyChannelRange(msg);
             });
 
             it("should enqueue results", () => {

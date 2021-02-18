@@ -44,7 +44,7 @@ describe("GossipQueriesSync", () => {
         replyRangeMsg.firstBlocknum = 0;
         replyRangeMsg.numberOfBlocks = 0xffffffff;
         replyRangeMsg.shortChannelIds.push(new ShortChannelId(1, 1, 1));
-        peer.emit("message", replyRangeMsg);
+        sut.handleWireMessage(replyRangeMsg);
         await wait(0); // wait for promise to tick
 
         // After the reply, we will validate that the
@@ -89,7 +89,7 @@ describe("GossipQueriesSync", () => {
         replyRangeMsg.fullInformation = false;
         replyRangeMsg.firstBlocknum = 0;
         replyRangeMsg.numberOfBlocks = 0xffffffff;
-        peer.emit("message", replyRangeMsg);
+        sut.handleWireMessage(replyRangeMsg);
 
         // Wait for the promise to fail
         return promise.catch((err: GossipError) => {
@@ -122,7 +122,7 @@ describe("GossipQueriesSync", () => {
         replyRangeMsg.firstBlocknum = 0;
         replyRangeMsg.numberOfBlocks = 0xffffffff;
         replyRangeMsg.shortChannelIds.push(new ShortChannelId(1, 1, 1));
-        peer.emit("message", replyRangeMsg);
+        sut.handleWireMessage(replyRangeMsg);
         await wait(0); // wait for promise to tick
 
         // After the reply, we will validate that the

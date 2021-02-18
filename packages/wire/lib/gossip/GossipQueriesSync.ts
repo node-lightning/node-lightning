@@ -1,4 +1,6 @@
 import { ILogger } from "@node-lightning/logger";
+import { IWireMessage } from "../messages/IWireMessage";
+import { ReplyChannelRangeMessage } from "../messages/ReplyChannelRangeMessage";
 import { ChannelRangeQuery } from "./ChannelRangeQuery";
 import { ChannelsQuery } from "./ChannelsQuery";
 import { GossipPeer } from "./GossipPeer";
@@ -53,6 +55,13 @@ export class GossipQueriesSync {
             this._state = GossipQueriesSyncState.Failed;
             this._error = ex;
             throw ex;
+        }
+    }
+
+    public handleWireMessage(msg: IWireMessage): void {
+        if (msg instanceof ReplyChannelRangeMessage) {
+            this._rangeQuery.handleReplyChannelRange(msg);
+            return;
         }
     }
 }
