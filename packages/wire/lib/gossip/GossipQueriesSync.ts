@@ -1,8 +1,8 @@
 import { ILogger } from "@node-lightning/logger";
-import { NodeAnnouncementMessage } from "../messages/NodeAnnouncementMessage";
 import { ChannelAnnouncementMessage } from "../messages/ChannelAnnouncementMessage";
 import { ChannelUpdateMessage } from "../messages/ChannelUpdateMessage";
 import { IWireMessage } from "../messages/IWireMessage";
+import { NodeAnnouncementMessage } from "../messages/NodeAnnouncementMessage";
 import { ReplyChannelRangeMessage } from "../messages/ReplyChannelRangeMessage";
 import { ReplyShortChannelIdsEndMessage } from "../messages/ReplyShortChannelIdsEndMessage";
 import { IMessageSender } from "../Peer";
