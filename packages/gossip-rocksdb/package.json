@@ -1,6 +1,6 @@
 {
   "name": "@node-lightning/gossip-rocksdb",
-  "version": "0.20.1",
+  "version": "0.21.1",
   "description": "Gossip store using RocksDB",
   "scripts": {
     "test": "../../node_modules/.bin/nyc --reporter=lcov --reporter=text --extension=.ts ../../node_modules/.bin/mocha --require ts-node/register --recursive \"__tests__/**/*.spec.*\"",
@@ -25,9 +25,9 @@
     "url": "git+https://github.com/altangent/node-lightning.git"
   },
   "dependencies": {
-    "@node-lightning/bufio": "^0.20.1",
-    "@node-lightning/core": "^0.20.1",
-    "@node-lightning/wire": "^0.20.1",
+    "@node-lightning/bufio": "^0.21.1",
+    "@node-lightning/core": "^0.21.1",
+    "@node-lightning/wire": "^0.21.1",
     "levelup": "^4.3.2",
     "rocksdb": "^4.1.0"
   },

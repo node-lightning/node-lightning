@@ -1,10 +1,9 @@
 import { ShortChannelId } from "@node-lightning/core";
 import { ILogger } from "@node-lightning/logger";
-import { EventEmitter } from "events";
 import { IWireMessage } from "../messages/IWireMessage";
 import { QueryChannelRangeMessage } from "../messages/QueryChannelRangeMessage";
 import { ReplyChannelRangeMessage } from "../messages/ReplyChannelRangeMessage";
-import { IMessageSenderReceiver } from "../Peer";
+import { IMessageSender } from "../Peer";
 import { GossipError, GossipErrorCode } from "./GossipError";
 
 export enum ChannelRangeQueryState {
@@ -59,18 +58,16 @@ export class ChannelRangeQuery {
     private _results: ShortChannelId[] = [];
     private _error: GossipError;
     private _resolve: (scids: ShortChannelId[]) => void;
-    private _reject: (reason: any) => void;
+    private _reject: (reason: unknown) => void;
 
     constructor(
         readonly chainHash: Buffer,
-        readonly peer: IMessageSenderReceiver,
+        readonly messageSender: IMessageSender,
         readonly logger: ILogger,
         isLegacy: boolean = false,
     ) {
         this._state = ChannelRangeQueryState.Idle;
         this._isLegacy = isLegacy;
-        this._onMessage = this._onMessage.bind(this);
-        this.peer.on("message", this._onMessage);
     }
 
     /**
@@ -78,7 +75,7 @@ export class ChannelRangeQuery {
      * mechanism that was originally implemented in LND. This code may be able to
      * be removed eventually.
      */
-    public get isLegacy() {
+    public get isLegacy(): boolean {
         return this._isLegacy;
     }
 
@@ -101,6 +98,27 @@ export class ChannelRangeQuery {
      */
     public get error(): GossipError {
         return this._error;
+    }
+
+    /**
+     * Handles a reply_channel_range message. May initiate a message
+     * broadcast.
+     */
+    public handleReplyChannelRange(msg: ReplyChannelRangeMessage): void {
+        // check the incoming message to see if we need to transition to legacy
+        // mode. If it is determined to be in legacy mode, we will switch the
+        // strategy that is used to handle the reply.
+        if (!this._isLegacy && this._isLegacyReply(msg)) {
+            this._isLegacy = true;
+            this.logger.info("using legacy LND query_channel_range technique");
+        }
+
+        // handle the message according to which state the reply system is working
+        if (this._isLegacy) {
+            this._handleLegacyReply(msg);
+        } else {
+            this._handleReply(msg);
+        }
     }
 
     /**
@@ -137,7 +155,6 @@ export class ChannelRangeQuery {
      */
     private _transitionFailed(error: GossipError) {
         if (this._state !== ChannelRangeQueryState.Active) return;
-        this.peer.off("message", this._onMessage);
         this._error = error;
         this._state = ChannelRangeQueryState.Failed;
         this._reject(error);
@@ -148,7 +165,6 @@ export class ChannelRangeQuery {
      */
     private _transitionComplete() {
         if (this._state !== ChannelRangeQueryState.Active) return;
-        this.peer.off("message", this._onMessage);
         this._state = ChannelRangeQueryState.Complete;
         this._resolve(this._results);
     }
@@ -170,7 +186,7 @@ export class ChannelRangeQuery {
         msg.chainHash = this.chainHash;
         msg.firstBlocknum = firstBlock;
         msg.numberOfBlocks = numBlocks;
-        this.peer.sendMessage(msg);
+        this.messageSender.sendMessage(msg);
 
         // capture the active query to check reply if it is a legacy reply
         this._query = msg;
@@ -183,30 +199,6 @@ export class ChannelRangeQuery {
      */
     private _isLegacyReply(msg: ReplyChannelRangeMessage): boolean {
         return !msg.fullInformation && msg.shortChannelIds.length > 0;
-    }
-
-    /**
-     * Handles incoming peer messages but is filtered to only look for
-     * reply_channel_range messages.
-     */
-    private _onMessage(msg: IWireMessage) {
-        if (msg instanceof ReplyChannelRangeMessage) {
-            // check the incoming message to see if we need to transition to legacy
-            // mode. If it is determined to be in legacy mode, we will switch the
-            // strategy that is used to handle the reply.
-            if (!this._isLegacy && this._isLegacyReply(msg)) {
-                this._isLegacy = true;
-                this.logger.info("using legacy LND query_channel_range technique");
-            }
-
-            // handle the message according to which state the reply system is working
-            if (this._isLegacy) {
-                this._handleLegacyReply(msg);
-            } else {
-                this._handleReply(msg);
-            }
-            return;
-        }
     }
 
     /**

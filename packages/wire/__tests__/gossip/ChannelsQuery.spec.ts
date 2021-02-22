@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // tslint:disable: no-unused-expression
 
 import { ShortChannelId } from "@node-lightning/core";
@@ -7,12 +8,13 @@ import sinon from "sinon";
 import { ChannelsQuery, ChannelsQueryState } from "../../lib/gossip/ChannelsQuery";
 import { QueryShortChannelIdsMessage } from "../../lib/messages/QueryShortChannelIdsMessage";
 import { ReplyShortChannelIdsEndMessage } from "../../lib/messages/ReplyShortChannelIdsEndMessage";
+import { IMessageSender } from "../../lib/Peer";
 import { createFakeLogger, createFakePeer } from "../_test-utils";
 
 describe("ChannelsQuery", () => {
     let chainHash: Buffer;
     let sut: ChannelsQuery;
-    let peer: any;
+    let peer: sinon.SinonStubbedInstance<IMessageSender>;
     let logger: ILogger;
     let promise: Promise<void>;
 
@@ -35,7 +37,7 @@ describe("ChannelsQuery", () => {
                 peer.sendMessage.reset();
                 const msg = new ReplyShortChannelIdsEndMessage();
                 msg.complete = true;
-                peer.emit("message", msg);
+                sut.handleReplyShortChannelIdsEnd(msg);
             });
 
             it("should not send any message", () => {
@@ -58,13 +60,13 @@ describe("ChannelsQuery", () => {
                 (sut as any)._queue.push(new ShortChannelId(2, 2, 2));
                 const msg = new ReplyShortChannelIdsEndMessage();
                 msg.complete = true;
-                peer.emit("message", msg);
+                sut.handleReplyShortChannelIdsEnd(msg);
             });
 
             it("should send next query batch", () => {
                 const msg = peer.sendMessage.args[0][0];
                 expect(msg).to.be.instanceOf(QueryShortChannelIdsMessage);
-                expect(msg.shortChannelIds).to.deep.equal([new ShortChannelId(2, 2, 2)]);
+                expect((msg as any).shortChannelIds).to.deep.equal([new ShortChannelId(2, 2, 2)]);
             });
 
             it("should be in active state", () => {
@@ -78,7 +80,7 @@ describe("ChannelsQuery", () => {
                 peer.sendMessage.reset();
                 const msg = new ReplyShortChannelIdsEndMessage();
                 msg.complete = false;
-                peer.emit("message", msg);
+                sut.handleReplyShortChannelIdsEnd(msg);
             });
 
             it("should not send any message", () => {
@@ -105,7 +107,7 @@ describe("ChannelsQuery", () => {
                 (sut as any)._queue.push(new ShortChannelId(2, 2, 2));
                 const msg = new ReplyShortChannelIdsEndMessage();
                 msg.complete = false;
-                peer.emit("message", msg);
+                sut.handleReplyShortChannelIdsEnd(msg);
             });
 
             it("should not send any message", () => {
@@ -131,8 +133,7 @@ describe("ChannelsQuery", () => {
                 peer.sendMessage.reset();
                 const msg = new ReplyShortChannelIdsEndMessage();
                 msg.complete = false;
-                peer.emit("message", msg);
-                peer.emit("message", msg);
+                sut.handleReplyShortChannelIdsEnd(msg);
                 promise.catch(() => done());
             });
         });
@@ -143,8 +144,7 @@ describe("ChannelsQuery", () => {
                 peer.sendMessage.reset();
                 const msg = new ReplyShortChannelIdsEndMessage();
                 msg.complete = true;
-                peer.emit("message", msg);
-                peer.emit("message", msg);
+                sut.handleReplyShortChannelIdsEnd(msg);
                 await promise;
             });
         });
