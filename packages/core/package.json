@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "@node-lightning/bitcoin": "^0.21.1",
+    "@node-lightning/bufio": "^0.21.1",
     "@node-lightning/crypto": "^0.21.1"
   }
 }
