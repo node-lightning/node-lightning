@@ -1,6 +1,6 @@
 import { LockTime, Sequence } from "@node-lightning/bitcoin";
+import { bigFromBufBE } from "@node-lightning/bufio";
 import { sha256 } from "@node-lightning/crypto";
-import { bigFromBufBE } from "@node-lightning/bitcoin/node_modules/@node-lightning/bufio";
 
 export class CommitmentNumber {
     /**

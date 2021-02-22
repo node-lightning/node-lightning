@@ -118,8 +118,8 @@ export class TxFactory {
             }
 
             // Calculate the HTLC less fees
-            let feeInSats = (feeWeight * feePerKw) / 1000n;
-            let satsLessFee = valueInSats - feeInSats;
+            const feeInSats = (feeWeight * feePerKw) / 1000n;
+            const satsLessFee = valueInSats - feeInSats;
 
             // Only keep HTLCs greater than the dustLimitSatoshi for the tx
             if (satsLessFee >= dustLimitSatoshi.sats) {
@@ -150,7 +150,7 @@ export class TxFactory {
 
         // 6/7. add unpruned offered/received HTLCs
         for (const htlc of unprunedHtlcs) {
-            let witnessScript: Script =
+            const witnessScript: Script =
                 (!reverseHtlcs && htlc.direction === HtlcDirection.Offered) ||
                 (reverseHtlcs && htlc.direction === HtlcDirection.Accepted)
                     ? ScriptFactory.offeredHtlcScript(
