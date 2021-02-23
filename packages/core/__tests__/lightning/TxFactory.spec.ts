@@ -487,7 +487,7 @@ describe("TxFactory", () => {
 
     describe("#createHtlcTimeout", () => {
         it("constructs tx", () => {
-            const commitmentTx = new HashValue(Buffer.from("8154ecccf11a5fb56c39654c4deb4d2296f83c69268280b94d021370c94e2197", "hex")); // prettier-ignore
+            const commitmentTx = new HashValue(Buffer.from("8323148ce2419f21ca3d6780053747715832e18ac780931a514b187768882bb6", "hex")); // prettier-ignore
             const index = 1;
             const localPrivKey = b("bb13b121cdc357cd2e608b0aea294afca36e2b34cf958e2e6451a2f274694491"); // prettier-ignore
             const revocationPubKey = b("0212a140cd0c6539d07cd08dfe09984dec3251ea808b892efeac3ede9402bf2b19"); // prettier-ignore
@@ -496,7 +496,7 @@ describe("TxFactory", () => {
             const remotePubKey = b("0394854aa6eab5b2a8122cc726e9dded053a2184d88256816826d6231c068d4a5b"); // prettier-ignore
 
             const localDelay = 144;
-            const feePerKw = BigInt(0);
+            const feePerKw = BigInt(647);
             const htlc = new Htlc(
                 BigInt(0),
                 HtlcDirection.Offered,
@@ -526,29 +526,81 @@ describe("TxFactory", () => {
             );
 
             const localSig = tx.signSegWitv0(0, witnessScript, localPrivKey, htlc.value);
-            const remoteSig = b("3045022100d5275b3619953cb0c3b5aa577f04bc512380e60fa551762ce3d7a1bb7401cff9022037237ab0dac3fe100cde094e82e2bed9ba0ed1bb40154b48e56aa70f259e608b01"); // prettier-ignore
+            const remoteSig = b("304402207ceb6678d4db33d2401fdc409959e57c16a6cb97a30261d9c61f29b8c58d34b90220084b4a17b4ca0e86f2d798b3698ca52de5621f2ce86f80bed79afa66874511b001"); // prettier-ignore
 
             expect(localSig.toString("hex")).to.equal(
-                "3045022100c89172099507ff50f4c925e6c5150e871fb6e83dd73ff9fbb72f6ce829a9633f02203a63821d9162e99f9be712a68f9e589483994feae2661e4546cd5b6cec007be501",
+                "304402207ff03eb0127fc7c6cae49cc29e2a586b98d1e8969cf4a17dfa50b9c2647720b902205e2ecfda2252956c0ca32f175080e75e4e390e433feb1f8ce9f2ba55648a1dac01",
             );
 
             tx.inputs[0].witness.push(new Witness(Buffer.alloc(0)));
             tx.inputs[0].witness.push(new Witness(remoteSig));
             tx.inputs[0].witness.push(new Witness(localSig));
             tx.inputs[0].witness.push(new Witness(Buffer.alloc(0)));
-            tx.inputs[0].witness.push(
-                new Witness(
-                    ScriptFactory.offeredHtlcScript(
-                        htlc.paymentHash,
-                        revocationPubKey,
-                        localPubKey,
-                        remotePubKey,
-                    ).serializeCmds(),
+            tx.inputs[0].witness.push(new Witness(witnessScript.serializeCmds()));
+
+            expect(tx.serialize().toString("hex")).to.equal(
+                "020000000001018323148ce2419f21ca3d6780053747715832e18ac780931a514b187768882bb60100000000000000000124060000000000002200204adb4e2f00643db396dd120d4e7dc17625f5f2c11a40d857accc862d6b7dd80e050047304402207ceb6678d4db33d2401fdc409959e57c16a6cb97a30261d9c61f29b8c58d34b90220084b4a17b4ca0e86f2d798b3698ca52de5621f2ce86f80bed79afa66874511b00147304402207ff03eb0127fc7c6cae49cc29e2a586b98d1e8969cf4a17dfa50b9c2647720b902205e2ecfda2252956c0ca32f175080e75e4e390e433feb1f8ce9f2ba55648a1dac01008576a91414011f7254d96b819c76986c277d115efce6f7b58763ac67210394854aa6eab5b2a8122cc726e9dded053a2184d88256816826d6231c068d4a5b7c820120876475527c21030d417a46946384f88d5f3337267c5e579765875dc4daca813e21734b140639e752ae67a914b43e1b38138a41b37f7cd9a1d274bc63e3a9b5d188ac6868f6010000",
+            );
+        });
+    });
+
+    describe("#createHtlcSuccess", () => {
+        it("constructs tx", () => {
+            const commitmentTx = new HashValue(Buffer.from("8323148ce2419f21ca3d6780053747715832e18ac780931a514b187768882bb6", "hex")); // prettier-ignore
+            const index = 0;
+            const localPrivKey = b("bb13b121cdc357cd2e608b0aea294afca36e2b34cf958e2e6451a2f274694491"); // prettier-ignore
+            const revocationPubKey = b("0212a140cd0c6539d07cd08dfe09984dec3251ea808b892efeac3ede9402bf2b19"); // prettier-ignore
+            const delayedPubKey = b("03fd5960528dc152014952efdb702a88f71e3c1653b2314431701ec77e57fde83c"); // prettier-ignore
+            const localPubKey = b("030d417a46946384f88d5f3337267c5e579765875dc4daca813e21734b140639e7"); // prettier-ignore
+            const remotePubKey = b("0394854aa6eab5b2a8122cc726e9dded053a2184d88256816826d6231c068d4a5b"); // prettier-ignore
+            const preimage = b("0000000000000000000000000000000000000000000000000000000000000000"); // prettier-ignore
+
+            const localDelay = 144;
+            const feePerKw = BigInt(647);
+            const htlc = new Htlc(
+                BigInt(0),
+                HtlcDirection.Accepted,
+                Value.fromMilliSats(1000000),
+                500,
+                Buffer.from(
+                    "0000000000000000000000000000000000000000000000000000000000000000",
+                    "hex",
                 ),
             );
 
+            const tx = TxFactory.createHtlcSuccess(
+                commitmentTx,
+                index,
+                localDelay,
+                revocationPubKey,
+                delayedPubKey,
+                feePerKw,
+                htlc,
+            );
+
+            const witnessScript = ScriptFactory.receivedHtlcScript(
+                htlc.paymentHash,
+                htlc.cltvExpiry,
+                revocationPubKey,
+                localPubKey,
+                remotePubKey,
+            );
+
+            const localSig = tx.signSegWitv0(0, witnessScript, localPrivKey, htlc.value);
+            const remoteSig = b("30440220385a5afe75632f50128cbb029ee95c80156b5b4744beddc729ad339c9ca432c802202ba5f48550cad3379ac75b9b4fedb86a35baa6947f16ba5037fb8b11ab34374001"); // prettier-ignore
+
+            expect(localSig.toString("hex")).to.equal(
+                "304402205999590b8a79fa346e003a68fd40366397119b2b0cdf37b149968d6bc6fbcc4702202b1e1fb5ab7864931caed4e732c359e0fe3d86a548b557be2246efb1708d579a01",
+            );
+
+            tx.inputs[0].witness.push(new Witness(Buffer.alloc(0)));
+            tx.inputs[0].witness.push(new Witness(remoteSig));
+            tx.inputs[0].witness.push(new Witness(localSig));
+            tx.inputs[0].witness.push(new Witness(Buffer.alloc(32)));
+            tx.inputs[0].witness.push(new Witness(witnessScript.serializeCmds()));
+
             expect(tx.serialize().toString("hex")).to.equal(
-                "020000000001018154ecccf11a5fb56c39654c4deb4d2296f83c69268280b94d021370c94e219701000000000000000001d0070000000000002200204adb4e2f00643db396dd120d4e7dc17625f5f2c11a40d857accc862d6b7dd80e0500483045022100d5275b3619953cb0c3b5aa577f04bc512380e60fa551762ce3d7a1bb7401cff9022037237ab0dac3fe100cde094e82e2bed9ba0ed1bb40154b48e56aa70f259e608b01483045022100c89172099507ff50f4c925e6c5150e871fb6e83dd73ff9fbb72f6ce829a9633f02203a63821d9162e99f9be712a68f9e589483994feae2661e4546cd5b6cec007be501008576a91414011f7254d96b819c76986c277d115efce6f7b58763ac67210394854aa6eab5b2a8122cc726e9dded053a2184d88256816826d6231c068d4a5b7c820120876475527c21030d417a46946384f88d5f3337267c5e579765875dc4daca813e21734b140639e752ae67a914b43e1b38138a41b37f7cd9a1d274bc63e3a9b5d188ac6868f6010000",
+                "020000000001018323148ce2419f21ca3d6780053747715832e18ac780931a514b187768882bb60000000000000000000122020000000000002200204adb4e2f00643db396dd120d4e7dc17625f5f2c11a40d857accc862d6b7dd80e05004730440220385a5afe75632f50128cbb029ee95c80156b5b4744beddc729ad339c9ca432c802202ba5f48550cad3379ac75b9b4fedb86a35baa6947f16ba5037fb8b11ab3437400147304402205999590b8a79fa346e003a68fd40366397119b2b0cdf37b149968d6bc6fbcc4702202b1e1fb5ab7864931caed4e732c359e0fe3d86a548b557be2246efb1708d579a012000000000000000000000000000000000000000000000000000000000000000008a76a91414011f7254d96b819c76986c277d115efce6f7b58763ac67210394854aa6eab5b2a8122cc726e9dded053a2184d88256816826d6231c068d4a5b7c8201208763a914b8bcb07f6344b42ab04250c86a6e8b75d3fdbbc688527c21030d417a46946384f88d5f3337267c5e579765875dc4daca813e21734b140639e752ae677502f401b175ac686800000000",
             );
         });
     });

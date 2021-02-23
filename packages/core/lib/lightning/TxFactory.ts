@@ -219,10 +219,11 @@ export class TxFactory {
         tx.addInput(new OutPoint(commitmentTx, outputIndex), Sequence.zero());
 
         // calc value less fees for this transaction
-        const weight = 703n;
+        const weight = 663n;
         const fees = (weight * feePerKw) / 1000n;
         const sats = fees > htlc.value.sats ? 0 : htlc.value.sats - fees;
 
+        // Spends a P2WSH RSMC
         tx.addOutput(
             Value.fromSats(sats),
             Script.p2wshLock(
@@ -234,6 +235,55 @@ export class TxFactory {
         // the HTLC-Timeout from being broadcast until after the expiry
         // has been reached.
         tx.locktime = new LockTime(htlc.cltvExpiry);
+
+        return tx;
+    }
+
+    /**
+     * Constructs an HTLC-Success transaction as defined in BOLT3. This
+     * transaction spends a received HTLC form the commitment transaction
+     * and outputs the HTLC value less the fee. The output is spendable
+     * via an RSMC that is sequence locked for the received by the
+     * transaction owner.
+     * @param commitmentTx
+     * @param outputIndex
+     * @param localDelay
+     * @param revocationPubKey
+     * @param delayedPubKey
+     * @param feePerKw
+     * @param htlc
+     */
+    public static createHtlcSuccess(
+        commitmentTx: HashValue,
+        outputIndex: number,
+        localDelay: number,
+        revocationPubKey: Buffer,
+        delayedPubKey: Buffer,
+        feePerKw: bigint,
+        htlc: Htlc,
+    ): TxBuilder {
+        const tx = new TxBuilder(bip69InputSorter, bip69OutputSorter);
+
+        // Input points to the commmitment transaction and the BIP69
+        // sorted index of the HTLC. nSequence is set to zero.
+        tx.addInput(new OutPoint(commitmentTx, outputIndex), Sequence.zero());
+
+        // calc value less fees for this transaction
+        const weight = 703n;
+        const fees = (weight * feePerKw) / 1000n;
+        const sats = fees > htlc.value.sats ? 0 : htlc.value.sats - fees;
+
+        // Spends a P2WSH RSMC
+        tx.addOutput(
+            Value.fromSats(sats),
+            Script.p2wshLock(
+                ScriptFactory.toLocalScript(revocationPubKey, delayedPubKey, localDelay),
+            ),
+        );
+
+        // nLockTime is zero since the tx owner can immediately spend
+        // this transaction if they have the preimage
+        tx.locktime = LockTime.zero();
 
         return tx;
     }
