@@ -1,8 +1,11 @@
 import {
     bip69InputSorter,
     bip69OutputSorter,
+    HashValue,
+    LockTime,
     OutPoint,
     Script,
+    Sequence,
     TxBuilder,
     TxOut,
     Value,
@@ -181,6 +184,56 @@ export class TxFactory {
         if (remoteValue.sats >= dustLimitSatoshi.sats) {
             tx.addOutput(remoteValue, Script.p2wpkhLock(remotePubKey));
         }
+
+        return tx;
+    }
+
+    /**
+     * Constructs an HTLC-Timeout transaction as defined in BOLT3. This
+     * transaction spends an offered HTLC from the commitment transaction
+     * and outputs the HTLC value less the fee. The output is spendable
+     * via an RSMC that is sequence locked for the received by the
+     * transaction owner. Finally this transaction has an absolute
+     * locktime of the HTLC's cltv expiry.
+     * @param commitmentTx
+     * @param outputIndex
+     * @param localDelay
+     * @param revocationPubKey
+     * @param delayedPubKey
+     * @param feePerKw
+     * @param htlc
+     */
+    public static createHtlcTimeout(
+        commitmentTx: HashValue,
+        outputIndex: number,
+        localDelay: number,
+        revocationPubKey: Buffer,
+        delayedPubKey: Buffer,
+        feePerKw: bigint,
+        htlc: Htlc,
+    ): TxBuilder {
+        const tx = new TxBuilder(bip69InputSorter, bip69OutputSorter);
+
+        // Input points to the commmitment transaction and the BIP69
+        // sorted index of the HTLC. nSequence is set to zero.
+        tx.addInput(new OutPoint(commitmentTx, outputIndex), Sequence.zero());
+
+        // calc value less fees for this transaction
+        const weight = 703n;
+        const fees = (weight * feePerKw) / 1000n;
+        const sats = fees > htlc.value.sats ? 0 : htlc.value.sats - fees;
+
+        tx.addOutput(
+            Value.fromSats(sats),
+            Script.p2wshLock(
+                ScriptFactory.toLocalScript(revocationPubKey, delayedPubKey, localDelay),
+            ),
+        );
+
+        // nLocktime is set to the cltvExpiry of the HTLC. This prevents
+        // the HTLC-Timeout from being broadcast until after the expiry
+        // has been reached.
+        tx.locktime = new LockTime(htlc.cltvExpiry);
 
         return tx;
     }
