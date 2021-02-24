@@ -8,12 +8,10 @@ import {
     LockTime,
     OutPoint,
     Witness,
-    OpCode,
     HashValue,
 } from "@node-lightning/bitcoin";
 import { expect } from "chai";
 import { TxFactory } from "../../lib/lightning/TxFactory";
-import { sha256 } from "@node-lightning/crypto";
 import { ScriptFactory } from "../../lib/lightning/ScriptFactory";
 import { Htlc } from "../../lib/lightning/Htlc";
 import { HtlcDirection } from "../../lib/lightning/HtlcDirection";
@@ -21,8 +19,281 @@ import { HtlcDirection } from "../../lib/lightning/HtlcDirection";
 describe("TxFactory", () => {
     const b = (hex: string) => Buffer.from(hex, "hex");
 
-    const bolt3 = {
-        channel: {
+    describe("#.addFundingOutput", () => {
+        it("test vector", () => {
+            const privkey = Buffer.from("6bd078650fcee8444e4e09825227b801a1ca928debb750eb36e6d56124bb20e8","hex"); // prettier-ignore
+            const pubkey = crypto.getPublicKey(privkey);
+
+            const builder = new TxBuilder(bip69InputSorter, bip69OutputSorter);
+            builder.addInput("fd2105607605d2302994ffea703b09f66b6351816ee737a93e42a841ea20bbad:0");
+            builder.addOutput(Value.fromSats(4989986080), Script.p2wpkhLock(pubkey));
+
+            // add the funding output
+            const localPubKey = Buffer.from("023da092f6980e58d2c037173180e9a465476026ee50f96695963e8efe436f54eb", "hex"); // prettier-ignore
+            const remotePubKey = Buffer.from("030e9f7b623d2ccc7c9bd44d66d5ce21ce504c0acf6385a132cec6d3c39fa711c1", "hex"); // prettier-ignore
+            const fundingSats = Value.fromSats(10000000);
+            const fundingOutput = TxFactory.createFundingOutput(
+                fundingSats,
+                localPubKey,
+                remotePubKey,
+            );
+            builder.addOutput(fundingOutput);
+            builder.locktime = LockTime.zero();
+
+            builder.inputs[0].scriptSig = Script.p2pkhUnlock(
+                builder.sign(0, Script.p2pkhLock(pubkey), privkey),
+                crypto.getPublicKey(privkey, true),
+            );
+
+            // witness_script is:
+            // 5221023da092f6980e58d2c037173180e9a465476026ee50f96695963e8efe436f54eb21030e9f7b623d2ccc7c9bd44d66d5ce21ce504c0acf6385a132cec6d3c39fa711c152ae
+            // sha256 is:
+            expect(fundingOutput.scriptPubKey.serialize().toString("hex")).to.equal(
+                "220020c015c4a6be010e21657068fc2e6a9d02b27ebe4d490a25846f7237f104d1a3cd",
+            );
+
+            expect(builder.serialize().toString("hex")).to.equal(
+                "0200000001adbb20ea41a8423ea937e76e8151636bf6093b70eaff942930d20576600521fd000000006b48304502210090587b6201e166ad6af0227d3036a9454223d49a1f11839c1a362184340ef0240220577f7cd5cca78719405cbf1de7414ac027f0239ef6e214c90fcaab0454d84b3b012103535b32d5eb0a6ed0982a0479bbadc9868d9836f6ba94dd5a63be16d875069184ffffffff028096980000000000220020c015c4a6be010e21657068fc2e6a9d02b27ebe4d490a25846f7237f104d1a3cd20256d29010000001600143ca33c2e4446f4a305f23c80df8ad1afdcf652f900000000",
+            );
+        });
+    });
+
+    describe("#createCommitment", () => {
+        it("constructs tx with pruned outputs", () => {
+            const localMsat = Value.fromMilliSats(6988000000);
+            const remoteMsat = Value.fromMilliSats(3000000000);
+            const feePerKw = BigInt(648);
+
+            const localFundingPrivKey =  b("30ff4956bbdd3222d44cc5e8a1261dab1e07957bdac5ae88fe3261ef321f3749"); // prettier-ignore
+            const openFundingPubKey = b("023da092f6980e58d2c037173180e9a465476026ee50f96695963e8efe436f54eb"); // prettier-ignore
+            const acceptFundingPubKey = b("030e9f7b623d2ccc7c9bd44d66d5ce21ce504c0acf6385a132cec6d3c39fa711c1"); // prettier-ignore
+            const localPubKey = b("030d417a46946384f88d5f3337267c5e579765875dc4daca813e21734b140639e7"); // prettier-ignore
+            const remotePubKey = b("0394854aa6eab5b2a8122cc726e9dded053a2184d88256816826d6231c068d4a5b"); // prettier-ignore
+            const localDelayedPubKey = b("03fd5960528dc152014952efdb702a88f71e3c1653b2314431701ec77e57fde83c"); // prettier-ignore
+            const revocationPubKey = b("0212a140cd0c6539d07cd08dfe09984dec3251ea808b892efeac3ede9402bf2b19"); // prettier-ignore
+            const localPaymentBasePoint = b("034f355bdcb7cc0af728ef3cceb9615d90684bb5b2ca5f859ab0f0b704075871aa"); // prettier-ignore
+            const remotePaymentBasePoint = b("032c0b7cf95324a07d05398b240174dc0c2be444d96b159aa6c7f7b1e668680991"); // prettier-ignore
+
+            const commitmentNumber = 42;
+            const fundingOutPoint = OutPoint.fromString("8984484a580b825b9972d7adb15050b3ab624ccd731946b3eeddb92f4e7ef6be:0"); // prettier-ignore
+            const fundingSats = Value.fromSats(10000000);
+            const localDustLimitSats = Value.fromSats(546);
+            const localDelay = 144;
+
+            const htlcs = [
+                new Htlc(
+                    BigInt(0),
+                    HtlcDirection.Accepted,
+                    Value.fromMilliSats(1000000),
+                    500,
+                    b("0000000000000000000000000000000000000000000000000000000000000000"),
+                ),
+                new Htlc(
+                    BigInt(1),
+                    HtlcDirection.Accepted,
+                    Value.fromMilliSats(2000000),
+                    501,
+                    b("0101010101010101010101010101010101010101010101010101010101010101"),
+                ),
+                new Htlc(
+                    BigInt(0),
+                    HtlcDirection.Offered,
+                    Value.fromMilliSats(2000000),
+                    502,
+                    b("0202020202020202020202020202020202020202020202020202020202020202"),
+                ),
+                new Htlc(
+                    BigInt(1),
+                    HtlcDirection.Offered,
+                    Value.fromMilliSats(3000000),
+                    503,
+                    b("0303030303030303030303030303030303030303030303030303030303030303"),
+                ),
+                new Htlc(
+                    BigInt(2),
+                    HtlcDirection.Accepted,
+                    Value.fromMilliSats(4000000),
+                    504,
+                    b("0404040404040404040404040404040404040404040404040404040404040404"),
+                ),
+            ];
+
+            const localTx = TxFactory.createCommitment(
+                true,
+                commitmentNumber,
+                localPaymentBasePoint,
+                remotePaymentBasePoint,
+                fundingOutPoint,
+                localDustLimitSats,
+                feePerKw,
+                localDelay,
+                localMsat,
+                remoteMsat,
+                revocationPubKey,
+                localDelayedPubKey,
+                remotePubKey,
+                false,
+                localPubKey,
+                remotePubKey,
+                htlcs,
+            );
+
+            const fundingWitnessScript = ScriptFactory.fundingScript(
+                openFundingPubKey,
+                acceptFundingPubKey,
+            );
+
+            const localSig = localTx.signSegWitv0(
+                0,
+                fundingWitnessScript,
+                localFundingPrivKey,
+                fundingSats,
+            );
+            expect(localSig.toString("hex")).to.equal(
+                "3045022100a2270d5950c89ae0841233f6efea9c951898b301b2e89e0adbd2c687b9f32efa02207943d90f95b9610458e7c65a576e149750ff3accaacad004cd85e70b235e27de01",
+            );
+            const remoteSig = Buffer.from(
+                "3044022072714e2fbb93cdd1c42eb0828b4f2eff143f717d8f26e79d6ada4f0dcb681bbe02200911be4e5161dd6ebe59ff1c58e1997c4aea804f81db6b698821db6093d7b05701",
+                "hex",
+            );
+
+            localTx.inputs[0].witness.push(new Witness(Buffer.alloc(0)));
+            if (openFundingPubKey.compare(acceptFundingPubKey) < 0) {
+                localTx.inputs[0].witness.push(new Witness(localSig));
+                localTx.inputs[0].witness.push(new Witness(remoteSig));
+            } else {
+                localTx.inputs[0].witness.push(new Witness(remoteSig));
+                localTx.inputs[0].witness.push(new Witness(localSig));
+            }
+            localTx.inputs[0].witness.push(new Witness(fundingWitnessScript.serializeCmds()));
+
+            expect(localTx.serialize().toString("hex")).to.equal(
+                "02000000000101bef67e4e2fb9ddeeb3461973cd4c62abb35050b1add772995b820b584a488489000000000038b02b8006d007000000000000220020403d394747cae42e98ff01734ad5c08f82ba123d3d9a620abda88989651e2ab5d007000000000000220020748eba944fedc8827f6b06bc44678f93c0f9e6078b35c6331ed31e75f8ce0c2db80b000000000000220020c20b5d1f8584fd90443e7b7b720136174fa4b9333c261d04dbbd012635c0f419a00f0000000000002200208c48d15160397c9731df9bc3b236656efb6665fbfe92b4a6878e88a499f741c4c0c62d0000000000160014ccf1af2f2aabee14bb40fa3851ab2301de8431104e9d6a00000000002200204adb4e2f00643db396dd120d4e7dc17625f5f2c11a40d857accc862d6b7dd80e0400483045022100a2270d5950c89ae0841233f6efea9c951898b301b2e89e0adbd2c687b9f32efa02207943d90f95b9610458e7c65a576e149750ff3accaacad004cd85e70b235e27de01473044022072714e2fbb93cdd1c42eb0828b4f2eff143f717d8f26e79d6ada4f0dcb681bbe02200911be4e5161dd6ebe59ff1c58e1997c4aea804f81db6b698821db6093d7b05701475221023da092f6980e58d2c037173180e9a465476026ee50f96695963e8efe436f54eb21030e9f7b623d2ccc7c9bd44d66d5ce21ce504c0acf6385a132cec6d3c39fa711c152ae3e195220",
+            );
+        });
+    });
+
+    describe("#createHtlcTimeout", () => {
+        it("constructs tx", () => {
+            const commitmentTx = new HashValue(Buffer.from("8323148ce2419f21ca3d6780053747715832e18ac780931a514b187768882bb6", "hex")); // prettier-ignore
+            const index = 1;
+            const localPrivKey = b("bb13b121cdc357cd2e608b0aea294afca36e2b34cf958e2e6451a2f274694491"); // prettier-ignore
+            const revocationPubKey = b("0212a140cd0c6539d07cd08dfe09984dec3251ea808b892efeac3ede9402bf2b19"); // prettier-ignore
+            const delayedPubKey = b("03fd5960528dc152014952efdb702a88f71e3c1653b2314431701ec77e57fde83c"); // prettier-ignore
+            const localPubKey = b("030d417a46946384f88d5f3337267c5e579765875dc4daca813e21734b140639e7"); // prettier-ignore
+            const remotePubKey = b("0394854aa6eab5b2a8122cc726e9dded053a2184d88256816826d6231c068d4a5b"); // prettier-ignore
+
+            const localDelay = 144;
+            const feePerKw = BigInt(647);
+            const htlc = new Htlc(
+                BigInt(0),
+                HtlcDirection.Offered,
+                Value.fromMilliSats(2000000),
+                502,
+                Buffer.from(
+                    "0202020202020202020202020202020202020202020202020202020202020202",
+                    "hex",
+                ),
+            );
+
+            const tx = TxFactory.createHtlcTimeout(
+                commitmentTx,
+                index,
+                localDelay,
+                revocationPubKey,
+                delayedPubKey,
+                feePerKw,
+                htlc,
+            );
+
+            const witnessScript = ScriptFactory.offeredHtlcScript(
+                htlc.paymentHash,
+                revocationPubKey,
+                localPubKey,
+                remotePubKey,
+            );
+
+            const localSig = tx.signSegWitv0(0, witnessScript, localPrivKey, htlc.value);
+            const remoteSig = b("304402207ceb6678d4db33d2401fdc409959e57c16a6cb97a30261d9c61f29b8c58d34b90220084b4a17b4ca0e86f2d798b3698ca52de5621f2ce86f80bed79afa66874511b001"); // prettier-ignore
+
+            expect(localSig.toString("hex")).to.equal(
+                "304402207ff03eb0127fc7c6cae49cc29e2a586b98d1e8969cf4a17dfa50b9c2647720b902205e2ecfda2252956c0ca32f175080e75e4e390e433feb1f8ce9f2ba55648a1dac01",
+            );
+
+            tx.inputs[0].witness.push(new Witness(Buffer.alloc(0)));
+            tx.inputs[0].witness.push(new Witness(remoteSig));
+            tx.inputs[0].witness.push(new Witness(localSig));
+            tx.inputs[0].witness.push(new Witness(Buffer.alloc(0)));
+            tx.inputs[0].witness.push(new Witness(witnessScript.serializeCmds()));
+
+            expect(tx.serialize().toString("hex")).to.equal(
+                "020000000001018323148ce2419f21ca3d6780053747715832e18ac780931a514b187768882bb60100000000000000000124060000000000002200204adb4e2f00643db396dd120d4e7dc17625f5f2c11a40d857accc862d6b7dd80e050047304402207ceb6678d4db33d2401fdc409959e57c16a6cb97a30261d9c61f29b8c58d34b90220084b4a17b4ca0e86f2d798b3698ca52de5621f2ce86f80bed79afa66874511b00147304402207ff03eb0127fc7c6cae49cc29e2a586b98d1e8969cf4a17dfa50b9c2647720b902205e2ecfda2252956c0ca32f175080e75e4e390e433feb1f8ce9f2ba55648a1dac01008576a91414011f7254d96b819c76986c277d115efce6f7b58763ac67210394854aa6eab5b2a8122cc726e9dded053a2184d88256816826d6231c068d4a5b7c820120876475527c21030d417a46946384f88d5f3337267c5e579765875dc4daca813e21734b140639e752ae67a914b43e1b38138a41b37f7cd9a1d274bc63e3a9b5d188ac6868f6010000",
+            );
+        });
+    });
+
+    describe("#createHtlcSuccess", () => {
+        it("constructs tx", () => {
+            const commitmentTx = new HashValue(Buffer.from("8323148ce2419f21ca3d6780053747715832e18ac780931a514b187768882bb6", "hex")); // prettier-ignore
+            const index = 0;
+            const localPrivKey = b("bb13b121cdc357cd2e608b0aea294afca36e2b34cf958e2e6451a2f274694491"); // prettier-ignore
+            const revocationPubKey = b("0212a140cd0c6539d07cd08dfe09984dec3251ea808b892efeac3ede9402bf2b19"); // prettier-ignore
+            const delayedPubKey = b("03fd5960528dc152014952efdb702a88f71e3c1653b2314431701ec77e57fde83c"); // prettier-ignore
+            const localPubKey = b("030d417a46946384f88d5f3337267c5e579765875dc4daca813e21734b140639e7"); // prettier-ignore
+            const remotePubKey = b("0394854aa6eab5b2a8122cc726e9dded053a2184d88256816826d6231c068d4a5b"); // prettier-ignore
+
+            const localDelay = 144;
+            const feePerKw = BigInt(647);
+            const htlc = new Htlc(
+                BigInt(0),
+                HtlcDirection.Accepted,
+                Value.fromMilliSats(1000000),
+                500,
+                Buffer.from(
+                    "0000000000000000000000000000000000000000000000000000000000000000",
+                    "hex",
+                ),
+            );
+
+            const tx = TxFactory.createHtlcSuccess(
+                commitmentTx,
+                index,
+                localDelay,
+                revocationPubKey,
+                delayedPubKey,
+                feePerKw,
+                htlc,
+            );
+
+            const witnessScript = ScriptFactory.receivedHtlcScript(
+                htlc.paymentHash,
+                htlc.cltvExpiry,
+                revocationPubKey,
+                localPubKey,
+                remotePubKey,
+            );
+
+            const localSig = tx.signSegWitv0(0, witnessScript, localPrivKey, htlc.value);
+            const remoteSig = b("30440220385a5afe75632f50128cbb029ee95c80156b5b4744beddc729ad339c9ca432c802202ba5f48550cad3379ac75b9b4fedb86a35baa6947f16ba5037fb8b11ab34374001"); // prettier-ignore
+
+            expect(localSig.toString("hex")).to.equal(
+                "304402205999590b8a79fa346e003a68fd40366397119b2b0cdf37b149968d6bc6fbcc4702202b1e1fb5ab7864931caed4e732c359e0fe3d86a548b557be2246efb1708d579a01",
+            );
+
+            tx.inputs[0].witness.push(new Witness(Buffer.alloc(0)));
+            tx.inputs[0].witness.push(new Witness(remoteSig));
+            tx.inputs[0].witness.push(new Witness(localSig));
+            tx.inputs[0].witness.push(new Witness(Buffer.alloc(32)));
+            tx.inputs[0].witness.push(new Witness(witnessScript.serializeCmds()));
+
+            expect(tx.serialize().toString("hex")).to.equal(
+                "020000000001018323148ce2419f21ca3d6780053747715832e18ac780931a514b187768882bb60000000000000000000122020000000000002200204adb4e2f00643db396dd120d4e7dc17625f5f2c11a40d857accc862d6b7dd80e05004730440220385a5afe75632f50128cbb029ee95c80156b5b4744beddc729ad339c9ca432c802202ba5f48550cad3379ac75b9b4fedb86a35baa6947f16ba5037fb8b11ab3437400147304402205999590b8a79fa346e003a68fd40366397119b2b0cdf37b149968d6bc6fbcc4702202b1e1fb5ab7864931caed4e732c359e0fe3d86a548b557be2246efb1708d579a012000000000000000000000000000000000000000000000000000000000000000008a76a91414011f7254d96b819c76986c277d115efce6f7b58763ac67210394854aa6eab5b2a8122cc726e9dded053a2184d88256816826d6231c068d4a5b7c8201208763a914b8bcb07f6344b42ab04250c86a6e8b75d3fdbbc688527c21030d417a46946384f88d5f3337267c5e579765875dc4daca813e21734b140639e752ae677502f401b175ac686800000000",
+            );
+        });
+    });
+
+    describe("BOLT3 Test Vectors", () => {
+        const channel = {
             localFundingPrivKey:  b("30ff4956bbdd3222d44cc5e8a1261dab1e07957bdac5ae88fe3261ef321f3749"), // prettier-ignore
             openFundingPubKey: b("023da092f6980e58d2c037173180e9a465476026ee50f96695963e8efe436f54eb"), // prettier-ignore
             acceptFundingPubKey: b("030e9f7b623d2ccc7c9bd44d66d5ce21ce504c0acf6385a132cec6d3c39fa711c1"), // prettier-ignore
@@ -75,9 +346,10 @@ describe("TxFactory", () => {
                     504,
                     b("0404040404040404040404040404040404040404040404040404040404040404"),
                 ),
-            ]
-        },
-        vectors: [
+            ],
+        };
+
+        const vectors = [
             {
                 "Name": "simple commitment tx with no HTLCs",
                 "LocalBalance": 7000000000,
@@ -247,285 +519,9 @@ describe("TxFactory", () => {
                 "LocalSigHex": "3044022031a82b51bd014915fe68928d1abf4b9885353fb896cac10c3fdd88d7f9c7f2e00220716bda819641d2c63e65d3549b6120112e1aeaf1742eed94a471488e79e206b1",
                 "ExpectedCommitmentTxHex": "02000000000101bef67e4e2fb9ddeeb3461973cd4c62abb35050b1add772995b820b584a488489000000000038b02b8001c0c62d0000000000160014ccf1af2f2aabee14bb40fa3851ab2301de8431100400473044022031a82b51bd014915fe68928d1abf4b9885353fb896cac10c3fdd88d7f9c7f2e00220716bda819641d2c63e65d3549b6120112e1aeaf1742eed94a471488e79e206b101473044022064901950be922e62cbe3f2ab93de2b99f37cff9fc473e73e394b27f88ef0731d02206d1dfa227527b4df44a07599289e207d6fd9cca60c0365682dcd3deaf739567e01475221023da092f6980e58d2c037173180e9a465476026ee50f96695963e8efe436f54eb21030e9f7b623d2ccc7c9bd44d66d5ce21ce504c0acf6385a132cec6d3c39fa711c152ae3e195220",
             },
-        ]
-    }; // prettier-ignore
+        ]; // prettier-ignore
 
-    describe("#.addFundingOutput", () => {
-        it("test vector", () => {
-            const privkey = Buffer.from("6bd078650fcee8444e4e09825227b801a1ca928debb750eb36e6d56124bb20e8","hex"); // prettier-ignore
-            const pubkey = crypto.getPublicKey(privkey);
-
-            const builder = new TxBuilder(bip69InputSorter, bip69OutputSorter);
-            builder.addInput("fd2105607605d2302994ffea703b09f66b6351816ee737a93e42a841ea20bbad:0");
-            builder.addOutput(Value.fromSats(4989986080), Script.p2wpkhLock(pubkey));
-
-            // add the funding output
-            const localPubKey = Buffer.from("023da092f6980e58d2c037173180e9a465476026ee50f96695963e8efe436f54eb", "hex"); // prettier-ignore
-            const remotePubKey = Buffer.from("030e9f7b623d2ccc7c9bd44d66d5ce21ce504c0acf6385a132cec6d3c39fa711c1", "hex"); // prettier-ignore
-            const fundingSats = Value.fromSats(10000000);
-            const fundingOutput = TxFactory.createFundingOutput(
-                fundingSats,
-                localPubKey,
-                remotePubKey,
-            );
-            builder.addOutput(fundingOutput);
-            builder.locktime = LockTime.zero();
-
-            builder.inputs[0].scriptSig = Script.p2pkhUnlock(
-                builder.sign(0, Script.p2pkhLock(pubkey), privkey),
-                crypto.getPublicKey(privkey, true),
-            );
-
-            // witness_script is:
-            // 5221023da092f6980e58d2c037173180e9a465476026ee50f96695963e8efe436f54eb21030e9f7b623d2ccc7c9bd44d66d5ce21ce504c0acf6385a132cec6d3c39fa711c152ae
-            // sha256 is:
-            expect(fundingOutput.scriptPubKey.serialize().toString("hex")).to.equal(
-                "220020c015c4a6be010e21657068fc2e6a9d02b27ebe4d490a25846f7237f104d1a3cd",
-            );
-
-            expect(builder.serialize().toString("hex")).to.equal(
-                "0200000001adbb20ea41a8423ea937e76e8151636bf6093b70eaff942930d20576600521fd000000006b48304502210090587b6201e166ad6af0227d3036a9454223d49a1f11839c1a362184340ef0240220577f7cd5cca78719405cbf1de7414ac027f0239ef6e214c90fcaab0454d84b3b012103535b32d5eb0a6ed0982a0479bbadc9868d9836f6ba94dd5a63be16d875069184ffffffff028096980000000000220020c015c4a6be010e21657068fc2e6a9d02b27ebe4d490a25846f7237f104d1a3cd20256d29010000001600143ca33c2e4446f4a305f23c80df8ad1afdcf652f900000000",
-            );
-        });
-    });
-
-    describe("#createCommitment", () => {
-        it("constructs tx with pruned outputs", () => {
-            const localMsat = Value.fromMilliSats(6988000000);
-            const remoteMsat = Value.fromMilliSats(3000000000);
-            const feePerKw = BigInt(648);
-
-            const localFundingPrivKey =  b("30ff4956bbdd3222d44cc5e8a1261dab1e07957bdac5ae88fe3261ef321f3749"); // prettier-ignore
-            const openFundingPubKey = b("023da092f6980e58d2c037173180e9a465476026ee50f96695963e8efe436f54eb"); // prettier-ignore
-            const acceptFundingPubKey = b("030e9f7b623d2ccc7c9bd44d66d5ce21ce504c0acf6385a132cec6d3c39fa711c1"); // prettier-ignore
-            const localPrivKey = b("6bd078650fcee8444e4e09825227b801a1ca928debb750eb36e6d56124bb20e8"); // prettier-ignore
-            const localPubKey = b("030d417a46946384f88d5f3337267c5e579765875dc4daca813e21734b140639e7"); // prettier-ignore
-            const remotePubKey = b("0394854aa6eab5b2a8122cc726e9dded053a2184d88256816826d6231c068d4a5b"); // prettier-ignore
-            const localDelayedPubKey = b("03fd5960528dc152014952efdb702a88f71e3c1653b2314431701ec77e57fde83c"); // prettier-ignore
-            const revocationPubKey = b("0212a140cd0c6539d07cd08dfe09984dec3251ea808b892efeac3ede9402bf2b19"); // prettier-ignore
-            const localPaymentBasePoint = b("034f355bdcb7cc0af728ef3cceb9615d90684bb5b2ca5f859ab0f0b704075871aa"); // prettier-ignore
-            const remotePaymentBasePoint = b("032c0b7cf95324a07d05398b240174dc0c2be444d96b159aa6c7f7b1e668680991"); // prettier-ignore
-
-            const commitmentNumber = 42;
-            const fundingOutPoint = OutPoint.fromString("8984484a580b825b9972d7adb15050b3ab624ccd731946b3eeddb92f4e7ef6be:0"); // prettier-ignore
-            const fundingSats = Value.fromSats(10000000);
-            const localDustLimitSats = Value.fromSats(546);
-            const localDelay = 144;
-
-            const htlcs = [
-                new Htlc(
-                    BigInt(0),
-                    HtlcDirection.Accepted,
-                    Value.fromMilliSats(1000000),
-                    500,
-                    b("0000000000000000000000000000000000000000000000000000000000000000"),
-                ),
-                new Htlc(
-                    BigInt(1),
-                    HtlcDirection.Accepted,
-                    Value.fromMilliSats(2000000),
-                    501,
-                    b("0101010101010101010101010101010101010101010101010101010101010101"),
-                ),
-                new Htlc(
-                    BigInt(0),
-                    HtlcDirection.Offered,
-                    Value.fromMilliSats(2000000),
-                    502,
-                    b("0202020202020202020202020202020202020202020202020202020202020202"),
-                ),
-                new Htlc(
-                    BigInt(1),
-                    HtlcDirection.Offered,
-                    Value.fromMilliSats(3000000),
-                    503,
-                    b("0303030303030303030303030303030303030303030303030303030303030303"),
-                ),
-                new Htlc(
-                    BigInt(2),
-                    HtlcDirection.Accepted,
-                    Value.fromMilliSats(4000000),
-                    504,
-                    b("0404040404040404040404040404040404040404040404040404040404040404"),
-                ),
-            ];
-
-            const localTx = TxFactory.createCommitment(
-                true,
-                commitmentNumber,
-                localPaymentBasePoint,
-                remotePaymentBasePoint,
-                fundingOutPoint,
-                localDustLimitSats,
-                feePerKw,
-                localDelay,
-                localMsat,
-                remoteMsat,
-                revocationPubKey,
-                localDelayedPubKey,
-                remotePubKey,
-                false,
-                localPubKey,
-                remotePubKey,
-                htlcs,
-            );
-
-            const fundingWitnessScript = ScriptFactory.fundingScript(
-                bolt3.channel.openFundingPubKey,
-                bolt3.channel.acceptFundingPubKey,
-            );
-
-            const localSig = localTx.signSegWitv0(
-                0,
-                fundingWitnessScript,
-                bolt3.channel.localFundingPrivKey,
-                bolt3.channel.fundingSats,
-            );
-            expect(localSig.toString("hex")).to.equal(
-                "3045022100a2270d5950c89ae0841233f6efea9c951898b301b2e89e0adbd2c687b9f32efa02207943d90f95b9610458e7c65a576e149750ff3accaacad004cd85e70b235e27de01",
-            );
-            const remoteSig = Buffer.from(
-                "3044022072714e2fbb93cdd1c42eb0828b4f2eff143f717d8f26e79d6ada4f0dcb681bbe02200911be4e5161dd6ebe59ff1c58e1997c4aea804f81db6b698821db6093d7b05701",
-                "hex",
-            );
-
-            localTx.inputs[0].witness.push(new Witness(Buffer.alloc(0)));
-            if (bolt3.channel.openFundingPubKey.compare(bolt3.channel.acceptFundingPubKey) < 0) {
-                localTx.inputs[0].witness.push(new Witness(localSig));
-                localTx.inputs[0].witness.push(new Witness(remoteSig));
-            } else {
-                localTx.inputs[0].witness.push(new Witness(remoteSig));
-                localTx.inputs[0].witness.push(new Witness(localSig));
-            }
-            localTx.inputs[0].witness.push(new Witness(fundingWitnessScript.serializeCmds()));
-
-            expect(localTx.serialize().toString("hex")).to.equal(
-                "02000000000101bef67e4e2fb9ddeeb3461973cd4c62abb35050b1add772995b820b584a488489000000000038b02b8006d007000000000000220020403d394747cae42e98ff01734ad5c08f82ba123d3d9a620abda88989651e2ab5d007000000000000220020748eba944fedc8827f6b06bc44678f93c0f9e6078b35c6331ed31e75f8ce0c2db80b000000000000220020c20b5d1f8584fd90443e7b7b720136174fa4b9333c261d04dbbd012635c0f419a00f0000000000002200208c48d15160397c9731df9bc3b236656efb6665fbfe92b4a6878e88a499f741c4c0c62d0000000000160014ccf1af2f2aabee14bb40fa3851ab2301de8431104e9d6a00000000002200204adb4e2f00643db396dd120d4e7dc17625f5f2c11a40d857accc862d6b7dd80e0400483045022100a2270d5950c89ae0841233f6efea9c951898b301b2e89e0adbd2c687b9f32efa02207943d90f95b9610458e7c65a576e149750ff3accaacad004cd85e70b235e27de01473044022072714e2fbb93cdd1c42eb0828b4f2eff143f717d8f26e79d6ada4f0dcb681bbe02200911be4e5161dd6ebe59ff1c58e1997c4aea804f81db6b698821db6093d7b05701475221023da092f6980e58d2c037173180e9a465476026ee50f96695963e8efe436f54eb21030e9f7b623d2ccc7c9bd44d66d5ce21ce504c0acf6385a132cec6d3c39fa711c152ae3e195220",
-            );
-        });
-    });
-
-    describe("#createHtlcTimeout", () => {
-        it("constructs tx", () => {
-            const commitmentTx = new HashValue(Buffer.from("8323148ce2419f21ca3d6780053747715832e18ac780931a514b187768882bb6", "hex")); // prettier-ignore
-            const index = 1;
-            const localPrivKey = b("bb13b121cdc357cd2e608b0aea294afca36e2b34cf958e2e6451a2f274694491"); // prettier-ignore
-            const revocationPubKey = b("0212a140cd0c6539d07cd08dfe09984dec3251ea808b892efeac3ede9402bf2b19"); // prettier-ignore
-            const delayedPubKey = b("03fd5960528dc152014952efdb702a88f71e3c1653b2314431701ec77e57fde83c"); // prettier-ignore
-            const localPubKey = b("030d417a46946384f88d5f3337267c5e579765875dc4daca813e21734b140639e7"); // prettier-ignore
-            const remotePubKey = b("0394854aa6eab5b2a8122cc726e9dded053a2184d88256816826d6231c068d4a5b"); // prettier-ignore
-
-            const localDelay = 144;
-            const feePerKw = BigInt(647);
-            const htlc = new Htlc(
-                BigInt(0),
-                HtlcDirection.Offered,
-                Value.fromMilliSats(2000000),
-                502,
-                Buffer.from(
-                    "0202020202020202020202020202020202020202020202020202020202020202",
-                    "hex",
-                ),
-            );
-
-            const tx = TxFactory.createHtlcTimeout(
-                commitmentTx,
-                index,
-                localDelay,
-                revocationPubKey,
-                delayedPubKey,
-                feePerKw,
-                htlc,
-            );
-
-            const witnessScript = ScriptFactory.offeredHtlcScript(
-                htlc.paymentHash,
-                revocationPubKey,
-                localPubKey,
-                remotePubKey,
-            );
-
-            const localSig = tx.signSegWitv0(0, witnessScript, localPrivKey, htlc.value);
-            const remoteSig = b("304402207ceb6678d4db33d2401fdc409959e57c16a6cb97a30261d9c61f29b8c58d34b90220084b4a17b4ca0e86f2d798b3698ca52de5621f2ce86f80bed79afa66874511b001"); // prettier-ignore
-
-            expect(localSig.toString("hex")).to.equal(
-                "304402207ff03eb0127fc7c6cae49cc29e2a586b98d1e8969cf4a17dfa50b9c2647720b902205e2ecfda2252956c0ca32f175080e75e4e390e433feb1f8ce9f2ba55648a1dac01",
-            );
-
-            tx.inputs[0].witness.push(new Witness(Buffer.alloc(0)));
-            tx.inputs[0].witness.push(new Witness(remoteSig));
-            tx.inputs[0].witness.push(new Witness(localSig));
-            tx.inputs[0].witness.push(new Witness(Buffer.alloc(0)));
-            tx.inputs[0].witness.push(new Witness(witnessScript.serializeCmds()));
-
-            expect(tx.serialize().toString("hex")).to.equal(
-                "020000000001018323148ce2419f21ca3d6780053747715832e18ac780931a514b187768882bb60100000000000000000124060000000000002200204adb4e2f00643db396dd120d4e7dc17625f5f2c11a40d857accc862d6b7dd80e050047304402207ceb6678d4db33d2401fdc409959e57c16a6cb97a30261d9c61f29b8c58d34b90220084b4a17b4ca0e86f2d798b3698ca52de5621f2ce86f80bed79afa66874511b00147304402207ff03eb0127fc7c6cae49cc29e2a586b98d1e8969cf4a17dfa50b9c2647720b902205e2ecfda2252956c0ca32f175080e75e4e390e433feb1f8ce9f2ba55648a1dac01008576a91414011f7254d96b819c76986c277d115efce6f7b58763ac67210394854aa6eab5b2a8122cc726e9dded053a2184d88256816826d6231c068d4a5b7c820120876475527c21030d417a46946384f88d5f3337267c5e579765875dc4daca813e21734b140639e752ae67a914b43e1b38138a41b37f7cd9a1d274bc63e3a9b5d188ac6868f6010000",
-            );
-        });
-    });
-
-    describe("#createHtlcSuccess", () => {
-        it("constructs tx", () => {
-            const commitmentTx = new HashValue(Buffer.from("8323148ce2419f21ca3d6780053747715832e18ac780931a514b187768882bb6", "hex")); // prettier-ignore
-            const index = 0;
-            const localPrivKey = b("bb13b121cdc357cd2e608b0aea294afca36e2b34cf958e2e6451a2f274694491"); // prettier-ignore
-            const revocationPubKey = b("0212a140cd0c6539d07cd08dfe09984dec3251ea808b892efeac3ede9402bf2b19"); // prettier-ignore
-            const delayedPubKey = b("03fd5960528dc152014952efdb702a88f71e3c1653b2314431701ec77e57fde83c"); // prettier-ignore
-            const localPubKey = b("030d417a46946384f88d5f3337267c5e579765875dc4daca813e21734b140639e7"); // prettier-ignore
-            const remotePubKey = b("0394854aa6eab5b2a8122cc726e9dded053a2184d88256816826d6231c068d4a5b"); // prettier-ignore
-
-            const localDelay = 144;
-            const feePerKw = BigInt(647);
-            const htlc = new Htlc(
-                BigInt(0),
-                HtlcDirection.Accepted,
-                Value.fromMilliSats(1000000),
-                500,
-                Buffer.from(
-                    "0000000000000000000000000000000000000000000000000000000000000000",
-                    "hex",
-                ),
-            );
-
-            const tx = TxFactory.createHtlcSuccess(
-                commitmentTx,
-                index,
-                localDelay,
-                revocationPubKey,
-                delayedPubKey,
-                feePerKw,
-                htlc,
-            );
-
-            const witnessScript = ScriptFactory.receivedHtlcScript(
-                htlc.paymentHash,
-                htlc.cltvExpiry,
-                revocationPubKey,
-                localPubKey,
-                remotePubKey,
-            );
-
-            const localSig = tx.signSegWitv0(0, witnessScript, localPrivKey, htlc.value);
-            const remoteSig = b("30440220385a5afe75632f50128cbb029ee95c80156b5b4744beddc729ad339c9ca432c802202ba5f48550cad3379ac75b9b4fedb86a35baa6947f16ba5037fb8b11ab34374001"); // prettier-ignore
-
-            expect(localSig.toString("hex")).to.equal(
-                "304402205999590b8a79fa346e003a68fd40366397119b2b0cdf37b149968d6bc6fbcc4702202b1e1fb5ab7864931caed4e732c359e0fe3d86a548b557be2246efb1708d579a01",
-            );
-
-            tx.inputs[0].witness.push(new Witness(Buffer.alloc(0)));
-            tx.inputs[0].witness.push(new Witness(remoteSig));
-            tx.inputs[0].witness.push(new Witness(localSig));
-            tx.inputs[0].witness.push(new Witness(Buffer.alloc(32)));
-            tx.inputs[0].witness.push(new Witness(witnessScript.serializeCmds()));
-
-            expect(tx.serialize().toString("hex")).to.equal(
-                "020000000001018323148ce2419f21ca3d6780053747715832e18ac780931a514b187768882bb60000000000000000000122020000000000002200204adb4e2f00643db396dd120d4e7dc17625f5f2c11a40d857accc862d6b7dd80e05004730440220385a5afe75632f50128cbb029ee95c80156b5b4744beddc729ad339c9ca432c802202ba5f48550cad3379ac75b9b4fedb86a35baa6947f16ba5037fb8b11ab3437400147304402205999590b8a79fa346e003a68fd40366397119b2b0cdf37b149968d6bc6fbcc4702202b1e1fb5ab7864931caed4e732c359e0fe3d86a548b557be2246efb1708d579a012000000000000000000000000000000000000000000000000000000000000000008a76a91414011f7254d96b819c76986c277d115efce6f7b58763ac67210394854aa6eab5b2a8122cc726e9dded053a2184d88256816826d6231c068d4a5b7c8201208763a914b8bcb07f6344b42ab04250c86a6e8b75d3fdbbc688527c21030d417a46946384f88d5f3337267c5e579765875dc4daca813e21734b140639e752ae677502f401b175ac686800000000",
-            );
-        });
-    });
-
-    describe("BOLT3 Test Vectors", () => {
-        for (const vector of bolt3.vectors) {
+        for (const vector of vectors) {
             it("holder: " + vector.Name, () => {
                 const feePerKw = BigInt(vector.FeePerKw);
                 const localMsat = Value.fromMilliSats(vector.LocalBalance);
@@ -533,42 +529,40 @@ describe("TxFactory", () => {
 
                 const localTx = TxFactory.createCommitment(
                     true,
-                    bolt3.channel.commitmentNumber,
-                    bolt3.channel.localPaymentBasePoint,
-                    bolt3.channel.remotePaymentBasePoint,
-                    bolt3.channel.fundingOutPoint,
-                    bolt3.channel.localDustLimitSats,
+                    channel.commitmentNumber,
+                    channel.localPaymentBasePoint,
+                    channel.remotePaymentBasePoint,
+                    channel.fundingOutPoint,
+                    channel.localDustLimitSats,
                     feePerKw,
-                    bolt3.channel.localDelay,
+                    channel.localDelay,
                     localMsat,
                     remoteMsat,
-                    bolt3.channel.revocationPubKey,
-                    bolt3.channel.localDelayedPubKey,
-                    bolt3.channel.remotePubKey,
+                    channel.revocationPubKey,
+                    channel.localDelayedPubKey,
+                    channel.remotePubKey,
                     false,
-                    bolt3.channel.localPubKey,
-                    bolt3.channel.remotePubKey,
-                    vector.UseTestHtlcs ? bolt3.channel.htlcs : [],
+                    channel.localPubKey,
+                    channel.remotePubKey,
+                    vector.UseTestHtlcs ? channel.htlcs : [],
                 );
 
                 const fundingWitnessScript = ScriptFactory.fundingScript(
-                    bolt3.channel.openFundingPubKey,
-                    bolt3.channel.acceptFundingPubKey,
+                    channel.openFundingPubKey,
+                    channel.acceptFundingPubKey,
                 );
 
                 const localSig = localTx.signSegWitv0(
                     0,
                     fundingWitnessScript,
-                    bolt3.channel.localFundingPrivKey,
-                    bolt3.channel.fundingSats,
+                    channel.localFundingPrivKey,
+                    channel.fundingSats,
                 );
                 expect(localSig.toString("hex")).to.equal(vector.LocalSigHex + "01");
                 const remoteSig = Buffer.from(vector.RemoteSigHex + "01", "hex");
 
                 localTx.inputs[0].witness.push(new Witness(Buffer.alloc(0)));
-                if (
-                    bolt3.channel.openFundingPubKey.compare(bolt3.channel.acceptFundingPubKey) < 0
-                ) {
+                if (channel.openFundingPubKey.compare(channel.acceptFundingPubKey) < 0) {
                     localTx.inputs[0].witness.push(new Witness(localSig));
                     localTx.inputs[0].witness.push(new Witness(remoteSig));
                 } else {
@@ -583,20 +577,20 @@ describe("TxFactory", () => {
             });
         }
 
-        for (const vector of bolt3.vectors) {
+        for (const vector of vectors) {
             it("counterparty: " + vector.Name, () => {
-                const remoteDelay = bolt3.channel.localDelay;
-                const remotePaymentBasePoint = bolt3.channel.localPaymentBasePoint;
-                const localPaymentBasePoint = bolt3.channel.remotePaymentBasePoint;
-                const revocationPubKey = bolt3.channel.revocationPubKey;
-                const delayedPubKey = bolt3.channel.localDelayedPubKey;
-                const localPubKey = bolt3.channel.remotePubKey;
-                const remotePubKey = bolt3.channel.localPubKey;
+                const remoteDelay = channel.localDelay;
+                const remotePaymentBasePoint = channel.localPaymentBasePoint;
+                const localPaymentBasePoint = channel.remotePaymentBasePoint;
+                const revocationPubKey = channel.revocationPubKey;
+                const delayedPubKey = channel.localDelayedPubKey;
+                const localPubKey = channel.remotePubKey;
+                const remotePubKey = channel.localPubKey;
                 const feePerKw = BigInt(vector.FeePerKw);
-                const remoteDustLimitSats = bolt3.channel.localDustLimitSats; // uses the same value
+                const remoteDustLimitSats = channel.localDustLimitSats; // uses the same value
                 const remoteMsat = Value.fromMilliSats(vector.LocalBalance);
                 const localMsat = Value.fromMilliSats(vector.RemoteBalance);
-                const htlcs = bolt3.channel.htlcs.map(
+                const htlcs = channel.htlcs.map(
                     h =>
                         new Htlc(
                             h.htlcId,
@@ -611,10 +605,10 @@ describe("TxFactory", () => {
 
                 const localTx = TxFactory.createCommitment(
                     true,
-                    bolt3.channel.commitmentNumber,
+                    channel.commitmentNumber,
                     remotePaymentBasePoint,
                     localPaymentBasePoint,
-                    bolt3.channel.fundingOutPoint,
+                    channel.fundingOutPoint,
                     remoteDustLimitSats,
                     feePerKw,
                     remoteDelay,
@@ -630,17 +624,15 @@ describe("TxFactory", () => {
                 );
 
                 const fundingWitnessScript = ScriptFactory.fundingScript(
-                    bolt3.channel.openFundingPubKey,
-                    bolt3.channel.acceptFundingPubKey,
+                    channel.openFundingPubKey,
+                    channel.acceptFundingPubKey,
                 );
 
                 const remoteSig = Buffer.from(vector.LocalSigHex + "01", "hex");
                 const localSig = Buffer.from(vector.RemoteSigHex + "01", "hex");
 
                 localTx.inputs[0].witness.push(new Witness(Buffer.alloc(0)));
-                if (
-                    bolt3.channel.openFundingPubKey.compare(bolt3.channel.acceptFundingPubKey) < 0
-                ) {
+                if (channel.openFundingPubKey.compare(channel.acceptFundingPubKey) < 0) {
                     localTx.inputs[0].witness.push(new Witness(remoteSig));
                     localTx.inputs[0].witness.push(new Witness(localSig));
                 } else {
