@@ -1,5 +1,4 @@
 import {
-    bip69InputSorter,
     bip69OutputSorter,
     HashValue,
     LockTime,
@@ -88,7 +87,7 @@ export class TxFactory {
         localHtlcPubKey?: Buffer,
         remoteHtlcPubKey?: Buffer,
         htlcs: Htlc[] = [],
-    ): TxBuilder {
+    ): [TxBuilder, Htlc[]] {
         const obscuredCommitmentNumber = CommitmentNumber.obscure(
             commitmentNumber,
             openPaymentBasePoint,
@@ -96,7 +95,7 @@ export class TxFactory {
         );
 
         // 1. add the input as the funding outpoint and set the nSequence
-        const tx = new TxBuilder(bip69InputSorter, bip69OutputSorter);
+        const tx = new TxBuilder();
         tx.version = 2;
         tx.addInput(fundingOutPoint, CommitmentNumber.getSequence(obscuredCommitmentNumber));
 
@@ -152,6 +151,7 @@ export class TxFactory {
         }
 
         // 6/7. add unpruned offered/received HTLCs
+        const txouts: Array<[TxOut, Htlc?]> = [];
         for (const htlc of unprunedHtlcs) {
             const witnessScript: Script =
                 (!reverseHtlcs && htlc.direction === HtlcDirection.Offered) ||
@@ -169,23 +169,52 @@ export class TxFactory {
                           localHtlcPubKey,
                           remoteHtlcPubKey,
                       );
-            tx.addOutput(htlc.value, Script.p2wshLock(witnessScript));
+            const txout = new TxOut(htlc.value, Script.p2wshLock(witnessScript));
+            txouts.push([txout, htlc]);
         }
 
         // 8. add local if unpruned
         if (localValue.sats >= dustLimitSatoshi.sats) {
-            tx.addOutput(
-                localValue,
-                Script.p2wshLock(ScriptFactory.toLocalScript(revocationPubKey, delayedPubKey, localDelay)), // prettier-ignore
-            );
+            txouts.push([
+                new TxOut(
+                    localValue,
+                    Script.p2wshLock(
+                        ScriptFactory.toLocalScript(revocationPubKey, delayedPubKey, localDelay),
+                    ),
+                ),
+            ]);
         }
 
         // 9. add remote if unpruned
         if (remoteValue.sats >= dustLimitSatoshi.sats) {
-            tx.addOutput(remoteValue, Script.p2wpkhLock(remotePubKey));
+            txouts.push([new TxOut(remoteValue, Script.p2wpkhLock(remotePubKey))]);
         }
 
-        return tx;
+        // 10. sort outputs using bip69 and using cltv for htlc tiebreaks
+        txouts.sort((a, b) => {
+            // compare on value
+            const value = Number(a[0].value.sats - b[0].value.sats);
+            if (value !== 0) return value;
+
+            // compare on script
+            const scriptCompare = a[0].scriptPubKey
+                .serializeCmds()
+                .compare(b[0].scriptPubKey.serializeCmds());
+            if (scriptCompare !== 0) return scriptCompare;
+
+            // tie-break on htlcs
+            return b[1].cltvExpiry - a[1].cltvExpiry;
+        });
+
+        // add hte outputs in sorted order
+        const sortedHtlcs: Htlc[] = [];
+        for (const [txout, htlc] of txouts) {
+            tx.addOutput(txout);
+            sortedHtlcs.push(htlc);
+        }
+
+        // return the tuple with the sorted htlcs
+        return [tx, sortedHtlcs];
     }
 
     /**
@@ -212,7 +241,7 @@ export class TxFactory {
         feePerKw: bigint,
         htlc: Htlc,
     ): TxBuilder {
-        const tx = new TxBuilder(bip69InputSorter, bip69OutputSorter);
+        const tx = new TxBuilder();
 
         // Input points to the commmitment transaction and the BIP69
         // sorted index of the HTLC. nSequence is set to zero.
@@ -262,7 +291,7 @@ export class TxFactory {
         feePerKw: bigint,
         htlc: Htlc,
     ): TxBuilder {
-        const tx = new TxBuilder(bip69InputSorter, bip69OutputSorter);
+        const tx = new TxBuilder();
 
         // Input points to the commmitment transaction and the BIP69
         // sorted index of the HTLC. nSequence is set to zero.
