@@ -1,21 +1,15 @@
 import { BufferWriter } from "@node-lightning/bufio";
 import { hash256, sign, sigToDER } from "@node-lightning/crypto";
-import { HashByteOrder } from "./HashByteOrder";
 import { LockTime } from "./LockTime";
 import { OutPoint } from "./OutPoint";
 import { Script } from "./Script";
 import { Sequence } from "./Sequence";
-import { SigHashType } from "./SigHashType";
-import { Sorter } from "./Sorter";
 import { Tx } from "./Tx";
 import { TxIn } from "./TxIn";
 import { TxOut } from "./TxOut";
 import { Value } from "./Value";
 
 export class TxBuilder {
-    public inputSorter: Sorter<TxIn>;
-    public outputSorter: Sorter<TxOut>;
-
     private _version: number;
     private _locktime: LockTime;
     private _inputs: TxIn[];
@@ -24,13 +18,11 @@ export class TxBuilder {
     private _hashSequence: Buffer;
     private _hashOutputs: Buffer;
 
-    constructor(inputSorter: Sorter<TxIn> = () => 0, outputSorter: Sorter<TxOut> = () => 0) {
+    constructor() {
         this._inputs = [];
         this._outputs = [];
         this._version = 2;
         this._locktime = new LockTime();
-        this.inputSorter = inputSorter;
-        this.outputSorter = outputSorter;
     }
 
     /**
@@ -57,21 +49,17 @@ export class TxBuilder {
     }
 
     /**
-     * Gets the inputs sorted by the input sorter
+     * Gets the inputs
      */
     public get inputs(): TxIn[] {
-        const inputs = this._inputs.slice();
-        inputs.sort(this.inputSorter);
-        return inputs;
+        return this._inputs;
     }
 
     /**
-     * Gets the outputs sorted by the output sorter
+     * Gets the outputs
      */
     public get outputs(): TxOut[] {
-        const outputs = this._outputs.slice();
-        outputs.sort(this.outputSorter);
-        return outputs;
+        return this._outputs;
     }
 
     /**
@@ -123,7 +111,7 @@ export class TxBuilder {
         writer.writeUInt32LE(this.version);
 
         // sign all inputs as sorted by the sorting function
-        const inputs = this.inputs;
+        const inputs = this._inputs;
         writer.writeVarInt(inputs.length);
         for (let i = 0; i < inputs.length; i++) {
             // blank out scriptSig for non-signatory inputs
@@ -140,7 +128,7 @@ export class TxBuilder {
         }
 
         // sign all outputs as sorted by the sorting function
-        const outputs = this.outputs;
+        const outputs = this._outputs;
         writer.writeVarInt(outputs.length);
         for (const vout of outputs) {
             writer.writeBytes(vout.serialize());
@@ -178,8 +166,8 @@ export class TxBuilder {
         //   prevtx:  32-byte IBO
         //   prevIdx: 4-byte LE
         if (this._hashPrevOuts === undefined) {
-            const hashWriter = new BufferWriter(Buffer.alloc(this.inputs.length * 36));
-            for (const input of this.inputs) {
+            const hashWriter = new BufferWriter(Buffer.alloc(this._inputs.length * 36));
+            for (const input of this._inputs) {
                 hashWriter.writeBytes(input.outpoint.serialize());
             }
             this._hashPrevOuts = hash256(hashWriter.toBuffer());
@@ -188,8 +176,8 @@ export class TxBuilder {
         // Combines the nSequence values for all inputs in the
         // transaction and then hash256 the values
         if (this._hashSequence === undefined) {
-            const hashWriter = new BufferWriter(Buffer.alloc(this.inputs.length * 4));
-            for (const input of this.inputs) {
+            const hashWriter = new BufferWriter(Buffer.alloc(this._inputs.length * 4));
+            for (const input of this._inputs) {
                 hashWriter.writeBytes(input.sequence.serialize());
             }
             this._hashSequence = hash256(hashWriter.toBuffer());
@@ -200,7 +188,7 @@ export class TxBuilder {
         // byte array and then hash256 the values.
         if (this._hashOutputs === undefined) {
             const hashWriter = new BufferWriter();
-            for (const vout of this.outputs) {
+            for (const vout of this._outputs) {
                 hashWriter.writeBytes(vout.serialize());
             }
             this._hashOutputs = hash256(hashWriter.toBuffer());
@@ -210,7 +198,7 @@ export class TxBuilder {
         writer.writeBytes(this._hashPrevOuts);
         writer.writeBytes(this._hashSequence);
 
-        const vin = this.inputs[index];
+        const vin = this._inputs[index];
         writer.writeBytes(vin.outpoint.serialize());
         writer.writeBytes(commitScript.serialize());
         writer.writeUInt64LE(value.sats);
@@ -280,8 +268,8 @@ export class TxBuilder {
     public toTx(): Tx {
         return new Tx(
             this.version,
-            this.inputs.map(vin => vin.clone()),
-            this.outputs.map(vout => vout.clone()),
+            this._inputs.map(vin => vin.clone()),
+            this._outputs.map(vout => vout.clone()),
             this.locktime.clone(),
         );
     }
