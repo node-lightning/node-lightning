@@ -14,7 +14,7 @@ import { TxFactory } from "../../lib/lightning/TxFactory";
 import { ScriptFactory } from "../../lib/lightning/ScriptFactory";
 import { Htlc } from "../../lib/lightning/Htlc";
 import { HtlcDirection } from "../../lib/lightning/HtlcDirection";
-import { hash256 } from "@node-lightning/crypto";
+import { hash256, sha256 } from "@node-lightning/crypto";
 
 describe("TxFactory", () => {
     const b = (hex: string) => Buffer.from(hex, "hex");
@@ -87,35 +87,35 @@ describe("TxFactory", () => {
                     HtlcDirection.Accepted,
                     Value.fromMilliSats(1000000),
                     500,
-                    b("0000000000000000000000000000000000000000000000000000000000000000"),
+                    sha256(b("0000000000000000000000000000000000000000000000000000000000000000")),
                 ),
                 new Htlc(
                     BigInt(1),
                     HtlcDirection.Accepted,
                     Value.fromMilliSats(2000000),
                     501,
-                    b("0101010101010101010101010101010101010101010101010101010101010101"),
+                    sha256(b("0101010101010101010101010101010101010101010101010101010101010101")),
                 ),
                 new Htlc(
                     BigInt(0),
                     HtlcDirection.Offered,
                     Value.fromMilliSats(2000000),
                     502,
-                    b("0202020202020202020202020202020202020202020202020202020202020202"),
+                    sha256(b("0202020202020202020202020202020202020202020202020202020202020202")),
                 ),
                 new Htlc(
                     BigInt(1),
                     HtlcDirection.Offered,
                     Value.fromMilliSats(3000000),
                     503,
-                    b("0303030303030303030303030303030303030303030303030303030303030303"),
+                    sha256(b("0303030303030303030303030303030303030303030303030303030303030303")),
                 ),
                 new Htlc(
                     BigInt(2),
                     HtlcDirection.Accepted,
                     Value.fromMilliSats(4000000),
                     504,
-                    b("0404040404040404040404040404040404040404040404040404040404040404"),
+                    sha256(b("0404040404040404040404040404040404040404040404040404040404040404")),
                 ),
             ];
 
@@ -191,10 +191,8 @@ describe("TxFactory", () => {
                 HtlcDirection.Offered,
                 Value.fromMilliSats(2000000),
                 502,
-                Buffer.from(
-                    "0202020202020202020202020202020202020202020202020202020202020202",
-                    "hex",
-                ),
+                sha256(b("0202020202020202020202020202020202020202020202020202020202020202")),
+                b("0202020202020202020202020202020202020202020202020202020202020202"),
             );
 
             const tx = TxFactory.createHtlcTimeout(
@@ -250,10 +248,8 @@ describe("TxFactory", () => {
                 HtlcDirection.Accepted,
                 Value.fromMilliSats(1000000),
                 500,
-                Buffer.from(
-                    "0000000000000000000000000000000000000000000000000000000000000000",
-                    "hex",
-                ),
+                sha256(b("0000000000000000000000000000000000000000000000000000000000000000")),
+                b("0000000000000000000000000000000000000000000000000000000000000000"),
             );
 
             const tx = TxFactory.createHtlcSuccess(
@@ -284,7 +280,7 @@ describe("TxFactory", () => {
             tx.inputs[0].witness.push(new Witness(Buffer.alloc(0)));
             tx.inputs[0].witness.push(new Witness(remoteSig));
             tx.inputs[0].witness.push(new Witness(localSig));
-            tx.inputs[0].witness.push(new Witness(Buffer.alloc(32)));
+            tx.inputs[0].witness.push(new Witness(htlc.paymentPreimage));
             tx.inputs[0].witness.push(new Witness(witnessScript.serializeCmds()));
 
             expect(tx.serialize().toString("hex")).to.equal(
@@ -317,6 +313,7 @@ describe("TxFactory", () => {
                     HtlcDirection.Accepted,
                     Value.fromMilliSats(1000000),
                     500,
+                    sha256(b("0000000000000000000000000000000000000000000000000000000000000000")),
                     b("0000000000000000000000000000000000000000000000000000000000000000"),
                 ),
                 new Htlc(
@@ -324,6 +321,7 @@ describe("TxFactory", () => {
                     HtlcDirection.Accepted,
                     Value.fromMilliSats(2000000),
                     501,
+                    sha256(b("0101010101010101010101010101010101010101010101010101010101010101")),
                     b("0101010101010101010101010101010101010101010101010101010101010101"),
                 ),
                 new Htlc(
@@ -331,6 +329,7 @@ describe("TxFactory", () => {
                     HtlcDirection.Offered,
                     Value.fromMilliSats(2000000),
                     502,
+                    sha256(b("0202020202020202020202020202020202020202020202020202020202020202")),
                     b("0202020202020202020202020202020202020202020202020202020202020202"),
                 ),
                 new Htlc(
@@ -338,6 +337,7 @@ describe("TxFactory", () => {
                     HtlcDirection.Offered,
                     Value.fromMilliSats(3000000),
                     503,
+                    sha256(b("0303030303030303030303030303030303030303030303030303030303030303")),
                     b("0303030303030303030303030303030303030303030303030303030303030303"),
                 ),
                 new Htlc(
@@ -345,6 +345,7 @@ describe("TxFactory", () => {
                     HtlcDirection.Accepted,
                     Value.fromMilliSats(4000000),
                     504,
+                    sha256(b("0404040404040404040404040404040404040404040404040404040404040404")),
                     b("0404040404040404040404040404040404040404040404040404040404040404"),
                 ),
             ],
@@ -793,7 +794,7 @@ describe("TxFactory", () => {
                             channel.remotePubKey,
                         );
 
-                        preimage = htlc.paymentHash;
+                        preimage = htlc.paymentPreimage;
                     }
 
                     // sign with local

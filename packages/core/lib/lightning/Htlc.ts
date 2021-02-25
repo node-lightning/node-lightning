@@ -44,5 +44,8 @@ export class Htlc {
         readonly value: Value,
         readonly cltvExpiry: number,
         readonly paymentHash: Buffer,
-    ) {}
+        paymentPreimage?: Buffer,
+    ) {
+        this.paymentPreimage = paymentPreimage;
+    }
 }

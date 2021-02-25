@@ -1,3 +1,4 @@
+import { sha256 } from "@node-lightning/crypto";
 import { expect } from "chai";
 import { ScriptFactory } from "../../lib/lightning/ScriptFactory";
 
@@ -39,9 +40,11 @@ describe("ScriptFactory", () => {
     describe("#.offeredHtlcScript()", () => {
         it("BOLT3 test vector", () => {
             const script = ScriptFactory.offeredHtlcScript(
-                Buffer.from(
-                    "0202020202020202020202020202020202020202020202020202020202020202",
-                    "hex",
+                sha256(
+                    Buffer.from(
+                        "0202020202020202020202020202020202020202020202020202020202020202",
+                        "hex",
+                    ),
                 ),
                 localRevocationPubKey,
                 localPubKey,
@@ -56,9 +59,11 @@ describe("ScriptFactory", () => {
     describe("#.receivedHtlcScript()", () => {
         it("BOLT3 test vector", () => {
             const script = ScriptFactory.receivedHtlcScript(
-                Buffer.from(
-                    "0000000000000000000000000000000000000000000000000000000000000000",
-                    "hex",
+                sha256(
+                    Buffer.from(
+                        "0000000000000000000000000000000000000000000000000000000000000000",
+                        "hex",
+                    ),
                 ),
                 500,
                 localRevocationPubKey,

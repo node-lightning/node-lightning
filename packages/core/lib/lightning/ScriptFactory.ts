@@ -1,5 +1,5 @@
 import { OpCode, Script } from "@node-lightning/bitcoin";
-import { hash160 } from "@node-lightning/crypto";
+import { hash160, ripemd160 } from "@node-lightning/crypto";
 
 export class ScriptFactory {
     /**
@@ -87,7 +87,7 @@ export class ScriptFactory {
                     OpCode.OP_DROP, OpCode.OP_2, OpCode.OP_SWAP, localHtlcPubKey, OpCode.OP_2, OpCode.OP_CHECKMULTISIG,
                 OpCode.OP_ELSE,
                     // to remote with preimage and signature
-                    OpCode.OP_HASH160, hash160(paymentHash), OpCode.OP_EQUALVERIFY,
+                    OpCode.OP_HASH160, ripemd160(paymentHash), OpCode.OP_EQUALVERIFY,
                     OpCode.OP_CHECKSIG,
                 OpCode.OP_ENDIF,
             OpCode.OP_ENDIF,
@@ -134,7 +134,7 @@ export class ScriptFactory {
                 remoteHtlcPubKey, OpCode.OP_SWAP, OpCode.OP_SIZE, Script.number(32), OpCode.OP_EQUAL,
                 OpCode.OP_IF,
                     // to local via HTLC-Success transaction
-                    OpCode.OP_HASH160, hash160(paymentHash), OpCode.OP_EQUALVERIFY,
+                    OpCode.OP_HASH160, ripemd160(paymentHash), OpCode.OP_EQUALVERIFY,
                     OpCode.OP_2, OpCode.OP_SWAP, localHtlcPubKey, OpCode.OP_2, OpCode.OP_CHECKMULTISIG,
                 OpCode.OP_ELSE,
                     // to remote after cltv expiry with signature
