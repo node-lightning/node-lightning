@@ -46,6 +46,29 @@ export class ScriptFactory {
         ); // prettier-ignore
     }
 
+    /**
+     * Constructs the script for an offered HTLC output of a  commitment
+     * transaction as defined in BOLT3. This enables on-chain resolution
+     * of an HTLC to the local node via the secondary HTLC-Timeout
+     * transaction. This secondary transaction is both sequence delayed
+     * and timelocked and requires signatures by both parties to prevent
+     * premature spending. The remote node can immediately resolve the
+     * transaction wit knowledge of the preimage.
+     *
+     * Revocable with witness:
+     * [revocationSig, revocationPubKey]
+     *
+     * Pay to local via the HTLC-Timeout transaction by using witness
+     * [0, remoteHtlcSig, localHtlcSig, <>]
+     *
+     * Pay to remote counterparty without delay using witness
+     * [remoteHtlcSig, preimage]
+     *
+     * @param paymentHash
+     * @param revocationPubKey
+     * @param localHtlcPubKey
+     * @param remoteHtlcPubKey
+     */
     public static offeredHtlcScript(
         paymentHash: Buffer,
         revocationPubKey: Buffer,
@@ -71,6 +94,30 @@ export class ScriptFactory {
         ); // prettier-ignore
     }
 
+    /**
+     * Constructs the script for a received HTLC output of a commitment
+     * transaction as defined in BOLT3. This enables on-chain resolution
+     * of an HTLC to the local node via the secondary HTLC-Success
+     * transaction. This secondary transaction is sequence delayed and
+     * thus local spends require both parties signatures. The remote
+     * node can perform a timeout of this output after the timelock
+     * expires.
+     *
+     * Revocable with witness:
+     * [revocationSig, revocationPubKey]
+     *
+     * Pay to local via the HTLC-Success transaction by using witness
+     * [0, remoteHtlcSig, localHtlcSig, preimage]
+     *
+     * Pay to remote counterparty after the CLTV expiry using witness
+     * [remoteHtlcSig, <>]
+     *
+     * @param paymentHash
+     * @param cltvExpiry
+     * @param revocationPubKey
+     * @param localHtlcPubKey
+     * @param remoteHtlcPubKey
+     */
     public static receivedHtlcScript(
         paymentHash: Buffer,
         cltvExpiry: number,

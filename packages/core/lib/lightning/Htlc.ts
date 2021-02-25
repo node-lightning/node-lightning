@@ -13,6 +13,11 @@ import { HtlcDirection } from "./HtlcDirection";
  */
 export class Htlc {
     /**
+     * The preimage of the payment hash using SHA256.
+     */
+    public paymentPreimage: Buffer;
+
+    /**
      * Constructs an HTLC with associated information
      * @param htlcId Identifier for the HTLC is a counter maintained
      * per-channel, per-peer. It starts at zero and is incremented when
