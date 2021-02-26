@@ -277,4 +277,8 @@ export class TxBuilder {
     public serialize(): Buffer {
         return this.toTx().serialize();
     }
+
+    public toHex(pretty: boolean = false): string {
+        return this.toTx().toHex(pretty);
+    }
 }
