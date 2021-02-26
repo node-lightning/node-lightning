@@ -6,5 +6,6 @@ export * from "./bufToStream";
 export * from "./encodeVarInt";
 export * from "./BufferReader";
 export * from "./BufferWriter";
+export * from "./Hex";
 export * from "./StreamReader";
 export * from "./varIntBytes";
