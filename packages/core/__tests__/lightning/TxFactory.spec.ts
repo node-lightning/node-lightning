@@ -8,6 +8,7 @@ import {
     OutPoint,
     Witness,
     HashValue,
+    Tx,
 } from "@node-lightning/bitcoin";
 import { expect } from "chai";
 import { TxFactory } from "../../lib/lightning/TxFactory";
@@ -736,8 +737,8 @@ describe("TxFactory", () => {
                 }
                 localTx.inputs[0].witness.push(new Witness(fundingWitnessScript.serializeCmds()));
 
-                expect(localTx.serialize().toString("hex")).to.equal(
-                    vector.ExpectedCommitmentTxHex,
+                expect(localTx.toHex(true)).to.equal(
+                    Tx.fromHex(vector.ExpectedCommitmentTxHex).toHex(true),
                 );
 
                 const commitmentTxId = localTx.toTx().txId;
@@ -811,8 +812,8 @@ describe("TxFactory", () => {
                     htlctx.inputs[0].witness.push(new Witness(preimage));
                     htlctx.inputs[0].witness.push(new Witness(witnessScript.serializeCmds()));
 
-                    expect(htlctx.serialize().toString("hex")).to.equal(
-                        vector.HtlcDescs[i].ResolutionTxHex,
+                    expect(htlctx.toHex(true)).to.equal(
+                        Tx.fromHex(vector.HtlcDescs[i].ResolutionTxHex).toHex(true),
                     );
                 }
             });
@@ -882,8 +883,8 @@ describe("TxFactory", () => {
                 }
                 localTx.inputs[0].witness.push(new Witness(fundingWitnessScript.serializeCmds()));
 
-                expect(localTx.serialize().toString("hex")).to.equal(
-                    vector.ExpectedCommitmentTxHex,
+                expect(localTx.toHex(true)).to.equal(
+                    Tx.fromHex(vector.ExpectedCommitmentTxHex).toHex(true),
                 );
             });
         }
