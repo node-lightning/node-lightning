@@ -1,6 +1,7 @@
 import { BufferWriter, StreamReader, varIntBytes } from "@node-lightning/bufio";
-import { hash256 } from "@node-lightning/crypto";
 import { Hex } from "@node-lightning/bufio";
+import { hash256 } from "@node-lightning/crypto";
+import { HashByteOrder } from "./HashByteOrder";
 import { HashValue } from "./HashValue";
 import { LockTime } from "./LockTime";
 import { OutPoint } from "./OutPoint";
@@ -11,7 +12,6 @@ import { TxIn } from "./TxIn";
 import { TxOut } from "./TxOut";
 import { Value } from "./Value";
 import { Witness } from "./Witness";
-import { HashByteOrder } from "./HashByteOrder";
 
 /**
  * This class is an immutable Bitcoin transaction. This class is used

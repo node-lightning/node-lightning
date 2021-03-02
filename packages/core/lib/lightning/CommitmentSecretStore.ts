@@ -11,8 +11,6 @@ import { CommitmentSecret } from "./CommitmentSecret";
  * only the secrets we need to derive older commitment secrets.
  */
 export class CommitmentSecretStore {
-    private secrets: Array<{ index: bigint; secret: Buffer }>;
-
     /**
      * Returns the index of the least-significant bit. This is used to
      * determine what the value at I is a prefix for.
@@ -24,6 +22,8 @@ export class CommitmentSecretStore {
         }
         return 48; // seed
     }
+
+    private secrets: Array<{ index: bigint; secret: Buffer }>;
 
     constructor() {
         this.secrets = new Array(49);
@@ -41,7 +41,7 @@ export class CommitmentSecretStore {
      * @param i commitment number
      */
     public insert(secret: Buffer, i: bigint) {
-        let B = CommitmentSecretStore.calcIndex(i);
+        const B = CommitmentSecretStore.calcIndex(i);
 
         // validate that the new secret allows derivation of known keys
         // up to the new key
@@ -65,7 +65,6 @@ export class CommitmentSecretStore {
      * @param i derivation number starting at 2^48-1 down to zero.
      */
     public derive(i: bigint) {
-        console.log("deriving", i);
         for (let b = 0; b < this.secrets.length; b++) {
             // construct a mask of the upper bits. Basically we lop off
             // the lower b bits and then right-shift back into place
