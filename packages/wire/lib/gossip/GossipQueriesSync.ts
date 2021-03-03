@@ -1,7 +1,13 @@
 import { ILogger } from "@node-lightning/logger";
+import { ChannelAnnouncementMessage } from "../messages/ChannelAnnouncementMessage";
+import { ChannelUpdateMessage } from "../messages/ChannelUpdateMessage";
+import { IWireMessage } from "../messages/IWireMessage";
+import { NodeAnnouncementMessage } from "../messages/NodeAnnouncementMessage";
+import { ReplyChannelRangeMessage } from "../messages/ReplyChannelRangeMessage";
+import { ReplyShortChannelIdsEndMessage } from "../messages/ReplyShortChannelIdsEndMessage";
+import { IMessageSender } from "../Peer";
 import { ChannelRangeQuery } from "./ChannelRangeQuery";
 import { ChannelsQuery } from "./ChannelsQuery";
-import { GossipPeer } from "./GossipPeer";
 import { GossipSyncWatcher } from "./GossipSyncWatcher";
 
 export enum GossipQueriesSyncState {
@@ -20,18 +26,22 @@ export class GossipQueriesSync {
     private _channelsQuery: ChannelsQuery;
     private _syncWatcher: GossipSyncWatcher;
 
-    constructor(readonly chainHash: Buffer, readonly peer: GossipPeer, readonly logger: ILogger) {
+    constructor(
+        readonly chainHash: Buffer,
+        readonly peer: IMessageSender,
+        readonly logger: ILogger,
+    ) {
         this._state = GossipQueriesSyncState.Idle;
         this._rangeQuery = new ChannelRangeQuery(this.chainHash, this.peer, this.logger);
         this._channelsQuery = new ChannelsQuery(this.chainHash, this.peer, this.logger);
-        this._syncWatcher = new GossipSyncWatcher(this.peer, this.logger);
+        this._syncWatcher = new GossipSyncWatcher(this.logger);
     }
 
-    public get state() {
+    public get state(): GossipQueriesSyncState {
         return this._state;
     }
 
-    public get error() {
+    public get error(): Error {
         return this._error;
     }
 
@@ -53,6 +63,21 @@ export class GossipQueriesSync {
             this._state = GossipQueriesSyncState.Failed;
             this._error = ex;
             throw ex;
+        }
+    }
+
+    public handleWireMessage(msg: IWireMessage): void {
+        if (msg instanceof ReplyChannelRangeMessage) {
+            this._rangeQuery.handleReplyChannelRange(msg);
+            return;
+        } else if (msg instanceof ReplyShortChannelIdsEndMessage) {
+            this._channelsQuery.handleReplyShortChannelIdsEnd(msg);
+        } else if (
+            msg instanceof ChannelAnnouncementMessage ||
+            msg instanceof ChannelUpdateMessage ||
+            msg instanceof NodeAnnouncementMessage
+        ) {
+            this._syncWatcher.onGossipMessage(msg);
         }
     }
 }

@@ -78,7 +78,10 @@ export class GossipPeer extends EventEmitter implements IPeer {
         if (this.gossipQueries) {
             const chainHash = this.peer.localChains[0];
             const synchronizer = new GossipQueriesSync(chainHash, this, this.logger);
+            const msgHandler = (msg: IWireMessage) => synchronizer.handleWireMessage(msg);
+            this.on("message", msgHandler);
             await synchronizer.queryRange(firstBlock, numBlocks);
+            this.off("message", msgHandler);
             return true;
         }
         return false;

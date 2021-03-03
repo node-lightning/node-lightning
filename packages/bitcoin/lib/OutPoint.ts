@@ -46,8 +46,17 @@ export class OutPoint implements ICloneable<OutPoint> {
      */
     public outputIndex: number;
 
-    constructor(txid: HashValue, outputIndex: number) {
-        this.txid = txid;
+    /**
+     * Constructs a new OutPoint
+     * @param txid TxId as a HashValue or an RPC (big-endian) string
+     * @param outputIndex
+     */
+    constructor(txid: HashValue | string, outputIndex: number) {
+        if (txid instanceof HashValue) {
+            this.txid = txid;
+        } else {
+            this.txid = HashValue.fromRpc(txid);
+        }
         this.outputIndex = outputIndex;
     }
 

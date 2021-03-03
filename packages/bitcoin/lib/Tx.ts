@@ -1,5 +1,7 @@
 import { BufferWriter, StreamReader, varIntBytes } from "@node-lightning/bufio";
+import { Hex } from "@node-lightning/bufio";
 import { hash256 } from "@node-lightning/crypto";
+import { HashByteOrder } from "./HashByteOrder";
 import { HashValue } from "./HashValue";
 import { LockTime } from "./LockTime";
 import { OutPoint } from "./OutPoint";
@@ -80,6 +82,15 @@ export class Tx {
      */
     public static fromBuffer(buf: Buffer): Tx {
         return Tx.parse(StreamReader.fromBuffer(buf));
+    }
+
+    /**
+     * Parses a transaction from a hex string containing the fully
+     * serialized transaction bytes.
+     * @param hex
+     */
+    public static fromHex(hex: string): Tx {
+        return Tx.parse(StreamReader.fromHex(hex));
     }
 
     /**
@@ -193,6 +204,44 @@ export class Tx {
             outputs: this.outputs.map(vout => vout.toJSON()),
             locktime: this.locktime.toJSON(),
         };
+    }
+
+    public toHex(pretty: boolean = false) {
+        if (!pretty) return this.serialize().toString("hex");
+        else return this._prettyHex();
+    }
+
+    private _prettyHex(): string {
+        const nl = "\n";
+        const pad = "    ";
+        let s = "";
+        s += Hex.uint32LE(this.version) + nl;
+        if (this.isSegWit) {
+            s += "0001" + nl;
+        }
+        s += Hex.varint(this.inputs.length) + nl;
+        for (const vin of this.inputs) {
+            s += pad + vin.outpoint.txid.serialize(HashByteOrder.Internal).toString("hex") + nl;
+            s += pad + Hex.uint32LE(vin.outpoint.outputIndex) + nl;
+            s += pad + vin.scriptSig.serialize().toString("hex") + nl;
+            s += pad + Hex.uint32LE(vin.sequence.value) + nl;
+        }
+        s += Hex.varint(this.outputs.length) + nl;
+        for (const vout of this.outputs) {
+            s += pad + Hex.uint64LE(vout.value.sats) + nl;
+            s += pad + vout.scriptPubKey.serialize().toString("hex");
+            s += nl;
+        }
+        if (this.isSegWit) {
+            for (const vin of this.inputs) {
+                s += Hex.varint(vin.witness.length) + nl;
+                for (const w of vin.witness) {
+                    s += pad + w.serialize().toString("hex") + nl;
+                }
+            }
+        }
+        s += Hex.uint32LE(this.locktime.value);
+        return s;
     }
 
     private _serializeLegacy(): Buffer {

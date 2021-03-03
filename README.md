@@ -12,6 +12,7 @@
 </div>
 
 ## About the Project
+
 Node-Lightning is an implementation of the Bitcoin Lightning Network in the Node.js runtime. The goal of this project is to implement the BOLT specifications to enable testing, research, and education. This project is not intended to replace or compete with the major implementations, though our hope is that the implementation will be fully functional.
 
 This library contains the core packages and several examples. There is currently no runtime for this project.
@@ -33,6 +34,7 @@ Node-Lightning is structured as a monorepo with individual packages existing ins
 -   [@node-lightning/bufio](packages/bufio) - utilities for working with Buffers
 -   [@node-lightning/chainmon](packages/chainmon) - transaction and block monitoring tools
 -   [@node-lightning/checksum](packages/checksum) - implements checksums such as CRC32C
+-   [@node-lightning/core](packages/core) - implements shared lightning functionality
 -   [@node-lightning/crypto](packages/crypto) - common cryptography utilities
 -   [@node-lightning/gossip-rocksdb](packages/gossip-rocksdb) - stores gossip messages in RocksDB
 -   [@node-lightning/graph](packages/graph) - builds and maintains a routing graph
@@ -54,7 +56,7 @@ Current status of [Lightning RFC](https://github.com/lightningnetwork/lightning-
 
 -   [x] BOLT 1 - Base Protocol
 -   [ ] BOLT 2 - Peer Protocol for Channel Management
--   [ ] BOLT 3 - Bitcoin Transaction and Script Format
+-   [x] BOLT 3 - Bitcoin Transaction and Script Format: [@node-lightning/bitcoin](packages/bitcoin), [@node-lightning/core](packages/core)
 -   [ ] BOLT 4 - Onion Routing Protocol
 -   [ ] BOLT 5 - Recommendations for On-chain Transaction Handling
 -   [x] BOLT 7 - P2P Node and Channel Discovery: [@node-lightning/wire](packages/wire), [@node-lightning/graph](packages/graph)
