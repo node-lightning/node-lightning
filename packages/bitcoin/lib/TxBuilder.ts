@@ -1,11 +1,9 @@
 import { BufferWriter } from "@node-lightning/bufio";
 import { hash256, sign, sigToDER } from "@node-lightning/crypto";
-import { HashByteOrder } from "./HashByteOrder";
 import { LockTime } from "./LockTime";
 import { OutPoint } from "./OutPoint";
 import { Script } from "./Script";
 import { Sequence } from "./Sequence";
-import { SigHashType } from "./SigHashType";
 import { Sorter } from "./Sorter";
 import { Tx } from "./Tx";
 import { TxIn } from "./TxIn";

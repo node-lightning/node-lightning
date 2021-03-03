@@ -24,7 +24,7 @@ export class OutPoint implements ICloneable<OutPoint> {
      * (reversed) byte order
      */
     public static fromString(text: string): OutPoint {
-        const parts = text.match(/([0-9a-f]{64,64}):(\d+)/i);
+        const parts = /^([0-9a-f]{64,64}):(\d+)$/i.exec(text);
         if (!parts) {
             throw new Error("invalid argument");
         }

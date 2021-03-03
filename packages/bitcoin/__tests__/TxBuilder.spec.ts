@@ -727,7 +727,7 @@ describe("TxBuilder", () => {
             tx.inputs[0].scriptSig = Script.p2shUnlock(redeemScript);
 
             // commit to the prior input value
-            const value = Value.fromBitcoin(49.9999);
+            // const value = Value.fromBitcoin(49.9999);
 
             // push witness data as bytes and witness script onto the witness stack
             tx.inputs[0].witness.push(new Witness(Stack.encodeNum(7)));

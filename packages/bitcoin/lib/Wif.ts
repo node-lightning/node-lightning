@@ -1,4 +1,3 @@
-import { bigToBufBE } from "@node-lightning/bufio";
 import { Base58Check } from "./Base58Check";
 
 export type WifDecodeResult = {

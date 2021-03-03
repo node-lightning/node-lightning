@@ -1,4 +1,3 @@
-import { Hash } from "crypto";
 import { HashByteOrder } from "./HashByteOrder";
 import { TxIn } from "./TxIn";
 import { TxOut } from "./TxOut";
