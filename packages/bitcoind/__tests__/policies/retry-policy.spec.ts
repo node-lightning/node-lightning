@@ -43,7 +43,7 @@ describe("RetryPolicy", () => {
     });
 
     it("fails after max retries", async () => {
-        const expectedValue = 1000;
+        // const expectedValue = 1000;
         const fn = sinon.stub();
         fn.onCall(0).rejects(new Error());
         fn.onCall(1).rejects(new Error());

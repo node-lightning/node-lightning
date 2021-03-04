@@ -15,6 +15,7 @@ export class RetryPolicy<T> implements IPolicy<T> {
                 return await fn();
             } catch (ex) {
                 this.numFailures += 1;
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                 this.lastFailure = ex;
                 await this.backoffStrategy.backoff();
             }
