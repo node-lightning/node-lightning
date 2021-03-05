@@ -72,8 +72,14 @@
         {
             "files": "__tests__/**/*",
             "rules":{
-                "@typescript-eslint/no-unsafe-member-access": 0,
-                "@typescript-eslint/no-explicit-any": 0
+                "no-sparse-arrays": "off",
+                "@typescript-eslint/no-explicit-any": "off",
+                "@typescript-eslint/unbound-method": "off",
+                "@typescript-eslint/no-unsafe-assignment": "off",
+                "@typescript-eslint/no-unsafe-call": "off",
+                "@typescript-eslint/no-unsafe-member-access": "off",
+                "@typescript-eslint/no-unsafe-return": "off",
+                "@typescript-eslint/restrict-plus-operands": "off"
             }
         }
     ]

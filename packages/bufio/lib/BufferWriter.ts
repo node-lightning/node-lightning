@@ -26,7 +26,7 @@ export class BufferWriter {
     /**
      * Gets the current size of the output Buffer
      */
-    get size() {
+    public get size(): number {
         return this._position;
     }
 
@@ -247,6 +247,7 @@ export class BufferWriter {
      */
     private _writeStandard(fn: string, val: number, len: number) {
         this._expand(len);
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         this._buffer[fn](val, this._position);
         this._position += len;
     }
