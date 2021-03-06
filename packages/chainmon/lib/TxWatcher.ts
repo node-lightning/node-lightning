@@ -65,5 +65,3 @@ export class TxWatcher extends EventEmitter {
         this._checkOutpoints(tx);
     }
 }
-
-exports.TxWatcher = TxWatcher;
