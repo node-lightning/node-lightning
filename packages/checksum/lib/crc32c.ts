@@ -21,6 +21,7 @@ export function crc32c(buf: Buffer): number {
     let crc = 0xffffffff;
     for (let i = 0; i < buf.length; i++) {
         const constantIdx = (crc & 0xff) ^ buf[i];
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const constant = constants[constantIdx];
         crc = xor(constant, crc >>> 8);
     }
@@ -43,8 +44,8 @@ export function crc32c(buf: Buffer): number {
  * value in the Wikipedia table:
  * https://en.wikipedia.org/wiki/Cyclic_redundancy_check#Polynomial_representations_of_cyclic_redundancy_checks
  */
-function generateReversedTable() {
-    const table = [];
+function generateReversedTable(): number[] {
+    const table: number[] = [];
     for (let i = 0; i < 256; i++) {
         let byte = i;
         for (let bit = 0; bit < 8; bit++) {
