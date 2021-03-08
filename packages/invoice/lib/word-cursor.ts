@@ -4,12 +4,12 @@ export class WordCursor {
     public words: number[];
     public position: number;
 
-    constructor(words = []) {
+    constructor(words: number[] = []) {
         this.words = words;
         this.position = 0;
     }
 
-    get wordsRemaining() {
+    public get wordsRemaining(): number {
         return this.words.length - this.position;
     }
 

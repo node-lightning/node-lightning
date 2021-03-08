@@ -21,7 +21,7 @@ export function convertWords(
     let bits = 0;
     const maxV = (1 << outBits) - 1;
 
-    const result = [];
+    const result: number[] = [];
     for (let i = 0; i < data.length; ++i) {
         value = (value << inBits) | data[i];
         bits += inBits;
