@@ -1,4 +1,4 @@
-import { BufferWriter, StreamReader, varIntBytes } from "@node-lightning/bufio";
+import { BufferWriter, StreamReader } from "@node-lightning/bufio";
 import { ICloneable } from "./ICloneable";
 
 /**

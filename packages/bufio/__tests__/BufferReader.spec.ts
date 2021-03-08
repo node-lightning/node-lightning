@@ -1,11 +1,9 @@
-// tslint:disable: no-unused-expression
-/* eslint-disable no-undef */
-
 import { expect } from "chai";
 import { BufferReader } from "../lib/BufferReader";
 
 describe("BufferReader", () => {
-    const readTests = [
+    type ReadTestFixture = { method: string; instance: BufferReader; expected?: number[] };
+    const readTests: ReadTestFixture[] = [
         {
             method: "readUInt8",
             instance: new BufferReader(Buffer.from([1, 2, 3])),
@@ -468,7 +466,7 @@ describe("BufferReader", () => {
     });
 
     describe("eof", () => {
-        let br;
+        let br: BufferReader;
         before(() => {
             br = new BufferReader(Buffer.from([1, 2]));
         });

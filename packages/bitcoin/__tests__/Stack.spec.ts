@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { Stack } from "../lib/Stack";
-import { Fixture, FixtureArray, testFixtures } from "./_TestHelper";
+import { Fixture, testFixtures } from "./_TestHelper";
 
 describe("Stack", () => {
     describe("#decodeNum()", () => {

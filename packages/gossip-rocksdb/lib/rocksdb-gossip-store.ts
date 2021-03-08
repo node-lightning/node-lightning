@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { BufferReader } from "@node-lightning/bufio";
 import { ShortChannelId } from "@node-lightning/core";
 import { shortChannelIdFromBuffer } from "@node-lightning/core";
@@ -60,6 +61,7 @@ export class RocksdbGossipStore extends RocksdbBase implements IGossipStore {
         while (!reader.eof) {
             results.push(shortChannelIdFromBuffer(reader.readBytes(8)));
         }
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return results;
     }
 

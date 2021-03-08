@@ -1,8 +1,7 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "target": "ES2019",
-    "outDir": "./dist"
+    "target": "ES2019"
   },
-  "include": ["./lib"]
+  "include": ["lib", "__tests__"]
 }

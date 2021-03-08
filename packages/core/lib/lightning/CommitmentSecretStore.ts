@@ -1,5 +1,7 @@
 import { CommitmentSecret } from "./CommitmentSecret";
 
+export type CommitmentSecretStoreItem = { index: bigint; secret: Buffer };
+
 /**
  * Defined in BOLT3, this class compactly stored received commitment
  * secrets from our counterparty. Without this mechanism we are required
@@ -23,10 +25,10 @@ export class CommitmentSecretStore {
         return 48; // seed
     }
 
-    private secrets: Array<{ index: bigint; secret: Buffer }>;
+    private secrets: CommitmentSecretStoreItem[];
 
     constructor() {
-        this.secrets = new Array(49);
+        this.secrets = new Array(49) as CommitmentSecretStoreItem[];
         for (let i = 0; i < this.secrets.length; i++) {
             this.secrets[i] = { index: 0n, secret: undefined };
         }

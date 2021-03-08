@@ -24,7 +24,7 @@ export abstract class Address {
     /**
      * Type of connection
      */
-    get type(): AddressType {
+    public get type(): AddressType {
         throw new Error("Not implemented");
     }
 

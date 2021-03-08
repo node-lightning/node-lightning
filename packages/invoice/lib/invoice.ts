@@ -1,4 +1,7 @@
-// @ts-check
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 
 import bech32 from "bech32";
 import bs58check from "bs58check";
@@ -64,7 +67,7 @@ export class Invoice {
      * When there is no value, the invoice is for the receipt of
      * any value.
      */
-    get hasValue(): boolean {
+    public get hasValue(): boolean {
         return typeof this._value === "bigint";
     }
 
@@ -81,11 +84,11 @@ export class Invoice {
      * @deprecated This property is maintained for backwards compaibility.
      * Use property `valueSat` or `valueMsat` instead.
      */
-    get amount(): string {
+    public get amount(): string {
         return this.hasValue ? (Number(this._value) / Number(picoToBtc)).toFixed(11) : null;
     }
 
-    set amount(val) {
+    public set amount(val) {
         if (!val) this._value = null;
         else this._value = BigInt(Math.trunc(parseFloat(val) * Number(picoToBtc)));
     }
@@ -99,11 +102,11 @@ export class Invoice {
      * Sets the value in satoshi from a string or number, such as 10000 satoshi.
      * Setting a falsy value will remove the value from the invoice.
      */
-    get valueSat() {
+    public get valueSat() {
         return this.hasValue ? (this._value / picoToSat).toString() : null;
     }
 
-    set valueSat(val) {
+    public set valueSat(val) {
         if (!val) this._value = null;
         else this._value = BigInt(val) * picoToSat;
     }
@@ -115,11 +118,11 @@ export class Invoice {
      * Sets the value in millisatoshi from a string or number. Setting a falsy
      * value will remove the value from the invoice.
      */
-    get valueMsat(): string {
+    public get valueMsat(): string {
         return this.hasValue ? (this._value / picoToMsat).toString() : null;
     }
 
-    set valueMsat(val) {
+    public set valueMsat(val) {
         if (!val) this._value = null;
         else this._value = BigInt(val) * picoToMsat;
     }
@@ -131,11 +134,11 @@ export class Invoice {
      * Sets the expiry time in seconds for the invoice.  Only a single
      * expiry field is valid in the invoice.
      */
-    get expiry(): number {
+    public get expiry(): number {
         return this._getFieldValue(FIELD_TYPE.EXPIRY, EXPIRY_DEFAULT);
     }
 
-    set expiry(value) {
+    public set expiry(value) {
         this._setFieldValue(FIELD_TYPE.EXPIRY, value);
     }
 
@@ -147,11 +150,11 @@ export class Invoice {
      * or hex-encoded string. Only a single field of this type is
      * valid in the invoice.
      */
-    get paymentHash(): Buffer {
+    public get paymentHash(): Buffer {
         return this._getFieldValue(FIELD_TYPE.PAYMENT_HASH);
     }
 
-    set paymentHash(value) {
+    public set paymentHash(value) {
         if (typeof value === "string") value = Buffer.from(value, "hex");
         this._setFieldValue(FIELD_TYPE.PAYMENT_HASH, value);
     }
@@ -167,15 +170,14 @@ export class Invoice {
      * in hashDesc. Otherwise, the raw string will be stored in the
      * short desc.
      */
-    get desc(): string | Buffer {
+    public get desc(): string | Buffer {
         return this.shortDesc || this.hashDesc;
     }
 
-    set desc(desc) {
+    public set desc(desc) {
         const len = Buffer.byteLength(desc);
         if (len > MAX_SHORT_DESC_BYTES) this.hashDesc = crypto.sha256(desc as Buffer);
-        // @ts-ignore
-        else this.shortDesc = desc;
+        else this.shortDesc = desc as string;
     }
 
     /**
@@ -187,11 +189,11 @@ export class Invoice {
      * bytes. Only a single short desc or hash desc field is allowed.
      * Setting this field will remove the hashDesc field value.
      */
-    get shortDesc(): string {
+    public get shortDesc(): string {
         return this._getFieldValue(FIELD_TYPE.SHORT_DESC);
     }
 
-    set shortDesc(value) {
+    public set shortDesc(value) {
         this._removeFieldByType(FIELD_TYPE.HASH_DESC);
         this._setFieldValue(FIELD_TYPE.SHORT_DESC, value);
     }
@@ -206,11 +208,11 @@ export class Invoice {
      * This must be used for descriptions that are over 639 bytes
      * long. Setting this field will remove any short desc fields.
      */
-    get hashDesc(): Buffer {
+    public get hashDesc(): Buffer {
         return this._getFieldValue(FIELD_TYPE.HASH_DESC);
     }
 
-    set hashDesc(value) {
+    public set hashDesc(value) {
         if (typeof value === "string") value = Buffer.from(value, "hex");
         this._removeFieldByType(FIELD_TYPE.SHORT_DESC);
         this._setFieldValue(FIELD_TYPE.HASH_DESC, value);
@@ -226,11 +228,11 @@ export class Invoice {
      * on signature recovery. This field must match the pubkey
      * used to generate the signature.
      */
-    get payeeNode(): Buffer {
+    public get payeeNode(): Buffer {
         return this._getFieldValue(FIELD_TYPE.PAYEE_NODE);
     }
 
-    set payeeNode(value) {
+    public set payeeNode(value) {
         if (typeof value === "string") value = Buffer.from(value, "hex");
         this._setFieldValue(FIELD_TYPE.PAYEE_NODE, value);
     }
@@ -241,11 +243,11 @@ export class Invoice {
      *
      * Sets the min final route CLTV expiry used in the final route.
      */
-    get minFinalCltvExpiry(): number {
+    public get minFinalCltvExpiry(): number {
         return this._getFieldValue(FIELD_TYPE.MIN_FINAL_CLTV_EXPIRY, MIN_FINAL_CLTV_EXPIRY_DEFAULT);
     }
 
-    set minFinalCltvExpiry(value) {
+    public set minFinalCltvExpiry(value) {
         this._setFieldValue(FIELD_TYPE.MIN_FINAL_CLTV_EXPIRY, value);
     }
 
@@ -254,9 +256,10 @@ export class Invoice {
      * multiple fallback addresses to send to an on-chain address
      * in the event of failure.
      */
-    get fallbackAddresses(): [FallbackAddress] {
-        // @ts-ignore
-        return this.fields.filter(p => p.type === FIELD_TYPE.FALLBACK_ADDRESS).map(p => p.value);
+    public get fallbackAddresses(): FallbackAddress[] {
+        return this.fields
+            .filter(p => p.type === FIELD_TYPE.FALLBACK_ADDRESS)
+            .map(p => p.value) as FallbackAddress[];
     }
 
     /**
@@ -295,8 +298,7 @@ export class Invoice {
      * Route information is necessary to route payments to private
      * nodes.
      */
-    get routes(): Route[] {
-        // @ts-ignore
+    public get routes(): Route[] {
         return this.fields.filter(p => p.type === FIELD_TYPE.ROUTE).map(p => p.value);
     }
 

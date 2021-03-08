@@ -1,4 +1,4 @@
-import { Readable, Stream } from "stream";
+import { Readable } from "stream";
 import { bufToStream } from "./bufToStream";
 
 /**
@@ -82,7 +82,7 @@ export class StreamReader {
      * @param n
      */
     public readBytes(n?: number): Buffer {
-        const bytes = this.stream.read(n);
+        const bytes = this.stream.read(n) as Buffer;
         if (n === 0) return Buffer.alloc(0);
         if (n !== undefined) this._assertLen(bytes, n);
         if (n === undefined && bytes === null) return Buffer.alloc(0);

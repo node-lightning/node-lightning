@@ -32,18 +32,18 @@ export class BufferReader {
     /**
      * Gets or sets the current position of the cursor in the buffer
      */
-    get position() {
+    public get position(): number {
         return this._position;
     }
 
-    set position(val) {
+    public set position(val: number) {
         this._position = val;
     }
 
     /**
      * Gets if the cursor is at the end of file.
      */
-    get eof() {
+    public get eof(): boolean {
         return this._position === this._buffer.length;
     }
 
@@ -51,7 +51,7 @@ export class BufferReader {
      * Gets the underlying buffer that the cursor
      * is reading from.
      */
-    get buffer() {
+    public get buffer(): Buffer {
         return this._buffer;
     }
 
@@ -60,7 +60,7 @@ export class BufferReader {
      * Especially useful for operations that return variable length of
      * results such as readBytes or readVarUint.
      */
-    get lastReadBytes() {
+    public get lastReadBytes(): number {
         return this._lastReadBytes;
     }
 
@@ -295,7 +295,8 @@ export class BufferReader {
         if (this._position + len > this._buffer.length) {
             throw new RangeError("Index out of range");
         }
-        const result = this._buffer[fn](this._position);
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
+        const result: number = this._buffer[fn](this._position);
         this._position += len;
         this._lastReadBytes = len;
         return result;

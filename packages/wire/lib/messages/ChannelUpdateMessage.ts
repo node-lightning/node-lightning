@@ -149,7 +149,7 @@ export class ChannelUpdateMessage implements IWireMessage {
      * Returns true when message flags have the optional
      * maximum HTLC msat value available
      */
-    get hasHtlcMaximumMsatFlag(): boolean {
+    public get hasHtlcMaximumMsatFlag(): boolean {
         return this.messageFlags.isSet(0);
     }
 
@@ -158,11 +158,11 @@ export class ChannelUpdateMessage implements IWireMessage {
      * When set to 0, node_1 is the sender. When set to 1
      * node_2 is the sender
      */
-    get direction(): number {
+    public get direction(): number {
         return this.channelFlags.isSet(0) ? 1 : 0;
     }
 
-    set direction(val: number) {
+    public set direction(val: number) {
         if (val === 0) {
             this.channelFlags.unset(0);
         } else if (val === 1) {
@@ -177,11 +177,11 @@ export class ChannelUpdateMessage implements IWireMessage {
      * When set to 0, the channel is active. When set to 1
      * the channel is disabled.
      */
-    get disabled(): boolean {
+    public get disabled(): boolean {
         return this.channelFlags.isSet(1);
     }
 
-    set disabled(val: boolean) {
+    public set disabled(val: boolean) {
         if (val) {
             this.channelFlags.set(1);
         } else {

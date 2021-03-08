@@ -1,5 +1,4 @@
 import {
-    bip69OutputSorter,
     HashValue,
     LockTime,
     OutPoint,

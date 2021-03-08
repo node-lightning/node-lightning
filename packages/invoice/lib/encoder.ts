@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+
 import bech32 from "bech32";
 import * as bech32Util from "./bech32-util";
 import * as crypto from "./crypto";

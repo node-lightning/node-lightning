@@ -59,9 +59,9 @@ export class GossipQueriesSync {
             this.logger.info("synchronization complete!");
             this._state = GossipQueriesSyncState.Complete;
         } catch (ex) {
-            this.logger.error("synchronization failed with error", ex.message);
+            this.logger.error("synchronization failed with error", (ex as Error).message);
             this._state = GossipQueriesSyncState.Failed;
-            this._error = ex;
+            this._error = ex as Error;
             throw ex;
         }
     }

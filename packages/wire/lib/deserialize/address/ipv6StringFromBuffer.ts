@@ -21,7 +21,7 @@ export function ipv6StringFromBuffer(buffer: Buffer): string {
 
 function getHexSections(buffer: Buffer): string[] {
     const bytesPerSection = 2;
-    const sections = [];
+    const sections: string[] = [];
     for (let i = 0; i < buffer.length; i += bytesPerSection) {
         let section = buffer.slice(i, i + bytesPerSection).toString("hex");
         section = discardLeadingZeros(section);

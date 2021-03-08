@@ -389,7 +389,7 @@ export class Script implements ICloneable<Script> {
     /**
      * Returns a JSON serialization of the Script.
      */
-    public toJSON(): any {
+    public toJSON() {
         return this.toString();
     }
 

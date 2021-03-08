@@ -76,7 +76,7 @@ export class PingMessage implements IWireMessage {
      * with the corresponding number of bytes. Above this value
      * no reply is necessary.  Refer to BOLT #1.
      */
-    get triggersReply(): boolean {
+    public get triggersReply(): boolean {
         return this.numPongBytes < PONG_BYTE_THRESHOLD;
     }
 }

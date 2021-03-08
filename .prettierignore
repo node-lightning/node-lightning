@@ -3,4 +3,5 @@
 **/.nyc_output/**
 **/*.txt
 **/package-lock.json
-
+**/.eslintrc
+**/.db

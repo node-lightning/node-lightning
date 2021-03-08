@@ -1,6 +1,5 @@
 import { ShortChannelId } from "@node-lightning/core";
 import { ILogger } from "@node-lightning/logger";
-import { IWireMessage } from "../messages/IWireMessage";
 import { QueryChannelRangeMessage } from "../messages/QueryChannelRangeMessage";
 import { ReplyChannelRangeMessage } from "../messages/ReplyChannelRangeMessage";
 import { IMessageSender } from "../Peer";

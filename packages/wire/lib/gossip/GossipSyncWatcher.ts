@@ -1,9 +1,7 @@
 import { ILogger } from "@node-lightning/logger";
 import { ChannelAnnouncementMessage } from "../messages/ChannelAnnouncementMessage";
 import { ChannelUpdateMessage } from "../messages/ChannelUpdateMessage";
-import { IWireMessage } from "../messages/IWireMessage";
 import { NodeAnnouncementMessage } from "../messages/NodeAnnouncementMessage";
-import { MessageType } from "../MessageType";
 
 export enum GossipSyncWatcherState {
     Idle,
@@ -31,6 +29,7 @@ export class GossipSyncWatcher {
     constructor(readonly logger: ILogger) {
         this._state = GossipSyncWatcherState.Idle;
         this._messageCounter = 0;
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         this._onTimeout = this._onTimeout.bind(this);
     }
 
@@ -89,6 +88,7 @@ export class GossipSyncWatcher {
     }
 
     private _setTimeout() {
+        // eslint-disable-next-line @typescript-eslint/unbound-method
         this._timeoutHandle = setTimeout(this._onTimeout, this.completeAfterMs);
     }
 

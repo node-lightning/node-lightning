@@ -4,7 +4,7 @@ import { expect } from "chai";
 import { OpCode } from "../lib/OpCodes";
 import { Script } from "../lib/Script";
 import { ScriptCmd } from "../lib/ScriptCmd";
-import { Fixture, FixtureArray, testFixtures } from "./_TestHelper";
+import { Fixture, testFixtures } from "./_TestHelper";
 
 describe("Script", () => {
     describe("#number()", () => {
@@ -247,7 +247,7 @@ describe("Script", () => {
 
         // comp: 024d4b6cd1361032ca9bd2aeb9d900aa4d45d9ead80ac9423374c451a7254d0766
         // ucom: 044d4b6cd1361032ca9bd2aeb9d900aa4d45d9ead80ac9423374c451a7254d07662a3eada2d0fe208b6d257ceb0f064284662e857f57b66b54c198bd310ded36d0
-        const privkeyB = Buffer.alloc(32, 2);
+        // const privkeyB = Buffer.alloc(32, 2);
 
         const invalidPubkey = Buffer.alloc(33);
 

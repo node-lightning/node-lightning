@@ -1,4 +1,5 @@
-// @ts-check
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
 import { shortChannelIdFromString } from "@node-lightning/core";
 import { OutPoint } from "@node-lightning/core";
