@@ -14,5 +14,3 @@ export class FileTransport implements ITransport {
         fs.writeSync(this.fileDescriptor, line + "\n");
     }
 }
-
-exports.FileTransport = FileTransport;
