@@ -1,8 +1,7 @@
-import crypto from "crypto";
 import { LegacyHopData } from "./LegacyHopData";
 
 export class HopPayload {
-    public static parse(buf: Buffer) {
+    public static parse() {
         // read len
         // read hop_payload
         // read hmac
