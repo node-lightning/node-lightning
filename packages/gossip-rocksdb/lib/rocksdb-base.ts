@@ -22,8 +22,10 @@ export abstract class RocksdbBase {
 
     protected async _safeGet<T>(key: Buffer): Promise<T> {
         try {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-return
             return await this._db.get(key);
         } catch (err) {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             if (err.notFound) return;
             else throw err;
         }
