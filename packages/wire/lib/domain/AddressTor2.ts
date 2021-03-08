@@ -11,7 +11,7 @@ export class AddressTor2 extends Address {
         super(host, port);
     }
 
-    get type() {
+    public get type() {
         return AddressType.TOR2;
     }
 }

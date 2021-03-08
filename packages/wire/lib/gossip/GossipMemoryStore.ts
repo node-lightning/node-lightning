@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/require-await */
 import { ShortChannelId } from "@node-lightning/core";
 import { shortChannelIdFromNumber } from "@node-lightning/core";
 import { OutPoint } from "@node-lightning/core";
@@ -17,15 +18,15 @@ export class GossipMemoryStore implements IGossipStore {
     private _nodeAnn = new Map<string, NodeAnnouncementMessage>();
     private _nodeChannels = new Map<string, Set<bigint>>();
 
-    get channelAnnouncementCount() {
+    public get channelAnnouncementCount() {
         return this._channelAnn.size;
     }
 
-    get channelUpdateCount() {
+    public get channelUpdateCount() {
         return this._channelUpd.size;
     }
 
-    get nodeAnnouncementCount() {
+    public get nodeAnnouncementCount() {
         return this._nodeAnn.size;
     }
 
@@ -49,7 +50,7 @@ export class GossipMemoryStore implements IGossipStore {
 
     public async findChannelsForNode(nodeId: Buffer): Promise<ShortChannelId[]> {
         const scidInts = this._nodeChannels.get(getNodeKey(nodeId));
-        const results = [];
+        const results: ShortChannelId[] = [];
         if (!scidInts) return results;
         for (const scidInt of scidInts) {
             results.push(shortChannelIdFromNumber(scidInt));

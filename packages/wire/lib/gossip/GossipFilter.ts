@@ -53,8 +53,11 @@ export class GossipFilter extends EventEmitter {
         this._pendingStore = pendingStore;
         this._chainClient = chainClient;
 
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         this.enqueue = this.enqueue.bind(this);
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         this._validateMessage = this._validateMessage.bind(this);
+        // eslint-disable-next-line @typescript-eslint/unbound-method
         this._processingQueue = new AsyncProcessingQueue<IWireMessage>(this._validateMessage);
         this._processingQueue.on("flushing", () => this.emit("flushing"));
         this._processingQueue.on("flushed", () => this.emit("flushed"));

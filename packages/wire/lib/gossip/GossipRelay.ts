@@ -87,7 +87,7 @@ export class GossipRelay {
         readonly relayPeriodMs = 60000,
         readonly maxQueueLen = 10000,
     ) {
-        this._peers = new Map();
+        this._peers = new Map() as Map<IPeer, number>;
         this._queue = [];
         this._state = GossipRelayState.Inactive;
     }
@@ -107,6 +107,7 @@ export class GossipRelay {
         if (this._state === GossipRelayState.Active) return;
         this.logger.info("starting gossip relay for all peers");
         this._state = GossipRelayState.Active;
+        // eslint-disable-next-line @typescript-eslint/no-implied-eval
         this._timer = setInterval(this._onTimer.bind(this), this.relayPeriodMs);
     }
 

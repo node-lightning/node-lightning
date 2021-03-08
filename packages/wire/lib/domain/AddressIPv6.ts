@@ -9,7 +9,7 @@ export class AddressIPv6 extends Address {
         super(host, port);
     }
 
-    get type(): AddressType {
+    public get type(): AddressType {
         return AddressType.IPv6;
     }
 

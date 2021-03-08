@@ -62,7 +62,7 @@ export class GossipManager extends EventEmitter {
     /**
      * The number of peers managed by the PeerManager
      */
-    get peerCount(): number {
+    public get peerCount(): number {
         return this.peers.size;
     }
 
@@ -223,7 +223,7 @@ export class GossipManager extends EventEmitter {
         // If we have not yet performed a full synchronization then we can
         // perform the full gossip state restore from this node
         if (this.syncState === SyncState.Unsynced) {
-            // tslint:disable-next-line: no-floating-promises
+            // eslint-disable-next-line @typescript-eslint/no-floating-promises
             this._syncPeer(gossipPeer);
         }
 

@@ -109,7 +109,8 @@ export class NodeAnnouncementMessage implements IWireMessage {
         }
 
         // obtain total address length
-        const addressBytes = addressBuffers.map(b => b.length).reduce((sum, val) => sum + val, 0);
+        // eslint-disable-next-line
+        const addressBytes: number = addressBuffers.map(b => b.length).reduce((sum, val) => sum + val, 0); // prettier-ignore
 
         const len =
             2 + // type
