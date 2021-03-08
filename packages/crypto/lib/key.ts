@@ -1,8 +1,8 @@
 import crypto from "crypto";
 import secp256k1 from "secp256k1";
 
-const minPrivateKey = BigInt("0x01");
-const maxPrivateKey = BigInt("0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364140");
+// const minPrivateKey = BigInt("0x01");
+// const maxPrivateKey = BigInt("0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364140");
 
 /**
  * Returns true when the Buffer represents a 256-bit number that is between
