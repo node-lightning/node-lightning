@@ -213,7 +213,7 @@ export class NoiseSocket extends Duplex {
 
     private _processInitiator() {
         // must read 50 bytes
-        let m = this._socket.read(50);
+        let m = this._socket.read(50) as Buffer;
         if (!m) return false;
 
         // validate initiator act1 message
@@ -234,7 +234,7 @@ export class NoiseSocket extends Duplex {
 
     private _processInitiatorReply() {
         // must read 66 bytes
-        const m = this._socket.read(66);
+        const m = this._socket.read(66) as Buffer;
         if (!m) return false;
 
         // validate initiator act3 message
@@ -256,7 +256,7 @@ export class NoiseSocket extends Duplex {
 
     private _processResponderReply() {
         // must read 50 bytes
-        let m = this._socket.read(50);
+        let m = this._socket.read(50) as Buffer;
         if (!m) return;
 
         // process reply
@@ -286,7 +286,7 @@ export class NoiseSocket extends Duplex {
         // Try to read the length cipher bytes and the length MAC bytes
         // If we cannot read the 18 bytes, the attempt to process the
         // message will abort.
-        const lc = this._socket.read(LEN_CIPHER_BYTES + LEN_MAC_BYTES);
+        const lc = this._socket.read(LEN_CIPHER_BYTES + LEN_MAC_BYTES) as Buffer;
         if (!lc) return;
 
         // Decrypt the length including the MAC
@@ -313,7 +313,7 @@ export class NoiseSocket extends Duplex {
         // there is not enough data in the read buffer, we need to
         // store l. We are not able to simply unshift it becuase we
         // have already rotated the keys.
-        const c = this._socket.read(this._l + MESSAGE_MAC_BYTES);
+        const c = this._socket.read(this._l + MESSAGE_MAC_BYTES) as Buffer;
         if (!c) return;
 
         // Decrypt the full message cipher + MAC
@@ -364,6 +364,7 @@ export class NoiseSocket extends Duplex {
         this._socket.write(c, cb);
     }
 
-    // tslint:disable-next-line: member-ordering no-empty
-    public _final() {}
+    public _final() {
+        //
+    }
 }

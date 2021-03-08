@@ -111,18 +111,18 @@ export class NoiseServer extends EventEmitter {
     /**
      * Indicates whether or not the server is listening for connections.
      */
-    get listening() {
+    public get listening() {
         return this._server.listening;
     }
 
     /**
      * Set this property to reject connections when the server's connection count gets high.
      */
-    get maxConnections() {
+    public get maxConnections() {
         return this._server.maxConnections;
     }
 
-    set maxConnections(val) {
+    public set maxConnections(val) {
         this._server.maxConnections = val;
     }
 }
