@@ -108,6 +108,33 @@ fa4a14d758de1c3db0c3b9ecef7efe02b5447f71f57abaa116ffffffff020000000000000000536a
                 },
             ],
             [
+                "base transaction with no inputs",
+                "02000000000100e1f5050000000017a9148fe46e05e329badba1c390a5ea2c0ad7de2059cd8700000000",
+                {
+                    txid: "91dfa1f99ac88ddcad2bd0d182c6ceb75436c7e42f7639b6343ec64dcbf15ee9",
+                    hash: "91dfa1f99ac88ddcad2bd0d182c6ceb75436c7e42f7639b6343ec64dcbf15ee9",
+                    version: 2,
+                    size: 42,
+                    vsize: 42,
+                    weight: 168,
+                    locktime: 0,
+                    vin: [],
+                    vout: [
+                        {
+                            value: 1.0,
+                            n: 0,
+                            scriptPubKey: {
+                                asm: "OP_HASH160 8fe46e05e329badba1c390a5ea2c0ad7de2059cd OP_EQUAL",
+                                hex: "a9148fe46e05e329badba1c390a5ea2c0ad7de2059cd87",
+                                reqSigs: 1,
+                                type: "scripthash",
+                                addresses: ["2N6N4GJ4E5fSZ7vGPTQ6qP1ZbYcZSXdzaPs"],
+                            },
+                        },
+                    ],
+                },
+            ],
+            [
                 "segwit transaction",
                 "020000000001018886e5888fd709eb2400ec13db8e310fce7b\
 15dce37fd57d08507f6d04d4319601000000171600140c3928c9f33355eacd8b4b5fabc542543f399702feffffff02abac2\

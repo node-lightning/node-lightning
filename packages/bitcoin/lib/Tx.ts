@@ -29,30 +29,43 @@ export class Tx {
         // read version
         const version = reader.readUInt32LE();
 
+        // save bytes for later and unshift values back
+        const bytes = reader.readBytes();
+        reader.unshift(bytes);
+
         // check for witness marker and version flag
         const segwitBytes = reader.readBytes(2);
-        const hasWitness = segwitBytes[0] === 0x00 && segwitBytes[1] === 0x01;
+        let hasWitness = segwitBytes[0] === 0x00 && segwitBytes[1] === 0x01;
 
         // for non-witness data, we unshift the values back
         if (!hasWitness) reader.unshift(segwitBytes);
 
-        // read each input
-        const vinLen = Number(reader.readVarInt());
-        const inputs: TxIn[] = [];
-        for (let idx = 0; idx < vinLen; idx++) {
-            inputs.push(
-                new TxIn(OutPoint.parse(reader), Script.parse(reader), Sequence.parse(reader)),
-            );
+        let vinLen: number;
+        let inputs: TxIn[];
+        let outputs: TxOut[];
+        let parsedInputs: { vinLen: number; inputs: TxIn[] };
+        let parsedOutputs: { voutLen: number; outputs: TxOut[] };
+        try {
+            parsedInputs = this.parseInputs(reader);
+            parsedOutputs = this.parseOutputs(reader);
+        } catch (e) {
+            // this throw/catch is _still_ necessary for the case where we have unsigned base transactions
+            // with zero inputs and 1 output which is serialized as "0001" at bytes 4 and 5.
+            // these transactions will not have a script witness associated with them making them invalid
+            // witness transactions (you need to have a witness to be considered a witness tx)
+            // see: https://github.com/bitcoin-s/bitcoin-s/blob/01d89df1b7c6bc4b1594406d54d5e6019705c654/core-test/src/test/scala/org/bitcoins/core/protocol/transaction/TransactionTest.scala#L88
+            hasWitness = false;
+            reader.unshift(bytes);
+            parsedInputs = this.parseInputs(reader);
+            parsedOutputs = this.parseOutputs(reader);
         }
 
-        // read each output
-        const voutLen = Number(reader.readVarInt());
-        const outputs: TxOut[] = [];
-        for (let idx = 0; idx < voutLen; idx++) {
-            outputs.push(new TxOut(
-                Value.fromSats(reader.readBigUInt64LE()),
-                Script.parse(reader),
-            )); // prettier-ignore
+        if (parsedInputs) {
+            vinLen = parsedInputs.vinLen;
+            inputs = parsedInputs.inputs;
+        }
+        if (parsedOutputs) {
+            outputs = parsedOutputs.outputs;
         }
 
         // process witness data
@@ -69,10 +82,36 @@ export class Tx {
             }
         }
 
-        // read the locktime
         const locktime = LockTime.parse(reader);
 
         return new Tx(version, inputs, outputs, locktime);
+    }
+
+    private static parseInputs(reader: StreamReader): { vinLen: number; inputs: TxIn[] } {
+        // read each input
+        const vinLen = Number(reader.readVarInt());
+        const inputs: TxIn[] = [];
+        for (let idx = 0; idx < vinLen; idx++) {
+            inputs.push(
+                new TxIn(OutPoint.parse(reader), Script.parse(reader), Sequence.parse(reader)),
+            );
+        }
+
+        return { vinLen, inputs };
+    }
+
+    private static parseOutputs(reader: StreamReader): { voutLen: number; outputs: TxOut[] } {
+        // read each output
+        const voutLen = Number(reader.readVarInt());
+        const outputs: TxOut[] = [];
+        for (let idx = 0; idx < voutLen; idx++) {
+            outputs.push(new TxOut(
+                Value.fromSats(reader.readBigUInt64LE()),
+                Script.parse(reader),
+            )); // prettier-ignore
+        }
+
+        return { voutLen, outputs };
     }
 
     /**
