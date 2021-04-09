@@ -4,7 +4,7 @@ import { HashByteOrder } from "../lib/HashByteOrder";
 import { Tx } from "../lib/Tx";
 
 describe("Tx", () => {
-    describe("#.parse()", () => {
+    describe("#.decode()", () => {
         const tests: Array<[string, string, any]> = [
             [
                 "legacy transaction",
@@ -102,6 +102,33 @@ fa4a14d758de1c3db0c3b9ecef7efe02b5447f71f57abaa116ffffffff020000000000000000536a
                                 reqSigs: 1,
                                 type: "pubkeyhash",
                                 addresses: ["1A9VtHgdv5HsSwfWvrbs67MdMUnCKeQppS"],
+                            },
+                        },
+                    ],
+                },
+            ],
+            [
+                "base transaction with no inputs",
+                "02000000000100e1f5050000000017a9148fe46e05e329badba1c390a5ea2c0ad7de2059cd8700000000",
+                {
+                    txid: "91dfa1f99ac88ddcad2bd0d182c6ceb75436c7e42f7639b6343ec64dcbf15ee9",
+                    hash: "91dfa1f99ac88ddcad2bd0d182c6ceb75436c7e42f7639b6343ec64dcbf15ee9",
+                    version: 2,
+                    size: 42,
+                    vsize: 42,
+                    weight: 168,
+                    locktime: 0,
+                    vin: [],
+                    vout: [
+                        {
+                            value: 1.0,
+                            n: 0,
+                            scriptPubKey: {
+                                asm: "OP_HASH160 8fe46e05e329badba1c390a5ea2c0ad7de2059cd OP_EQUAL",
+                                hex: "a9148fe46e05e329badba1c390a5ea2c0ad7de2059cd87",
+                                reqSigs: 1,
+                                type: "scripthash",
+                                addresses: ["2N6N4GJ4E5fSZ7vGPTQ6qP1ZbYcZSXdzaPs"],
                             },
                         },
                     ],
@@ -217,7 +244,7 @@ db6ffc0d3df8247bf5f202473044022079ffca5511b1a2cc59cb3a808cf85cfdd59a461ff511a4c3
 
         for (const [title, input, expected] of tests) {
             it(title, () => {
-                const result = Tx.parse(StreamReader.fromHex(input));
+                const result = Tx.decode(StreamReader.fromHex(input));
                 expect(result.version).to.equal(expected.version);
                 expect(result.txId.toString()).to.equal(expected.txid);
                 expect(result.witnessTxId.toString()).to.equal(expected.hash);
@@ -255,7 +282,7 @@ db6ffc0d3df8247bf5f202473044022079ffca5511b1a2cc59cb3a808cf85cfdd59a461ff511a4c3
 
     describe(".toHex()", () => {
         it("pretty", () => {
-            const sut = Tx.parse(StreamReader.fromHex("020000000001018154ecccf11a5fb56c39654c4deb4d2296f83c69268280b94d021370c94e219700000000000000000001e8030000000000002200204adb4e2f00643db396dd120d4e7dc17625f5f2c11a40d857accc862d6b7dd80e050047304402206a6e59f18764a5bf8d4fa45eebc591566689441229c918b480fb2af8cc6a4aeb02205248f273be447684b33e3c8d1d85a8e0ca9fa0bae9ae33f0527ada9c162919a60147304402207cb324fa0de88f452ffa9389678127ebcf4cabe1dd848b8e076c1a1962bf34720220116ed922b12311bd602d67e60d2529917f21c5b82f25ff6506c0f87886b4dfd5012000000000000000000000000000000000000000000000000000000000000000008a76a91414011f7254d96b819c76986c277d115efce6f7b58763ac67210394854aa6eab5b2a8122cc726e9dded053a2184d88256816826d6231c068d4a5b7c8201208763a914b8bcb07f6344b42ab04250c86a6e8b75d3fdbbc688527c21030d417a46946384f88d5f3337267c5e579765875dc4daca813e21734b140639e752ae677502f401b175ac686800000000")); // prettier-ignore
+            const sut = Tx.decode(StreamReader.fromHex("020000000001018154ecccf11a5fb56c39654c4deb4d2296f83c69268280b94d021370c94e219700000000000000000001e8030000000000002200204adb4e2f00643db396dd120d4e7dc17625f5f2c11a40d857accc862d6b7dd80e050047304402206a6e59f18764a5bf8d4fa45eebc591566689441229c918b480fb2af8cc6a4aeb02205248f273be447684b33e3c8d1d85a8e0ca9fa0bae9ae33f0527ada9c162919a60147304402207cb324fa0de88f452ffa9389678127ebcf4cabe1dd848b8e076c1a1962bf34720220116ed922b12311bd602d67e60d2529917f21c5b82f25ff6506c0f87886b4dfd5012000000000000000000000000000000000000000000000000000000000000000008a76a91414011f7254d96b819c76986c277d115efce6f7b58763ac67210394854aa6eab5b2a8122cc726e9dded053a2184d88256816826d6231c068d4a5b7c8201208763a914b8bcb07f6344b42ab04250c86a6e8b75d3fdbbc688527c21030d417a46946384f88d5f3337267c5e579765875dc4daca813e21734b140639e752ae677502f401b175ac686800000000")); // prettier-ignore
             expect(sut.toHex(true)).to.equal(`02000000
 0001
 01
