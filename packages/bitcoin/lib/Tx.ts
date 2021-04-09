@@ -40,14 +40,11 @@ export class Tx {
         // for non-witness data, we unshift the values back
         if (!hasWitness) reader.unshift(segwitBytes);
 
-        let vinLen: number;
-        let inputs: TxIn[];
-        let outputs: TxOut[];
-        let parsedInputs: { vinLen: number; inputs: TxIn[] };
-        let parsedOutputs: { voutLen: number; outputs: TxOut[] };
+        let inputs: TxIn[] = [];
+        let outputs: TxOut[] = [];
         try {
-            parsedInputs = this.parseInputs(reader);
-            parsedOutputs = this.parseOutputs(reader);
+            inputs = this.parseInputs(reader);
+            outputs = this.parseOutputs(reader);
         } catch (e) {
             // this throw/catch is _still_ necessary for the case where we have unsigned base transactions
             // with zero inputs and 1 output which is serialized as "0001" at bytes 4 and 5.
@@ -56,22 +53,14 @@ export class Tx {
             // see: https://github.com/bitcoin-s/bitcoin-s/blob/01d89df1b7c6bc4b1594406d54d5e6019705c654/core-test/src/test/scala/org/bitcoins/core/protocol/transaction/TransactionTest.scala#L88
             hasWitness = false;
             reader.unshift(bytes);
-            parsedInputs = this.parseInputs(reader);
-            parsedOutputs = this.parseOutputs(reader);
-        }
-
-        if (parsedInputs) {
-            vinLen = parsedInputs.vinLen;
-            inputs = parsedInputs.inputs;
-        }
-        if (parsedOutputs) {
-            outputs = parsedOutputs.outputs;
+            inputs = this.parseInputs(reader);
+            outputs = this.parseOutputs(reader);
         }
 
         // process witness data
         if (hasWitness) {
             // for each input
-            for (let i = 0; i < vinLen; i++) {
+            for (let i = 0; i < inputs.length; i++) {
                 // read number of witness items
                 const items = Number(reader.readVarInt());
 
@@ -87,8 +76,7 @@ export class Tx {
         return new Tx(version, inputs, outputs, locktime);
     }
 
-    private static parseInputs(reader: StreamReader): { vinLen: number; inputs: TxIn[] } {
-        // read each input
+    private static parseInputs(reader: StreamReader): TxIn[] {
         const vinLen = Number(reader.readVarInt());
         const inputs: TxIn[] = [];
         for (let idx = 0; idx < vinLen; idx++) {
@@ -96,12 +84,10 @@ export class Tx {
                 new TxIn(OutPoint.parse(reader), Script.parse(reader), Sequence.parse(reader)),
             );
         }
-
-        return { vinLen, inputs };
+        return inputs;
     }
 
-    private static parseOutputs(reader: StreamReader): { voutLen: number; outputs: TxOut[] } {
-        // read each output
+    private static parseOutputs(reader: StreamReader): TxOut[] {
         const voutLen = Number(reader.readVarInt());
         const outputs: TxOut[] = [];
         for (let idx = 0; idx < voutLen; idx++) {
@@ -110,8 +96,7 @@ export class Tx {
                 Script.parse(reader),
             )); // prettier-ignore
         }
-
-        return { voutLen, outputs };
+        return outputs;
     }
 
     /**
