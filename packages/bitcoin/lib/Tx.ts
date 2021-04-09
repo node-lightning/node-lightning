@@ -20,62 +20,78 @@ import { Witness } from "./Witness";
  */
 export class Tx {
     /**
-     * Parses a transaction from its byte format in a stream. Capable of
-     * parsing both legacy and segwit transactions. Size and ID
-     * are calculated lazily.
+     * Decodes a `Tx` stream similar to Bitcoin Core's DecodeTx method
+     * in that it will first try to parse with SegWit markers enabled.
+     * If there is an error (such as  with a base transaction with no
+     * inputs), then it will try parsing using the legacy method.
      * @param reader
      */
-    public static parse(reader: StreamReader): Tx {
-        // read version
+    public static decode(reader: StreamReader): Tx {
+        const data = reader.readBytes();
+        try {
+            return Tx.parse(StreamReader.fromBuffer(data), true);
+        } catch (ex) {
+            return Tx.parse(StreamReader.fromBuffer(data), false);
+        }
+    }
+
+    /**
+     * Parses a transaction from its byte format in a stream. Capable of
+     * parsing both legacy and segwit transactions. This method is
+     * similar to Bitcoin Core's `UnserializeTransaction` on the
+     * `Transaction` type. This method is expected to throw if witness
+     * is enabled and we have an ambiguous base transaction (zero inputs).
+     * @param reader
+     */
+    private static parse(reader: StreamReader, allowWitness: boolean): Tx {
+        // Read the version
         const version = reader.readUInt32LE();
 
-        // save bytes for later and unshift values back
-        const bytes = reader.readBytes();
-        reader.unshift(bytes);
+        // Try reading inputs. If this is segwit or a base/dummy, we get
+        // an empty array
+        let vins: TxIn[] = Tx.parseInputs(reader);
+        let vouts: TxOut[];
 
-        // check for witness marker and version flag
-        const segwitBytes = reader.readBytes(2);
-        let hasWitness = segwitBytes[0] === 0x00 && segwitBytes[1] === 0x01;
+        let flags: number = 0;
 
-        // for non-witness data, we unshift the values back
-        if (!hasWitness) reader.unshift(segwitBytes);
-
-        let inputs: TxIn[] = [];
-        let outputs: TxOut[] = [];
-        try {
-            inputs = this.parseInputs(reader);
-            outputs = this.parseOutputs(reader);
-        } catch (e) {
-            // this throw/catch is _still_ necessary for the case where we have unsigned base transactions
-            // with zero inputs and 1 output which is serialized as "0001" at bytes 4 and 5.
-            // these transactions will not have a script witness associated with them making them invalid
-            // witness transactions (you need to have a witness to be considered a witness tx)
-            // see: https://github.com/bitcoin-s/bitcoin-s/blob/01d89df1b7c6bc4b1594406d54d5e6019705c654/core-test/src/test/scala/org/bitcoins/core/protocol/transaction/TransactionTest.scala#L88
-            hasWitness = false;
-            reader.unshift(bytes);
-            inputs = this.parseInputs(reader);
-            outputs = this.parseOutputs(reader);
+        // If witness is allowed and we had an empty input array we
+        // will try parsing a normal witness transaction. This may throw
+        // if this is a base transaction.
+        if (allowWitness && vins.length === 0) {
+            flags = reader.readUInt8();
+            if (flags !== 0) {
+                vins = Tx.parseInputs(reader);
+                vouts = Tx.parseOutputs(reader);
+            }
+        }
+        // Otherwise, we had success reading inputs and can move along
+        // and parse the outputs!
+        else {
+            vouts = Tx.parseOutputs(reader);
         }
 
-        // process witness data
-        if (hasWitness) {
-            // for each input
-            for (let i = 0; i < inputs.length; i++) {
-                // read number of witness items
+        // If we have witness and read a flag, then we we need to
+        // process the witness for each input.
+        if (allowWitness && flags & 1) {
+            for (let i = 0; i < vins.length; i++) {
                 const items = Number(reader.readVarInt());
-
-                // parse each witness item and add it to the input
                 for (let item = 0; item < items; item++) {
-                    inputs[i].witness.push(Witness.parse(reader));
+                    vins[i].witness.push(Witness.parse(reader));
                 }
             }
         }
 
+        // Finally read the locktime
         const locktime = LockTime.parse(reader);
 
-        return new Tx(version, inputs, outputs, locktime);
+        return new Tx(version, vins, vouts, locktime);
     }
 
+    /**
+     * Parses the inputs for a transaction
+     * @param reader
+     * @returns
+     */
     private static parseInputs(reader: StreamReader): TxIn[] {
         const vinLen = Number(reader.readVarInt());
         const inputs: TxIn[] = [];
@@ -87,6 +103,11 @@ export class Tx {
         return inputs;
     }
 
+    /**
+     * Parses the outputs for a transaction
+     * @param reader
+     * @returns
+     */
     private static parseOutputs(reader: StreamReader): TxOut[] {
         const voutLen = Number(reader.readVarInt());
         const outputs: TxOut[] = [];
@@ -105,7 +126,7 @@ export class Tx {
      * @param buf
      */
     public static fromBuffer(buf: Buffer): Tx {
-        return Tx.parse(StreamReader.fromBuffer(buf));
+        return Tx.decode(StreamReader.fromBuffer(buf));
     }
 
     /**
@@ -114,7 +135,7 @@ export class Tx {
      * @param hex
      */
     public static fromHex(hex: string): Tx {
-        return Tx.parse(StreamReader.fromHex(hex));
+        return Tx.decode(StreamReader.fromHex(hex));
     }
 
     /**
