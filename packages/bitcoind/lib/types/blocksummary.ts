@@ -7,7 +7,7 @@ export type BlockSummary = {
     version: number;
     versionHex: string;
     merkleroot: string;
-    tx: [string];
+    tx: string[];
     time: number;
     mediantime: number;
     nonce: number;
