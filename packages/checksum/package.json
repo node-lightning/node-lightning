@@ -1,6 +1,6 @@
 {
   "name": "@node-lightning/checksum",
-  "version": "0.22.0",
+  "version": "0.22.1",
   "description": "Checksum library with CRC32C",
   "keywords": [
     "checksum",
