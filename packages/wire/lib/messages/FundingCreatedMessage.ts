@@ -1,8 +1,16 @@
 import { BufferReader, BufferWriter } from "@node-lightning/bufio";
 import { MessageType } from "../MessageType";
-import { readTlvs } from "../serialize/readTlvs";
 import { IWireMessage } from "./IWireMessage";
 
+/**
+ * The `funding_created` message is sent by the channel initiator after
+ * the channel has been accepted with `accept_channel`. The channel
+ * initiator includes the outpoint for the funding transaction as well
+ * as their signature for the counter-parties first commitment
+ * transaction. This message provides the channel acceptor the
+ * information they need to sign the initiator's first commitment
+ * transaction in the next message: `funding_signed`.
+ */
 export class FundingCreatedMessage implements IWireMessage {
     public static type = MessageType.FundingCreated;
 
