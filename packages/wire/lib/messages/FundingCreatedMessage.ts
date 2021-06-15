@@ -32,7 +32,7 @@ export class FundingCreatedMessage implements IWireMessage {
     }
 
     /**
-     * The type for accept_channel message. accept_channel = 33
+     * The type for message. funding_created = 34
      */
     public type = FundingCreatedMessage.type;
 
