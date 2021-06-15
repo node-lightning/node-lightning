@@ -12,6 +12,7 @@ export enum MessageType {
     OpenChannel = 32,
     AcceptChannel = 33,
     FundingCreated = 34,
+    FundingSigned = 35,
 
     // Commitment (128-255)
     //
