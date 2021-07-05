@@ -6,6 +6,7 @@ import * as noise from "@node-lightning/noise";
 import { expect } from "chai";
 import { EventEmitter } from "events";
 import sinon from "sinon";
+import { IWireMessage } from "../lib";
 import { InitFeatureFlags } from "../lib/flags/InitFeatureFlags";
 import { Peer } from "../lib/Peer";
 import { PeerState } from "../lib/PeerState";
@@ -18,12 +19,15 @@ class FakeSocket extends EventEmitter {
     constructor() {
         super();
         this.write = sinon.stub();
+        this.read = sinon.stub();
         this.end = sinon.stub();
         this.rpk = Buffer.alloc(33);
     }
 }
 
-class FakeMessage {
+class FakeMessage implements IWireMessage {
+    public type = 3;
+
     [x: string]: any;
 
     constructor(msg) {
@@ -51,7 +55,7 @@ describe("Peer", () => {
         ls = Buffer.alloc(32, 0);
         rpk = Buffer.alloc(32, 1);
         logger = createFakeLogger();
-        sut = new Peer(ls, localFeatures, chainHashes, logger);
+        sut = new Peer(ls, localFeatures, chainHashes, logger, 1);
         sut.socket = socket = new FakeSocket() as any;
         sut.pingPongState = sinon.createStubInstance(PingPongState) as any;
         sandbox = sinon.createSandbox();
@@ -67,7 +71,7 @@ describe("Peer", () => {
             sandbox.stub(sut, "_onSocketReady" as any);
             sandbox.stub(sut, "_onSocketClose" as any);
             sandbox.stub(sut, "_onSocketError" as any);
-            sandbox.stub(sut, "_onSocketData" as any);
+            sandbox.stub(sut, "_onSocketReadable" as any);
             sut.connect(rpk, "127.0.0.1", 9735);
         });
 
@@ -90,9 +94,9 @@ describe("Peer", () => {
             expect((sut as any)._onSocketError.called).to.be.true;
         });
 
-        it("should bind data", () => {
-            socket.emit("data");
-            expect((sut as any)._onSocketData.called).to.be.true;
+        it("should bind readable", () => {
+            socket.emit("readable");
+            expect((sut as any)._onSocketReadable.called).to.be.true;
         });
     });
 
@@ -101,7 +105,7 @@ describe("Peer", () => {
             sandbox.stub(sut, "_onSocketReady" as any);
             sandbox.stub(sut, "_onSocketClose" as any);
             sandbox.stub(sut, "_onSocketError" as any);
-            sandbox.stub(sut, "_onSocketData" as any);
+            sandbox.stub(sut, "_onSocketReadable" as any);
             sut.attach(socket);
         });
 
@@ -124,9 +128,9 @@ describe("Peer", () => {
             expect((sut as any)._onSocketError.called).to.be.true;
         });
 
-        it("should bind data", () => {
-            socket.emit("data");
-            expect((sut as any)._onSocketData.called).to.be.true;
+        it("should bind readable", () => {
+            socket.emit("readable");
+            expect((sut as any)._onSocketReadable.called).to.be.true;
         });
     });
 
@@ -243,7 +247,7 @@ describe("Peer", () => {
         });
     });
 
-    describe("_onSocketData", () => {
+    describe(".read()", () => {
         beforeEach(() => {
             sandbox.stub(sut, "_processPeerInitMessage" as any);
             sandbox.stub(sut, "_processMessage" as any);
@@ -251,13 +255,15 @@ describe("Peer", () => {
 
         it("should read peer init message when awaiting_peer_init state", () => {
             sut.state = Peer.states.AwaitingPeerInit;
-            (sut as any)._onSocketData("data");
+            (sut.socket.read as any).returns("data");
+            sut.read();
             expect((sut as any)._processPeerInitMessage.called).to.be.true;
         });
 
         it("should process message when in ready state", () => {
             sut.state = Peer.states.Ready;
-            (sut as any)._onSocketData("datat");
+            (sut.socket.read as any).returns("data");
+            sut.read();
             expect((sut as any)._processMessage.called).to.be.true;
         });
 
@@ -268,7 +274,8 @@ describe("Peer", () => {
                 sut.on("error", () => {
                     //
                 });
-                (sut as any)._onSocketData("data");
+                (sut.socket.read as any).returns("data");
+                sut.read();
                 expect((socket as any).end.called).to.be.true;
             });
 
@@ -276,7 +283,8 @@ describe("Peer", () => {
                 sut.state = Peer.states.Ready;
                 (sut as any)._processMessage.throws(new Error("boom"));
                 sut.on("error", () => done());
-                (sut as any)._onSocketData("data");
+                (sut.socket.read as any).returns("data");
+                sut.read();
             });
         });
     });
@@ -414,9 +422,13 @@ describe("Peer", () => {
 
     describe("_processMessage", () => {
         let input;
+        let msg;
 
         beforeEach(() => {
             input = Buffer.from("001000000000", "hex");
+            sut.on("readable", () => {
+                msg = sut.read();
+            });
         });
 
         describe("when valid message", () => {
@@ -425,9 +437,8 @@ describe("Peer", () => {
                 expect((sut as any).pingPongState.onMessage.called).to.be.true;
             });
 
-            it("should emit the message", done => {
-                sut.on("message", () => done());
-                (sut as any)._processMessage(input);
+            it("should emit the message", () => {
+                expect(msg.type).to.equal(16);
             });
         });
     });

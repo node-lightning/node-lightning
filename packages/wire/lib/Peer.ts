@@ -3,7 +3,7 @@ import { ILogger } from "@node-lightning/logger";
 import * as noise from "@node-lightning/noise";
 import { NoiseSocket } from "@node-lightning/noise";
 import assert from "assert";
-import { EventEmitter } from "events";
+import { Readable } from "stream";
 import { InitFeatureFlags } from "./flags/InitFeatureFlags";
 import * as MessageFactory from "./MessageFactory";
 import { InitMessage } from "./messages/InitMessage";
@@ -86,7 +86,7 @@ export interface IPeer extends IMessageSenderReceiver {
  *
  * @emits end emitted when the connection to the peer is ending.
  */
-export class Peer extends EventEmitter implements IPeer {
+export class Peer extends Readable implements IPeer {
     public static states = PeerState;
 
     public state: PeerState = PeerState.Disconnected;
@@ -112,8 +112,9 @@ export class Peer extends EventEmitter implements IPeer {
         readonly localFeatures: BitField<InitFeatureFlags>,
         readonly localChains: Buffer[],
         logger: ILogger,
+        highWaterMark: number = 2048,
     ) {
-        super();
+        super({ objectMode: true, highWaterMark });
 
         this.pingPongState = new PingPongState(this);
         this.logger = logger;
@@ -158,7 +159,7 @@ export class Peer extends EventEmitter implements IPeer {
         this.socket.on("ready", this._onSocketReady.bind(this));
         this.socket.on("close", this._onSocketClose.bind(this));
         this.socket.on("error", this._onSocketError.bind(this));
-        this.socket.on("data", this._onSocketData.bind(this));
+        this.socket.on("readable", this._onSocketReadable.bind(this));
     }
 
     /**
@@ -171,7 +172,7 @@ export class Peer extends EventEmitter implements IPeer {
         this.socket.on("ready", this._onSocketReady.bind(this));
         this.socket.on("close", this._onSocketClose.bind(this));
         this.socket.on("error", this._onSocketError.bind(this));
-        this.socket.on("data", this._onSocketData.bind(this));
+        this.socket.on("readable", this._onSocketReadable.bind(this));
 
         // Once the socket is ready, we have performed the handshake which allows
         // us to ascertain the identity of the connecting node. Now that we have
@@ -200,7 +201,7 @@ export class Peer extends EventEmitter implements IPeer {
      * Writes the message on the NoiseSocket using the default
      * serialization properties
      */
-    public sendMessage(m: any): boolean {
+    public sendMessage(m: IWireMessage): boolean {
         assert.ok(this.state === PeerState.Ready, new Error("Peer is not ready"));
         const buf = m.serialize() as Buffer;
         this.emit("sending", buf);
@@ -280,8 +281,22 @@ export class Peer extends EventEmitter implements IPeer {
         this.emit("error", err);
     }
 
-    private _onSocketData(raw) {
+    private _onSocketReadable() {
+        this.emit("readable");
+    }
+
+    /**
+     * Triggered by the consumer calling the read method.
+     *
+     */
+    public _read() {
         try {
+            // Read data from the underlying. If there is nothign else
+            // to read then we are done until more data is available on
+            // the socket.
+            const raw = this.socket.read() as Buffer;
+            if(!raw) return;
+
             if (this.state === PeerState.AwaitingPeerInit) {
                 this._processPeerInitMessage(raw);
             } else {
@@ -401,83 +416,83 @@ export class Peer extends EventEmitter implements IPeer {
         if (m) {
             this.pingPongState.onMessage(m);
 
-            // emit the message
-            this.emit("message", m);
+            // enqueue the message
+            this.push(m);
         }
     }
 }
 
 // tslint:disable-next-line: interface-name
-export declare interface Peer {
-    addListener(event: "close", listener: () => void): this;
-    addListener(event: "error", listener: (err: Error) => void): this;
-    addListener(event: "message", listener: (msg: any) => void): this;
-    addListener(event: "open", listener: () => void): this;
-    addListener(event: "rawmessage", listener: (msg: Buffer) => void): this;
-    addListener(event: "ready", listener: () => void): this;
-    addListener(event: "sending", listener: (buf: Buffer) => void): this;
+// export declare interface Peer {
+//     addListener(event: "close", listener: () => void): this;
+//     addListener(event: "error", listener: (err: Error) => void): this;
+//     addListener(event: "message", listener: (msg: any) => void): this;
+//     addListener(event: "open", listener: () => void): this;
+//     addListener(event: "rawmessage", listener: (msg: Buffer) => void): this;
+//     addListener(event: "ready", listener: () => void): this;
+//     addListener(event: "sending", listener: (buf: Buffer) => void): this;
 
-    listenerCount(
-        event: "close" | "error" | "message" | "open" | "rawmessage" | "ready" | "sending",
-    ): number;
+//     listenerCount(
+//         event: "close" | "error" | "message" | "open" | "rawmessage" | "ready" | "sending",
+//     ): number;
 
-    off(event: "close", listener: () => void): this;
-    off(event: "error", listener: (err: Error) => void): this;
-    off(event: "message", listener: (msg: IWireMessage) => void): this;
-    off(event: "open", listener: () => void): this;
-    off(event: "rawmessage", listener: (msg: Buffer) => void): this;
-    off(event: "ready", listener: () => void): this;
-    off(event: "sending", listener: (buf: Buffer) => void): this;
+//     off(event: "close", listener: () => void): this;
+//     off(event: "error", listener: (err: Error) => void): this;
+//     off(event: "message", listener: (msg: IWireMessage) => void): this;
+//     off(event: "open", listener: () => void): this;
+//     off(event: "rawmessage", listener: (msg: Buffer) => void): this;
+//     off(event: "ready", listener: () => void): this;
+//     off(event: "sending", listener: (buf: Buffer) => void): this;
 
-    on(event: "close", listener: () => void): this;
-    on(event: "error", listener: (err: Error) => void): this;
-    on(event: "message", listener: (msg: IWireMessage) => void): this;
-    on(event: "open", listener: () => void): this;
-    on(event: "rawmessage", listener: (msg: Buffer) => void): this;
-    on(event: "ready", listener: () => void): this;
-    on(event: "sending", listener: (buf: Buffer) => void): this;
+//     on(event: "close", listener: () => void): this;
+//     on(event: "error", listener: (err: Error) => void): this;
+//     on(event: "message", listener: (msg: IWireMessage) => void): this;
+//     on(event: "open", listener: () => void): this;
+//     on(event: "rawmessage", listener: (msg: Buffer) => void): this;
+//     on(event: "ready", listener: () => void): this;
+//     on(event: "sending", listener: (buf: Buffer) => void): this;
 
-    once(event: "close", listener: () => void): this;
-    once(event: "error", listener: (err: Error) => void): this;
-    once(event: "message", listener: (msg: IWireMessage) => void): this;
-    once(event: "open", listener: () => void): this;
-    once(event: "rawmessage", listener: (msg: Buffer) => void): this;
-    once(event: "ready", listener: () => void): this;
-    once(event: "sending", listener: (buf: Buffer) => void): this;
+//     once(event: "close", listener: () => void): this;
+//     once(event: "error", listener: (err: Error) => void): this;
+//     once(event: "message", listener: (msg: IWireMessage) => void): this;
+//     once(event: "open", listener: () => void): this;
+//     once(event: "rawmessage", listener: (msg: Buffer) => void): this;
+//     once(event: "ready", listener: () => void): this;
+//     once(event: "sending", listener: (buf: Buffer) => void): this;
 
-    prependListener(event: "close", listener: () => void): this;
-    prependListener(event: "error", listener: (err: Error) => void): this;
-    prependListener(event: "message", listener: (msg: IWireMessage) => void): this;
-    prependListener(event: "open", listener: () => void): this;
-    prependListener(event: "rawmessage", listener: (msg: Buffer) => void): this;
-    prependListener(event: "ready", listener: () => void): this;
-    prependListener(event: "sending", listener: (buf: Buffer) => void): this;
+//     prependListener(event: "close", listener: () => void): this;
+//     prependListener(event: "error", listener: (err: Error) => void): this;
+//     prependListener(event: "message", listener: (msg: IWireMessage) => void): this;
+//     prependListener(event: "open", listener: () => void): this;
+//     prependListener(event: "rawmessage", listener: (msg: Buffer) => void): this;
+//     prependListener(event: "ready", listener: () => void): this;
+//     prependListener(event: "sending", listener: (buf: Buffer) => void): this;
 
-    prependOnceListener(event: "close", listener: () => void): this;
-    prependOnceListener(event: "error", listener: (err: Error) => void): this;
-    prependOnceListener(event: "message", listener: (msg: IWireMessage) => void): this;
-    prependOnceListener(event: "open", listener: () => void): this;
-    prependOnceListener(event: "rawmessage", listener: (msg: Buffer) => void): this;
-    prependOnceListener(event: "ready", listener: () => void): this;
-    prependOnceListener(event: "sending", listener: (buf: Buffer) => void): this;
+//     prependOnceListener(event: "close", listener: () => void): this;
+//     prependOnceListener(event: "error", listener: (err: Error) => void): this;
+//     prependOnceListener(event: "message", listener: (msg: IWireMessage) => void): this;
+//     prependOnceListener(event: "open", listener: () => void): this;
+//     prependOnceListener(event: "rawmessage", listener: (msg: Buffer) => void): this;
+//     prependOnceListener(event: "ready", listener: () => void): this;
+//     prependOnceListener(event: "sending", listener: (buf: Buffer) => void): this;
 
-    removeAllListeners(
-        event?: "close" | "error" | "message" | "open" | "rawmessage" | "ready" | "sending",
-    ): this;
+//     removeAllListeners(
+//         event?: "close" | "error" | "message" | "open" | "rawmessage" | "ready" | "sending",
+//     ): this;
 
-    removeListener(event: "close", listener: () => void): this;
-    removeListener(event: "error", listener: (err: Error) => void): this;
-    removeListener(event: "message", listener: (msg: IWireMessage) => void): this;
-    removeListener(event: "open", listener: () => void): this;
-    removeListener(event: "rawmessage", listener: (msg: Buffer) => void): this;
-    removeListener(event: "ready", listener: () => void): this;
-    removeListener(event: "sending", listener: (buf: Buffer) => void): this;
+//     removeListener(event: "close", listener: () => void): this;
+//     removeListener(event: "error", listener: (err: Error) => void): this;
+//     removeListener(event: "message", listener: (msg: IWireMessage) => void): this;
+//     removeListener(event: "open", listener: () => void): this;
+//     removeListener(event: "rawmessage", listener: (msg: Buffer) => void): this;
+//     removeListener(event: "ready", listener: () => void): this;
+//     removeListener(event: "sending", listener: (buf: Buffer) => void): this;
 
-    rawListeners(event: "close"): Array<() => void>;
-    rawListeners(event: "error"): Array<(err: Error) => void>;
-    rawListeners(event: "message"): Array<(msg: IWireMessage) => void>;
-    rawListeners(event: "open"): Array<() => void>;
-    rawListeners(event: "rawmessage"): Array<(msg: Buffer) => void>;
-    rawListeners(event: "ready"): Array<() => void>;
-    rawListeners(event: "sending"): Array<(buf: Buffer) => void>;
-}
+//     rawListeners(event: "close"): Array<() => void>;
+//     rawListeners(event: "error"): Array<(err: Error) => void>;
+//     rawListeners(event: "message"): Array<(msg: IWireMessage) => void>;
+//     rawListeners(event: "open"): Array<() => void>;
+//     rawListeners(event: "rawmessage"): Array<(msg: Buffer) => void>;
+//     rawListeners(event: "ready"): Array<() => void>;
+//     rawListeners(event: "sending"): Array<(buf: Buffer) => void>;
+// }
