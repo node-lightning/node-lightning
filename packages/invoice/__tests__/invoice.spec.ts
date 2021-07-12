@@ -1,9 +1,8 @@
-const { expect } = require("chai");
-const { Invoice } = require("../lib/invoice");
+import { expect } from "chai";
+import { Invoice } from "../lib/invoice";
 
 describe("invoice", () => {
-    /** @type {Invoice} */
-    let sut;
+    let sut: Invoice;
 
     beforeEach(() => {
         sut = new Invoice();
@@ -24,7 +23,7 @@ describe("invoice", () => {
 
     describe("amount", () => {
         it("should set the amount when a Number", () => {
-            sut.amount = 1;
+            sut.amount = "1";
             expect(sut.amount).to.equal("1.00000000000");
         });
         it("should set the amount when a String", () => {
@@ -44,22 +43,22 @@ describe("invoice", () => {
             expect(sut.amount).to.equal(null);
         });
         it("should have correct amount when value set", () => {
-            sut.valueSat = 1000;
+            sut.valueSat = "1000";
             expect(sut.amount).to.equal("0.00001000000");
         });
         it("should have correct amount when valueMsat set", () => {
-            sut.valueMsat = 1000;
+            sut.valueMsat = "1000";
             expect(sut.amount).to.equal("0.00000001000");
         });
         it("should have have value when sub sat", () => {
-            sut.valueMsat = 10;
+            sut.valueMsat = "10";
             expect(sut.amount).to.equal("0.00000000010");
         });
     });
 
     describe("valueSat", () => {
         it("should set the value when a Number", () => {
-            sut.valueSat = 1;
+            sut.valueSat = "1";
             expect(sut.valueSat).to.equal("1");
         });
         it("should set the value when a String", () => {
@@ -83,14 +82,14 @@ describe("invoice", () => {
             expect(sut.valueSat).to.equal("1000");
         });
         it("should have correct value when valueMsat set", () => {
-            sut.valueMsat = 1000;
+            sut.valueMsat = "1000";
             expect(sut.valueSat).to.equal("1");
         });
     });
 
     describe("valueMsat", () => {
         it("should set the value when a Number", () => {
-            sut.valueMsat = 1000;
+            sut.valueMsat = "1000";
             expect(sut.valueMsat).to.equal("1000");
         });
         it("should set the value when a String", () => {
@@ -98,7 +97,7 @@ describe("invoice", () => {
             expect(sut.valueMsat).to.equal("1000");
         });
         it("should set 0 to null", () => {
-            sut.valueMsat = 0;
+            sut.valueMsat = "0";
             expect(sut.valueMsat).to.equal(null);
         });
         it("should set null to null", () => {
@@ -110,11 +109,11 @@ describe("invoice", () => {
             expect(sut.valueMsat).to.equal(null);
         });
         it("should have correct value when amount set", () => {
-            sut.amount = 0.00001;
+            sut.amount = "0.00001";
             expect(sut.valueMsat).to.equal("1000000");
         });
         it("should have correct value when value set", () => {
-            sut.valueSat = 1000;
+            sut.valueSat = "1000";
             expect(sut.valueMsat).to.equal("1000000");
         });
     });
@@ -137,7 +136,7 @@ describe("invoice", () => {
 
     describe("paymentHash", () => {
         it("when set string converts to a buffer", () => {
-            sut.paymentHash = "0001020304050607080900010203040506070809000102030405060708090102";
+            sut.paymentHash = Buffer.from("0001020304050607080900010203040506070809000102030405060708090102", "hex");
             expect(sut.paymentHash).to.deep.equal(
                 Buffer.from(
                     "0001020304050607080900010203040506070809000102030405060708090102",
@@ -185,7 +184,7 @@ describe("invoice", () => {
 
     describe("hashDesc", () => {
         it("when set string, sets to buffer", () => {
-            sut.hashDesc = "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824";
+            sut.hashDesc = Buffer.from("2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824", "hex");
             expect(sut.hashDesc).to.deep.equal(
                 Buffer.from(
                     "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824",
@@ -209,7 +208,7 @@ describe("invoice", () => {
 
     describe("payeeNode", () => {
         it("when set string, converts to buffer", () => {
-            sut.payeeNode = "000102030405060708090001020304050607080900010203040506070809010200";
+            sut.payeeNode = Buffer.from("000102030405060708090001020304050607080900010203040506070809010200", "hex");
             expect(sut.payeeNode).to.deep.equal(
                 Buffer.from(
                     "000102030405060708090001020304050607080900010203040506070809010200",
