@@ -123,7 +123,7 @@ export class Invoice {
     }
 
     public set valueMsat(val) {
-        if (!val) this._value = null;
+        if (!val || Number(val) === 0) this._value = null;
         else this._value = BigInt(val) * picoToMsat;
     }
 
