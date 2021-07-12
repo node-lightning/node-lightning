@@ -11,7 +11,9 @@ describe("encoder", () => {
     const pubKey = crypto.getPublicKey(privKey);
 
     const hashDesc = crypto.sha256(
-        Buffer.from("One piece of chocolate cake, one icecream cone, one pickle, one slice of swiss cheese, one slice of salami, one lollypop, one piece of cherry pie, one sausage, one cupcake, and one slice of watermelon"),
+        Buffer.from(
+            "One piece of chocolate cake, one icecream cone, one pickle, one slice of swiss cheese, one slice of salami, one lollypop, one piece of cherry pie, one sausage, one cupcake, and one slice of watermelon",
+        ),
     );
 
     describe("test vectors", () => {
@@ -19,8 +21,10 @@ describe("encoder", () => {
             const invoice = new Invoice();
             invoice.network = "bc";
             invoice.timestamp = 1496314658;
-            invoice.paymentHash =
-                Buffer.from("0001020304050607080900010203040506070809000102030405060708090102", "hex");
+            invoice.paymentHash = Buffer.from(
+                "0001020304050607080900010203040506070809000102030405060708090102",
+                "hex",
+            );
             invoice.shortDesc = "Please consider supporting this project";
             const result = sut.encode(invoice, privKey);
             expect(result).to.equal(
@@ -33,8 +37,10 @@ describe("encoder", () => {
             invoice.network = "bc";
             invoice.timestamp = 1496314658;
             invoice.valueSat = "250000"; // 0.00250000
-            invoice.paymentHash =
-                Buffer.from("0001020304050607080900010203040506070809000102030405060708090102", "hex");
+            invoice.paymentHash = Buffer.from(
+                "0001020304050607080900010203040506070809000102030405060708090102",
+                "hex",
+            );
             invoice.shortDesc = "1 cup coffee";
             invoice.expiry = 60;
             const result = sut.encode(invoice, privKey);
@@ -48,8 +54,10 @@ describe("encoder", () => {
             invoice.network = "bc";
             invoice.timestamp = 1496314658;
             invoice.valueSat = "250000";
-            invoice.paymentHash =
-                Buffer.from("0001020304050607080900010203040506070809000102030405060708090102", "hex");
+            invoice.paymentHash = Buffer.from(
+                "0001020304050607080900010203040506070809000102030405060708090102",
+                "hex",
+            );
             invoice.shortDesc = "ナンセンス 1杯";
             invoice.expiry = 60;
             const result = sut.encode(invoice, privKey);
@@ -63,8 +71,10 @@ describe("encoder", () => {
             invoice.network = "bc";
             invoice.timestamp = 1496314658;
             invoice.valueSat = "2000000";
-            invoice.paymentHash =
-                Buffer.from("0001020304050607080900010203040506070809000102030405060708090102", "hex");
+            invoice.paymentHash = Buffer.from(
+                "0001020304050607080900010203040506070809000102030405060708090102",
+                "hex",
+            );
             invoice.hashDesc = hashDesc;
             const result = sut.encode(invoice, privKey);
             expect(result).to.equal(
@@ -78,8 +88,10 @@ describe("encoder", () => {
             invoice.timestamp = 1496314658;
             invoice.valueSat = "2000000";
             invoice.hashDesc = hashDesc;
-            invoice.paymentHash =
-                Buffer.from("0001020304050607080900010203040506070809000102030405060708090102", "hex");
+            invoice.paymentHash = Buffer.from(
+                "0001020304050607080900010203040506070809000102030405060708090102",
+                "hex",
+            );
             invoice.addFallbackAddress("mk2QpYatsKicvFVuTAQLBryyccRXMUaGHP");
             const result = sut.encode(invoice, privKey);
             expect(result).to.equal(
@@ -92,20 +104,28 @@ describe("encoder", () => {
             invoice.network = "bc";
             invoice.timestamp = 1496314658;
             invoice.valueSat = "2000000";
-            invoice.paymentHash =
-                Buffer.from("0001020304050607080900010203040506070809000102030405060708090102", "hex");
+            invoice.paymentHash = Buffer.from(
+                "0001020304050607080900010203040506070809000102030405060708090102",
+                "hex",
+            );
             invoice.hashDesc = hashDesc;
             invoice.addFallbackAddress("1RustyRX2oai4EYYDpQGWvEL62BBGqN9T");
             invoice.addRoute([
                 {
-                    pubkey: Buffer.from("029e03a901b85534ff1e92c43c74431f7ce72046060fcf7a95c37e148f78c77255", "hex"),
+                    pubkey: Buffer.from(
+                        "029e03a901b85534ff1e92c43c74431f7ce72046060fcf7a95c37e148f78c77255",
+                        "hex",
+                    ),
                     short_channel_id: Buffer.from("0102030405060708", "hex"),
                     fee_base_msat: 1,
                     fee_proportional_millionths: 20,
                     cltv_expiry_delta: 3,
                 },
                 {
-                    pubkey: Buffer.from("039e03a901b85534ff1e92c43c74431f7ce72046060fcf7a95c37e148f78c77255", "hex"),
+                    pubkey: Buffer.from(
+                        "039e03a901b85534ff1e92c43c74431f7ce72046060fcf7a95c37e148f78c77255",
+                        "hex",
+                    ),
                     short_channel_id: Buffer.from("030405060708090a", "hex"),
                     fee_base_msat: 2,
                     fee_proportional_millionths: 30,
@@ -124,8 +144,10 @@ describe("encoder", () => {
             invoice.timestamp = 1496314658;
             invoice.valueSat = "2000000";
             invoice.hashDesc = hashDesc;
-            invoice.paymentHash =
-                Buffer.from("0001020304050607080900010203040506070809000102030405060708090102", "hex");
+            invoice.paymentHash = Buffer.from(
+                "0001020304050607080900010203040506070809000102030405060708090102",
+                "hex",
+            );
             invoice.addFallbackAddress("3EktnHQD7RiAE6uzMj2ZifT9YgRrkSgzQX");
             const result = sut.encode(invoice, privKey);
             expect(result).to.equal(
@@ -139,8 +161,10 @@ describe("encoder", () => {
             invoice.timestamp = 1496314658;
             invoice.valueSat = "2000000";
             invoice.hashDesc = hashDesc;
-            invoice.paymentHash =
-                Buffer.from("0001020304050607080900010203040506070809000102030405060708090102", "hex");
+            invoice.paymentHash = Buffer.from(
+                "0001020304050607080900010203040506070809000102030405060708090102",
+                "hex",
+            );
             invoice.addFallbackAddress("bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4");
             const result = sut.encode(invoice, privKey);
             expect(result).to.equal(
@@ -154,8 +178,10 @@ describe("encoder", () => {
             invoice.timestamp = 1496314658;
             invoice.valueSat = "2000000";
             invoice.hashDesc = hashDesc;
-            invoice.paymentHash =
-                Buffer.from("0001020304050607080900010203040506070809000102030405060708090102", "hex");
+            invoice.paymentHash = Buffer.from(
+                "0001020304050607080900010203040506070809000102030405060708090102",
+                "hex",
+            );
             invoice.addFallbackAddress(
                 "bc1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3qccfmv3",
             );
@@ -171,8 +197,10 @@ describe("encoder", () => {
             const invoice = new Invoice();
             invoice.network = "bc";
             invoice.timestamp = 1496314658;
-            invoice.paymentHash =
-                Buffer.from("0001020304050607080900010203040506070809000102030405060708090102", "hex");
+            invoice.paymentHash = Buffer.from(
+                "0001020304050607080900010203040506070809000102030405060708090102",
+                "hex",
+            );
             invoice.shortDesc = "payeeNode";
             invoice.payeeNode = pubKey;
             const result = sut.encode(invoice, privKey);
@@ -184,8 +212,10 @@ describe("encoder", () => {
             const invoice = new Invoice();
             invoice.network = "bc";
             invoice.timestamp = 1496314658;
-            invoice.paymentHash =
-                Buffer.from("0001020304050607080900010203040506070809000102030405060708090102", "hex");
+            invoice.paymentHash = Buffer.from(
+                "0001020304050607080900010203040506070809000102030405060708090102",
+                "hex",
+            );
             invoice.shortDesc = "minFinalCltvExpiry";
             invoice.minFinalCltvExpiry = 15;
             const result = sut.encode(invoice, privKey);
@@ -197,8 +227,10 @@ describe("encoder", () => {
             const invoice = new Invoice();
             invoice.network = "bc";
             invoice.timestamp = 1496314658;
-            invoice.paymentHash =
-                Buffer.from("0001020304050607080900010203040506070809000102030405060708090102", "hex");
+            invoice.paymentHash = Buffer.from(
+                "0001020304050607080900010203040506070809000102030405060708090102",
+                "hex",
+            );
             invoice.shortDesc = "unknown";
             invoice.fields.push({
                 type: 30,

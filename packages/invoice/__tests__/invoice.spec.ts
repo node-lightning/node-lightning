@@ -136,7 +136,10 @@ describe("invoice", () => {
 
     describe("paymentHash", () => {
         it("when set string converts to a buffer", () => {
-            sut.paymentHash = Buffer.from("0001020304050607080900010203040506070809000102030405060708090102", "hex");
+            sut.paymentHash = Buffer.from(
+                "0001020304050607080900010203040506070809000102030405060708090102",
+                "hex",
+            );
             expect(sut.paymentHash).to.deep.equal(
                 Buffer.from(
                     "0001020304050607080900010203040506070809000102030405060708090102",
@@ -184,7 +187,10 @@ describe("invoice", () => {
 
     describe("hashDesc", () => {
         it("when set string, sets to buffer", () => {
-            sut.hashDesc = Buffer.from("2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824", "hex");
+            sut.hashDesc = Buffer.from(
+                "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824",
+                "hex",
+            );
             expect(sut.hashDesc).to.deep.equal(
                 Buffer.from(
                     "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824",
@@ -208,7 +214,10 @@ describe("invoice", () => {
 
     describe("payeeNode", () => {
         it("when set string, converts to buffer", () => {
-            sut.payeeNode = Buffer.from("000102030405060708090001020304050607080900010203040506070809010200", "hex");
+            sut.payeeNode = Buffer.from(
+                "000102030405060708090001020304050607080900010203040506070809010200",
+                "hex",
+            );
             expect(sut.payeeNode).to.deep.equal(
                 Buffer.from(
                     "000102030405060708090001020304050607080900010203040506070809010200",
