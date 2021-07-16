@@ -1,5 +1,5 @@
 import { ILogger } from "@node-lightning/logger";
-import { EventEmitter } from "events";
+import { Readable } from "stream";
 import { InitFeatureFlags } from "../flags/InitFeatureFlags";
 import { IWireMessage } from "../messages/IWireMessage";
 import { MessageType } from "../MessageType";
@@ -15,7 +15,7 @@ import { GossipQueriesSync } from "./GossipQueriesSync";
  * related activities. Messages from the GossipPeer occur after being pushed
  * through a GossipFilter to validate they are aokay.
  */
-export class GossipPeer extends EventEmitter implements IPeer {
+export class GossipPeer extends Readable implements IPeer {
     public readonly logger: ILogger;
 
     private _receiver: GossipQueriesReceiver;
@@ -44,7 +44,7 @@ export class GossipPeer extends EventEmitter implements IPeer {
         // through the filter.
         this.peer.on("message", this._onMessage.bind(this));
         this.peer.on("close", () => this.emit("close"));
-        this.filter.on("message", msg => this.emit("message", msg));
+        this.filter.on("message", msg => this.push(msg));
         this.filter.on("error", err => this.emit("error", err));
         this.filter.on("flushed", () => this.emit("flushed"));
 

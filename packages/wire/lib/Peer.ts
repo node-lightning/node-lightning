@@ -17,8 +17,9 @@ export interface IMessageSender {
 }
 
 export interface IMessageReceiver {
-    on(event: "message", listener: (msg: IWireMessage) => void): this;
-    off(event: "message", listener: (msg: IWireMessage) => void): this;
+    read(): IWireMessage;
+    on(event: "readable", listener: () => void): this;
+    off(event: "readable", listener: () => void): this;
 }
 
 export type IMessageSenderReceiver = IMessageSender & IMessageReceiver;
@@ -28,8 +29,12 @@ export interface IPeer extends IMessageSenderReceiver {
     sendMessage(msg: IWireMessage): void;
     disconnect(): void;
 
-    on(event: "message", listener: (msg: IWireMessage) => void): this;
+    read(): IWireMessage;
+    on(event: "readable", listener: () => void): this;
     on(event: "error", listener: (err: Error) => void): this;
+
+    off(event: "readable", listener: () => void): this;
+    off(event: "error", listener: (err: Error) => void): this;
 }
 
 /**
