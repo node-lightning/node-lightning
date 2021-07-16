@@ -287,12 +287,12 @@ export class Peer extends Readable implements IPeer {
     }
 
     private _onSocketReadable() {
-        this.emit("readable");
+        this._read();
     }
 
     /**
-     * Triggered by the consumer calling the read method.
-     *
+     * Triggered when the underlying socket is readable and pushes data
+     * into the stream output.
      */
     public _read() {
         try {
@@ -300,7 +300,7 @@ export class Peer extends Readable implements IPeer {
             // to read then we are done until more data is available on
             // the socket.
             const raw = this.socket.read() as Buffer;
-            if(!raw) return;
+            if (!raw) return;
 
             if (this.state === PeerState.AwaitingPeerInit) {
                 this._processPeerInitMessage(raw);
