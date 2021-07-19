@@ -3,7 +3,7 @@ import { ILogger } from "@node-lightning/logger";
 import * as noise from "@node-lightning/noise";
 import { NoiseSocket } from "@node-lightning/noise";
 import assert from "assert";
-import { Readable } from "stream";
+import { Transform } from "stream";
 import { InitFeatureFlags } from "./flags/InitFeatureFlags";
 import * as MessageFactory from "./MessageFactory";
 import { InitMessage } from "./messages/InitMessage";
@@ -91,7 +91,7 @@ export interface IPeer extends IMessageSenderReceiver {
  *
  * @emits end emitted when the connection to the peer is ending.
  */
-export class Peer extends Readable implements IPeer {
+export class Peer extends Transform implements IPeer {
     public static states = PeerState;
 
     public state: PeerState = PeerState.Disconnected;
@@ -161,10 +161,10 @@ export class Peer extends Readable implements IPeer {
             rpk: this._rpk,
             logger: this.logger,
         });
+        this.socket.pipe(this);
         this.socket.on("ready", this._onSocketReady.bind(this));
         this.socket.on("close", this._onSocketClose.bind(this));
         this.socket.on("error", this._onSocketError.bind(this));
-        this.socket.on("readable", this._onSocketReadable.bind(this));
     }
 
     /**
@@ -174,10 +174,10 @@ export class Peer extends Readable implements IPeer {
     public attach(socket: NoiseSocket) {
         this.isInitiator = false;
         this.socket = socket;
+        this.socket.pipe(this);
         this.socket.on("ready", this._onSocketReady.bind(this));
         this.socket.on("close", this._onSocketClose.bind(this));
         this.socket.on("error", this._onSocketError.bind(this));
-        this.socket.on("readable", this._onSocketReadable.bind(this));
 
         // Once the socket is ready, we have performed the handshake which allows
         // us to ascertain the identity of the connecting node. Now that we have
@@ -286,22 +286,13 @@ export class Peer extends Readable implements IPeer {
         this.emit("error", err);
     }
 
-    private _onSocketReadable() {
-        this._read();
-    }
+    // private _onSocketReadable() {
+    //     this.logger.debug("socket readable");
+    //     this.emit("readable");
+    // }
 
-    /**
-     * Triggered when the underlying socket is readable and pushes data
-     * into the stream output.
-     */
-    public _read() {
+    public _transform(raw: Buffer, encoding: string, cb: (err?: Error) => void) {
         try {
-            // Read data from the underlying. If there is nothign else
-            // to read then we are done until more data is available on
-            // the socket.
-            const raw = this.socket.read() as Buffer;
-            if (!raw) return;
-
             if (this.state === PeerState.AwaitingPeerInit) {
                 this._processPeerInitMessage(raw);
             } else {
@@ -313,8 +304,42 @@ export class Peer extends Readable implements IPeer {
 
             // emit the error event
             this.emit("error", err);
+            return;
+        } finally {
+            cb();
         }
     }
+
+    /**
+     * Triggered when the underlying socket is readable and pushes data
+     * into the stream output.
+     */
+    // public _read() {
+    //     this.logger.debug("_read called");
+    //     let cont = true;
+    //     do {
+    //         try {
+    //             // Read data from the underlying. If there is nothign else
+    //             // to read then we are done until more data is available on
+    //             // the socket.
+    //             const raw = this.socket.read() as Buffer;
+    //             if (!raw) return;
+
+    //             if (this.state === PeerState.AwaitingPeerInit) {
+    //                 this._processPeerInitMessage(raw);
+    //             } else {
+    //                 cont = this._processMessage(raw);
+    //             }
+    //         } catch (err) {
+    //             // we have a problem, kill connectinon with the client
+    //             this.socket.end();
+
+    //             // emit the error event
+    //             this.emit("error", err);
+    //             return;
+    //         }
+    //     } while (cont);
+    // }
 
     /**
      * Sends the initialization message to the peer. This message
