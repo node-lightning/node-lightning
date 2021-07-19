@@ -286,11 +286,6 @@ export class Peer extends Transform implements IPeer {
         this.emit("error", err);
     }
 
-    // private _onSocketReadable() {
-    //     this.logger.debug("socket readable");
-    //     this.emit("readable");
-    // }
-
     public _transform(raw: Buffer, encoding: string, cb: (err?: Error) => void) {
         try {
             if (this.state === PeerState.AwaitingPeerInit) {
@@ -298,48 +293,15 @@ export class Peer extends Transform implements IPeer {
             } else {
                 this._processMessage(raw);
             }
+            cb();
         } catch (err) {
             // we have a problem, kill connectinon with the client
             this.socket.end();
 
             // emit the error event
-            this.emit("error", err);
-            return;
-        } finally {
-            cb();
+            cb(err);
         }
     }
-
-    /**
-     * Triggered when the underlying socket is readable and pushes data
-     * into the stream output.
-     */
-    // public _read() {
-    //     this.logger.debug("_read called");
-    //     let cont = true;
-    //     do {
-    //         try {
-    //             // Read data from the underlying. If there is nothign else
-    //             // to read then we are done until more data is available on
-    //             // the socket.
-    //             const raw = this.socket.read() as Buffer;
-    //             if (!raw) return;
-
-    //             if (this.state === PeerState.AwaitingPeerInit) {
-    //                 this._processPeerInitMessage(raw);
-    //             } else {
-    //                 cont = this._processMessage(raw);
-    //             }
-    //         } catch (err) {
-    //             // we have a problem, kill connectinon with the client
-    //             this.socket.end();
-
-    //             // emit the error event
-    //             this.emit("error", err);
-    //             return;
-    //         }
-    //     } while (cont);
-    // }
 
     /**
      * Sends the initialization message to the peer. This message
