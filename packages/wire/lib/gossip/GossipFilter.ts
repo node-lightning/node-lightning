@@ -1,5 +1,4 @@
 import { HashValue, OutPoint } from "@node-lightning/core";
-import { EventEmitter } from "events";
 import { ChannelAnnouncementMessage } from "../messages/ChannelAnnouncementMessage";
 import { ChannelUpdateMessage } from "../messages/ChannelUpdateMessage";
 import { ExtendedChannelAnnouncementMessage } from "../messages/ExtendedChannelAnnouncementMessage";
@@ -23,7 +22,7 @@ export class Result<V, E> {
     constructor(readonly value?: V, readonly error?: E) {}
 
     public get isOk(): boolean {
-        return this.value == undefined;
+        return this.value !== undefined;
     }
 
     public get isErr(): boolean {
@@ -81,7 +80,7 @@ export class GossipFilter {
         const existing = await this.gossipStore.findNodeAnnouncement(msg.nodeId);
 
         // check if the message is newer than the last update
-        if (existing && existing.timestamp >= msg.timestamp) return;
+        if (existing && existing.timestamp >= msg.timestamp) return Result.ok([] as IWireMessage[]);
 
         // queue node if we don't have any channels
         const scids = await this.gossipStore.findChannelsForNode(msg.nodeId);

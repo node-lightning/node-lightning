@@ -197,18 +197,14 @@ export class GossipManager extends EventEmitter {
         // Construct a gossip filter for use by the specific GossipPeer. This
         // filter will be internally used by the GossipPeer to validate and
         // capture gossip messages
-        const filter = new GossipFilter({
-            gossipStore: this.gossipStore,
-            pendingStore: this.pendingStore,
-            chainClient: this.chainClient,
-        });
+        const filter = new GossipFilter(this.gossipStore, this.pendingStore, this.chainClient);
 
         // Construct the gossip Peer and add it to the collection of Peers
         // that are currently being managed by the GossipPeer
         const gossipPeer = new GossipPeer(peer, filter, this.logger);
 
         // Attach events from the gossipPeer
-        gossipPeer.on("message", this._onGossipMessage.bind(this));
+        gossipPeer.on("readable", this._onPeerReadable.bind(this, gossipPeer));
         gossipPeer.on("error", this._onGossipError.bind(this));
 
         // Add peer to the list of peers
@@ -242,6 +238,19 @@ export class GossipManager extends EventEmitter {
             this.gossipRelay.removePeer(gossipPeer);
         }
         this.peers.delete(gossipPeer);
+    }
+
+    /**
+     * Handles when a peer becomes readable
+     * @param peer
+     */
+    private _onPeerReadable(peer: GossipPeer) {
+        // eslint-disable-next-line no-constant-condition
+        while (true) {
+            const msg = peer.read() as IWireMessage;
+            if (msg) this._onGossipMessage(msg);
+            else return;
+        }
     }
 
     /**

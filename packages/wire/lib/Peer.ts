@@ -117,7 +117,7 @@ export class Peer extends Transform implements IPeer {
         readonly localFeatures: BitField<InitFeatureFlags>,
         readonly localChains: Buffer[],
         logger: ILogger,
-        highWaterMark: number = 2048,
+        readonly highWaterMark: number = 2048,
     ) {
         super({ objectMode: true, highWaterMark });
 
