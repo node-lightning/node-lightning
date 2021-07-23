@@ -4,8 +4,6 @@
   "lockfileVersion": 1,
   "requires": true,
   "dependencies": {
-<<<<<<< HEAD
-=======
     "@node-lightning/bufio": {
       "version": "0.22.1"
     },
@@ -108,7 +106,6 @@
         }
       }
     },
->>>>>>> 7aead68cbc5a405040225e2ada01c40b42e81c97
     "base-x": {
       "version": "3.0.8",
       "resolved": "https://registry.npmjs.org/base-x/-/base-x-3.0.8.tgz",
