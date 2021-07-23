@@ -14,6 +14,7 @@ import { QueryShortChannelIdsMessage } from "./messages/QueryShortChannelIdsMess
 import { ReplyChannelRangeMessage } from "./messages/ReplyChannelRangeMessage";
 import { ReplyShortChannelIdsEndMessage } from "./messages/ReplyShortChannelIdsEndMessage";
 import { MessageType } from "./MessageType";
+import { ShutdownMessage } from "./messages/ShutdownMessage";
 
 export function deserialize(buffer: Buffer): IWireMessage {
     const type = buffer.readUInt16BE(0);
@@ -34,6 +35,8 @@ export function deserialize(buffer: Buffer): IWireMessage {
             return OpenChannelMessage.deserialize(buffer);
         case MessageType.AcceptChannel:
             return AcceptChannelMessage.deserialize(buffer);
+        case MessageType.CloseChannel:
+            return ShutdownMessage.deserialize(buffer);
 
         // gossip messages
         case MessageType.NodeAnnouncement:
