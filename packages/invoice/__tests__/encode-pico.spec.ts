@@ -1,8 +1,8 @@
-const { expect } = require("chai");
-const { encodePico } = require("../lib/encode-pico");
+import { expect } from "chai";
+import { encodePico } from "../lib/encode-pico";
 
 describe("encode-pico", () => {
-    let tests = [
+    const tests: [string, string][] = [
         // pico bitcoin, encoded value
         ["10", "10p"], // 0.00000000001
         ["100", "100p"], // 0.0000000001
@@ -24,7 +24,7 @@ describe("encode-pico", () => {
         ["1000200501000", "1000200501n"], // 1.000200501
         ["1123412341230", "1123412341230p"], // 1.12341234123
     ];
-    for (let [input, expected] of tests) {
+    for (const [input, expected] of tests) {
         it(`encode amount ${input} to ${expected}`, () => {
             expect(encodePico(input)).to.equal(expected);
         });
