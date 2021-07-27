@@ -9,8 +9,8 @@ describe("ClosingSignedMessage", () => {
                 "0027"+ // type
                 "0000000000000000000000000000000000000000000000000000000000000000" +    // Channel ID
                 "0000000000030d40" + // feeSatoshi
-            "22222222222222222222222222222222222222222222222222222222222222223333333333333333333333333333333333333333333333333333333333333333" //signature
-            , "hex"); // prettier-ignore
+                "22222222222222222222222222222222222222222222222222222222222222223333333333333333333333333333333333333333333333333333333333333333" //signature
+                , "hex"); // prettier-ignore
             const result = ClosingSignedMessage.deserialize(input);
             expect(result.type).to.equal(39);
             expect(result.channelId.toString()).to.equal("0000000000000000000000000000000000000000000000000000000000000000"); // prettier-ignore

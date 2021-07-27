@@ -3,14 +3,20 @@ import { ChannelId } from "@node-lightning/core";
 import { MessageType } from "../MessageType";
 import { IWireMessage } from "./IWireMessage";
 
-
 /**
+ * The `closing_signed` message is sent by the channel funder after
+ * the `shutdown_message`. The funder chooses a fee it thinks
+ * is fair, and signs the closing transaction with the scriptpubkey fields from
+ * the shutdown messages (along with its chosen fee) and sends the signature.
+ * The other node then replies similarly, using a fee it thinks is fair.
+ * This exchange continues using the channelID until both agree on the same
+ * fee or when one side fails the channel.
  */
 export class ClosingSignedMessage implements IWireMessage {
     public static type: MessageType = MessageType.ClosingSigned;
 
     /**
-     * Deserializes the funding_signed message
+     * Deserializes the closing_signed message
      * @param buf
      * @returns
      */
@@ -37,12 +43,15 @@ export class ClosingSignedMessage implements IWireMessage {
     public channelId: ChannelId;
 
     /**
-     * fee_satoshis is set according to its estimate of cost of inclusion in a block.
+     * Expected value for fee_satoshis could vary how fast either side wants the transaction
+     * to be included in the block. So changes are made accordingly on both ends and communicated
+     * between the channel untill both of them comes to an agreement or when one side fails the
+     * channel.
      */
     public feeSatoshis: bigint;
 
     /**
-     * Sender signs the closing transaction with the scriptpubkey fields from the 
+     * Sender signs the closing transaction with the scriptpubkey fields from the
      * shutdown messages (along with its chosen fee) and sends the signature;
      */
     public signature: Buffer;
