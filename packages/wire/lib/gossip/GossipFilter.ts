@@ -1,6 +1,4 @@
-import { AsyncProcessingQueue } from "@node-lightning/core";
 import { HashValue, OutPoint } from "@node-lightning/core";
-import { EventEmitter } from "events";
 import { ChannelAnnouncementMessage } from "../messages/ChannelAnnouncementMessage";
 import { ChannelUpdateMessage } from "../messages/ChannelUpdateMessage";
 import { ExtendedChannelAnnouncementMessage } from "../messages/ExtendedChannelAnnouncementMessage";
@@ -12,13 +10,27 @@ import { WireError, WireErrorCode } from "../WireError";
 import { IGossipStore } from "./GossipStore";
 import { IGossipFilterChainClient } from "./IGossipFilterChainClient";
 
-// tslint:disable-next-line: interface-name
-export declare interface GossipFilter {
-    on(event: "flushed", fn: () => void): this;
-    on(event: "flushing", fn: () => void): this;
-    on(event: "message", fn: (msg: IWireMessage) => void): this;
-    on(event: "error", fn: (err: WireError) => void): this;
+export class Result<V, E> {
+    public static err<V, E>(error: E) {
+        return new Result<V, E>(undefined, error);
+    }
+
+    public static ok<V, E>(value: V) {
+        return new Result<V, E>(value);
+    }
+
+    constructor(readonly value?: V, readonly error?: E) {}
+
+    public get isOk(): boolean {
+        return this.value !== undefined;
+    }
+
+    public get isErr(): boolean {
+        return this.error !== undefined;
+    }
 }
+
+export type GossipFilterResult = Result<IWireMessage[], WireError>;
 
 /**
  * GossipFilter recieves messages from peers and performs validation
@@ -26,82 +38,34 @@ export declare interface GossipFilter {
  * follow messaging rules defined in Bolt #7 and include things like
  * signature checks, on-chain validation, and message sequencing requirements.
  * Successful message validation results in messages being written to an
- * instance of IGossipStore and emitted since GossipFilter is an
- * IGossipEmitter.
+ * instance of IGossipStore and returned as results
  *
  * The GossipFilter will also store pending messages, such as channel_update
  * message arriving before the channel_announcement.
  */
-export class GossipFilter extends EventEmitter {
-    private _chainClient: IGossipFilterChainClient;
-    private _gossipStore: IGossipStore;
-    private _pendingStore: IGossipStore;
-
-    private _processingQueue: AsyncProcessingQueue<IWireMessage>;
-
-    constructor({
-        chainClient,
-        gossipStore,
-        pendingStore,
-    }: {
-        gossipStore: IGossipStore;
-        pendingStore: IGossipStore;
-        chainClient?: IGossipFilterChainClient;
-    }) {
-        super();
-        this._gossipStore = gossipStore;
-        this._pendingStore = pendingStore;
-        this._chainClient = chainClient;
-
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        this.enqueue = this.enqueue.bind(this);
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        this._validateMessage = this._validateMessage.bind(this);
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        this._processingQueue = new AsyncProcessingQueue<IWireMessage>(this._validateMessage);
-        this._processingQueue.on("flushing", () => this.emit("flushing"));
-        this._processingQueue.on("flushed", () => this.emit("flushed"));
-    }
+export class GossipFilter {
+    constructor(
+        readonly gossipStore: IGossipStore,
+        readonly pendingStore: IGossipStore,
+        readonly chainClient?: IGossipFilterChainClient,
+    ) {}
 
     /**
-     * Enqueues a raw message for processing
+     * Validates a message and writes it to the appropriate store.
+     * A fully processed messages (or releated messages) will be
+     * returned when a message is successfully processed.
+     *
      */
-    public enqueue(msg: IWireMessage) {
-        // ignore messages that do not contain p2p graph data
-        if (
-            msg.type !== MessageType.ChannelAnnouncement &&
-            msg.type !== MessageType.ChannelUpdate &&
-            msg.type !== MessageType.NodeAnnouncement
-        ) {
-            return;
-        }
-
-        // defer processing until there is capacity
-        this._processingQueue.enqueue(msg);
-    }
-
-    /**
-     * Returns the number of queued messages waiting to be processed
-     */
-    public get size(): number {
-        return this._processingQueue.size;
-    }
-
-    /**
-     * Processes a message
-     */
-    private async _validateMessage(msg: IWireMessage) {
+    public async validateMessage(msg: IWireMessage): Promise<GossipFilterResult> {
         switch (msg.type) {
             case MessageType.ChannelAnnouncement:
-                await this._validateChannelAnnouncement(msg as ChannelAnnouncementMessage);
-                break;
+                return await this._validateChannelAnnouncement(msg as ChannelAnnouncementMessage);
             case MessageType.NodeAnnouncement:
-                await this._validateNodeAnnouncement(msg as NodeAnnouncementMessage);
-                break;
+                return await this._validateNodeAnnouncement(msg as NodeAnnouncementMessage);
             case MessageType.ChannelUpdate:
-                await this._validateChannelUpdate(msg as ChannelUpdateMessage);
-                break;
+                return await this._validateChannelUpdate(msg as ChannelUpdateMessage);
         }
+        return Result.ok([] as IWireMessage[]);
     }
 
     /**
@@ -109,97 +73,96 @@ export class GossipFilter extends EventEmitter {
      * message is newer than the prior timestamp and if the message
      * has a valid signature from the corresponding node
      */
-    private async _validateNodeAnnouncement(msg: NodeAnnouncementMessage) {
+    private async _validateNodeAnnouncement(
+        msg: NodeAnnouncementMessage,
+    ): Promise<GossipFilterResult> {
         // get or construct a node
-        const existing = await this._gossipStore.findNodeAnnouncement(msg.nodeId);
+        const existing = await this.gossipStore.findNodeAnnouncement(msg.nodeId);
 
         // check if the message is newer than the last update
-        if (existing && existing.timestamp >= msg.timestamp) return;
+        if (existing && existing.timestamp >= msg.timestamp) return Result.ok([] as IWireMessage[]);
 
         // queue node if we don't have any channels
-        const scids = await this._gossipStore.findChannelsForNode(msg.nodeId);
+        const scids = await this.gossipStore.findChannelsForNode(msg.nodeId);
         if (!scids.length) {
-            await this._pendingStore.saveNodeAnnouncement(msg);
-            return;
+            await this.pendingStore.saveNodeAnnouncement(msg);
+            return Result.ok([] as IWireMessage[]);
         }
 
         // validate message signature
         if (!NodeAnnouncementMessage.verifySignatures(msg)) {
-            this.emit("error", new WireError(WireErrorCode.nodeAnnSigFailed, [msg]));
-            return;
+            return Result.err(new WireError(WireErrorCode.nodeAnnSigFailed, [msg]));
         }
 
         // save the announcement
-        await this._gossipStore.saveNodeAnnouncement(msg);
+        await this.gossipStore.saveNodeAnnouncement(msg);
 
         // broadcast valid message
-        this.emit("message", msg);
+        return Result.ok([msg]);
     }
 
     /**
      * Validates a ChannelAnnouncementMessage by verifying the signatures
      * and validating the transaction on chain work. This message will
      */
-    private async _validateChannelAnnouncement(msg: ChannelAnnouncementMessage): Promise<boolean> {
+    private async _validateChannelAnnouncement(
+        msg: ChannelAnnouncementMessage,
+    ): Promise<GossipFilterResult> {
         // attempt to find the existing chan_ann message
-        const existing = await this._gossipStore.findChannelAnnouncement(msg.shortChannelId);
+        const existing = await this.gossipStore.findChannelAnnouncement(msg.shortChannelId);
 
         // If the message is an extended message and it has populated the outpoint and capacity we
         // can skip message processing becuase there is nothing left to do.
         if (existing && existing instanceof ExtendedChannelAnnouncementMessage) {
-            return;
+            return Result.ok([] as IWireMessage[]);
         }
 
-        // if there is an existing message and we don't have a chain_client then we want
+        // If there is an existing message and we don't have a chain_client then we want
         // to abort processing to prevent from populating the gossip store with chan_ann
         // messages that do not have a extended information. Alterntaively, if we DO have an
         // an existing message that is just a chan_ann and not ext_chan_ann and there is a
         // chain_client, we want to update the chan_ann with onchain information
-        if (existing && !this._chainClient) {
-            return;
+        if (existing && !this.chainClient) {
+            return Result.ok([] as IWireMessage[]);
         }
 
         // validate signatures for message
         if (!ChannelAnnouncementMessage.verifySignatures(msg)) {
-            this.emit("error", new WireError(WireErrorCode.chanAnnSigFailed, [msg]));
-            return;
+            return Result.err(new WireError(WireErrorCode.chanAnnSigFailed, [msg]));
         }
 
-        if (this._chainClient) {
+        if (this.chainClient) {
             // load the block hash for the block height
-            const blockHash = await this._chainClient.getBlockHash(msg.shortChannelId.block);
+            const blockHash = await this.chainClient.getBlockHash(msg.shortChannelId.block);
             if (!blockHash) {
-                this.emit("error", new WireError(WireErrorCode.chanBadBlockHash, [msg]));
-                return;
+                return Result.err(new WireError(WireErrorCode.chanBadBlockHash, [msg]));
             }
 
             // load the block details so we can find the tx
-            const block = await this._chainClient.getBlock(blockHash);
+            const block = await this.chainClient.getBlock(blockHash);
             if (!block) {
-                this.emit("error", new WireError(WireErrorCode.chanBadBlock, [msg, blockHash]));
-                return;
+                return Result.err(new WireError(WireErrorCode.chanBadBlock, [msg, blockHash]));
             }
 
             // load the txid from the block details
             const txId = block.tx[msg.shortChannelId.txIdx];
             if (!txId) {
-                this.emit("error", new WireError(WireErrorCode.chanAnnBadTx, [msg]));
-                return;
+                return Result.err(new WireError(WireErrorCode.chanAnnBadTx, [msg]));
             }
 
             // obtain a UTXO to verify the tx hasn't been spent yet
-            const utxo = await this._chainClient.getUtxo(txId, msg.shortChannelId.voutIdx);
+            const utxo = await this.chainClient.getUtxo(txId, msg.shortChannelId.voutIdx);
             if (!utxo) {
-                this.emit("error", new WireError(WireErrorCode.chanUtxoSpent, [msg]));
-                return;
+                return Result.err(new WireError(WireErrorCode.chanUtxoSpent, [msg]));
             }
 
             // verify the tx script is a p2ms
             const expectedScript = fundingScript([msg.bitcoinKey1, msg.bitcoinKey2]);
             const actualScript = Buffer.from(utxo.scriptPubKey.hex, "hex");
             if (!expectedScript.equals(actualScript)) {
-                this.emit("error", new WireError(WireErrorCode.chanBadScript, [msg, expectedScript, actualScript])); // prettier-ignore
-                return;
+                return Result.err(
+                    new WireError(WireErrorCode.chanBadScript, [msg, expectedScript, actualScript]),
+                );
             }
 
             // construct outpoint
@@ -218,37 +181,43 @@ export class GossipFilter extends EventEmitter {
         }
 
         // save channel_ann
-        await this._gossipStore.saveChannelAnnouncement(msg);
+        await this.gossipStore.saveChannelAnnouncement(msg);
 
         // broadcast valid message
-        this.emit("message", msg);
+        const results: IWireMessage[] = [msg];
 
         // process outstanding node messages
         const pendingUpdates = [
-            await this._pendingStore.findChannelUpdate(msg.shortChannelId, 0),
-            await this._pendingStore.findChannelUpdate(msg.shortChannelId, 1),
+            await this.pendingStore.findChannelUpdate(msg.shortChannelId, 0),
+            await this.pendingStore.findChannelUpdate(msg.shortChannelId, 1),
         ];
         for (const pendingUpdate of pendingUpdates) {
             if (pendingUpdate) {
-                await this._pendingStore.deleteChannelUpdate(
+                await this.pendingStore.deleteChannelUpdate(
                     pendingUpdate.shortChannelId,
                     pendingUpdate.direction,
                 );
-                await this._validateChannelUpdate(pendingUpdate);
+                const result = await this._validateChannelUpdate(pendingUpdate);
+                if (result.isErr) return result;
+                else results.push(...result.value);
             }
         }
 
         // process outstanding node messages
         const pendingNodeAnns = [
-            await this._pendingStore.findNodeAnnouncement(msg.nodeId1),
-            await this._pendingStore.findNodeAnnouncement(msg.nodeId2),
+            await this.pendingStore.findNodeAnnouncement(msg.nodeId1),
+            await this.pendingStore.findNodeAnnouncement(msg.nodeId2),
         ];
         for (const pendingNodeAnn of pendingNodeAnns) {
             if (pendingNodeAnn) {
-                await this._pendingStore.deleteNodeAnnouncement(pendingNodeAnn.nodeId);
-                await this._validateNodeAnnouncement(pendingNodeAnn);
+                await this.pendingStore.deleteNodeAnnouncement(pendingNodeAnn.nodeId);
+                const result = await this._validateNodeAnnouncement(pendingNodeAnn);
+                if (result.isErr) return result;
+                else results.push(...result.value);
             }
         }
+
+        return Result.ok(results);
     }
 
     /**
@@ -257,7 +226,7 @@ export class GossipFilter extends EventEmitter {
      * - the channel_update is not old
      * - the channel_update is correctly signed by the node
      */
-    private async _validateChannelUpdate(msg: ChannelUpdateMessage) {
+    private async _validateChannelUpdate(msg: ChannelUpdateMessage): Promise<GossipFilterResult> {
         // Ensure a channel announcement exists. If it does not,
         // we need to queue the update message until the channel announcement
         // can be adequately processed. Technically according to the specification in
@@ -265,30 +234,31 @@ export class GossipFilter extends EventEmitter {
         // a valid channel_announcement. In reality, we may end up in a situation
         // where a channel_update makes it to our peer prior to the channel_announcement
         // being received.
-        const channelMessage = await this._gossipStore.findChannelAnnouncement(msg.shortChannelId);
+        const channelMessage = await this.gossipStore.findChannelAnnouncement(msg.shortChannelId);
         if (!channelMessage) {
-            await this._pendingStore.saveChannelUpdate(msg);
-            return;
+            await this.pendingStore.saveChannelUpdate(msg);
+            return Result.ok([] as IWireMessage[]);
         }
 
         // ignore out of date message
-        const existingUpdate = await this._gossipStore.findChannelUpdate(
+        const existingUpdate = await this.gossipStore.findChannelUpdate(
             msg.shortChannelId,
             msg.direction,
         );
-        if (existingUpdate && existingUpdate.timestamp >= msg.timestamp) return;
+        if (existingUpdate && existingUpdate.timestamp >= msg.timestamp) {
+            return Result.ok([] as IWireMessage[]);
+        }
 
         // validate message signature for the node in
         const nodeId = msg.direction === 0 ? channelMessage.nodeId1 : channelMessage.nodeId2;
         if (!ChannelUpdateMessage.validateSignature(msg, nodeId)) {
-            this.emit("error", new WireError(WireErrorCode.chanUpdSigFailed, [msg, nodeId]));
-            return;
+            return Result.err(new WireError(WireErrorCode.chanUpdSigFailed, [msg, nodeId]));
         }
 
         // save the message
-        await this._gossipStore.saveChannelUpdate(msg);
+        await this.gossipStore.saveChannelUpdate(msg);
 
         // broadcast valid message
-        this.emit("message", msg);
+        return Result.ok([msg]);
     }
 }
