@@ -9,8 +9,11 @@ import { IWireMessage } from "./IWireMessage";
  * is fair, and signs the closing transaction with the scriptpubkey fields from
  * the shutdown messages (along with its chosen fee) and sends the signature.
  * The other node then replies similarly, using a fee it thinks is fair.
- * This exchange continues using the channelID until both agree on the same
- * fee or when one side fails the channel.
+ * One of the benefits of mutual close is that the fee rate can be negotiated
+ * down from the existing fee rate(which is generally expensive) to a more reasonable one.
+ * In order for fee rate to converge, it has to be strictly between the last proposed
+ * and the counterparty's last proposed value. This exchange continues using the
+ * channelID until both agree on the same fee or when one side fails the channel.
  */
 export class ClosingSignedMessage implements IWireMessage {
     public static type: MessageType = MessageType.ClosingSigned;
@@ -43,9 +46,11 @@ export class ClosingSignedMessage implements IWireMessage {
     public channelId: ChannelId;
 
     /**
-     * Expected value for fee_satoshis could vary how fast either side wants the transaction
-     * to be included in the block. So changes are made accordingly on both ends and communicated
-     * between the channel untill both of them comes to an agreement or when one side fails the
+     * Expected value for fee_satoshis could vary how fee rate negotiations happens between the
+     * two nodes.Assuming initially both nodes have different fee estimates, in every iteration
+     * they should ensure fee rate is strictly between their last proposed and the counterparty's
+     * last proposed value. Hence changes are made accordingly on both ends and communicated
+     * between the channel until both of them comes to an agreement or when one side fails the
      * channel.
      */
     public feeSatoshis: bigint;
