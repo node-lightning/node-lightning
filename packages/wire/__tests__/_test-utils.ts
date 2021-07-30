@@ -1,45 +1,66 @@
 import { BitField } from "@node-lightning/core";
 import { ILogger, Logger } from "@node-lightning/logger";
 import sinon from "sinon";
+import { Transform } from "stream";
 import { InitFeatureFlags } from "../lib/flags/InitFeatureFlags";
 
+export class FakePeer extends Transform {
+    public send = sinon.stub();
+    public sendMessage = sinon.stub();
+    public pubkey = Buffer.alloc(32, 1);
+    public localChains: Buffer[] = [];
+    public localFeatures = new BitField<InitFeatureFlags>();
+    public remoteChains: Buffer[] = [];
+    public remoteFeatures = new BitField<InitFeatureFlags>();
+
+    public constructor() {
+        super({ objectMode: true });
+    }
+
+    public _transform(val, encoding, cb) {
+        cb(null, val);
+    }
+}
+
 export function createFakePeer() {
-    return {
-        _handlers: [],
-        on(type, handler) {
-            this._handlers.push([type, handler, false]);
-            return this;
-        },
+    return new FakePeer() as any;
 
-        once(type, handler) {
-            this._handlers.push([type, handler, true]);
-        },
+    // return {
+    //     _handlers: [],
+    //     on(type, handler) {
+    //         this._handlers.push([type, handler, false]);
+    //         return this;
+    //     },
 
-        off(type, handler) {
-            //
-        },
+    //     once(type, handler) {
+    //         this._handlers.push([type, handler, true]);
+    //     },
 
-        emit(type, msg) {
-            const handlers = this._handlers.slice();
-            for (let i = 0; i < handlers.length; i++) {
-                const handler = handlers[i];
-                if (handler[0] !== type) continue;
-                handler[1](msg);
+    //     off(type, handler) {
+    //         //
+    //     },
 
-                // remove once
-                if (handler[2]) {
-                    this._handlers.splice(i, 1);
-                }
-            }
-        },
-        send: sinon.stub(),
-        sendMessage: sinon.stub(),
-        pubkey: Buffer.alloc(32, 1),
-        localChains: [],
-        localFeatures: new BitField<InitFeatureFlags>(),
-        remoteChains: [],
-        remoteFeatures: new BitField<InitFeatureFlags>(),
-    } as any;
+    //     emit(type, msg) {
+    //         const handlers = this._handlers.slice();
+    //         for (let i = 0; i < handlers.length; i++) {
+    //             const handler = handlers[i];
+    //             if (handler[0] !== type) continue;
+    //             handler[1](msg);
+
+    //             // remove once
+    //             if (handler[2]) {
+    //                 this._handlers.splice(i, 1);
+    //             }
+    //         }
+    //     },
+    //     send: sinon.stub(),
+    //     sendMessage: sinon.stub(),
+    //     pubkey: Buffer.alloc(32, 1),
+    //     localChains: [],
+    //     localFeatures: new BitField<InitFeatureFlags>(),
+    //     remoteChains: [],
+    //     remoteFeatures: new BitField<InitFeatureFlags>(),
+    // } as any;
 }
 
 export function createFakeLogger(): ILogger {

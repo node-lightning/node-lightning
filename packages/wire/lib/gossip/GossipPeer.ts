@@ -1,5 +1,5 @@
 import { ILogger } from "@node-lightning/logger";
-import { EventEmitter } from "events";
+import { Transform } from "stream";
 import { InitFeatureFlags } from "../flags/InitFeatureFlags";
 import { IWireMessage } from "../messages/IWireMessage";
 import { MessageType } from "../MessageType";
@@ -15,10 +15,11 @@ import { GossipQueriesSync } from "./GossipQueriesSync";
  * related activities. Messages from the GossipPeer occur after being pushed
  * through a GossipFilter to validate they are aokay.
  */
-export class GossipPeer extends EventEmitter implements IPeer {
+export class GossipPeer extends Transform implements IPeer {
     public readonly logger: ILogger;
 
     private _receiver: GossipQueriesReceiver;
+    private _syncRangeTask: GossipQueriesSync;
 
     /**
      * This class expects to be instantiated by a peer that is read and will
@@ -29,7 +30,7 @@ export class GossipPeer extends EventEmitter implements IPeer {
      * @param logger
      */
     constructor(readonly peer: Peer, readonly filter: GossipFilter, logger: ILogger) {
-        super();
+        super({ objectMode: true, highWaterMark: peer.highWaterMark });
 
         // Enforce that the peer is ready to rock
         if (peer.state !== PeerState.Ready) {
@@ -42,12 +43,8 @@ export class GossipPeer extends EventEmitter implements IPeer {
         // Attach the appropriate events, many of them will simply be forwarded
         // but we will intercept messages and funnel appropriate messages
         // through the filter.
-        this.peer.on("message", this._onMessage.bind(this));
+        this.peer.pipe(this);
         this.peer.on("close", () => this.emit("close"));
-        this.filter.on("message", msg => this.emit("message", msg));
-        this.filter.on("error", err => this.emit("error", err));
-        this.filter.on("flushed", () => this.emit("flushed"));
-
         if (this.gossipQueries) {
             this._receiver = new GossipQueriesReceiver(
                 this.peer.localFeatures[0],
@@ -77,11 +74,9 @@ export class GossipPeer extends EventEmitter implements IPeer {
     public async syncRange(firstBlock?: number, numBlocks?: number): Promise<boolean> {
         if (this.gossipQueries) {
             const chainHash = this.peer.localChains[0];
-            const synchronizer = new GossipQueriesSync(chainHash, this, this.logger);
-            const msgHandler = (msg: IWireMessage) => synchronizer.handleWireMessage(msg);
-            this.on("message", msgHandler);
-            await synchronizer.queryRange(firstBlock, numBlocks);
-            this.off("message", msgHandler);
+            this._syncRangeTask = new GossipQueriesSync(chainHash, this, this.logger);
+            await this._syncRangeTask.queryRange(firstBlock, numBlocks);
+            this._syncRangeTask = undefined;
             return true;
         }
         return false;
@@ -129,21 +124,46 @@ export class GossipPeer extends EventEmitter implements IPeer {
     }
 
     /**
+     * Handles when the peer is readable by iterating available messages
+     * and adding them to the filter.
+     */
+    private _onPeerReadable() {
+        this.emit("readable");
+    }
+
+    /**
      * Internally process messages. If the message is a routing related message
      * it will pass through the GossipFilter, otherwise it will be immediately
      * broadcast.
      * @param msg
      */
-    private _onMessage(msg: IWireMessage) {
-        this.emit("unfiltered_message", msg);
+    public _transform(msg: IWireMessage, encoding: string, cb: (err?: Error) => void) {
+        // HACK: we're adding the sync task message tracking here
+        if (this._syncRangeTask) {
+            this._syncRangeTask.handleWireMessage(msg);
+        }
         if (
             msg.type === MessageType.ChannelAnnouncement ||
             msg.type === MessageType.ChannelUpdate ||
             msg.type === MessageType.NodeAnnouncement
         ) {
-            this.filter.enqueue(msg);
+            this.filter
+                .validateMessage(msg)
+                .then(result => {
+                    if (result.isOk) {
+                        for (msg of result.value) {
+                            this.push(msg);
+                        }
+                        cb();
+                    } else {
+                        cb(result.error);
+                    }
+                })
+                .catch(err => cb(err));
         } else {
-            this.emit("message", msg);
+            // Relays all messages
+            this.push(msg);
+            cb();
         }
     }
 }

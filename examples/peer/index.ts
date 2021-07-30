@@ -1,6 +1,6 @@
 import { ConsoleTransport, Logger, LogLevel } from "@node-lightning/logger";
 import { BitField } from "@node-lightning/core";
-import { QueryChannelRangeMessage } from "@node-lightning/wire";
+import { IWireMessage, QueryChannelRangeMessage } from "@node-lightning/wire";
 import { Peer } from "@node-lightning/wire";
 import { InitFeatureFlags } from "@node-lightning/wire/dist/flags/InitFeatureFlags";
 
@@ -31,7 +31,11 @@ async function connectToPeer(peerInfo: { rpk: string; host: string; port: number
     peer.on("open", () => logger.info("connecting"));
     peer.on("error", err => logger.error("%s", err.stack));
     peer.on("sending", buf => logger.info("send", buf.toString("hex")));
-    peer.on("message", msg => logger.info(JSON.stringify(msg)));
+    peer.on("readable", async () => {
+        for await (const msg of peer) {
+            if (msg) logger.info(JSON.stringify(msg));
+        }
+    });
     // peer.on("rawmessage", buf => logger.info("raw", buf.toString("hex")));
 
     // send a message

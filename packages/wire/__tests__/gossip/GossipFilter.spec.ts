@@ -2,7 +2,7 @@
 // tslint:disable: no-empty
 import { expect } from "chai";
 import sinon from "sinon";
-import { GossipFilter } from "../../lib/gossip/GossipFilter";
+import { GossipFilter, GossipFilterResult } from "../../lib/gossip/GossipFilter";
 import { HasScriptPubKey, HasValue } from "../../lib/gossip/IGossipFilterChainClient";
 import { HasTxStrings } from "../../lib/gossip/IGossipFilterChainClient";
 import { IGossipFilterChainClient } from "../../lib/gossip/IGossipFilterChainClient";
@@ -15,22 +15,26 @@ import { ShortChannelId } from "@node-lightning/core";
 import fs from "fs";
 import path from "path";
 import { GossipMemoryStore } from "../../lib/gossip/GossipMemoryStore";
-import * as MessageFactory from "../../lib/MessageFactory";
 import { WireErrorCode } from "../../lib/WireError";
+import { MessageFactory } from "../../lib";
 
 class FakeChainClient implements IGossipFilterChainClient {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public getBlockHash(height: number): Promise<string> {
         throw new Error("");
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public getBlock(hash: string): Promise<HasTxStrings> {
         throw new Error("");
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public getUtxo(txId: string, voutIdx: number): Promise<HasScriptPubKey & HasValue> {
         throw new Error("");
     }
 
+    // eslint-disable-next-line @typescript-eslint/require-await
     public async waitForSync(): Promise<boolean> {
         return true;
     }
@@ -41,24 +45,23 @@ describe("GossipFilter", () => {
     let chainClient: any;
     let gossipStore: GossipMemoryStore;
     let pendingStore: GossipMemoryStore;
-    let sieve: GossipFilter;
+    let filter: GossipFilter;
 
     function readFixture(file) {
         const data = fs.readFileSync(path.join(__dirname, "../../__fixtures__", file), "utf8");
         return data.split("\n").filter(p => p);
     }
 
-    async function replayMessages(s: GossipFilter, msgs) {
-        return new Promise(resolve => {
-            s.on("flushed", () => resolve());
-            if (!Buffer.isBuffer(msgs[0])) {
-                msgs = msgs.map(m => Buffer.from(m, "hex"));
-            }
-            for (const rawmsg of msgs) {
-                const msg = MessageFactory.deserialize(rawmsg);
-                s.enqueue(msg); // by-pass the queue
-            }
-        });
+    async function replayMessages(
+        s: GossipFilter,
+        hexMsgs: string[],
+    ): Promise<GossipFilterResult[]> {
+        const results: GossipFilterResult[] = [];
+        for (const hexMsg of hexMsgs) {
+            const msg = MessageFactory.deserialize(Buffer.from(hexMsg, "hex"));
+            results.push(await s.validateMessage(msg));
+        }
+        return results;
     }
 
     function permute(permutation) {
@@ -101,7 +104,7 @@ describe("GossipFilter", () => {
 
         gossipStore = new GossipMemoryStore();
         pendingStore = new GossipMemoryStore();
-        sieve = new GossipFilter({ chainClient, gossipStore, pendingStore });
+        filter = new GossipFilter(gossipStore, pendingStore, chainClient);
     });
 
     describe("construction", () => {
@@ -121,7 +124,7 @@ describe("GossipFilter", () => {
                 "01012a3a1da3a63d40c3816acb5827d5e118d8c36d435959c3bcb9d8da934b992fcb515a363dfaa9de826274481a8e96b882d3244d4c547c9ffb68c0f11ad0ab989f00005aa890d003c3feb1e9b84d7aa83ea93f1bc58bfe34fa17603d955eb723a9d236336d97f9e9ffff005341432d4368696e6100000000000000000000000000000000000000000000000007012f5ea5f22607",
             ];
 
-            await replayMessages(sieve, rawMsgs);
+            await replayMessages(filter, rawMsgs);
             expect(gossipStore.channelAnnouncementCount).to.equal(3);
             expect(gossipStore.channelUpdateCount).to.equal(5);
             expect(gossipStore.nodeAnnouncementCount).to.equal(4);
@@ -133,30 +136,26 @@ describe("GossipFilter", () => {
             const rawMsgs = [
                 "0100ce1d69dbb62e86ad28157f4c24705e325f069d5158b91b28bdf55e508afcc1b554a498f4bda8a3d34a206ddb617ad0e945ecadc9a61086bac5afae3e19976242d464e8d305772f29021a4d07617c4159e7e0634bd53991c0e0577c0e9c3d3ee61d7311e6773275335c12f17e573e2813391a71050ab58c03c17d06c0d841db2ec6c6514c2156713651dfbee13d491559764c95343386218ab904173742dde6ca3118d303967e073a44e94f16eef4d878d4d74f1ff1f6924109421cf9c41e8e5c961cf1c7e2316e61a952c7caad056fea1d13d2f4bf855bd3f06d019a33814bc70ea99fa79f026c791b87040e781e8493f5165dafbfc23fabe2912c3ed0ab7e0f000043497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea33090000000013a9090000030000036b96e4713c5f84dcb8030592e1bd42a2d9a43d91fa2e535b9bfd05f2c5def9b9039cc950286a8fa99218283d1adc2456e0d5e81be558da77dd6e85ba9a1fff5ad303ca63b9acbadf5b644c11d0a9dd65b82b14e0d26fc5e0bcf071a90879f603d46203a0ee0a716f4a436864fe53bb788a003321aee63150bf63fd5529e4e1da93481d",
             ];
-            await replayMessages(sieve, rawMsgs);
+            await replayMessages(filter, rawMsgs);
             const msg = await gossipStore.findChannelAnnouncement(
                 new ShortChannelId(1288457, 3, 0),
             );
             expect(msg).to.be.instanceOf(ChannelAnnouncementMessage);
         });
 
-        it("valid channel_announcement should emit message", done => {
+        it("valid channel_announcement should emit message", async () => {
             const rawMsgs = [
                 "0100ce1d69dbb62e86ad28157f4c24705e325f069d5158b91b28bdf55e508afcc1b554a498f4bda8a3d34a206ddb617ad0e945ecadc9a61086bac5afae3e19976242d464e8d305772f29021a4d07617c4159e7e0634bd53991c0e0577c0e9c3d3ee61d7311e6773275335c12f17e573e2813391a71050ab58c03c17d06c0d841db2ec6c6514c2156713651dfbee13d491559764c95343386218ab904173742dde6ca3118d303967e073a44e94f16eef4d878d4d74f1ff1f6924109421cf9c41e8e5c961cf1c7e2316e61a952c7caad056fea1d13d2f4bf855bd3f06d019a33814bc70ea99fa79f026c791b87040e781e8493f5165dafbfc23fabe2912c3ed0ab7e0f000043497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea33090000000013a9090000030000036b96e4713c5f84dcb8030592e1bd42a2d9a43d91fa2e535b9bfd05f2c5def9b9039cc950286a8fa99218283d1adc2456e0d5e81be558da77dd6e85ba9a1fff5ad303ca63b9acbadf5b644c11d0a9dd65b82b14e0d26fc5e0bcf071a90879f603d46203a0ee0a716f4a436864fe53bb788a003321aee63150bf63fd5529e4e1da93481d",
             ];
-            sieve.on("message", msg => {
-                expect(msg.type).to.equal(0x0100);
-                done();
-            });
-            // tslint:disable-next-line: no-floating-promises
-            replayMessages(sieve, rawMsgs);
+            const results = await replayMessages(filter, rawMsgs);
+            expect(results[0].value[0].type).to.equal(0x0100);
         });
 
         it("should enqueue node_announcement until channel_announcement and channel_update", async () => {
             const rawMsgs = [
                 "01015254ffbc21374af9d998355151515933de1d998e9cb124aa4d65a7aa6b473e75201420c58f2414f4fb7461f3f133ab529cbbf9a57365ed6bcf775172826fdc7500005ae86dba039cc950286a8fa99218283d1adc2456e0d5e81be558da77dd6e85ba9a1fff5ad3f8e71c79616c6c732e6f7267000000000000000000000000000000000000000000000000070122c8fc922607",
             ];
-            await replayMessages(sieve, rawMsgs);
+            await replayMessages(filter, rawMsgs);
             expect(gossipStore.nodeAnnouncementCount).to.equal(0);
             expect(pendingStore.nodeAnnouncementCount).to.equal(1);
         });
@@ -166,32 +165,27 @@ describe("GossipFilter", () => {
                 "01015254ffbc21374af9d998355151515933de1d998e9cb124aa4d65a7aa6b473e75201420c58f2414f4fb7461f3f133ab529cbbf9a57365ed6bcf775172826fdc7500005ae86dba039cc950286a8fa99218283d1adc2456e0d5e81be558da77dd6e85ba9a1fff5ad3f8e71c79616c6c732e6f7267000000000000000000000000000000000000000000000000070122c8fc922607",
                 "0100ce1d69dbb62e86ad28157f4c24705e325f069d5158b91b28bdf55e508afcc1b554a498f4bda8a3d34a206ddb617ad0e945ecadc9a61086bac5afae3e19976242d464e8d305772f29021a4d07617c4159e7e0634bd53991c0e0577c0e9c3d3ee61d7311e6773275335c12f17e573e2813391a71050ab58c03c17d06c0d841db2ec6c6514c2156713651dfbee13d491559764c95343386218ab904173742dde6ca3118d303967e073a44e94f16eef4d878d4d74f1ff1f6924109421cf9c41e8e5c961cf1c7e2316e61a952c7caad056fea1d13d2f4bf855bd3f06d019a33814bc70ea99fa79f026c791b87040e781e8493f5165dafbfc23fabe2912c3ed0ab7e0f000043497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea33090000000013a9090000030000036b96e4713c5f84dcb8030592e1bd42a2d9a43d91fa2e535b9bfd05f2c5def9b9039cc950286a8fa99218283d1adc2456e0d5e81be558da77dd6e85ba9a1fff5ad303ca63b9acbadf5b644c11d0a9dd65b82b14e0d26fc5e0bcf071a90879f603d46203a0ee0a716f4a436864fe53bb788a003321aee63150bf63fd5529e4e1da93481d",
             ];
-            await replayMessages(sieve, rawMsgs);
+            await replayMessages(filter, rawMsgs);
 
             const msg = await gossipStore.findNodeAnnouncement(Buffer.from("039cc950286a8fa99218283d1adc2456e0d5e81be558da77dd6e85ba9a1fff5ad3", "hex")); // prettier-ignore
             expect(msg).to.be.instanceOf(NodeAnnouncementMessage);
         });
 
-        it("should emit node_announcement message", done => {
+        it("should emit node_announcement message", async () => {
             const rawMsgs = [
                 "01015254ffbc21374af9d998355151515933de1d998e9cb124aa4d65a7aa6b473e75201420c58f2414f4fb7461f3f133ab529cbbf9a57365ed6bcf775172826fdc7500005ae86dba039cc950286a8fa99218283d1adc2456e0d5e81be558da77dd6e85ba9a1fff5ad3f8e71c79616c6c732e6f7267000000000000000000000000000000000000000000000000070122c8fc922607",
                 "0100ce1d69dbb62e86ad28157f4c24705e325f069d5158b91b28bdf55e508afcc1b554a498f4bda8a3d34a206ddb617ad0e945ecadc9a61086bac5afae3e19976242d464e8d305772f29021a4d07617c4159e7e0634bd53991c0e0577c0e9c3d3ee61d7311e6773275335c12f17e573e2813391a71050ab58c03c17d06c0d841db2ec6c6514c2156713651dfbee13d491559764c95343386218ab904173742dde6ca3118d303967e073a44e94f16eef4d878d4d74f1ff1f6924109421cf9c41e8e5c961cf1c7e2316e61a952c7caad056fea1d13d2f4bf855bd3f06d019a33814bc70ea99fa79f026c791b87040e781e8493f5165dafbfc23fabe2912c3ed0ab7e0f000043497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea33090000000013a9090000030000036b96e4713c5f84dcb8030592e1bd42a2d9a43d91fa2e535b9bfd05f2c5def9b9039cc950286a8fa99218283d1adc2456e0d5e81be558da77dd6e85ba9a1fff5ad303ca63b9acbadf5b644c11d0a9dd65b82b14e0d26fc5e0bcf071a90879f603d46203a0ee0a716f4a436864fe53bb788a003321aee63150bf63fd5529e4e1da93481d",
             ];
-            const msgs = [];
-            sieve.on("message", msg => msgs.push(msg));
-            sieve.on("flushed", () => {
-                expect(msgs[1]).to.be.instanceOf(NodeAnnouncementMessage);
-                done();
-            });
-            // tslint:disable-next-line: no-floating-promises
-            replayMessages(sieve, rawMsgs);
+
+            const results = await replayMessages(filter, rawMsgs);
+            expect(results[1].value[1]).to.be.instanceOf(NodeAnnouncementMessage);
         });
 
         it("should enqueue channel_update until announcement", async () => {
             const rawMsgs = [
                 "0102fcd0d7af22e815879e2ba0c2422bc812d04f8b286fd53e631fe18bb6ed5aecc06a0b96fceb352509656f2b121b76cc808fe02e62ff42edc600bd6e196fe2af9b43497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea33090000000013a90900000300005ae7cc490001009000000000000003e8000003e800000001",
             ];
-            await replayMessages(sieve, rawMsgs);
+            await replayMessages(filter, rawMsgs);
             expect(gossipStore.channelUpdateCount).to.equal(0);
             expect(pendingStore.channelUpdateCount).to.equal(1);
         });
@@ -201,7 +195,7 @@ describe("GossipFilter", () => {
                 "0102fcd0d7af22e815879e2ba0c2422bc812d04f8b286fd53e631fe18bb6ed5aecc06a0b96fceb352509656f2b121b76cc808fe02e62ff42edc600bd6e196fe2af9b43497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea33090000000013a90900000300005ae7cc490001009000000000000003e8000003e800000001",
                 "0100ce1d69dbb62e86ad28157f4c24705e325f069d5158b91b28bdf55e508afcc1b554a498f4bda8a3d34a206ddb617ad0e945ecadc9a61086bac5afae3e19976242d464e8d305772f29021a4d07617c4159e7e0634bd53991c0e0577c0e9c3d3ee61d7311e6773275335c12f17e573e2813391a71050ab58c03c17d06c0d841db2ec6c6514c2156713651dfbee13d491559764c95343386218ab904173742dde6ca3118d303967e073a44e94f16eef4d878d4d74f1ff1f6924109421cf9c41e8e5c961cf1c7e2316e61a952c7caad056fea1d13d2f4bf855bd3f06d019a33814bc70ea99fa79f026c791b87040e781e8493f5165dafbfc23fabe2912c3ed0ab7e0f000043497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea33090000000013a9090000030000036b96e4713c5f84dcb8030592e1bd42a2d9a43d91fa2e535b9bfd05f2c5def9b9039cc950286a8fa99218283d1adc2456e0d5e81be558da77dd6e85ba9a1fff5ad303ca63b9acbadf5b644c11d0a9dd65b82b14e0d26fc5e0bcf071a90879f603d46203a0ee0a716f4a436864fe53bb788a003321aee63150bf63fd5529e4e1da93481d",
             ];
-            await replayMessages(sieve, rawMsgs);
+            await replayMessages(filter, rawMsgs);
             const msg = await gossipStore.findChannelUpdate(new ShortChannelId(1288457, 3, 0), 1);
             expect(msg.timestamp).to.equal(1525140553);
             expect(msg.cltvExpiryDelta).to.equal(144);
@@ -212,80 +206,65 @@ describe("GossipFilter", () => {
             expect(msg.disabled).to.be.false;
         });
 
-        it("should emit valid channel_update", done => {
+        it("should emit valid channel_update", async () => {
             const rawMsgs = [
                 "0102fcd0d7af22e815879e2ba0c2422bc812d04f8b286fd53e631fe18bb6ed5aecc06a0b96fceb352509656f2b121b76cc808fe02e62ff42edc600bd6e196fe2af9b43497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea33090000000013a90900000300005ae7cc490001009000000000000003e8000003e800000001",
                 "0100ce1d69dbb62e86ad28157f4c24705e325f069d5158b91b28bdf55e508afcc1b554a498f4bda8a3d34a206ddb617ad0e945ecadc9a61086bac5afae3e19976242d464e8d305772f29021a4d07617c4159e7e0634bd53991c0e0577c0e9c3d3ee61d7311e6773275335c12f17e573e2813391a71050ab58c03c17d06c0d841db2ec6c6514c2156713651dfbee13d491559764c95343386218ab904173742dde6ca3118d303967e073a44e94f16eef4d878d4d74f1ff1f6924109421cf9c41e8e5c961cf1c7e2316e61a952c7caad056fea1d13d2f4bf855bd3f06d019a33814bc70ea99fa79f026c791b87040e781e8493f5165dafbfc23fabe2912c3ed0ab7e0f000043497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea33090000000013a9090000030000036b96e4713c5f84dcb8030592e1bd42a2d9a43d91fa2e535b9bfd05f2c5def9b9039cc950286a8fa99218283d1adc2456e0d5e81be558da77dd6e85ba9a1fff5ad303ca63b9acbadf5b644c11d0a9dd65b82b14e0d26fc5e0bcf071a90879f603d46203a0ee0a716f4a436864fe53bb788a003321aee63150bf63fd5529e4e1da93481d",
             ];
-            const msgs = [];
-            sieve.on("message", msg => msgs.push(msg));
-            sieve.on("flushed", () => {
-                expect(msgs[1]).to.be.instanceOf(ChannelUpdateMessage);
-                done();
-            });
-            // tslint:disable-next-line: no-floating-promises
-            replayMessages(sieve, rawMsgs);
+            const results = await replayMessages(filter, rawMsgs);
+            expect(results[1].value[1]).to.be.instanceOf(ChannelUpdateMessage);
         });
 
         it("should abort processing on bad signature for channel_announcement", async () => {
-            sieve.on("error", () => {});
             const rawMsgs = [
                 "0100ce1d69dbb62e86ad28157f4c24705e325f069d5158b91b28bdf55e508afcc1b554a498f4bda8a3d34a206ddb617ad0e945ecadc9a61086bac5afae3e19976242d464e8d305772f29021a4d07617c4159e7e0634bd53991c0e0577c0e9c3d3ee61d7311e6773275335c12f17e573e2813391a71050ab58c03c17d06c0d841db2ec6c6514c2156713651dfbee13d491559764c95343386218ab904173742dde6ca3118d303967e073a44e94f16eef4d878d4d74f1ff1f6924109421cf9c41e8e5c961cf1c7e2316e61a952c7caad056fea1d13d2f4bf855bd3f06d019a33814bc70ea99fa79f026c791b87040e781e8493f5165dafbfc23fabe2912c3ed0ab7e0f000043497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea33090000000013a9090000030000036b96e4713c5f84dcb8030592e1bd42a2d9a43d91fa2e535b9bfd05f2c5def9b9039cc950286a8fa99218283d1adc2456e0d5e81be558da77dd6e85ba9a1fff5ad303ca63b9acbadf5b644c11d0a9dd65b82b14e0d26fc5e0bcf071a90879f603d46203a0ee0a716f4a436864fe53bb788a003321aee63150bf63fd5529e4e1da934810",
             ];
-            await replayMessages(sieve, rawMsgs);
+            await replayMessages(filter, rawMsgs);
             expect(gossipStore.channelAnnouncementCount).to.equal(0);
         });
 
         it("should emit error for bad signature for channel_announcement", async () => {
-            let error;
-            sieve.on("error", e => (error = e));
             const rawMsgs = [
                 "0100ce1d69dbb62e86ad28157f4c24705e325f069d5158b91b28bdf55e508afcc1b554a498f4bda8a3d34a206ddb617ad0e945ecadc9a61086bac5afae3e19976242d464e8d305772f29021a4d07617c4159e7e0634bd53991c0e0577c0e9c3d3ee61d7311e6773275335c12f17e573e2813391a71050ab58c03c17d06c0d841db2ec6c6514c2156713651dfbee13d491559764c95343386218ab904173742dde6ca3118d303967e073a44e94f16eef4d878d4d74f1ff1f6924109421cf9c41e8e5c961cf1c7e2316e61a952c7caad056fea1d13d2f4bf855bd3f06d019a33814bc70ea99fa79f026c791b87040e781e8493f5165dafbfc23fabe2912c3ed0ab7e0f000043497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea33090000000013a9090000030000036b96e4713c5f84dcb8030592e1bd42a2d9a43d91fa2e535b9bfd05f2c5def9b9039cc950286a8fa99218283d1adc2456e0d5e81be558da77dd6e85ba9a1fff5ad303ca63b9acbadf5b644c11d0a9dd65b82b14e0d26fc5e0bcf071a90879f603d46203a0ee0a716f4a436864fe53bb788a003321aee63150bf63fd5529e4e1da934810",
             ];
-            await replayMessages(sieve, rawMsgs);
-            expect(error.code).to.equal(WireErrorCode.chanAnnSigFailed);
+            const results = await replayMessages(filter, rawMsgs);
+            expect(results[0].error.code).to.equal(WireErrorCode.chanAnnSigFailed);
         });
 
         it("should abort processing on bad signature for channel_update", async () => {
-            sieve.on("error", () => {});
             const rawMsgs = [
                 "0100ce1d69dbb62e86ad28157f4c24705e325f069d5158b91b28bdf55e508afcc1b554a498f4bda8a3d34a206ddb617ad0e945ecadc9a61086bac5afae3e19976242d464e8d305772f29021a4d07617c4159e7e0634bd53991c0e0577c0e9c3d3ee61d7311e6773275335c12f17e573e2813391a71050ab58c03c17d06c0d841db2ec6c6514c2156713651dfbee13d491559764c95343386218ab904173742dde6ca3118d303967e073a44e94f16eef4d878d4d74f1ff1f6924109421cf9c41e8e5c961cf1c7e2316e61a952c7caad056fea1d13d2f4bf855bd3f06d019a33814bc70ea99fa79f026c791b87040e781e8493f5165dafbfc23fabe2912c3ed0ab7e0f000043497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea33090000000013a9090000030000036b96e4713c5f84dcb8030592e1bd42a2d9a43d91fa2e535b9bfd05f2c5def9b9039cc950286a8fa99218283d1adc2456e0d5e81be558da77dd6e85ba9a1fff5ad303ca63b9acbadf5b644c11d0a9dd65b82b14e0d26fc5e0bcf071a90879f603d46203a0ee0a716f4a436864fe53bb788a003321aee63150bf63fd5529e4e1da93481d",
                 "01024e6eac97124742ba6a033612c8009945c0d52568756a885692b4adbf202666503b56ecb6f5758ea450dda940b2a6853b8e1706c3bd4f38a347be91b08c5e5c4743497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea33090000000013a90900000300005cdd9d780002009000000000000003e8000003e800000000",
             ];
-            await replayMessages(sieve, rawMsgs);
+            await replayMessages(filter, rawMsgs);
             expect(pendingStore.channelUpdateCount).to.equal(0);
         });
 
         it("should emit error for bad signature for channel_update", async () => {
-            let error;
-            sieve.on("error", e => (error = e));
             const rawMsgs = [
                 "0100ce1d69dbb62e86ad28157f4c24705e325f069d5158b91b28bdf55e508afcc1b554a498f4bda8a3d34a206ddb617ad0e945ecadc9a61086bac5afae3e19976242d464e8d305772f29021a4d07617c4159e7e0634bd53991c0e0577c0e9c3d3ee61d7311e6773275335c12f17e573e2813391a71050ab58c03c17d06c0d841db2ec6c6514c2156713651dfbee13d491559764c95343386218ab904173742dde6ca3118d303967e073a44e94f16eef4d878d4d74f1ff1f6924109421cf9c41e8e5c961cf1c7e2316e61a952c7caad056fea1d13d2f4bf855bd3f06d019a33814bc70ea99fa79f026c791b87040e781e8493f5165dafbfc23fabe2912c3ed0ab7e0f000043497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea33090000000013a9090000030000036b96e4713c5f84dcb8030592e1bd42a2d9a43d91fa2e535b9bfd05f2c5def9b9039cc950286a8fa99218283d1adc2456e0d5e81be558da77dd6e85ba9a1fff5ad303ca63b9acbadf5b644c11d0a9dd65b82b14e0d26fc5e0bcf071a90879f603d46203a0ee0a716f4a436864fe53bb788a003321aee63150bf63fd5529e4e1da93481d",
                 "01024e6eac97124742ba6a033612c8009945c0d52568756a885692b4adbf202666503b56ecb6f5758ea450dda940b2a6853b8e1706c3bd4f38a347be91b08c5e5c4743497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea33090000000013a90900000300005cdd9d780002009000000000000003e8000003e800000000",
             ];
-            await replayMessages(sieve, rawMsgs);
-            expect(error.code).to.equal(WireErrorCode.chanUpdSigFailed);
+            const results = await replayMessages(filter, rawMsgs);
+            expect(results[1].error.code).to.equal(WireErrorCode.chanUpdSigFailed);
         });
 
         it("should abort processing on bad signature for node_announcement", async () => {
-            sieve.on("error", () => {});
             const rawMsgs = [
                 "0100ce1d69dbb62e86ad28157f4c24705e325f069d5158b91b28bdf55e508afcc1b554a498f4bda8a3d34a206ddb617ad0e945ecadc9a61086bac5afae3e19976242d464e8d305772f29021a4d07617c4159e7e0634bd53991c0e0577c0e9c3d3ee61d7311e6773275335c12f17e573e2813391a71050ab58c03c17d06c0d841db2ec6c6514c2156713651dfbee13d491559764c95343386218ab904173742dde6ca3118d303967e073a44e94f16eef4d878d4d74f1ff1f6924109421cf9c41e8e5c961cf1c7e2316e61a952c7caad056fea1d13d2f4bf855bd3f06d019a33814bc70ea99fa79f026c791b87040e781e8493f5165dafbfc23fabe2912c3ed0ab7e0f000043497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea33090000000013a9090000030000036b96e4713c5f84dcb8030592e1bd42a2d9a43d91fa2e535b9bfd05f2c5def9b9039cc950286a8fa99218283d1adc2456e0d5e81be558da77dd6e85ba9a1fff5ad303ca63b9acbadf5b644c11d0a9dd65b82b14e0d26fc5e0bcf071a90879f603d46203a0ee0a716f4a436864fe53bb788a003321aee63150bf63fd5529e4e1da93481d",
                 "01015254ffbc21374af9d998355151515933de1d998e9cb124aa4d65a7aa6b473e75201420c58f2414f4fb7461f3f133ab529cbbf9a57365ed6bcf775172826fdc7500005ae86dba039cc950286a8fa99218283d1adc2456e0d5e81be558da77dd6e85ba9a1fff5ad3f8e71c79616c6c732e6f7267000000000000000000000000000000000000000000000000070122c8fc922600",
             ];
-            await replayMessages(sieve, rawMsgs);
+            await replayMessages(filter, rawMsgs);
             expect(pendingStore.nodeAnnouncementCount).to.equal(0);
         });
 
         it("should emit error for bad signature of node_announcement", async () => {
-            let error;
-            sieve.on("error", e => (error = e));
             const rawMsgs = [
                 "0100ce1d69dbb62e86ad28157f4c24705e325f069d5158b91b28bdf55e508afcc1b554a498f4bda8a3d34a206ddb617ad0e945ecadc9a61086bac5afae3e19976242d464e8d305772f29021a4d07617c4159e7e0634bd53991c0e0577c0e9c3d3ee61d7311e6773275335c12f17e573e2813391a71050ab58c03c17d06c0d841db2ec6c6514c2156713651dfbee13d491559764c95343386218ab904173742dde6ca3118d303967e073a44e94f16eef4d878d4d74f1ff1f6924109421cf9c41e8e5c961cf1c7e2316e61a952c7caad056fea1d13d2f4bf855bd3f06d019a33814bc70ea99fa79f026c791b87040e781e8493f5165dafbfc23fabe2912c3ed0ab7e0f000043497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea33090000000013a9090000030000036b96e4713c5f84dcb8030592e1bd42a2d9a43d91fa2e535b9bfd05f2c5def9b9039cc950286a8fa99218283d1adc2456e0d5e81be558da77dd6e85ba9a1fff5ad303ca63b9acbadf5b644c11d0a9dd65b82b14e0d26fc5e0bcf071a90879f603d46203a0ee0a716f4a436864fe53bb788a003321aee63150bf63fd5529e4e1da93481d",
                 "01015254ffbc21374af9d998355151515933de1d998e9cb124aa4d65a7aa6b473e75201420c58f2414f4fb7461f3f133ab529cbbf9a57365ed6bcf775172826fdc7500005ae86dba039cc950286a8fa99218283d1adc2456e0d5e81be558da77dd6e85ba9a1fff5ad3f8e71c79616c6c732e6f7267000000000000000000000000000000000000000000000000070122c8fc922600",
             ];
-            await replayMessages(sieve, rawMsgs);
-            expect(error.code).to.equal(WireErrorCode.nodeAnnSigFailed);
+            const results = await replayMessages(filter, rawMsgs);
+            expect(results[1].error.code).to.equal(WireErrorCode.nodeAnnSigFailed);
         });
 
         it("should reject outdated ChannelUpdateMessage");
@@ -294,101 +273,68 @@ describe("GossipFilter", () => {
 
         it("should replace old queued NodeAnnouncementMessage");
 
-        it("should replace duplicate chan_ann when ext_chan_ann", done => {
+        it("should replace duplicate chan_ann when ext_chan_ann", async () => {
             const chanAnn = ChannelAnnouncementMessage.deserialize(Buffer.from("0100ce1d69dbb62e86ad28157f4c24705e325f069d5158b91b28bdf55e508afcc1b554a498f4bda8a3d34a206ddb617ad0e945ecadc9a61086bac5afae3e19976242d464e8d305772f29021a4d07617c4159e7e0634bd53991c0e0577c0e9c3d3ee61d7311e6773275335c12f17e573e2813391a71050ab58c03c17d06c0d841db2ec6c6514c2156713651dfbee13d491559764c95343386218ab904173742dde6ca3118d303967e073a44e94f16eef4d878d4d74f1ff1f6924109421cf9c41e8e5c961cf1c7e2316e61a952c7caad056fea1d13d2f4bf855bd3f06d019a33814bc70ea99fa79f026c791b87040e781e8493f5165dafbfc23fabe2912c3ed0ab7e0f000043497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea33090000000013a9090000030000036b96e4713c5f84dcb8030592e1bd42a2d9a43d91fa2e535b9bfd05f2c5def9b9039cc950286a8fa99218283d1adc2456e0d5e81be558da77dd6e85ba9a1fff5ad303ca63b9acbadf5b644c11d0a9dd65b82b14e0d26fc5e0bcf071a90879f603d46203a0ee0a716f4a436864fe53bb788a003321aee63150bf63fd5529e4e1da93481d", "hex")); // prettier-ignore
-            gossipStore.saveChannelAnnouncement(chanAnn).then(() => {
-                const rawMsgs = [
-                    "0100ce1d69dbb62e86ad28157f4c24705e325f069d5158b91b28bdf55e508afcc1b554a498f4bda8a3d34a206ddb617ad0e945ecadc9a61086bac5afae3e19976242d464e8d305772f29021a4d07617c4159e7e0634bd53991c0e0577c0e9c3d3ee61d7311e6773275335c12f17e573e2813391a71050ab58c03c17d06c0d841db2ec6c6514c2156713651dfbee13d491559764c95343386218ab904173742dde6ca3118d303967e073a44e94f16eef4d878d4d74f1ff1f6924109421cf9c41e8e5c961cf1c7e2316e61a952c7caad056fea1d13d2f4bf855bd3f06d019a33814bc70ea99fa79f026c791b87040e781e8493f5165dafbfc23fabe2912c3ed0ab7e0f000043497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea33090000000013a9090000030000036b96e4713c5f84dcb8030592e1bd42a2d9a43d91fa2e535b9bfd05f2c5def9b9039cc950286a8fa99218283d1adc2456e0d5e81be558da77dd6e85ba9a1fff5ad303ca63b9acbadf5b644c11d0a9dd65b82b14e0d26fc5e0bcf071a90879f603d46203a0ee0a716f4a436864fe53bb788a003321aee63150bf63fd5529e4e1da93481d",
-                ];
-                const stub = sinon.stub();
-                sieve.on("message", stub);
-                sieve.on("flushed", () => {
-                    expect(stub.callCount).to.equal(1);
-                    done();
-                });
-                // tslint:disable-next-line: no-floating-promises
-                replayMessages(sieve, rawMsgs);
-            });
+            await gossipStore.saveChannelAnnouncement(chanAnn);
+
+            const rawMsgs = [
+                "0100ce1d69dbb62e86ad28157f4c24705e325f069d5158b91b28bdf55e508afcc1b554a498f4bda8a3d34a206ddb617ad0e945ecadc9a61086bac5afae3e19976242d464e8d305772f29021a4d07617c4159e7e0634bd53991c0e0577c0e9c3d3ee61d7311e6773275335c12f17e573e2813391a71050ab58c03c17d06c0d841db2ec6c6514c2156713651dfbee13d491559764c95343386218ab904173742dde6ca3118d303967e073a44e94f16eef4d878d4d74f1ff1f6924109421cf9c41e8e5c961cf1c7e2316e61a952c7caad056fea1d13d2f4bf855bd3f06d019a33814bc70ea99fa79f026c791b87040e781e8493f5165dafbfc23fabe2912c3ed0ab7e0f000043497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea33090000000013a9090000030000036b96e4713c5f84dcb8030592e1bd42a2d9a43d91fa2e535b9bfd05f2c5def9b9039cc950286a8fa99218283d1adc2456e0d5e81be558da77dd6e85ba9a1fff5ad303ca63b9acbadf5b644c11d0a9dd65b82b14e0d26fc5e0bcf071a90879f603d46203a0ee0a716f4a436864fe53bb788a003321aee63150bf63fd5529e4e1da93481d",
+            ];
+
+            const results = await replayMessages(filter, rawMsgs);
+            expect(results[0].value.length).to.equal(1);
         });
 
-        it("should ignore duplicate chan_ann when existing is ext_chan_ann", done => {
+        it("should ignore duplicate chan_ann when existing is ext_chan_ann", async () => {
             const chanAnn = ExtendedChannelAnnouncementMessage.deserialize(Buffer.from("0100ce1d69dbb62e86ad28157f4c24705e325f069d5158b91b28bdf55e508afcc1b554a498f4bda8a3d34a206ddb617ad0e945ecadc9a61086bac5afae3e19976242d464e8d305772f29021a4d07617c4159e7e0634bd53991c0e0577c0e9c3d3ee61d7311e6773275335c12f17e573e2813391a71050ab58c03c17d06c0d841db2ec6c6514c2156713651dfbee13d491559764c95343386218ab904173742dde6ca3118d303967e073a44e94f16eef4d878d4d74f1ff1f6924109421cf9c41e8e5c961cf1c7e2316e61a952c7caad056fea1d13d2f4bf855bd3f06d019a33814bc70ea99fa79f026c791b87040e781e8493f5165dafbfc23fabe2912c3ed0ab7e0f000043497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea33090000000013a9090000030000036b96e4713c5f84dcb8030592e1bd42a2d9a43d91fa2e535b9bfd05f2c5def9b9039cc950286a8fa99218283d1adc2456e0d5e81be558da77dd6e85ba9a1fff5ad303ca63b9acbadf5b644c11d0a9dd65b82b14e0d26fc5e0bcf071a90879f603d46203a0ee0a716f4a436864fe53bb788a003321aee63150bf63fd5529e4e1da93481dfe010000372177777777666666665555555544444444333333332222222211111111000000000c", "hex")); // prettier-ignore
-            gossipStore.saveChannelAnnouncement(chanAnn).then(() => {
-                const rawMsgs = [
-                    "0100ce1d69dbb62e86ad28157f4c24705e325f069d5158b91b28bdf55e508afcc1b554a498f4bda8a3d34a206ddb617ad0e945ecadc9a61086bac5afae3e19976242d464e8d305772f29021a4d07617c4159e7e0634bd53991c0e0577c0e9c3d3ee61d7311e6773275335c12f17e573e2813391a71050ab58c03c17d06c0d841db2ec6c6514c2156713651dfbee13d491559764c95343386218ab904173742dde6ca3118d303967e073a44e94f16eef4d878d4d74f1ff1f6924109421cf9c41e8e5c961cf1c7e2316e61a952c7caad056fea1d13d2f4bf855bd3f06d019a33814bc70ea99fa79f026c791b87040e781e8493f5165dafbfc23fabe2912c3ed0ab7e0f000043497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea33090000000013a9090000030000036b96e4713c5f84dcb8030592e1bd42a2d9a43d91fa2e535b9bfd05f2c5def9b9039cc950286a8fa99218283d1adc2456e0d5e81be558da77dd6e85ba9a1fff5ad303ca63b9acbadf5b644c11d0a9dd65b82b14e0d26fc5e0bcf071a90879f603d46203a0ee0a716f4a436864fe53bb788a003321aee63150bf63fd5529e4e1da93481d",
-                ];
-                const stub = sinon.stub();
-                sieve.on("message", stub);
-                sieve.on("flushed", () => {
-                    expect(stub.callCount).to.equal(0);
-                    done();
-                });
-                // tslint:disable-next-line: no-floating-promises
-                replayMessages(sieve, rawMsgs);
-            });
+            await gossipStore.saveChannelAnnouncement(chanAnn);
+            const rawMsgs = [
+                "0100ce1d69dbb62e86ad28157f4c24705e325f069d5158b91b28bdf55e508afcc1b554a498f4bda8a3d34a206ddb617ad0e945ecadc9a61086bac5afae3e19976242d464e8d305772f29021a4d07617c4159e7e0634bd53991c0e0577c0e9c3d3ee61d7311e6773275335c12f17e573e2813391a71050ab58c03c17d06c0d841db2ec6c6514c2156713651dfbee13d491559764c95343386218ab904173742dde6ca3118d303967e073a44e94f16eef4d878d4d74f1ff1f6924109421cf9c41e8e5c961cf1c7e2316e61a952c7caad056fea1d13d2f4bf855bd3f06d019a33814bc70ea99fa79f026c791b87040e781e8493f5165dafbfc23fabe2912c3ed0ab7e0f000043497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea33090000000013a9090000030000036b96e4713c5f84dcb8030592e1bd42a2d9a43d91fa2e535b9bfd05f2c5def9b9039cc950286a8fa99218283d1adc2456e0d5e81be558da77dd6e85ba9a1fff5ad303ca63b9acbadf5b644c11d0a9dd65b82b14e0d26fc5e0bcf071a90879f603d46203a0ee0a716f4a436864fe53bb788a003321aee63150bf63fd5529e4e1da93481d",
+            ];
+            const results = await replayMessages(filter, rawMsgs);
+            expect(results[0].value.length).to.equal(0);
         });
 
-        it("should ignore duplicate chan_ann when no chain_client", done => {
+        it("should ignore duplicate chan_ann when no chain_client", async () => {
             const rawMsgs = [
                 "0100ce1d69dbb62e86ad28157f4c24705e325f069d5158b91b28bdf55e508afcc1b554a498f4bda8a3d34a206ddb617ad0e945ecadc9a61086bac5afae3e19976242d464e8d305772f29021a4d07617c4159e7e0634bd53991c0e0577c0e9c3d3ee61d7311e6773275335c12f17e573e2813391a71050ab58c03c17d06c0d841db2ec6c6514c2156713651dfbee13d491559764c95343386218ab904173742dde6ca3118d303967e073a44e94f16eef4d878d4d74f1ff1f6924109421cf9c41e8e5c961cf1c7e2316e61a952c7caad056fea1d13d2f4bf855bd3f06d019a33814bc70ea99fa79f026c791b87040e781e8493f5165dafbfc23fabe2912c3ed0ab7e0f000043497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea33090000000013a9090000030000036b96e4713c5f84dcb8030592e1bd42a2d9a43d91fa2e535b9bfd05f2c5def9b9039cc950286a8fa99218283d1adc2456e0d5e81be558da77dd6e85ba9a1fff5ad303ca63b9acbadf5b644c11d0a9dd65b82b14e0d26fc5e0bcf071a90879f603d46203a0ee0a716f4a436864fe53bb788a003321aee63150bf63fd5529e4e1da93481d",
                 "0100ce1d69dbb62e86ad28157f4c24705e325f069d5158b91b28bdf55e508afcc1b554a498f4bda8a3d34a206ddb617ad0e945ecadc9a61086bac5afae3e19976242d464e8d305772f29021a4d07617c4159e7e0634bd53991c0e0577c0e9c3d3ee61d7311e6773275335c12f17e573e2813391a71050ab58c03c17d06c0d841db2ec6c6514c2156713651dfbee13d491559764c95343386218ab904173742dde6ca3118d303967e073a44e94f16eef4d878d4d74f1ff1f6924109421cf9c41e8e5c961cf1c7e2316e61a952c7caad056fea1d13d2f4bf855bd3f06d019a33814bc70ea99fa79f026c791b87040e781e8493f5165dafbfc23fabe2912c3ed0ab7e0f000043497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea33090000000013a9090000030000036b96e4713c5f84dcb8030592e1bd42a2d9a43d91fa2e535b9bfd05f2c5def9b9039cc950286a8fa99218283d1adc2456e0d5e81be558da77dd6e85ba9a1fff5ad303ca63b9acbadf5b644c11d0a9dd65b82b14e0d26fc5e0bcf071a90879f603d46203a0ee0a716f4a436864fe53bb788a003321aee63150bf63fd5529e4e1da93481d",
             ];
-            const stub = sinon.stub();
-            sieve.on("message", stub);
-            sieve.on("flushed", () => {
-                expect(stub.callCount).to.equal(1);
-                done();
-            });
-            (sieve as any)._chainClient = undefined;
-            // tslint:disable-next-line: no-floating-promises
-            replayMessages(sieve, rawMsgs);
+
+            (filter as any)._chainClient = undefined;
+            const results = await replayMessages(filter, rawMsgs);
+            expect(results[0].value.length).to.equal(1);
+            expect(results[1].value.length).to.equal(0);
         });
     });
 
     describe("chainClient failures", () => {
-        let error;
-        beforeEach(() => {
-            sieve.on("error", e => (error = e));
-        });
-
         describe("when blockhash cant be found", () => {
-            beforeEach(async () => {
+            it("should abort processing and return error", async () => {
                 chainClient.getBlockHash.reset();
                 const rawMsgs = [
                     "0100ce1d69dbb62e86ad28157f4c24705e325f069d5158b91b28bdf55e508afcc1b554a498f4bda8a3d34a206ddb617ad0e945ecadc9a61086bac5afae3e19976242d464e8d305772f29021a4d07617c4159e7e0634bd53991c0e0577c0e9c3d3ee61d7311e6773275335c12f17e573e2813391a71050ab58c03c17d06c0d841db2ec6c6514c2156713651dfbee13d491559764c95343386218ab904173742dde6ca3118d303967e073a44e94f16eef4d878d4d74f1ff1f6924109421cf9c41e8e5c961cf1c7e2316e61a952c7caad056fea1d13d2f4bf855bd3f06d019a33814bc70ea99fa79f026c791b87040e781e8493f5165dafbfc23fabe2912c3ed0ab7e0f000043497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea33090000000013a9090000030000036b96e4713c5f84dcb8030592e1bd42a2d9a43d91fa2e535b9bfd05f2c5def9b9039cc950286a8fa99218283d1adc2456e0d5e81be558da77dd6e85ba9a1fff5ad303ca63b9acbadf5b644c11d0a9dd65b82b14e0d26fc5e0bcf071a90879f603d46203a0ee0a716f4a436864fe53bb788a003321aee63150bf63fd5529e4e1da93481d",
                 ];
-                await replayMessages(sieve, rawMsgs);
-            });
-
-            it("should abort processing", () => {
+                const results = await replayMessages(filter, rawMsgs);
                 expect(gossipStore.channelAnnouncementCount).to.equal(0);
-            });
-
-            it("should emit error", () => {
-                expect(error.code).to.equal(WireErrorCode.chanBadBlockHash);
+                expect(results[0].error.code).to.equal(WireErrorCode.chanBadBlockHash);
             });
         });
 
         describe("when block cant be found", () => {
-            beforeEach(async () => {
+            it("should abort processing and return error", async () => {
                 chainClient.getBlock.reset();
                 const rawMsgs = [
                     "0100ce1d69dbb62e86ad28157f4c24705e325f069d5158b91b28bdf55e508afcc1b554a498f4bda8a3d34a206ddb617ad0e945ecadc9a61086bac5afae3e19976242d464e8d305772f29021a4d07617c4159e7e0634bd53991c0e0577c0e9c3d3ee61d7311e6773275335c12f17e573e2813391a71050ab58c03c17d06c0d841db2ec6c6514c2156713651dfbee13d491559764c95343386218ab904173742dde6ca3118d303967e073a44e94f16eef4d878d4d74f1ff1f6924109421cf9c41e8e5c961cf1c7e2316e61a952c7caad056fea1d13d2f4bf855bd3f06d019a33814bc70ea99fa79f026c791b87040e781e8493f5165dafbfc23fabe2912c3ed0ab7e0f000043497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea33090000000013a9090000030000036b96e4713c5f84dcb8030592e1bd42a2d9a43d91fa2e535b9bfd05f2c5def9b9039cc950286a8fa99218283d1adc2456e0d5e81be558da77dd6e85ba9a1fff5ad303ca63b9acbadf5b644c11d0a9dd65b82b14e0d26fc5e0bcf071a90879f603d46203a0ee0a716f4a436864fe53bb788a003321aee63150bf63fd5529e4e1da93481d",
                 ];
-                await replayMessages(sieve, rawMsgs);
-            });
-
-            it("should abort processing", () => {
+                const results = await replayMessages(filter, rawMsgs);
                 expect(gossipStore.channelAnnouncementCount).to.equal(0);
-            });
-
-            it("should emit error event", () => {
-                expect(error.code).to.equal(WireErrorCode.chanBadBlock);
+                expect(results[0].error.code).to.equal(WireErrorCode.chanBadBlock);
             });
         });
 
         describe("when tx cant be found in block", () => {
-            beforeEach(async () => {
+            it("should abort processing and return error", async () => {
                 chainClient.getBlock.reset();
                 chainClient.getBlock.resolves({
                     hash: "00000000368ca807643298b36987833a726eb1e3ce6c3139fd7ff64454f03b10",
@@ -416,38 +362,26 @@ describe("GossipFilter", () => {
                 const rawMsgs = [
                     "0100ce1d69dbb62e86ad28157f4c24705e325f069d5158b91b28bdf55e508afcc1b554a498f4bda8a3d34a206ddb617ad0e945ecadc9a61086bac5afae3e19976242d464e8d305772f29021a4d07617c4159e7e0634bd53991c0e0577c0e9c3d3ee61d7311e6773275335c12f17e573e2813391a71050ab58c03c17d06c0d841db2ec6c6514c2156713651dfbee13d491559764c95343386218ab904173742dde6ca3118d303967e073a44e94f16eef4d878d4d74f1ff1f6924109421cf9c41e8e5c961cf1c7e2316e61a952c7caad056fea1d13d2f4bf855bd3f06d019a33814bc70ea99fa79f026c791b87040e781e8493f5165dafbfc23fabe2912c3ed0ab7e0f000043497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea33090000000013a9090000030000036b96e4713c5f84dcb8030592e1bd42a2d9a43d91fa2e535b9bfd05f2c5def9b9039cc950286a8fa99218283d1adc2456e0d5e81be558da77dd6e85ba9a1fff5ad303ca63b9acbadf5b644c11d0a9dd65b82b14e0d26fc5e0bcf071a90879f603d46203a0ee0a716f4a436864fe53bb788a003321aee63150bf63fd5529e4e1da93481d",
                 ];
-                await replayMessages(sieve, rawMsgs);
-            });
-
-            it("should abort processing", () => {
+                const results = await replayMessages(filter, rawMsgs);
                 expect(gossipStore.channelAnnouncementCount).to.equal(0);
-            });
-
-            it("should emit error", () => {
-                expect(error.code).to.equal(WireErrorCode.chanAnnBadTx);
+                expect(results[0].error.code).to.equal(WireErrorCode.chanAnnBadTx);
             });
         });
 
         describe("when tx no longer in UTXO", () => {
-            beforeEach(async () => {
+            it("should abort processing and return error", async () => {
                 chainClient.getUtxo.reset();
                 const rawMsgs = [
                     "0100ce1d69dbb62e86ad28157f4c24705e325f069d5158b91b28bdf55e508afcc1b554a498f4bda8a3d34a206ddb617ad0e945ecadc9a61086bac5afae3e19976242d464e8d305772f29021a4d07617c4159e7e0634bd53991c0e0577c0e9c3d3ee61d7311e6773275335c12f17e573e2813391a71050ab58c03c17d06c0d841db2ec6c6514c2156713651dfbee13d491559764c95343386218ab904173742dde6ca3118d303967e073a44e94f16eef4d878d4d74f1ff1f6924109421cf9c41e8e5c961cf1c7e2316e61a952c7caad056fea1d13d2f4bf855bd3f06d019a33814bc70ea99fa79f026c791b87040e781e8493f5165dafbfc23fabe2912c3ed0ab7e0f000043497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea33090000000013a9090000030000036b96e4713c5f84dcb8030592e1bd42a2d9a43d91fa2e535b9bfd05f2c5def9b9039cc950286a8fa99218283d1adc2456e0d5e81be558da77dd6e85ba9a1fff5ad303ca63b9acbadf5b644c11d0a9dd65b82b14e0d26fc5e0bcf071a90879f603d46203a0ee0a716f4a436864fe53bb788a003321aee63150bf63fd5529e4e1da93481d",
                 ];
-                await replayMessages(sieve, rawMsgs);
-            });
-
-            it("should abort processing", () => {
+                const results = await replayMessages(filter, rawMsgs);
                 expect(gossipStore.channelAnnouncementCount).to.equal(0);
-            });
-
-            it("should emit error", () => {
-                expect(error.code).to.equal(WireErrorCode.chanUtxoSpent);
+                expect(results[0].error.code).to.equal(WireErrorCode.chanUtxoSpent);
             });
         });
 
         describe("when script does not match expected script", () => {
-            beforeEach(async () => {
+            it("should abort processing and return error", async () => {
                 chainClient.getUtxo.reset();
                 chainClient.getUtxo.resolves({
                     bestblock: "00000000000932be24286cdb97afd3bc5efb134ff1494b5023132936c51bfd62",
@@ -467,15 +401,9 @@ describe("GossipFilter", () => {
                 const rawMsgs = [
                     "0100ce1d69dbb62e86ad28157f4c24705e325f069d5158b91b28bdf55e508afcc1b554a498f4bda8a3d34a206ddb617ad0e945ecadc9a61086bac5afae3e19976242d464e8d305772f29021a4d07617c4159e7e0634bd53991c0e0577c0e9c3d3ee61d7311e6773275335c12f17e573e2813391a71050ab58c03c17d06c0d841db2ec6c6514c2156713651dfbee13d491559764c95343386218ab904173742dde6ca3118d303967e073a44e94f16eef4d878d4d74f1ff1f6924109421cf9c41e8e5c961cf1c7e2316e61a952c7caad056fea1d13d2f4bf855bd3f06d019a33814bc70ea99fa79f026c791b87040e781e8493f5165dafbfc23fabe2912c3ed0ab7e0f000043497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea33090000000013a9090000030000036b96e4713c5f84dcb8030592e1bd42a2d9a43d91fa2e535b9bfd05f2c5def9b9039cc950286a8fa99218283d1adc2456e0d5e81be558da77dd6e85ba9a1fff5ad303ca63b9acbadf5b644c11d0a9dd65b82b14e0d26fc5e0bcf071a90879f603d46203a0ee0a716f4a436864fe53bb788a003321aee63150bf63fd5529e4e1da93481d",
                 ];
-                await replayMessages(sieve, rawMsgs);
-            });
-
-            it("should abort processing", () => {
+                const results = await replayMessages(filter, rawMsgs);
                 expect(gossipStore.channelAnnouncementCount).to.equal(0);
-            });
-
-            it("should emit an error", () => {
-                expect(error.code).to.equal(WireErrorCode.chanBadScript);
+                expect(results[0].error.code).to.equal(WireErrorCode.chanBadScript);
             });
         });
     });
@@ -487,20 +415,20 @@ describe("GossipFilter", () => {
             "01015254ffbc21374af9d998355151515933de1d998e9cb124aa4d65a7aa6b473e75201420c58f2414f4fb7461f3f133ab529cbbf9a57365ed6bcf775172826fdc7500005ae86dba039cc950286a8fa99218283d1adc2456e0d5e81be558da77dd6e85ba9a1fff5ad3f8e71c79616c6c732e6f7267000000000000000000000000000000000000000000000000070122c8fc922607",
             "0102fcd0d7af22e815879e2ba0c2422bc812d04f8b286fd53e631fe18bb6ed5aecc06a0b96fceb352509656f2b121b76cc808fe02e62ff42edc600bd6e196fe2af9b43497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea33090000000013a90900000300005ae7cc490001009000000000000003e8000003e800000001",
             "010105d3b12aacb824409ce8724609fe453fdcd33a498ecca170784985c4a6a2765657c4ef9e1170d3a5795ec86021c3a081c84a9f3a02e2ca66d17b683baacae08000005cddd5e5036b96e4713c5f84dcb8030592e1bd42a2d9a43d91fa2e535b9bfd05f2c5def9b9b6d43364656d6f312e6c6e646578706c6f7265722e636f6d0000000000000000000000000701265736a32611",
-        ].map(v => Buffer.from(v, "hex"));
+        ];
 
         const permutations = permute(rawMsgs);
         let refStore: GossipMemoryStore;
 
         beforeEach(async () => {
-            await replayMessages(sieve, rawMsgs);
+            await replayMessages(filter, rawMsgs);
             refStore = gossipStore;
             sandbox.resetHistory();
         });
 
         for (let i = 0; i < permutations.length; i++) {
             it("graph match on permutation " + (i + 1), async () => {
-                await replayMessages(sieve, permutations[i]);
+                await replayMessages(filter, permutations[i]);
                 expect(gossipStore.channelAnnouncementCount).to.deep.equal(
                     refStore.channelAnnouncementCount,
                 );
