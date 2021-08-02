@@ -17,7 +17,7 @@ export class ShutdownMessage implements IWireMessage {
     public static type = MessageType.CloseChannel;
 
     /**
-     * Deserializes an open_channel message
+     * Deserializes a shutdown message
      * @param buf
      */
     public static deserialize(buf: Buffer): ShutdownMessage {
@@ -26,7 +26,6 @@ export class ShutdownMessage implements IWireMessage {
 
         reader.readUInt16BE(); // read type
         instance.channelId = new ChannelId(reader.readBytes(32));
-        instance.len = reader.readBytes(16);
         instance.scriptPubKey = reader.readBytes();
 
         return instance;
@@ -42,8 +41,6 @@ export class ShutdownMessage implements IWireMessage {
      */
     public channelId: ChannelId;
 
-    public len: Buffer;
-
     /**
      * scriptPubKey is used by the sender to get paid.
      */
@@ -56,7 +53,6 @@ export class ShutdownMessage implements IWireMessage {
         const writer = new BufferWriter();
         writer.writeUInt16BE(this.type);
         writer.writeBytes(this.channelId.toBuffer());
-        writer.writeBytes(this.len);
         writer.writeBytes(this.scriptPubKey);
         return writer.toBuffer();
     }
