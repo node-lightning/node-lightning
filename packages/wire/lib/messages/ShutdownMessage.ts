@@ -56,7 +56,7 @@ export class ShutdownMessage implements IWireMessage {
         const writer = new BufferWriter();
         writer.writeUInt16BE(this.type);
         writer.writeBytes(this.channelId.toBuffer());
-        writer.writeBytes(this.len);
+        writer.writeUInt16BE(this.len);
         writer.writeBytes(this.scriptPubKey);
         return writer.toBuffer();
     }
