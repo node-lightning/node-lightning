@@ -35,7 +35,7 @@ export function deserialize(buffer: Buffer): IWireMessage {
             return OpenChannelMessage.deserialize(buffer);
         case MessageType.AcceptChannel:
             return AcceptChannelMessage.deserialize(buffer);
-        case MessageType.CloseChannel:
+        case MessageType.Shutdown:
             return ShutdownMessage.deserialize(buffer);
 
         // gossip messages
