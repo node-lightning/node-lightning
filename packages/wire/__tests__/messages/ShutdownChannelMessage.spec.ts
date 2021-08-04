@@ -14,7 +14,6 @@ describe("ShutdownChannelMessage", () => {
             const result = ShutdownMessage.deserialize(input);
             expect(result.type).to.equal(38);
             expect(result.channelId.toString()).to.equal("0000000000000000000000000000000000000000000000000000000000000000"); // prettier-ignore
-            expect(result.len).to.equal(21);
             expect(result.scriptPubKey.toString("hex")).to.equal("00a41a8527eab06efc0a8df57045d247784a071e23"); // prettier-ignore
         });
     });
@@ -22,7 +21,6 @@ describe("ShutdownChannelMessage", () => {
         it("should serialize a message", () => {
             const instance = new ShutdownMessage();
             instance.channelId = new ChannelId(Buffer.from("0000000000000000000000000000000000000000000000000000000000000000", "hex")); // prettier-ignore
-            instance.len = 21;
             instance.scriptPubKey = Buffer.from("00a41a8527eab06efc0a8df57045d247784a071e23", "hex"); // prettier-ignore
 
             const result = instance.serialize();

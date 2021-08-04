@@ -4,16 +4,17 @@ import { ChannelId } from "@node-lightning/core";
 import { IWireMessage } from "./IWireMessage";
 
 /**
- * ShutdownMessage represents the `shutdown` message defined in
- * BOLT #2 of the Lightning Specification. This message can be sent by
- * either node. The scriptPubKey must be a valid P2WPKH, P2WSH, P2SH-P2WPKH, P2SH-P2WSH, or any
- * valid witness script if option_shutdown_anysegwit is negotiated and it should be same as `shutdown_scriptpubkey`
- * value if it was sent during `'open/accept' channel message`. Therefore, if both conditions hold true resulting transaction
- * will propagate to miners. If shutdown is sent by either node, corresponding node should send commitment_signed to commit any
- * outstanding changes before replying shutdown. Once shutdown is sent by both nodes no new HTLCs should be added or accepted by the channel.
- * After successful handshake of shutdown message, fee negotiation and signature sending can begin with `closing_signed` message.
+ * ShutdownMessage represents the `shutdown` message defined in BOLT #2 of the Lightning
+ * Specification. This message can be sent by either node. The scriptPubKey must be a valid P2WPKH,
+ * P2WSH, P2SH-P2WPKH, P2SH-P2WSH, or any valid witness script if option_shutdown_anysegwit is
+ * negotiated and it should be same as `shutdown_scriptpubkey` value if it was sent during
+ * `'open/accept' channel message`. Therefore, if both conditions hold true resulting transaction
+ * will propagate to miners. If shutdown is sent by either node, corresponding node should send
+ * commitment_signed to commit any outstanding changes before replying shutdown. Once shutdown is
+ * sent by both nodes no new HTLCs should be added or accepted by the channel. After successful
+ * handshake of shutdown message, fee negotiation and signature sending can begin with
+ * `closing_signed` message.
  */
-
 export class ShutdownMessage implements IWireMessage {
     public static type = MessageType.Shutdown;
 
@@ -27,8 +28,8 @@ export class ShutdownMessage implements IWireMessage {
 
         reader.readUInt16BE(); // read type
         instance.channelId = new ChannelId(reader.readBytes(32));
-        instance.len = reader.readUInt16BE();
-        instance.scriptPubKey = reader.readBytes(instance.len);
+        const len = reader.readUInt16BE();
+        instance.scriptPubKey = reader.readBytes(len);
 
         return instance;
     }
@@ -43,9 +44,11 @@ export class ShutdownMessage implements IWireMessage {
      */
     public channelId: ChannelId;
 
-    public len: number;
     /**
-     * scriptPubKey is used by the sender to get paid.
+     * scriptPubKey is used by the sender to get paid, it must be a valid P2WPKH, P2WSH, P2SH-P2WPKH,
+     *  P2SH-P2WSH, or any valid witness script if option_shutdown_anysegwit is negotiated and it
+     * should be same as `shutdown_scriptpubkey` value if it was sent during `'open/accept' channel
+     * message`.
      */
     public scriptPubKey: Buffer;
 
@@ -56,7 +59,7 @@ export class ShutdownMessage implements IWireMessage {
         const writer = new BufferWriter();
         writer.writeUInt16BE(this.type);
         writer.writeBytes(this.channelId.toBuffer());
-        writer.writeUInt16BE(this.len);
+        writer.writeUInt16BE(this.scriptPubKey.length);
         writer.writeBytes(this.scriptPubKey);
         return writer.toBuffer();
     }
