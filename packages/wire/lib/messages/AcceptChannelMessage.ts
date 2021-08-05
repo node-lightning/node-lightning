@@ -2,6 +2,7 @@ import { BufferReader, BufferWriter } from "@node-lightning/bufio";
 import { MessageType } from "../MessageType";
 import { readTlvs } from "../serialize/readTlvs";
 import { IWireMessage } from "./IWireMessage";
+import { Value } from "@node-lightning/core";
 
 /**
  * AcceptChannelMessage represents the accept_channel message defined in
@@ -25,10 +26,10 @@ export class AcceptChannelMessage implements IWireMessage {
 
         reader.readUInt16BE(); // read type
         instance.temporaryChannelId = reader.readBytes(32);
-        instance.dustLimitSatoshis = reader.readUInt64BE();
-        instance.maxHtlcValueInFlightMsat = reader.readUInt64BE();
-        instance.channelReserveSatoshis = reader.readUInt64BE();
-        instance.htlcMinimumMsat = reader.readUInt64BE();
+        instance.dustLimitSatoshis = Value.fromSats(reader.readUInt64BE());
+        instance.maxHtlcValueInFlightMsat = Value.fromMilliSats(reader.readUInt64BE());
+        instance.channelReserveSatoshis = Value.fromSats(reader.readUInt64BE());
+        instance.htlcMinimumMsat = Value.fromMilliSats(reader.readUInt64BE());
         instance.minimumDepth = reader.readUInt32BE();
         instance.toSelfDelay = reader.readUInt16BE();
         instance.maxAcceptedHtlcs = reader.readUInt16BE();
@@ -75,7 +76,7 @@ export class AcceptChannelMessage implements IWireMessage {
      * transaction outputs are considered non-standard by the network and
      * will not be propagated.
      */
-    public dustLimitSatoshis: bigint;
+    public dustLimitSatoshis: Value;
 
     /**
      * Indicates the minimum amount that the counterparty is supposed to
@@ -86,7 +87,7 @@ export class AcceptChannelMessage implements IWireMessage {
      * transaction. Initially this value may not be met but as a channel
      * is used and the value is met, the reserve must be maintained.
      */
-    public channelReserveSatoshis: bigint;
+    public channelReserveSatoshis: Value;
 
     /**
      * Specifies the number of blocks the accepting party considers
@@ -111,14 +112,14 @@ export class AcceptChannelMessage implements IWireMessage {
      * The minimum value in millisatoshi of an HTLC that we are willing
      * to accept.
      */
-    public htlcMinimumMsat: bigint;
+    public htlcMinimumMsat: Value;
 
     /**
      * The maximum value in millisatoshi of outstanding HTLCs we will
      * allow. This value allows us to limit our overall exposure to
      * HTLCs.
      */
-    public maxHtlcValueInFlightMsat: bigint;
+    public maxHtlcValueInFlightMsat: Value;
 
     /**
      * The maximum number of outstanding HTLCs that we will allow. This
@@ -191,10 +192,10 @@ export class AcceptChannelMessage implements IWireMessage {
         const writer = new BufferWriter();
         writer.writeUInt16BE(this.type);
         writer.writeBytes(this.temporaryChannelId);
-        writer.writeUInt64BE(this.dustLimitSatoshis);
-        writer.writeUInt64BE(this.maxHtlcValueInFlightMsat);
-        writer.writeUInt64BE(this.channelReserveSatoshis);
-        writer.writeUInt64BE(this.htlcMinimumMsat);
+        writer.writeUInt64BE(this.dustLimitSatoshis.sats);
+        writer.writeUInt64BE(this.maxHtlcValueInFlightMsat.msats);
+        writer.writeUInt64BE(this.channelReserveSatoshis.sats);
+        writer.writeUInt64BE(this.htlcMinimumMsat.msats);
         writer.writeUInt32BE(this.minimumDepth);
         writer.writeUInt16BE(this.toSelfDelay);
         writer.writeUInt16BE(this.maxAcceptedHtlcs);

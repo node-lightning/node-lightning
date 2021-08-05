@@ -1,6 +1,7 @@
 import * as crypto from "@node-lightning/crypto";
 import { expect } from "chai";
 import { AcceptChannelMessage } from "../../lib/messages/AcceptChannelMessage";
+import { Value } from "@node-lightning/core";
 
 describe("AcceptChannelMessage", () => {
     // abb00e1f13665a56d7b39917a3afa1a9753191e97541334705e39019c0e3d9b4
@@ -41,10 +42,10 @@ describe("AcceptChannelMessage", () => {
                 "0000000000000000000000000000000000000000000000000000000000000000",
                 "hex",
             );
-            instance.dustLimitSatoshis = BigInt(330);
-            instance.maxHtlcValueInFlightMsat = BigInt(20000);
-            instance.channelReserveSatoshis = BigInt(2000);
-            instance.htlcMinimumMsat = BigInt(200);
+            instance.dustLimitSatoshis = Value.fromSats(330);
+            instance.maxHtlcValueInFlightMsat = Value.fromMilliSats(20000);
+            instance.channelReserveSatoshis = Value.fromSats(2000);
+            instance.htlcMinimumMsat = Value.fromMilliSats(200);
             instance.minimumDepth = 6;
             instance.toSelfDelay = 144;
             instance.maxAcceptedHtlcs = 30;
@@ -80,10 +81,10 @@ describe("AcceptChannelMessage", () => {
                 "0000000000000000000000000000000000000000000000000000000000000000",
                 "hex",
             );
-            instance.dustLimitSatoshis = BigInt(330);
-            instance.maxHtlcValueInFlightMsat = BigInt(20000);
-            instance.channelReserveSatoshis = BigInt(2000);
-            instance.htlcMinimumMsat = BigInt(200);
+            instance.dustLimitSatoshis = Value.fromSats(330);
+            instance.maxHtlcValueInFlightMsat = Value.fromMilliSats(20000);
+            instance.channelReserveSatoshis = Value.fromSats(2000);
+            instance.htlcMinimumMsat = Value.fromMilliSats(200);
             instance.minimumDepth = 6;
             instance.toSelfDelay = 144;
             instance.maxAcceptedHtlcs = 30;
@@ -151,10 +152,10 @@ describe("AcceptChannelMessage", () => {
                     "hex",
                 ),
             );
-            expect(instance.dustLimitSatoshis).to.equal(BigInt(330));
-            expect(instance.maxHtlcValueInFlightMsat).to.equal(BigInt(20000));
-            expect(instance.channelReserveSatoshis).to.equal(BigInt(2000));
-            expect(instance.htlcMinimumMsat).to.equal(BigInt(200));
+            expect(instance.dustLimitSatoshis.sats).to.equal(BigInt(330));
+            expect(instance.maxHtlcValueInFlightMsat.msats).to.equal(BigInt(20000));
+            expect(instance.channelReserveSatoshis.sats).to.equal(BigInt(2000));
+            expect(instance.htlcMinimumMsat.msats).to.equal(BigInt(200));
             expect(instance.minimumDepth).to.equal(6);
             expect(instance.toSelfDelay).to.equal(144);
             expect(instance.maxAcceptedHtlcs).to.equal(30);
