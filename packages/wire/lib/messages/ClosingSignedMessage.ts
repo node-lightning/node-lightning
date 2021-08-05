@@ -1,5 +1,5 @@
 import { BufferReader, BufferWriter } from "@node-lightning/bufio";
-import { ChannelId } from "@node-lightning/core";
+import { ChannelId, Value } from "@node-lightning/core";
 import { MessageType } from "../MessageType";
 import { IWireMessage } from "./IWireMessage";
 
@@ -29,7 +29,7 @@ export class ClosingSignedMessage implements IWireMessage {
 
         reader.readUInt16BE(); // read type
         instance.channelId = new ChannelId(reader.readBytes(32));
-        instance.feeSatoshis = reader.readUInt64BE();
+        instance.feeSatoshis = Value.fromPicoSats(reader.readUInt64BE());
         instance.signature = reader.readBytes(64);
 
         return instance;
@@ -53,7 +53,7 @@ export class ClosingSignedMessage implements IWireMessage {
      * between the channel until both of them comes to an agreement or when one side fails the
      * channel.
      */
-    public feeSatoshis: bigint;
+    public feeSatoshis: Value;
 
     /**
      * Sender signs the closing transaction with the scriptpubkey fields from the
@@ -68,7 +68,7 @@ export class ClosingSignedMessage implements IWireMessage {
         const writer = new BufferWriter();
         writer.writeUInt16BE(this.type);
         writer.writeBytes(this.channelId.toBuffer());
-        writer.writeUInt64BE(this.feeSatoshis);
+        writer.writeUInt64BE(this.feeSatoshis.psats);
         writer.writeBytes(this.signature);
         return writer.toBuffer();
     }
