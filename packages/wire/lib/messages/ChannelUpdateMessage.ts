@@ -1,10 +1,10 @@
-// import { BufferReader, BufferWriter } from "@node-lightning/bufio";
-// import { ShortChannelId } from "@node-lightning/core";
-// import { shortChannelIdFromBuffer } from "@node-lightning/core";
-import { BufferReader, BufferWriter } from "../../../bufio/lib/index";
-import { BitField, ShortChannelId, shortChannelIdFromBuffer } from "../../../../packages/core/lib/";
+import { BufferReader, BufferWriter } from "@node-lightning/bufio";
+import { BitField, ShortChannelId } from "@node-lightning/core";
+import { shortChannelIdFromBuffer } from "@node-lightning/core";
+// import { BufferReader, BufferWriter } from "../../../bufio/lib/index";
+// import { BitField, ShortChannelId, shortChannelIdFromBuffer } from "../../../../packages/core/lib/";
 import { Value } from "../../../bitcoin/lib/Value";
-import * as crypto from "../../../crypto/lib/";
+import * as crypto from "@node-lightning/crypto";
 import { Checksum } from "../domain/Checksum";
 import { ChannelUpdateMessageFlags } from "../flags/ChannelUpdateMessageFlags";
 import { ChannelUpdateChannelFlags } from "../flags/ChanneUpdateChannelFlags";
