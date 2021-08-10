@@ -1,5 +1,8 @@
-import { BufferReader, BufferWriter } from "@node-lightning/bufio";
-import { BitField, Script, Value } from "@node-lightning/core";
+// import { BufferReader, BufferWriter } from "@node-lightning/bufio";
+// import { BitField, Script, Value } from "@node-lightning/core";
+import { BufferReader, BufferWriter } from "../../../bufio/lib/index";
+import { BitField } from "../../../../packages/core/lib/";
+import { Value } from "../../../bitcoin/lib/Value";
 import { OpenChannelFlags } from "../flags/OpenChannelFlags";
 import { MessageType } from "../MessageType";
 import { readTlvs } from "../serialize/readTlvs";
@@ -33,7 +36,7 @@ export class OpenChannelMessage implements IWireMessage {
         instance.maxHtlcValueInFlightMsat = Value.fromMilliSats(reader.readUInt64BE());
         instance.channelReserveSatoshis = Value.fromSats(reader.readUInt64BE());
         instance.htlcMinimumMsat = Value.fromMilliSats(reader.readUInt64BE());
-        instance.feeRatePerKw = reader.readUInt32BE();
+        instance.feeRatePerKw = Value.fromSats(reader.readUInt32BE());
         instance.toSelfDelay = reader.readUInt16BE();
         instance.maxAcceptedHtlcs = reader.readUInt16BE();
         instance.fundingPubKey = reader.readBytes(33);
@@ -126,7 +129,7 @@ export class OpenChannelMessage implements IWireMessage {
      * the funding node believes will result in the immediate inclusion
      * of the commitment transaction in a block.
      */
-    public feeRatePerKw: number;
+    public feeRatePerKw: Value;
 
     /**
      * Indicates the number of blocks the remote node must use to delay
@@ -259,7 +262,7 @@ export class OpenChannelMessage implements IWireMessage {
         writer.writeUInt64BE(this.maxHtlcValueInFlightMsat.msats);
         writer.writeUInt64BE(this.channelReserveSatoshis.sats);
         writer.writeUInt64BE(this.htlcMinimumMsat.msats);
-        writer.writeUInt32BE(this.feeRatePerKw);
+        writer.writeUInt32BE(Number(this.feeRatePerKw.sats));
         writer.writeUInt16BE(this.toSelfDelay);
         writer.writeUInt16BE(this.maxAcceptedHtlcs);
         writer.writeBytes(this.fundingPubKey);

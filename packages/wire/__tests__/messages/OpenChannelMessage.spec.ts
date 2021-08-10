@@ -52,7 +52,7 @@ describe("OpenChannelMessage", () => {
             instance.maxHtlcValueInFlightMsat = Value.fromMilliSats(20000);
             instance.channelReserveSatoshis = Value.fromSats(2000);
             instance.htlcMinimumMsat = Value.fromMilliSats(200);
-            instance.feeRatePerKw = 1000;
+            instance.feeRatePerKw = Value.fromSats(1000);
             instance.toSelfDelay = 144;
             instance.maxAcceptedHtlcs = 30;
             instance.fundingPubKey = fundingPubKey;
@@ -102,7 +102,7 @@ describe("OpenChannelMessage", () => {
             instance.maxHtlcValueInFlightMsat = Value.fromMilliSats(20000);
             instance.channelReserveSatoshis = Value.fromSats(2000);
             instance.htlcMinimumMsat = Value.fromMilliSats(200);
-            instance.feeRatePerKw = 1000;
+            instance.feeRatePerKw = Value.fromSats(1000);
             instance.toSelfDelay = 144;
             instance.maxAcceptedHtlcs = 30;
             instance.fundingPubKey = fundingPubKey;
@@ -152,7 +152,7 @@ describe("OpenChannelMessage", () => {
             instance.maxHtlcValueInFlightMsat = Value.fromMilliSats(20000);
             instance.channelReserveSatoshis = Value.fromSats(2000);
             instance.htlcMinimumMsat = Value.fromMilliSats(200);
-            instance.feeRatePerKw = 1000;
+            instance.feeRatePerKw = Value.fromSats(1000);
             instance.toSelfDelay = 144;
             instance.maxAcceptedHtlcs = 30;
             instance.fundingPubKey = fundingPubKey;
@@ -240,7 +240,7 @@ describe("OpenChannelMessage", () => {
             expect(instance.maxHtlcValueInFlightMsat.msats).to.equal(BigInt(20000));
             expect(instance.channelReserveSatoshis.sats).to.equal(BigInt(2000));
             expect(instance.htlcMinimumMsat.msats).to.equal(BigInt(200));
-            expect(instance.feeRatePerKw).to.equal(1000);
+            expect(Number(instance.feeRatePerKw.sats)).to.equal(1000);
             expect(instance.toSelfDelay).to.equal(144);
             expect(instance.maxAcceptedHtlcs).to.equal(30);
             expect(instance.fundingPubKey).to.deep.equal(fundingPubKey);

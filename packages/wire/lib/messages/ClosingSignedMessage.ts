@@ -1,5 +1,8 @@
-import { BufferReader, BufferWriter } from "@node-lightning/bufio";
-import { ChannelId, Value } from "@node-lightning/core";
+// import { BufferReader, BufferWriter } from "@node-lightning/bufio";
+// import { ChannelId, Value } from "@node-lightning/core";
+import { BufferReader, BufferWriter } from "../../../bufio/lib/index";
+import { ChannelId } from "../../../../packages/core/lib/";
+import { Value } from "../../../bitcoin/lib/Value";
 import { MessageType } from "../MessageType";
 import { IWireMessage } from "./IWireMessage";
 
@@ -29,7 +32,7 @@ export class ClosingSignedMessage implements IWireMessage {
 
         reader.readUInt16BE(); // read type
         instance.channelId = new ChannelId(reader.readBytes(32));
-        instance.feeSatoshis = Value.fromPicoSats(reader.readUInt64BE());
+        instance.feeSatoshis = Value.fromSats(reader.readUInt64BE());
         instance.signature = reader.readBytes(64);
 
         return instance;
@@ -68,7 +71,7 @@ export class ClosingSignedMessage implements IWireMessage {
         const writer = new BufferWriter();
         writer.writeUInt16BE(this.type);
         writer.writeBytes(this.channelId.toBuffer());
-        writer.writeUInt64BE(this.feeSatoshis.psats);
+        writer.writeUInt64BE(this.feeSatoshis.sats);
         writer.writeBytes(this.signature);
         return writer.toBuffer();
     }

@@ -1,8 +1,10 @@
-import { BufferReader, BufferWriter } from "@node-lightning/bufio";
-import { BitField, Value } from "@node-lightning/core";
-import { ShortChannelId } from "@node-lightning/core";
-import { shortChannelIdFromBuffer } from "@node-lightning/core";
-import * as crypto from "@node-lightning/crypto";
+// import { BufferReader, BufferWriter } from "@node-lightning/bufio";
+// import { ShortChannelId } from "@node-lightning/core";
+// import { shortChannelIdFromBuffer } from "@node-lightning/core";
+import { BufferReader, BufferWriter } from "../../../bufio/lib/index";
+import { BitField, ShortChannelId, shortChannelIdFromBuffer } from "../../../../packages/core/lib/";
+import { Value } from "../../../bitcoin/lib/Value";
+import * as crypto from "../../../crypto/lib/";
 import { Checksum } from "../domain/Checksum";
 import { ChannelUpdateMessageFlags } from "../flags/ChannelUpdateMessageFlags";
 import { ChannelUpdateChannelFlags } from "../flags/ChanneUpdateChannelFlags";
@@ -32,8 +34,8 @@ export class ChannelUpdateMessage implements IWireMessage {
         instance.channelFlags = BitField.fromNumber(reader.readUInt8());
         instance.cltvExpiryDelta = reader.readUInt16BE();
         instance.htlcMinimumMsat = Value.fromMilliSats(reader.readUInt64BE());
-        instance.feeBaseMsat = reader.readUInt32BE();
-        instance.feeProportionalMillionths = reader.readUInt32BE();
+        instance.feeBaseMsat = Value.fromMilliSats(reader.readUInt32BE());
+        instance.feeProportionalMillionths = Value.fromMillionthSats(reader.readUInt32BE());
 
         // has optional_channel_htlc_max
         if (instance.hasHtlcMaximumMsatFlag) {
@@ -137,13 +139,13 @@ export class ChannelUpdateMessage implements IWireMessage {
      * The base fee (in millisatoshi) the channel will charge for
      * any HTLC.
      */
-    public feeBaseMsat: number;
+    public feeBaseMsat: Value;
 
     /**
      * The amount (in millionths of a satoshi) it will charge per
      * transferred satoshi.
      */
-    public feeProportionalMillionths: number;
+    public feeProportionalMillionths: Value;
 
     /**
      * Returns true when message flags have the optional
@@ -218,8 +220,8 @@ export class ChannelUpdateMessage implements IWireMessage {
         writer.writeUInt8(this.channelFlags.toNumber());
         writer.writeUInt16BE(this.cltvExpiryDelta);
         writer.writeUInt64BE(this.htlcMinimumMsat.msats);
-        writer.writeUInt32BE(this.feeBaseMsat);
-        writer.writeUInt32BE(this.feeProportionalMillionths);
+        writer.writeUInt32BE(Number(this.feeBaseMsat.msats));
+        writer.writeUInt32BE(Number(this.feeProportionalMillionths.millionthsats));
         if (this.hasHtlcMaximumMsatFlag) {
             writer.writeUInt64BE(this.htlcMaximumMsat.msats);
         }
@@ -256,8 +258,8 @@ export class ChannelUpdateMessage implements IWireMessage {
         writer.writeUInt8(Number(this.channelFlags));
         writer.writeUInt16BE(this.cltvExpiryDelta);
         writer.writeUInt64BE(this.htlcMinimumMsat.msats);
-        writer.writeUInt32BE(this.feeBaseMsat);
-        writer.writeUInt32BE(this.feeProportionalMillionths);
+        writer.writeUInt32BE(Number(this.feeBaseMsat.msats));
+        writer.writeUInt32BE(Number(this.feeProportionalMillionths.millionthsats));
         if (this.hasHtlcMaximumMsatFlag) {
             writer.writeUInt64BE(this.htlcMaximumMsat.msats);
         }
