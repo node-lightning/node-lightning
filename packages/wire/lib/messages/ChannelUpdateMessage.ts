@@ -1,8 +1,6 @@
 import { BufferReader, BufferWriter } from "@node-lightning/bufio";
 import { BitField, ShortChannelId } from "@node-lightning/core";
 import { shortChannelIdFromBuffer } from "@node-lightning/core";
-// import { BufferReader, BufferWriter } from "../../../bufio/lib/index";
-// import { BitField, ShortChannelId, shortChannelIdFromBuffer } from "../../../../packages/core/lib/";
 import { Value } from "../../../bitcoin/lib/Value";
 import * as crypto from "@node-lightning/crypto";
 import { Checksum } from "../domain/Checksum";
@@ -35,7 +33,7 @@ export class ChannelUpdateMessage implements IWireMessage {
         instance.cltvExpiryDelta = reader.readUInt16BE();
         instance.htlcMinimumMsat = Value.fromMilliSats(reader.readUInt64BE());
         instance.feeBaseMsat = Value.fromMilliSats(reader.readUInt32BE());
-        instance.feeProportionalMillionths = Value.fromMillionthSats(reader.readUInt32BE());
+        instance.feeProportionalMillionths = Value.fromMicroSats(reader.readUInt32BE());
 
         // has optional_channel_htlc_max
         if (instance.hasHtlcMaximumMsatFlag) {
@@ -221,7 +219,7 @@ export class ChannelUpdateMessage implements IWireMessage {
         writer.writeUInt16BE(this.cltvExpiryDelta);
         writer.writeUInt64BE(this.htlcMinimumMsat.msats);
         writer.writeUInt32BE(Number(this.feeBaseMsat.msats));
-        writer.writeUInt32BE(Number(this.feeProportionalMillionths.millionthsats));
+        writer.writeUInt32BE(Number(this.feeProportionalMillionths.microsats));
         if (this.hasHtlcMaximumMsatFlag) {
             writer.writeUInt64BE(this.htlcMaximumMsat.msats);
         }
@@ -259,7 +257,7 @@ export class ChannelUpdateMessage implements IWireMessage {
         writer.writeUInt16BE(this.cltvExpiryDelta);
         writer.writeUInt64BE(this.htlcMinimumMsat.msats);
         writer.writeUInt32BE(Number(this.feeBaseMsat.msats));
-        writer.writeUInt32BE(Number(this.feeProportionalMillionths.millionthsats));
+        writer.writeUInt32BE(Number(this.feeProportionalMillionths.microsats));
         if (this.hasHtlcMaximumMsatFlag) {
             writer.writeUInt64BE(this.htlcMaximumMsat.msats);
         }

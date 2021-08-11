@@ -34,13 +34,13 @@ export class Value implements ICloneable<Value> {
     }
 
     /**
-     * Creates a value instance from value in millionthsatoshis, 1/1e6 of a
+     * Creates a value instance from value in microsatoshis, 1/1e6 of a
      * satoshi.
-     * eg: 123 millionthsatoshis equates to 0.000123 satoshis
-     * eg: 123 millionthsatoshis equates to 0.00000000000123 bitcoin
+     * eg: 123 microsatoshis equates to 0.000123 satoshis
+     * eg: 123 microsatoshis equates to 0.00000000000123 bitcoin
      * @param num
      */
-    public static fromMillionthSats(num: bigint | number) {
+    public static fromMicroSats(num: bigint | number) {
         return new Value(BigInt(num) * BigInt(1e6));
     }
 
@@ -74,7 +74,7 @@ export class Value implements ICloneable<Value> {
     /**
      * Gets the value in millionth of satoshis (1/1e6 satoshis)
      */
-    public get millionthsats(): bigint {
+    public get microsats(): bigint {
         return this._picoSats / BigInt(1e6);
     }
 

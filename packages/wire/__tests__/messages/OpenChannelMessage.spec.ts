@@ -1,7 +1,8 @@
 import * as crypto from "@node-lightning/crypto";
 import { expect } from "chai";
 import { OpenChannelMessage } from "../../lib/messages/OpenChannelMessage";
-import { Value, Script } from "@node-lightning/core";
+import { Script } from "@node-lightning/core";
+import { Value } from "../../../bitcoin/lib/Value";
 
 describe("OpenChannelMessage", () => {
     // abb00e1f13665a56d7b39917a3afa1a9753191e97541334705e39019c0e3d9b4

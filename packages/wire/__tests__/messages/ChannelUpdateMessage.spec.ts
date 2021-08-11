@@ -1,6 +1,6 @@
 // tslint:disable: no-unused-expression
-import { BitField, Value } from "@node-lightning/core";
-import { ShortChannelId } from "@node-lightning/core";
+import { BitField, ShortChannelId } from "@node-lightning/core";
+import { Value } from "../../../bitcoin/lib/Value";
 import { expect } from "chai";
 import { ChannelUpdateMessage } from "../../lib/messages/ChannelUpdateMessage";
 
@@ -32,7 +32,7 @@ describe("ChannelUpdateMessage", () => {
             expect(Number(result.htlcMinimumMsat.msats)).to.equal(1000);
             expect(Number(result.htlcMaximumMsat.msats)).to.equal(100000000);
             expect(Number(result.feeBaseMsat.msats)).to.equal(1000);
-            expect(Number(result.feeProportionalMillionths.millionthsats)).to.equal(1);
+            expect(Number(result.feeProportionalMillionths.microsats)).to.equal(1);
             expect(result.direction).to.equal(0);
             expect(result.disabled).to.be.false;
         });
@@ -51,7 +51,7 @@ describe("ChannelUpdateMessage", () => {
             instance.htlcMinimumMsat = Value.fromMilliSats(1000);
             instance.htlcMaximumMsat = Value.fromMilliSats(100000000);
             instance.feeBaseMsat = Value.fromMilliSats(1000);
-            instance.feeProportionalMillionths = Value.fromMillionthSats(1);
+            instance.feeProportionalMillionths = Value.fromMicroSats(1);
 
             const result = instance.serialize();
             expect(result.toString("hex")).to.deep.equal(
