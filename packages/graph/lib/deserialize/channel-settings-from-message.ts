@@ -10,10 +10,10 @@ export function channelSettingsFromMessage(msg: ChannelUpdateMessage): ChannelSe
     instance.direction = msg.direction;
     instance.timestamp = msg.timestamp;
     instance.cltvExpiryDelta = msg.cltvExpiryDelta;
-    instance.htlcMinimumMsat = msg.htlcMinimumMsat;
-    instance.htlcMaximumMsat = msg.htlcMaximumMsat;
-    instance.feeBaseMsat = msg.feeBaseMsat;
-    instance.feeProportionalMillionths = msg.feeProportionalMillionths;
+    instance.htlcMinimumMsat = msg.htlcMinimumMsat.msats;
+    instance.htlcMaximumMsat = msg.htlcMaximumMsat.msats;
+    instance.feeBaseMsat = Number(msg.feeBaseMsat.msats);
+    instance.feeProportionalMillionths = Number(msg.feeProportionalMillionths.microsats);
     instance.disabled = msg.disabled;
     return instance;
 }
