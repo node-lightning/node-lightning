@@ -1,6 +1,5 @@
 // tslint:disable: no-unused-expression
-import { BitField, ShortChannelId } from "@node-lightning/core";
-import { Value } from "../../../bitcoin/lib/Value";
+import { BitField, ShortChannelId, Value } from "@node-lightning/core";
 import { expect } from "chai";
 import { ChannelUpdateMessage } from "../../lib/messages/ChannelUpdateMessage";
 

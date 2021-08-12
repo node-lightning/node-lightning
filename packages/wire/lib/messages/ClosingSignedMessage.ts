@@ -1,6 +1,6 @@
 import { BufferReader, BufferWriter } from "@node-lightning/bufio";
-import { ChannelId } from "@node-lightning/core";
-import { Value } from "../../../bitcoin/lib/Value";
+import { ChannelId, Value } from "@node-lightning/core";
+// import { Value } from "../../../bitcoin/lib/Value";
 import { MessageType } from "../MessageType";
 import { IWireMessage } from "./IWireMessage";
 
