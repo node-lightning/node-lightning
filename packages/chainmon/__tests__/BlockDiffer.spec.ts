@@ -2,8 +2,8 @@ import { expect } from "chai";
 import sinon from "sinon";
 import { BitcoindClient } from "@node-lightning/bitcoind";
 import { BlockDiffer } from "../lib/BlockDiffer";
-const TestnetHeaders = require("../__fixtures__/TestnetHeaders.json");
 
+const TestnetHeaders = require("../__fixtures__/TestnetHeaders.json");
 const headerLookup: any = hash => TestnetHeaders[hash];
 
 describe("BlockDiffer", () => {
