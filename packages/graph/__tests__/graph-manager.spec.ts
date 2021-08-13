@@ -117,7 +117,7 @@ describe("GraphManager", () => {
             });
 
             gossipEmitter.emit("message", createMsg());
-            // gossipEmitter.emit("message", createUpdateMsg(0));
+            gossipEmitter.emit("message", createUpdateMsg(0));
         });
 
         it("should emit channel_update for side 2", () => {
@@ -132,7 +132,7 @@ describe("GraphManager", () => {
             });
 
             gossipEmitter.emit("message", createMsg());
-            // gossipEmitter.emit("message", createUpdateMsg(0));
+            gossipEmitter.emit("message", createUpdateMsg(1));
         });
 
         it("should emit error when channel doesnt exist", done => {
