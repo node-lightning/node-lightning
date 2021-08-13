@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+
 import { EventEmitter } from "events";
 import * as zmq from "zeromq";
 import { IBitcoindOptions } from "./bitcoind-options";
@@ -5,6 +9,7 @@ import { jsonrpcRequest } from "./jsonrpc-request";
 import { ConstantBackoff } from "./policies/constant-backoff";
 import { RetryPolicy } from "./policies/retry-policy";
 import { BlockChainInfo } from "./types/block-chain-info";
+import { BlockHeader } from "./types/BlockHeader";
 import { BlockSummary } from "./types/blocksummary";
 import { Transaction } from "./types/transaction";
 import { Utxo } from "./types/transaction";
@@ -62,6 +67,13 @@ export class BitcoindClient extends EventEmitter {
     }
 
     /**
+     * Returns the hash of the best block.
+     */
+    public async getBestBlockHash(): Promise<string> {
+        return this._jsonrpc<string>("getbestblockhash");
+    }
+
+    /**
      * Gets the block hash for a given block height. Hash is returned in RPC byte
      * order using the `getblockhash` RPC method
      * @param height
@@ -86,6 +98,15 @@ export class BitcoindClient extends EventEmitter {
     public async getRawBlock(hash: string): Promise<Buffer> {
         const result = await this._jsonrpc<string>("getblock", [hash, 0]);
         return Buffer.from(result, "hex");
+    }
+
+    /**
+     * Gets a transaction header from the by calling the
+     * `getblockheader` RPC
+     * @param hash
+     */
+    public async getHeader(hash: string): Promise<BlockHeader> {
+        return await this._jsonrpc<BlockHeader>("getblockheader", [hash]);
     }
 
     /**
