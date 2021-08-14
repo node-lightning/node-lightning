@@ -1,0 +1,16 @@
+{
+  "name": "example-blockwatch",
+  "version": "1.0.0",
+  "description": "Block watching example",
+  "scripts": {
+    "start": "../../node_modules/.bin/ts-node index.ts"
+  },
+  "keywords": [],
+  "author": "Brian Mancini <bmancini@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "@node-lightning/bitcoind": "file:../../packages/bitcoind",
+    "@node-lightning/chainmon": "file:../../packages/chainmon",
+    "@node-lightning/logger": "file:../../packages/logger"
+  }
+}

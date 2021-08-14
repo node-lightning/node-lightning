@@ -27,8 +27,8 @@ export class BlockWatcher extends EventEmitter {
         lastHeader: BlockHeader,
         readonly onConnect: BlockWatcherFn,
         readonly onDisconnect: BlockWatcherFn,
-        readonly pollIntervalMs: number = 5000,
         readonly logger?: ILogger,
+        readonly pollIntervalMs: number = 5000,
     ) {
         super();
         this.lastHeader = lastHeader;
@@ -73,7 +73,6 @@ export class BlockWatcher extends EventEmitter {
         const lastHeader = this.lastHeader;
 
         const diff = await this.blockDiffer.diff(bestHeader, lastHeader);
-
         for (const header of diff.disconnects) {
             await this._disconnectBlock(header);
         }
