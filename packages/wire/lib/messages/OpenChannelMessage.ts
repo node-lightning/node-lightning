@@ -1,5 +1,5 @@
 import { BufferReader, BufferWriter } from "@node-lightning/bufio";
-import { BitField } from "@node-lightning/core";
+import { BitField, Script, Value } from "@node-lightning/core";
 import { OpenChannelFlags } from "../flags/OpenChannelFlags";
 import { MessageType } from "../MessageType";
 import { readTlvs } from "../serialize/readTlvs";
@@ -27,13 +27,13 @@ export class OpenChannelMessage implements IWireMessage {
         reader.readUInt16BE(); // read type
         instance.chainHash = reader.readBytes(32);
         instance.temporaryChannelId = reader.readBytes(32);
-        instance.fundingSatoshis = reader.readUInt64BE();
-        instance.pushMsat = reader.readUInt64BE();
-        instance.dustLimitSatoshis = reader.readUInt64BE();
-        instance.maxHtlcValueInFlightMsat = reader.readUInt64BE();
-        instance.channelReserveSatoshis = reader.readUInt64BE();
-        instance.htlcMinimumMsat = reader.readUInt64BE();
-        instance.feeRatePerKw = reader.readUInt32BE();
+        instance.fundingSatoshis = Value.fromSats(reader.readUInt64BE());
+        instance.pushMsat = Value.fromMilliSats(reader.readUInt64BE());
+        instance.dustLimitSatoshis = Value.fromSats(reader.readUInt64BE());
+        instance.maxHtlcValueInFlightMsat = Value.fromMilliSats(reader.readUInt64BE());
+        instance.channelReserveSatoshis = Value.fromSats(reader.readUInt64BE());
+        instance.htlcMinimumMsat = Value.fromMilliSats(reader.readUInt64BE());
+        instance.feeRatePerKw = Value.fromSats(reader.readUInt32BE());
         instance.toSelfDelay = reader.readUInt16BE();
         instance.maxAcceptedHtlcs = reader.readUInt16BE();
         instance.fundingPubKey = reader.readBytes(33);
@@ -87,7 +87,7 @@ export class OpenChannelMessage implements IWireMessage {
      * unless option_large_channel is negotiated by both peers during
      * initialization.
      */
-    public fundingSatoshis: bigint;
+    public fundingSatoshis: Value;
 
     /**
      * This is the value in millisatoshi that is unconditionally pushed
@@ -96,7 +96,7 @@ export class OpenChannelMessage implements IWireMessage {
      * of the remote nodes commitment transaction output in the initial
      * commitment transaction.
      */
-    public pushMsat: bigint;
+    public pushMsat: Value;
 
     /**
      * Indicates the value in satoshis under which outputs should not
@@ -105,7 +105,7 @@ export class OpenChannelMessage implements IWireMessage {
      * transaction outputs are considered non-standard by the network and
      * will not be propagated.
      */
-    public dustLimitSatoshis: bigint;
+    public dustLimitSatoshis: Value;
 
     /**
      * Indicates the minimum amount that the counterparty is supposed to
@@ -116,7 +116,7 @@ export class OpenChannelMessage implements IWireMessage {
      * transaction. Initially this value may not be met but as a channel
      * is used and the value is met, the reserve must be maintained.
      */
-    public channelReserveSatoshis: bigint;
+    public channelReserveSatoshis: Value;
 
     /**
      * Indicates the transaction fee in satoshis per 1000-weight that
@@ -126,7 +126,7 @@ export class OpenChannelMessage implements IWireMessage {
      * the funding node believes will result in the immediate inclusion
      * of the commitment transaction in a block.
      */
-    public feeRatePerKw: number;
+    public feeRatePerKw: Value;
 
     /**
      * Indicates the number of blocks the remote node must use to delay
@@ -142,14 +142,14 @@ export class OpenChannelMessage implements IWireMessage {
      * The minimum value in millisatoshi of an HTLC that we are willing
      * to accept.
      */
-    public htlcMinimumMsat: bigint;
+    public htlcMinimumMsat: Value;
 
     /**
      * The maximum value in millisatoshi of outstanding HTLCs we will
      * allow. This value allows us to limit our overall exposure to
      * HTLCs.
      */
-    public maxHtlcValueInFlightMsat: bigint;
+    public maxHtlcValueInFlightMsat: Value;
 
     /**
      * The maximum number of outstanding HTLCs that we will allow. This
@@ -253,13 +253,13 @@ export class OpenChannelMessage implements IWireMessage {
         writer.writeUInt16BE(this.type);
         writer.writeBytes(this.chainHash);
         writer.writeBytes(this.temporaryChannelId);
-        writer.writeUInt64BE(this.fundingSatoshis);
-        writer.writeUInt64BE(this.pushMsat);
-        writer.writeUInt64BE(this.dustLimitSatoshis);
-        writer.writeUInt64BE(this.maxHtlcValueInFlightMsat);
-        writer.writeUInt64BE(this.channelReserveSatoshis);
-        writer.writeUInt64BE(this.htlcMinimumMsat);
-        writer.writeUInt32BE(this.feeRatePerKw);
+        writer.writeUInt64BE(this.fundingSatoshis.sats);
+        writer.writeUInt64BE(this.pushMsat.msats);
+        writer.writeUInt64BE(this.dustLimitSatoshis.sats);
+        writer.writeUInt64BE(this.maxHtlcValueInFlightMsat.msats);
+        writer.writeUInt64BE(this.channelReserveSatoshis.sats);
+        writer.writeUInt64BE(this.htlcMinimumMsat.msats);
+        writer.writeUInt32BE(Number(this.feeRatePerKw.sats));
         writer.writeUInt16BE(this.toSelfDelay);
         writer.writeUInt16BE(this.maxAcceptedHtlcs);
         writer.writeBytes(this.fundingPubKey);

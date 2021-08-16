@@ -14,6 +14,8 @@ export enum MessageType {
     FundingCreated = 34,
     FundingSigned = 35,
     FundingLocked = 36,
+    Shutdown = 38,
+    ClosingSigned = 39,
 
     // Commitment (128-255)
     //
