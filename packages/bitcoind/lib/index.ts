@@ -6,5 +6,6 @@ export * from "./policies/exponential-backoff";
 export * from "./policies/policy";
 export * from "./policies/retry-policy";
 export * from "./types/block-chain-info";
+export * from "./types/BlockHeader";
 export * from "./types/blocksummary";
 export * from "./types/transaction";

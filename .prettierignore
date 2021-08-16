@@ -5,3 +5,4 @@
 **/package-lock.json
 **/.eslintrc
 **/.db
+**/__fixtures__/**
