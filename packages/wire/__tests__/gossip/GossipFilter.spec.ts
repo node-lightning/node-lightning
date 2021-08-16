@@ -199,10 +199,10 @@ describe("GossipFilter", () => {
             const msg = await gossipStore.findChannelUpdate(new ShortChannelId(1288457, 3, 0), 1);
             expect(msg.timestamp).to.equal(1525140553);
             expect(msg.cltvExpiryDelta).to.equal(144);
-            expect(msg.htlcMinimumMsat).to.equal(BigInt(1000));
+            expect(msg.htlcMinimumMsat.msats).to.equal(BigInt(1000));
             expect(msg.htlcMaximumMsat).to.be.undefined;
-            expect(msg.feeBaseMsat).to.equal(1000);
-            expect(msg.feeProportionalMillionths).to.equal(1);
+            expect(Number(msg.feeBaseMsat.msats)).to.equal(1000);
+            expect(Number(msg.feeProportionalMillionths.microsats)).to.equal(1);
             expect(msg.disabled).to.be.false;
         });
 

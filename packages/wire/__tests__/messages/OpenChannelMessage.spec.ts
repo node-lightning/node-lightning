@@ -1,6 +1,7 @@
 import * as crypto from "@node-lightning/crypto";
 import { expect } from "chai";
 import { OpenChannelMessage } from "../../lib/messages/OpenChannelMessage";
+import { Value, Script } from "@node-lightning/core";
 
 describe("OpenChannelMessage", () => {
     // abb00e1f13665a56d7b39917a3afa1a9753191e97541334705e39019c0e3d9b4
@@ -45,13 +46,13 @@ describe("OpenChannelMessage", () => {
                 "0000000000000000000000000000000000000000000000000000000000000000",
                 "hex",
             );
-            instance.fundingSatoshis = BigInt(200000);
-            instance.pushMsat = BigInt(2000);
-            instance.dustLimitSatoshis = BigInt(330);
-            instance.maxHtlcValueInFlightMsat = BigInt(20000);
-            instance.channelReserveSatoshis = BigInt(2000);
-            instance.htlcMinimumMsat = BigInt(200);
-            instance.feeRatePerKw = 1000;
+            instance.fundingSatoshis = Value.fromSats(200000);
+            instance.pushMsat = Value.fromMilliSats(2000);
+            instance.dustLimitSatoshis = Value.fromSats(330);
+            instance.maxHtlcValueInFlightMsat = Value.fromMilliSats(20000);
+            instance.channelReserveSatoshis = Value.fromSats(2000);
+            instance.htlcMinimumMsat = Value.fromMilliSats(200);
+            instance.feeRatePerKw = Value.fromSats(1000);
             instance.toSelfDelay = 144;
             instance.maxAcceptedHtlcs = 30;
             instance.fundingPubKey = fundingPubKey;
@@ -95,13 +96,13 @@ describe("OpenChannelMessage", () => {
                 "0000000000000000000000000000000000000000000000000000000000000000",
                 "hex",
             );
-            instance.fundingSatoshis = BigInt(200000);
-            instance.pushMsat = BigInt(2000);
-            instance.dustLimitSatoshis = BigInt(330);
-            instance.maxHtlcValueInFlightMsat = BigInt(20000);
-            instance.channelReserveSatoshis = BigInt(2000);
-            instance.htlcMinimumMsat = BigInt(200);
-            instance.feeRatePerKw = 1000;
+            instance.fundingSatoshis = Value.fromSats(200000);
+            instance.pushMsat = Value.fromMilliSats(2000);
+            instance.dustLimitSatoshis = Value.fromSats(330);
+            instance.maxHtlcValueInFlightMsat = Value.fromMilliSats(20000);
+            instance.channelReserveSatoshis = Value.fromSats(2000);
+            instance.htlcMinimumMsat = Value.fromMilliSats(200);
+            instance.feeRatePerKw = Value.fromSats(1000);
             instance.toSelfDelay = 144;
             instance.maxAcceptedHtlcs = 30;
             instance.fundingPubKey = fundingPubKey;
@@ -145,13 +146,13 @@ describe("OpenChannelMessage", () => {
                 "0000000000000000000000000000000000000000000000000000000000000000",
                 "hex",
             );
-            instance.fundingSatoshis = BigInt(200000);
-            instance.pushMsat = BigInt(2000);
-            instance.dustLimitSatoshis = BigInt(330);
-            instance.maxHtlcValueInFlightMsat = BigInt(20000);
-            instance.channelReserveSatoshis = BigInt(2000);
-            instance.htlcMinimumMsat = BigInt(200);
-            instance.feeRatePerKw = 1000;
+            instance.fundingSatoshis = Value.fromSats(200000);
+            instance.pushMsat = Value.fromMilliSats(2000);
+            instance.dustLimitSatoshis = Value.fromSats(330);
+            instance.maxHtlcValueInFlightMsat = Value.fromMilliSats(20000);
+            instance.channelReserveSatoshis = Value.fromSats(2000);
+            instance.htlcMinimumMsat = Value.fromMilliSats(200);
+            instance.feeRatePerKw = Value.fromSats(1000);
             instance.toSelfDelay = 144;
             instance.maxAcceptedHtlcs = 30;
             instance.fundingPubKey = fundingPubKey;
@@ -233,13 +234,13 @@ describe("OpenChannelMessage", () => {
                     "hex",
                 ),
             );
-            expect(instance.fundingSatoshis).to.equal(BigInt(200000));
-            expect(instance.pushMsat).to.equal(BigInt(2000));
-            expect(instance.dustLimitSatoshis).to.equal(BigInt(330));
-            expect(instance.maxHtlcValueInFlightMsat).to.equal(BigInt(20000));
-            expect(instance.channelReserveSatoshis).to.equal(BigInt(2000));
-            expect(instance.htlcMinimumMsat).to.equal(BigInt(200));
-            expect(instance.feeRatePerKw).to.equal(1000);
+            expect(instance.fundingSatoshis.sats).to.equal(BigInt(200000));
+            expect(instance.pushMsat.msats).to.equal(BigInt(2000));
+            expect(instance.dustLimitSatoshis.sats).to.equal(BigInt(330));
+            expect(instance.maxHtlcValueInFlightMsat.msats).to.equal(BigInt(20000));
+            expect(instance.channelReserveSatoshis.sats).to.equal(BigInt(2000));
+            expect(instance.htlcMinimumMsat.msats).to.equal(BigInt(200));
+            expect(Number(instance.feeRatePerKw.sats)).to.equal(1000);
             expect(instance.toSelfDelay).to.equal(144);
             expect(instance.maxAcceptedHtlcs).to.equal(30);
             expect(instance.fundingPubKey).to.deep.equal(fundingPubKey);

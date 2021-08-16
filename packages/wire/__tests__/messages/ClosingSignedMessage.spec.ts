@@ -1,4 +1,4 @@
-import { ChannelId } from "@node-lightning/core";
+import { ChannelId, Value } from "@node-lightning/core";
 import { expect } from "chai";
 import { ClosingSignedMessage } from "../../lib/messages/ClosingSignedMessage";
 
@@ -14,7 +14,7 @@ describe("ClosingSignedMessage", () => {
             const result = ClosingSignedMessage.deserialize(input);
             expect(result.type).to.equal(39);
             expect(result.channelId.toString()).to.equal("0000000000000000000000000000000000000000000000000000000000000000"); // prettier-ignore
-            expect(result.feeSatoshis).to.equal(BigInt(200000));
+            expect(result.feeSatoshis.sats).to.equal(BigInt(200000));
             expect(result.signature.toString("hex")).to.equal("22222222222222222222222222222222222222222222222222222222222222223333333333333333333333333333333333333333333333333333333333333333"); // prettier-ignore
         });
     });
@@ -23,7 +23,7 @@ describe("ClosingSignedMessage", () => {
         it("should serialize a message", () => {
             const instance = new ClosingSignedMessage();
             instance.channelId = new ChannelId(Buffer.from("0000000000000000000000000000000000000000000000000000000000000000", "hex")); // prettier-ignore
-            instance.feeSatoshis = BigInt(200000);
+            instance.feeSatoshis = Value.fromSats(200000);
             instance.signature = Buffer.from("22222222222222222222222222222222222222222222222222222222222222223333333333333333333333333333333333333333333333333333333333333333", "hex"); // prettier-ignore
 
             const result = instance.serialize();

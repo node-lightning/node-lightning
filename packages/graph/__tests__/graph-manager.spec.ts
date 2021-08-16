@@ -1,5 +1,5 @@
 // tslint:disable: no-unused-expression
-import { BitField } from "@node-lightning/core";
+import { BitField, Value } from "@node-lightning/core";
 import { ShortChannelId } from "@node-lightning/core";
 import { OutPoint } from "@node-lightning/core";
 import { AddressIPv4 } from "@node-lightning/wire";

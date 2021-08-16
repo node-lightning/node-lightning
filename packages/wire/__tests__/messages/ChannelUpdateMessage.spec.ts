@@ -1,6 +1,5 @@
 // tslint:disable: no-unused-expression
-import { BitField } from "@node-lightning/core";
-import { ShortChannelId } from "@node-lightning/core";
+import { BitField, ShortChannelId, Value } from "@node-lightning/core";
 import { expect } from "chai";
 import { ChannelUpdateMessage } from "../../lib/messages/ChannelUpdateMessage";
 
@@ -29,10 +28,10 @@ describe("ChannelUpdateMessage", () => {
             expect(result.messageFlags.value).to.equal(BigInt(1));
             expect(result.channelFlags.value).to.equal(BigInt(0));
             expect(result.cltvExpiryDelta).to.equal(144);
-            expect(Number(result.htlcMinimumMsat)).to.equal(1000);
-            expect(Number(result.htlcMaximumMsat)).to.equal(100000000);
-            expect(result.feeBaseMsat).to.equal(1000);
-            expect(result.feeProportionalMillionths).to.equal(1);
+            expect(Number(result.htlcMinimumMsat.msats)).to.equal(1000);
+            expect(Number(result.htlcMaximumMsat.msats)).to.equal(100000000);
+            expect(Number(result.feeBaseMsat.msats)).to.equal(1000);
+            expect(Number(result.feeProportionalMillionths.microsats)).to.equal(1);
             expect(result.direction).to.equal(0);
             expect(result.disabled).to.be.false;
         });
@@ -48,10 +47,10 @@ describe("ChannelUpdateMessage", () => {
             instance.messageFlags = new BitField(BigInt(1));
             instance.channelFlags = new BitField(BigInt(0));
             instance.cltvExpiryDelta = 144;
-            instance.htlcMinimumMsat = BigInt(1000);
-            instance.htlcMaximumMsat = BigInt(100000000);
-            instance.feeBaseMsat = 1000;
-            instance.feeProportionalMillionths = 1;
+            instance.htlcMinimumMsat = Value.fromMilliSats(1000);
+            instance.htlcMaximumMsat = Value.fromMilliSats(100000000);
+            instance.feeBaseMsat = Value.fromMilliSats(1000);
+            instance.feeProportionalMillionths = Value.fromMicroSats(1);
 
             const result = instance.serialize();
             expect(result.toString("hex")).to.deep.equal(
