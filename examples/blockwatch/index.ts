@@ -22,13 +22,13 @@ async function start() {
         ...config.bitcoind,
     });
 
-    const hash = "0000000000000031078fb977e7ed45acd3196d4efb7298b236fc9e3ccc4e78ad";
-    const header = await chainClient.getHeader(hash);
+    // const hash = "0000000000000031078fb977e7ed45acd3196d4efb7298b236fc9e3ccc4e78ad";
+    const hash = "00000000000000e7fc15cb9bdac39f0185f08dcb327022b1167af6f158f325bb";
 
     const onConnect: (block: BlockSummary) => Promise<void> = (block: any) => Promise.resolve();
     const onDisconnect: (block: BlockSummary) => Promise<void> = (block: any) => Promise.resolve();
 
-    const blockWatcher = new BlockWatcher(chainClient, header, onDisconnect, onConnect, logger);
+    const blockWatcher = new BlockWatcher(chainClient, hash, onDisconnect, onConnect, logger);
 
     blockWatcher.start();
 }
