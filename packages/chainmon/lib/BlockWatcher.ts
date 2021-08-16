@@ -16,7 +16,7 @@ export type BlockWatcherFn = (block: BlockSummary) => Promise<void>;
  * block tip.
  */
 export class BlockWatcher extends EventEmitter {
-    public lastHeader: BlockHeader;
+    public knownHash: string;
     public blockDiffer: BlockDiffer;
     public syncing: boolean;
 
@@ -24,14 +24,14 @@ export class BlockWatcher extends EventEmitter {
 
     constructor(
         readonly client: BitcoindClient,
-        lastHeader: BlockHeader,
+        knownHash: string,
         readonly onConnect: BlockWatcherFn,
         readonly onDisconnect: BlockWatcherFn,
         readonly logger?: ILogger,
         readonly pollIntervalMs: number = 5000,
     ) {
         super();
-        this.lastHeader = lastHeader;
+        this.knownHash = knownHash;
         this.blockDiffer = new BlockDiffer(client);
     }
 
@@ -69,16 +69,31 @@ export class BlockWatcher extends EventEmitter {
 
         this.syncing = true;
         const bestHash = await this.client.getBestBlockHash();
-        const bestHeader = await this.client.getHeader(bestHash);
-        const lastHeader = this.lastHeader;
 
-        const diff = await this.blockDiffer.diff(bestHeader, lastHeader);
-        for (const header of diff.disconnects) {
-            await this._disconnectBlock(header);
-        }
+        // eslint-disable-next-line no-constant-condition
+        while (true) {
+            if (bestHash === this.knownHash) break;
 
-        for (const header of diff.connects) {
-            await this._connectBlock(header);
+            const knownHeader = await this.client.getHeader(this.knownHash);
+
+            // Orphaned blocks will have -1 confirmations. We will
+            // disconnect this block and the last known block will be
+            // the previous block's hash.
+            if (knownHeader.confirmations < 0) {
+                await this._disconnectBlock(knownHeader);
+                this.knownHash = knownHeader.previousblockhash;
+                continue;
+            }
+
+            // If the current knwon header has a next block, we will
+            // connect it and establish the next block as the new
+            // known block.
+            if (knownHeader.nextblockhash) {
+                const nextHeader = await this.client.getHeader(knownHeader.nextblockhash);
+                await this._connectBlock(nextHeader);
+                this.knownHash = nextHeader.hash;
+                continue;
+            }
         }
 
         this.syncing = false;
@@ -88,7 +103,6 @@ export class BlockWatcher extends EventEmitter {
         if (this.logger) this.logger.debug("connecting block", header.height, header.hash);
         const block = await this.client.getBlock(header.hash);
         await this.onConnect(block);
-        this.lastHeader = header;
     }
 
     protected async _disconnectBlock(header: BlockHeader) {

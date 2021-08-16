@@ -25,9 +25,9 @@ describe("BlockWatcher", () => {
         it("should handle reorg", async () => {
             const onConnect = sinon.stub();
             const onDisconnect = sinon.stub();
-            const header = headerLookup("0000000000f65e714a2cdbf191b621c706f1fc77d12ceb9de8a9609487687f1f"); // prettier-ignore
+            const hash = "0000000000f65e714a2cdbf191b621c706f1fc77d12ceb9de8a9609487687f1f";
 
-            const sut = new BlockWatcher(bitcoind as any, header, onConnect, onDisconnect);
+            const sut = new BlockWatcher(bitcoind as any, hash, onConnect, onDisconnect);
             await (sut as any)._sync();
             expect(onDisconnect.callCount).to.equal(1);
             expect(onDisconnect.args[0][0]).to.deep.equal(blockLookup("0000000000f65e714a2cdbf191b621c706f1fc77d12ceb9de8a9609487687f1f")); // prettier-ignore
@@ -40,9 +40,9 @@ describe("BlockWatcher", () => {
         it("should continue chain", async () => {
             const onConnect = sinon.stub();
             const onDisconnect = sinon.stub();
-            const header = headerLookup("00000000032415dee48b1541cfe6c46a691350eb37493a6d2924b0452c4626c2"); // prettier-ignore
+            const hash = "00000000032415dee48b1541cfe6c46a691350eb37493a6d2924b0452c4626c2";
 
-            const sut = new BlockWatcher(bitcoind as any, header, onConnect, onDisconnect, null);
+            const sut = new BlockWatcher(bitcoind as any, hash, onConnect, onDisconnect, null);
             await (sut as any)._sync();
             expect(onDisconnect.callCount).to.equal(0);
 
@@ -54,9 +54,9 @@ describe("BlockWatcher", () => {
         it("should do nothing when same", async () => {
             const onConnect = sinon.stub();
             const onDisconnect = sinon.stub();
-            const header = headerLookup("0000000000bf27f2b81c3091ee3d25b1e48f485b06ae85ac50b7faa86857a60d"); // prettier-ignore
+            const hash = "0000000000bf27f2b81c3091ee3d25b1e48f485b06ae85ac50b7faa86857a60d";
 
-            const sut = new BlockWatcher(bitcoind as any, header, onConnect, onDisconnect, null);
+            const sut = new BlockWatcher(bitcoind as any, hash, onConnect, onDisconnect, null);
             await (sut as any)._sync();
             expect(onDisconnect.callCount).to.equal(0);
             expect(onConnect.callCount).to.equal(0);
