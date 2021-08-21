@@ -7,7 +7,6 @@ import { Node } from "./node";
  * Graph represents a
  */
 export class Graph {
-    
     public nodes_list: string[] = [];
     public adjacencyList = {};
     /**
@@ -55,7 +54,7 @@ export class Graph {
         // Adjacency List is required to store all the channel links and it can be traversed using the node_id's
         // The edge added b/w two channels is key to the channel, which can be later used to do computations accordingly
         // when using dijkstra
-        this.adjacencyList[node1.nodeId.toString("hex")][node2.nodeId.toString("hex")] = key;
+        // this.adjacencyList[node1.nodeId.toString("hex")][node2.nodeId.toString("hex")] = key;
     }
 
     /**
@@ -99,7 +98,6 @@ export class Graph {
             // Parents will be used to find the path from dest to src later
             parents = {},
             visited = new Set();
-        // Initially we are setting up the dist value to be
         for (let i = 0; i < this.nodes_list.length; i++) {
             if (this.nodes_list[i] === str_id) {
                 distances[str_id] = 0;
@@ -115,12 +113,15 @@ export class Graph {
             let distance = distances[currnode],
                 neighbors = this.adjacencyList[currnode];
             for (let neighbor in neighbors) {
-                // lets get the channel key for each link
+                // lets get the channel sid using key for each link
                 let sid = this.channels.get(neighbors[neighbor]);
-                let newDistance =
-                    distance + sid.node1Settings.feeBaseMsat;
+                let newDistance = distance + sid.node1Settings.feeBaseMsat;
                 // A check to see if the our side of channel node can transfer the amnt required
-                if(sid.node1Settings.htlcMaximumMsat<amnt || sid.node1Settings.htlcMinimumMsat>amnt) continue; 
+                if (
+                    sid.node1Settings.htlcMaximumMsat < amnt ||
+                    sid.node1Settings.htlcMinimumMsat > amnt
+                )
+                    continue;
                 if (distances[neighbor] > newDistance) {
                     distances[neighbor] = newDistance;
                     parents[neighbor] = currnode;
@@ -132,12 +133,12 @@ export class Graph {
         console.log(parents);
         console.log(distances);
         // Lets print the route
-        console.log(this.path_ret(str_id,dest.nodeId.toString("hex"),parents)); 
+        console.log(this.path_ret(str_id, dest.nodeId.toString("hex"), parents));
     }
 
-    private path_ret(src: string, dest: string, parent: {}){
+    private path_ret(src: string, dest: string, parent: {}) {
         let sidRoute = [];
-        while(parent[dest]!=null){
+        while (parent[dest] != null) {
             sidRoute.push(this.channels.get(this.adjacencyList[parent[dest]][dest]).shortChannelId);
             dest = parent[dest];
         }
