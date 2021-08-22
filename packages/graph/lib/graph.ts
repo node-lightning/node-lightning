@@ -31,6 +31,8 @@ export class Graph {
         this.nodes.set(node.nodeId.toString("hex"), node);
         // Adding node_id's to the list
         this.nodes_list.push(node.nodeId.toString("hex"));
+        // Whenever we add a node each node has its own adjacency list to store its connections in adjacency object
+        this.adjacencyList[node.nodeId.toString("hex")] = {};
     }
 
     /**
@@ -52,9 +54,9 @@ export class Graph {
         // attach channel to node 2
         node2.linkChannel(channel);
         // Adjacency List is required to store all the channel links and it can be traversed using the node_id's
-        // The edge added b/w two channels is key to the channel, which can be later used to do computations accordingly
-        // when using dijkstra
-        // this.adjacencyList[node1.nodeId.toString("hex")][node2.nodeId.toString("hex")] = key;
+        // The edge added b/w two nodes is the key that can be used to access the channel prop. later using map.get(),
+        // which then can be later used to do computations accordingly during dijkstra.
+        this.adjacencyList[node1.nodeId.toString("hex")][node2.nodeId.toString("hex")] = key;
     }
 
     /**
@@ -113,13 +115,15 @@ export class Graph {
             let distance = distances[currnode],
                 neighbors = this.adjacencyList[currnode];
             for (let neighbor in neighbors) {
-                // lets get the channel sid using key for each link
+                // lets get the channel sid using key stored as an edge for each node link connected to the `currnode`
                 let sid = this.channels.get(neighbors[neighbor]);
-                let newDistance = distance + sid.node1Settings.feeBaseMsat;
+                let newDistance =
+                    distance + sid.node1Settings ? sid.node1Settings.feeBaseMsat : Infinity;
                 // A check to see if the our side of channel node can transfer the amnt required
                 if (
-                    sid.node1Settings.htlcMaximumMsat < amnt ||
-                    sid.node1Settings.htlcMinimumMsat > amnt
+                    sid.node1Settings && // null check is required in case of testing
+                    (sid.node1Settings.htlcMaximumMsat < amnt ||
+                        sid.node1Settings.htlcMinimumMsat > amnt)
                 )
                     continue;
                 if (distances[neighbor] > newDistance) {
@@ -132,8 +136,10 @@ export class Graph {
         }
         console.log(parents);
         console.log(distances);
-        // Lets print the route
-        console.log(this.path_ret(str_id, dest.nodeId.toString("hex"), parents));
+        // Lets return the route if exists
+        return this.path_ret(str_id, dest.nodeId.toString("hex"), parents).length
+            ? this.path_ret(str_id, dest.nodeId.toString("hex"), parents)
+            : null;
     }
 
     private path_ret(src: string, dest: string, parent: {}) {
@@ -146,7 +152,7 @@ export class Graph {
         return sidRoute;
     }
 
-    private nodeWithMinDistance(distances, visited) {
+    private nodeWithMinDistance(distances: { [x: string]: any; }, visited: Set<unknown>) {
         let minDistance = Infinity,
             minVertex = null;
         for (let vertex in distances) {
