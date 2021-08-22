@@ -152,7 +152,7 @@ export class Graph {
         return sidRoute;
     }
 
-    private nodeWithMinDistance(distances: { [x: string]: any; }, visited: Set<unknown>) {
+    private nodeWithMinDistance(distances: { [x: string]: any }, visited: Set<unknown>) {
         let minDistance = Infinity,
             minVertex = null;
         for (let vertex in distances) {

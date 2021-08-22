@@ -133,9 +133,9 @@ describe("Graph", () => {
                 g.addNode(n2);
                 g.addChannel(c);
             });
-            it("should traverse the path ",()=>{
-                expect(g.dijkstra(n1,n2,BigInt(100))).to.equal(null);
-            })
+            it("should traverse the path ", () => {
+                expect(g.dijkstra(n1, n2, BigInt(100))).to.equal(null);
+            });
         });
     });
 });
