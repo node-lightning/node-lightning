@@ -122,8 +122,11 @@ export class Graph {
                 // A check to see if the our side of channel node can transfer the amnt required
                 if (
                     sid.node1Settings && // null check is required in case of testing
-                    (sid.node1Settings.htlcMaximumMsat < amnt ||
-                        sid.node1Settings.htlcMinimumMsat > amnt)
+                    (sid.node1Settings.htlcMaximumMsat // htlcMaximumMsat is optional maybe undefined
+                        ? sid.node1Settings.htlcMaximumMsat
+                        : 0 < amnt &&
+                          sid.node1Settings.htlcMinimumMsat > amnt &&
+                          sid.capacity > amnt) // Checking if channel capacity is > amnt to transfer
                 )
                     continue;
                 if (distances[neighbor] > newDistance) {
