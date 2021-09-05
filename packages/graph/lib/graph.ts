@@ -1,4 +1,5 @@
 import { ShortChannelId } from "@node-lightning/core";
+import { ChannelSettings } from ".";
 import { Channel } from "./channel";
 import { NodeNotFoundError } from "./graph-error";
 import { Node } from "./node";
@@ -92,8 +93,11 @@ export class Graph {
     }
 
     public dijkstra(src: Node, dest: Node, amnt: bigint) {
+        // Here we will be first computing route using reverse dijkstra that is
+        // from dest --> src and return route from src --> dest
+
         // Convert it to corresponding node_id
-        const str_id = src.nodeId.toString("hex");
+        const str_id = dest.nodeId.toString("hex");
 
         // Distances will store the base_fee required to traverse from the src
         let distances = {},
@@ -117,16 +121,27 @@ export class Graph {
             for (let neighbor in neighbors) {
                 // lets get the channel sid using key stored as an edge for each node link connected to the `currnode`
                 let sid = this.channels.get(neighbors[neighbor]);
+                // We add base fee required to pass through that node as well as `feeProportionalMillionths` on initial amnt.
+
+                // Fee would be taken from neighbor node --> currnode we need to figure out which node is neighbor node
+                // in channel link.
+                let nodeSettings: ChannelSettings =
+                    sid.nodeId1.toString("hex") === currnode
+                        ? sid.node2Settings
+                        : sid.node1Settings;
                 let newDistance =
-                    distance + sid.node1Settings ? sid.node1Settings.feeBaseMsat : Infinity;
+                    distance + nodeSettings
+                        ? nodeSettings.feeBaseMsat
+                        : Infinity +
+                          (nodeSettings
+                              ? nodeSettings.feeProportionalMillionths * Number(amnt)
+                              : 0);
                 // A check to see if the our side of channel node can transfer the amnt required
                 if (
-                    sid.node1Settings && // null check is required in case of testing
-                    (sid.node1Settings.htlcMaximumMsat // htlcMaximumMsat is optional maybe undefined
-                        ? sid.node1Settings.htlcMaximumMsat
-                        : 0 < amnt &&
-                          sid.node1Settings.htlcMinimumMsat > amnt &&
-                          sid.capacity > amnt) // Checking if channel capacity is > amnt to transfer
+                    nodeSettings && // null check is required in case of testing
+                    (nodeSettings.htlcMaximumMsat // htlcMaximumMsat is optional maybe undefined
+                        ? nodeSettings.htlcMaximumMsat
+                        : 0 < amnt && nodeSettings.htlcMinimumMsat > amnt && sid.capacity > amnt) // Checking if channel capacity is > amnt to transfer
                 )
                     continue;
                 if (distances[neighbor] > newDistance) {
@@ -137,11 +152,9 @@ export class Graph {
             visited.add(currnode);
             currnode = this.nodeWithMinDistance(distances, visited);
         }
-        console.log(parents);
-        console.log(distances);
-        // Lets return the route if exists
-        return this.path_ret(str_id, dest.nodeId.toString("hex"), parents).length
-            ? this.path_ret(str_id, dest.nodeId.toString("hex"), parents)
+        // Lets return the route if exists from src to dest
+        return this.path_ret(str_id, src.nodeId.toString("hex"), parents).length
+            ? this.path_ret(str_id, src.nodeId.toString("hex"), parents)
             : null;
     }
 
@@ -151,8 +164,7 @@ export class Graph {
             sidRoute.push(this.channels.get(this.adjacencyList[parent[dest]][dest]).shortChannelId);
             dest = parent[dest];
         }
-
-        return sidRoute;
+        return sidRoute.reverse();
     }
 
     private nodeWithMinDistance(distances: { [x: string]: any }, visited: Set<unknown>) {
