@@ -8,7 +8,8 @@ import { Node } from "./node";
  * Graph represents a
  */
 export class Graph {
-    public adjacencyList = {};
+    // Map containing all sids based on given nodes
+    public adjacencyList: Map<{ nodea: string; nodeb: string }, bigint> = new Map();
     /**
      * Map containing all nodes in the system
      */
@@ -29,10 +30,6 @@ export class Graph {
      */
     public addNode(node: Node) {
         this.nodes.set(node.nodeId.toString("hex"), node);
-        // Adding node_id's to the list
-        // this.nodes_list.push(node.nodeId.toString("hex"));
-        // Whenever we add a node each node has its own adjacency list to store its connections in adjacency object
-        this.adjacencyList[node.nodeId.toString("hex")] = {};
     }
 
     /**
@@ -54,10 +51,15 @@ export class Graph {
         // attach channel to node 2
         node2.linkChannel(channel);
         // Adjacency List is required to store all the channel links and it can be traversed using the node_id's
-        // The edge added b/w two nodes is the key that can be used to access the channel prop. later using map.get(),
-        // which then can be later used to find the required sid.
-        this.adjacencyList[node1.nodeId.toString("hex")][node2.nodeId.toString("hex")] = key;
-        this.adjacencyList[node2.nodeId.toString("hex")][node1.nodeId.toString("hex")] = key;
+        // The edge added b/w two nodes is the key that can be used to access the channel prop. later using map.get().
+        this.adjacencyList.set(
+            { nodea: node1.nodeId.toString("hex"), nodeb: node2.nodeId.toString("hex") },
+            key,
+        );
+        this.adjacencyList.set(
+            { nodea: node2.nodeId.toString("hex"), nodeb: node1.nodeId.toString("hex") },
+            key,
+        );
     }
 
     /**
@@ -165,7 +167,7 @@ export class Graph {
     private path_ret(src: string, dest: string, parent: {}) {
         let sidRoute = [];
         while (parent[dest] != null) {
-            sidRoute.push(this.channels.get(this.adjacencyList[parent[dest]][dest]));
+            sidRoute.push(this.adjacencyList.get({ nodea: parent[dest], nodeb: dest }));
             dest = parent[dest];
         }
         return sidRoute.reverse();
