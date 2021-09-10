@@ -8,7 +8,6 @@ import { Node } from "./node";
  * Graph represents a
  */
 export class Graph {
-    public nodes_list: string[] = [];
     public adjacencyList = {};
     /**
      * Map containing all nodes in the system
@@ -31,7 +30,7 @@ export class Graph {
     public addNode(node: Node) {
         this.nodes.set(node.nodeId.toString("hex"), node);
         // Adding node_id's to the list
-        this.nodes_list.push(node.nodeId.toString("hex"));
+        // this.nodes_list.push(node.nodeId.toString("hex"));
         // Whenever we add a node each node has its own adjacency list to store its connections in adjacency object
         this.adjacencyList[node.nodeId.toString("hex")] = {};
     }
@@ -56,8 +55,9 @@ export class Graph {
         node2.linkChannel(channel);
         // Adjacency List is required to store all the channel links and it can be traversed using the node_id's
         // The edge added b/w two nodes is the key that can be used to access the channel prop. later using map.get(),
-        // which then can be later used to do computations accordingly during dijkstra.
+        // which then can be later used to find the required sid.
         this.adjacencyList[node1.nodeId.toString("hex")][node2.nodeId.toString("hex")] = key;
+        this.adjacencyList[node2.nodeId.toString("hex")][node1.nodeId.toString("hex")] = key;
     }
 
     /**
@@ -100,29 +100,31 @@ export class Graph {
         const str_id = dest.nodeId.toString("hex");
 
         // Distances will store the base_fee required to traverse from the src
-        let distances = {},
+        let distances: Map<string, number> = new Map(),
             // Parents will be used to find the path from dest to src later
-            parents = {},
+            parents: Map<string, string> = new Map(),
             visited = new Set();
-        for (let i = 0; i < this.nodes_list.length; i++) {
-            if (this.nodes_list[i] === str_id) {
+        for (const key of this.nodes.keys()) {
+            if (key === str_id) {
                 distances[str_id] = 0;
             } else {
-                distances[this.nodes_list[i]] = Infinity;
+                distances[key] = Infinity;
             }
-            parents[this.nodes_list[i]] = null;
+            parents[key] = null;
         }
 
         let currnode = this.nodeWithMinDistance(distances, visited);
 
         while (currnode !== null) {
-            let distance = distances[currnode],
-                neighbors = this.adjacencyList[currnode];
-            for (let neighbor in neighbors) {
-                // lets get the channel sid using key stored as an edge for each node link connected to the `currnode`
-                let sid = this.channels.get(neighbors[neighbor]);
+            let distance = distances[currnode];
+            // Node already contains map for its channel we can use it
+            for (let sid of this.nodes.get(currnode).channels.values()) {
+                // Traversing each channel for the corresponding current node and storing its neighbor id for further ref.
+                const nodeIdNeighbor: string =
+                    sid.nodeId1.toString("hex") === currnode
+                        ? sid.nodeId2.toString("hex")
+                        : sid.nodeId1.toString("hex");
                 // We add base fee required to pass through that node as well as `feeProportionalMillionths` on initial amnt.
-
                 // Fee would be taken from neighbor node --> currnode we need to figure out which node is neighbor node
                 // in channel link.
                 let nodeSettings: ChannelSettings =
@@ -139,16 +141,18 @@ export class Graph {
                 // A check to see if the our side of channel node can transfer the amnt required
                 if (
                     nodeSettings && // null check is required in case of testing
+                    !nodeSettings.disabled && // If disabled is true that means no routing through this node
                     (nodeSettings.htlcMaximumMsat // htlcMaximumMsat is optional maybe undefined
                         ? nodeSettings.htlcMaximumMsat
                         : 0 < amnt && nodeSettings.htlcMinimumMsat > amnt && sid.capacity > amnt) // Checking if channel capacity is > amnt to transfer
                 )
                     continue;
-                if (distances[neighbor] > newDistance) {
-                    distances[neighbor] = newDistance;
-                    parents[neighbor] = currnode;
+                if (distances[nodeIdNeighbor] > newDistance) {
+                    distances[nodeIdNeighbor] = newDistance;
+                    parents[nodeIdNeighbor] = currnode;
                 }
             }
+
             visited.add(currnode);
             currnode = this.nodeWithMinDistance(distances, visited);
         }
@@ -161,13 +165,13 @@ export class Graph {
     private path_ret(src: string, dest: string, parent: {}) {
         let sidRoute = [];
         while (parent[dest] != null) {
-            sidRoute.push(this.channels.get(this.adjacencyList[parent[dest]][dest]).shortChannelId);
+            sidRoute.push(this.channels.get(this.adjacencyList[parent[dest]][dest]));
             dest = parent[dest];
         }
         return sidRoute.reverse();
     }
 
-    private nodeWithMinDistance(distances: { [x: string]: any }, visited: Set<unknown>) {
+    private nodeWithMinDistance(distances: Map<string, number>, visited: Set<unknown>) {
         let minDistance = Infinity,
             minVertex = null;
         for (let vertex in distances) {
