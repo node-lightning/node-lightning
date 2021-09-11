@@ -51,7 +51,7 @@ export class Graph {
 
         // attach channel to node 2
         node2.linkChannel(channel);
-        // Adjacency List is required to store all the channel links and it can be traversed using the node_id's
+        // Adjacency List is required to store all the channel links b/w two node_id's
         // The edge added b/w two nodes is the key that can be used to access the channel prop. later using map.get().
         this.adjacencyList.set(
             { nodea: node1.nodeId.toString("hex"), nodeb: node2.nodeId.toString("hex") },
@@ -113,17 +113,16 @@ export class Graph {
         // Distances will store the base_fee required to traverse from the src
         let distances: Map<string, number> = new Map(),
             // Parents will be used to find the path from dest to src later
-            parents: Map<string, string> = new Map(),
-            visited = new Set();
+            parents: Map<string, string> = new Map();
         for (const key of this.nodes.keys()) {
             distances[key] = key === str_id ? 0 : Infinity;
-            parents[key] = null;
+            parents.set(key, null);
         }
 
         while (!pq.empty()) {
             let minNode = pq.pop();
             let currnode: string = minNode.nodeID;
-            let distance: number = distances[currnode];
+            let distance: number = distances.get(currnode);
             // Node already contains map for its channel we can use it
             for (let sid of this.nodes.get(currnode).channels.values()) {
                 // Traversing each channel for the corresponding current node and storing its neighbor id for further ref.
@@ -151,9 +150,9 @@ export class Graph {
                         : 0 < amnt && nodeSettings.htlcMinimumMsat > amnt && sid.capacity > amnt) // Checking if channel capacity is > amnt to transfer
                 )
                     continue;
-                if (distances[nodeIdNeighbor] > newDistance) {
-                    distances[nodeIdNeighbor] = newDistance;
-                    parents[nodeIdNeighbor] = currnode;
+                if (distances.get(nodeIdNeighbor) > newDistance) {
+                    distances.set(nodeIdNeighbor, newDistance);
+                    parents.set(nodeIdNeighbor, currnode);
                     pq.push({ nodeID: nodeIdNeighbor, fee: newDistance });
                 }
             }
@@ -164,11 +163,11 @@ export class Graph {
             : null;
     }
 
-    private path_ret(src: string, dest: string, parent: {}) {
+    private path_ret(src: string, dest: string, parent: Map<string, string>) {
         let sidRoute = [];
-        while (parent[dest] != null) {
+        while (parent.get(dest) != null) {
             sidRoute.push(this.adjacencyList.get({ nodea: parent[dest], nodeb: dest }));
-            dest = parent[dest];
+            dest = parent.get(dest);
         }
         return sidRoute.reverse();
     }
