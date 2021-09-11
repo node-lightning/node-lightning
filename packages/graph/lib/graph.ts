@@ -3,6 +3,7 @@ import { ChannelSettings } from ".";
 import { Channel } from "./channel";
 import { NodeNotFoundError } from "./graph-error";
 import { Node } from "./node";
+import { PriorityQueue } from "./PriorityQueue";
 
 /**
  * Graph represents a
@@ -101,24 +102,28 @@ export class Graph {
         // Convert it to corresponding node_id
         const str_id = dest.nodeId.toString("hex");
 
+        // Priority Queue  O(logn) insertion of min node
+        let pq = new PriorityQueue(function(
+            a: { nodeID: string; fee: number },
+            b: { nodeID: string; fee: number },
+        ) {
+            return a.fee > b.fee;
+        });
+        pq.push({ nodeID: str_id, fee: 0 });
         // Distances will store the base_fee required to traverse from the src
         let distances: Map<string, number> = new Map(),
             // Parents will be used to find the path from dest to src later
             parents: Map<string, string> = new Map(),
             visited = new Set();
         for (const key of this.nodes.keys()) {
-            if (key === str_id) {
-                distances[str_id] = 0;
-            } else {
-                distances[key] = Infinity;
-            }
+            distances[key] = key === str_id ? 0 : Infinity;
             parents[key] = null;
         }
 
-        let currnode = this.nodeWithMinDistance(distances, visited);
-
-        while (currnode !== null) {
-            let distance = distances[currnode];
+        while (!pq.empty()) {
+            let minNode = pq.pop();
+            let currnode: string = minNode.nodeID;
+            let distance: number = distances[currnode];
             // Node already contains map for its channel we can use it
             for (let sid of this.nodes.get(currnode).channels.values()) {
                 // Traversing each channel for the corresponding current node and storing its neighbor id for further ref.
@@ -134,12 +139,9 @@ export class Graph {
                         ? sid.node2Settings
                         : sid.node1Settings;
                 let newDistance =
-                    distance + nodeSettings
-                        ? nodeSettings.feeBaseMsat
-                        : Infinity +
-                          (nodeSettings
-                              ? nodeSettings.feeProportionalMillionths * Number(amnt)
-                              : 0);
+                    distance +
+                    (nodeSettings ? nodeSettings.feeBaseMsat : Infinity) +
+                    (nodeSettings ? nodeSettings.feeProportionalMillionths * Number(amnt) : 0);
                 // A check to see if the our side of channel node can transfer the amnt required
                 if (
                     nodeSettings && // null check is required in case of testing
@@ -152,11 +154,9 @@ export class Graph {
                 if (distances[nodeIdNeighbor] > newDistance) {
                     distances[nodeIdNeighbor] = newDistance;
                     parents[nodeIdNeighbor] = currnode;
+                    pq.push({ nodeID: nodeIdNeighbor, fee: newDistance });
                 }
             }
-
-            visited.add(currnode);
-            currnode = this.nodeWithMinDistance(distances, visited);
         }
         // Lets return the route if exists from src to dest
         return this.path_ret(str_id, src.nodeId.toString("hex"), parents).length
@@ -171,18 +171,5 @@ export class Graph {
             dest = parent[dest];
         }
         return sidRoute.reverse();
-    }
-
-    private nodeWithMinDistance(distances: Map<string, number>, visited: Set<unknown>) {
-        let minDistance = Infinity,
-            minVertex = null;
-        for (let vertex in distances) {
-            let distance = distances[vertex];
-            if (distance < minDistance && !visited.has(vertex)) {
-                minDistance = distance;
-                minVertex = vertex;
-            }
-        }
-        return minVertex;
     }
 }
