@@ -73,7 +73,9 @@ export class ChannelsQuery {
     public query(...scids: ShortChannelId[]): Promise<void> {
         return new Promise((resolve, reject) => {
             // enqueue the short ids
-            this._queue.push(...scids);
+            for (const scid of scids) {
+                this._queue.push(scid);
+            }
 
             // Ensure we are in the active state
             this._state = ChannelsQueryState.Active;

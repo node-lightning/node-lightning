@@ -144,4 +144,56 @@ describe("GossipQueriesSync", () => {
             expect(err.code).to.equal(GossipErrorCode.ReplyChannelsNoInfo);
         });
     });
+
+    it("integration - large reply", async () => {
+        // change the default completion timeout to 50ms
+        (sut as any)._syncWatcher.completeAfterMs = 50;
+
+        // we should expect to start in the idel posion since we have not yet
+        // execute the query
+        expect(sut.state).to.equal(GossipQueriesSyncState.Idle);
+
+        // Execute the query. Since this is a promise, we will resolve the test
+        // when the queryRange method resolves successfully. If for some reason
+        // it fails, we will reject with the error and the test will fail
+        const promise = sut.queryRange();
+
+        // At this point, the query should have been sent and we will now be
+        // awaiting completion of the channel range state machine.
+        expect(sut.state).to.equal(GossipQueriesSyncState.AwaitingChannelRange);
+
+        // Let's handle ~96,000 replies split across
+        const messages = 12;
+        for (let i = 0; i < messages; i++) {
+            const scids = [];
+            for (let j = 0; j < 8000; j++) {
+                scids.push(new ShortChannelId(i * 8000 + j, 0, 0));
+            }
+            const replyRangeMsg = new ReplyChannelRangeMessage();
+            replyRangeMsg.fullInformation = i === messages - 1;
+            replyRangeMsg.firstBlocknum = i * 8000;
+            replyRangeMsg.numberOfBlocks = 1;
+            replyRangeMsg.shortChannelIds = scids;
+            sut.handleWireMessage(replyRangeMsg);
+            await wait(0); // wait for promise to tick
+        }
+
+        // After the reply, we will validate that the
+        expect(sut.state).to.equal(GossipQueriesSyncState.AwaitingChannels);
+
+        // Now we need to wait for each of the sent batches to complete
+        while (sut.state !== GossipQueriesSyncState.AwaitingMessages) {
+            const replyChannelsMsg = new ReplyShortChannelIdsEndMessage();
+            replyChannelsMsg.complete = true;
+            sut.handleWireMessage(replyChannelsMsg);
+            await wait(0); // wait for promise to tick
+        }
+
+        // now we just need to wait for things to finalize and we will double
+        // the completion timeout
+        await wait(100);
+
+        // finally the promise should be resolve or rejected at this
+        await promise;
+    });
 });
