@@ -61,8 +61,7 @@ export class LndSerializer {
             fee_base_msat: policy.feeBaseMsat.toString(),
             fee_rate_milli_msat: policy.feeProportionalMillionths.toString(),
             disabled: policy.disabled,
-            max_htlc_msat:
-                policy.htlcMaximumMsat === undefined ? "0" : policy.htlcMaximumMsat.toString(),
+            max_htlc_msat: policy.htlcMaximumMsat ? policy.htlcMaximumMsat.toString() : "0",
             last_update: policy.timestamp,
         };
     }
