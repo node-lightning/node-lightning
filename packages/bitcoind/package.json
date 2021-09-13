@@ -1,6 +1,6 @@
 {
   "name": "@node-lightning/bitcoind",
-  "version": "0.23.0-alpha.0",
+  "version": "0.23.0",
   "description": "Basic bitcoind JSONRPC and ZMQ client",
   "keywords": [],
   "author": "Brian Mancini <bmancini@gmail.com>",
