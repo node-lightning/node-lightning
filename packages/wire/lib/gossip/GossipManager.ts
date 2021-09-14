@@ -205,7 +205,7 @@ export class GossipManager extends EventEmitter {
 
         // Attach events from the gossipPeer
         gossipPeer.on("readable", this._onPeerReadable.bind(this, gossipPeer));
-        gossipPeer.on("error", this._onGossipError.bind(this));
+        gossipPeer.on("gossip_error", this._onGossipError.bind(this));
 
         // Add peer to the list of peers
         this.peers.add(gossipPeer);

@@ -124,14 +124,6 @@ export class GossipPeer extends Transform implements IPeer {
     }
 
     /**
-     * Handles when the peer is readable by iterating available messages
-     * and adding them to the filter.
-     */
-    private _onPeerReadable() {
-        this.emit("readable");
-    }
-
-    /**
      * Internally process messages. If the message is a routing related message
      * it will pass through the GossipFilter, otherwise it will be immediately
      * broadcast.
@@ -154,12 +146,21 @@ export class GossipPeer extends Transform implements IPeer {
                         for (msg of result.value) {
                             this.push(msg);
                         }
-                        cb();
                     } else {
-                        cb(result.error);
+                        // Handled error should be emitted to the caller
+                        // but we prevent the transform stream from
+                        // stopping by calling the callback without an
+                        // error.
+                        this.emit("gossip_error", result.error);
                     }
+                    cb();
                 })
-                .catch(err => cb(err));
+                // Unhandled error is something unexpected and our peer
+                // is now in a broken state and we need to disconnect.
+                .catch(err => {
+                    this.disconnect();
+                    cb(err);
+                });
         } else {
             // Relays all messages
             this.push(msg);

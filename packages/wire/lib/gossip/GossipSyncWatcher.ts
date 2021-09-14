@@ -68,19 +68,22 @@ export class GossipSyncWatcher {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         msg: ChannelAnnouncementMessage | ChannelUpdateMessage | NodeAnnouncementMessage,
     ): void {
-        this._messageCounter += 1;
-        this._clearTimeout();
-        this._setTimeout();
+        if (this._state === GossipSyncWatcherState.Watching) {
+            this._messageCounter += 1;
+            this._clearTimeout();
+            this._setTimeout();
+        }
     }
 
     /**
      * Cancels watching and sends a failure signal.
      */
     public cancel(): void {
-        this._clearTimeout();
-
+        if (this._state === GossipSyncWatcherState.Watching) {
+            this._clearTimeout();
+            this._resolve();
+        }
         this._state = GossipSyncWatcherState.Canceled;
-        this._resolve();
     }
 
     private _clearTimeout() {

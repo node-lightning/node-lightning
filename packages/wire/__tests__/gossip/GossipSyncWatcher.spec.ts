@@ -1,6 +1,6 @@
 import { ILogger } from "@node-lightning/logger";
 import { expect } from "chai";
-import { GossipSyncWatcher } from "../../lib/gossip/GossipSyncWatcher";
+import { GossipSyncWatcher, GossipSyncWatcherState } from "../../lib/gossip/GossipSyncWatcher";
 import { ChannelAnnouncementMessage } from "../../lib/messages/ChannelAnnouncementMessage";
 import { createFakeLogger, wait } from "../_test-utils";
 
@@ -44,5 +44,15 @@ describe("GossipSyncWatcher", () => {
         promise = sut.watch();
         sut.cancel();
         await promise;
+    });
+
+    it("doesn't reset timer unless it has started", () => {
+        sut.onGossipMessage(new ChannelAnnouncementMessage());
+        expect((sut as any)._timeoutHandle).to.be.undefined;
+    });
+
+    it("cancels if not started", () => {
+        sut.cancel();
+        expect(sut.state === GossipSyncWatcherState.Canceled);
     });
 });
