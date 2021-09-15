@@ -73,8 +73,8 @@ export class NoiseSocket extends Duplex {
      * benefit from the security and privacy enhancing used by the
      * Noise Protocol Framework.
      */
-    constructor({ socket, noiseState, rpk, logger }: NoiseSocketOptions) {
-        super();
+    constructor({ socket, noiseState, rpk, logger, highWaterMark = 2048 }: NoiseSocketOptions) {
+        super({ objectMode: true, highWaterMark });
         // perform type assertions
         assert.ok(socket instanceof Socket, new NoiseError("socket argument must be an instance of Socket")); // prettier-ignore
 

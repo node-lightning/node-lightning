@@ -23,4 +23,9 @@ export type NoiseSocketOptions = {
      * Logger that can be optionally used by the noise system
      */
     logger?: ILogger;
+
+    /**
+     * High watermark for the stream
+     */
+    highWaterMark?: number;
 };
