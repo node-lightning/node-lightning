@@ -46,7 +46,7 @@ class FakeSocket extends Duplex {
     }
 }
 
-describe("Peer", () => {
+describe("GossipPeer", () => {
     let sut: GossipPeer;
     let chainHashes: Buffer[];
     let peer: Peer;
@@ -70,8 +70,8 @@ describe("Peer", () => {
         rpk = Buffer.alloc(32, 1);
         logger = createFakeLogger();
         peer = new Peer(ls, localFeatures, chainHashes, logger, 1);
-        peer.socket = socket = new FakeSocket() as any;
-        socket.pipe(peer);
+        socket = new FakeSocket();
+        peer.attach(socket as any);
         peer.pingPongState = sinon.createStubInstance(PingPongState) as any;
         peer.state = PeerState.Ready;
         peer.remoteFeatures = remoteFeatures;

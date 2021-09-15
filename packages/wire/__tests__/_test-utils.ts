@@ -1,10 +1,12 @@
 import { BitField } from "@node-lightning/core";
 import { ILogger, Logger } from "@node-lightning/logger";
 import sinon from "sinon";
-import { Transform } from "stream";
+import { Readable } from "stream";
+import { IWireMessage } from "../lib";
 import { InitFeatureFlags } from "../lib/flags/InitFeatureFlags";
 
-export class FakePeer extends Transform {
+export class FakePeer extends Readable {
+    public state;
     public send = sinon.stub();
     public sendMessage = sinon.stub();
     public pubkey = Buffer.alloc(32, 1);
@@ -17,50 +19,17 @@ export class FakePeer extends Transform {
         super({ objectMode: true });
     }
 
-    public _transform(val, encoding, cb) {
-        cb(null, val);
+    public _read() {
+        //
+    }
+
+    public fakeMessage(msg: IWireMessage) {
+        this.push(msg);
     }
 }
 
 export function createFakePeer() {
     return new FakePeer() as any;
-
-    // return {
-    //     _handlers: [],
-    //     on(type, handler) {
-    //         this._handlers.push([type, handler, false]);
-    //         return this;
-    //     },
-
-    //     once(type, handler) {
-    //         this._handlers.push([type, handler, true]);
-    //     },
-
-    //     off(type, handler) {
-    //         //
-    //     },
-
-    //     emit(type, msg) {
-    //         const handlers = this._handlers.slice();
-    //         for (let i = 0; i < handlers.length; i++) {
-    //             const handler = handlers[i];
-    //             if (handler[0] !== type) continue;
-    //             handler[1](msg);
-
-    //             // remove once
-    //             if (handler[2]) {
-    //                 this._handlers.splice(i, 1);
-    //             }
-    //         }
-    //     },
-    //     send: sinon.stub(),
-    //     sendMessage: sinon.stub(),
-    //     pubkey: Buffer.alloc(32, 1),
-    //     localChains: [],
-    //     localFeatures: new BitField<InitFeatureFlags>(),
-    //     remoteChains: [],
-    //     remoteFeatures: new BitField<InitFeatureFlags>(),
-    // } as any;
 }
 
 export function createFakeLogger(): ILogger {

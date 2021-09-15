@@ -104,10 +104,10 @@ export class GossipManager extends EventEmitter {
     public addPeer(peer: Peer) {
         if (!this.started) throw new WireError(WireErrorCode.gossipManagerNotStarted);
 
+        peer.on("ready", () => this._onPeerReady(peer));
+
         if (peer.state === PeerState.Ready) {
             this._onPeerReady(peer);
-        } else {
-            peer.once("ready", () => this._onPeerReady(peer));
         }
     }
 
