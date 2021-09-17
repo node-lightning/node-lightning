@@ -16,5 +16,7 @@
       "host": "38.87.54.163",
       "port": 9745
     }
-  ]
+  ],
+  "bootstrapPeers": false,
+  "dnsSeed": "test.nodes.lightning.directory"
 }

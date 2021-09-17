@@ -62,5 +62,5 @@ Current status of [Lightning RFC](https://github.com/lightningnetwork/lightning-
 -   [x] BOLT 7 - P2P Node and Channel Discovery: [@node-lightning/wire](packages/wire), [@node-lightning/graph](packages/graph)
 -   [x] BOLT 8 - Encrypted and Authenticated Transport: [@node-lightning/noise](packages/noise)
 -   [x] BOLT 9 - Assigned Feature Flags: [@node-lightning/wire](packages/wire)
--   [ ] BOLT 10 - DNS Bootstrap and Assisted Node Location
+-   [x] BOLT 10 - DNS Bootstrap and Assisted Node Location
 -   [x] BOLT 11 - Invoice Protocol for Lightning Payments: [@node-lightning/invoice](packages/invoice)

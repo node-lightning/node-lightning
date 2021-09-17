@@ -4,6 +4,7 @@ import sinon from "sinon";
 import { Readable } from "stream";
 import { IWireMessage } from "../lib";
 import { InitFeatureFlags } from "../lib/flags/InitFeatureFlags";
+import bech32 from "bech32";
 
 export class FakePeer extends Readable {
     public state;
@@ -40,4 +41,9 @@ export function createFakeLogger(): ILogger {
 
 export function wait(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+export function bech32Decode(bech32PublicKey: string): Buffer {
+    let { words } = bech32.decode(bech32PublicKey);
+    return Buffer.from(bech32.fromWords(words));
 }
