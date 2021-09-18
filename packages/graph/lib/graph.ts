@@ -93,6 +93,16 @@ export class Graph {
 
         // detach from node 2
         n2.unlinkChannel(channel);
+
+        // remove from custom map
+        this.adjacencyList.delete({
+            nodea: n1.nodeId.toString("hex"),
+            nodeb: n2.nodeId.toString("hex"),
+        });
+        this.adjacencyList.delete({
+            nodea: n2.nodeId.toString("hex"),
+            nodeb: n1.nodeId.toString("hex"),
+        });
     }
 
     public dijkstra(src: Node, dest: Node, amnt: bigint) {
@@ -100,7 +110,7 @@ export class Graph {
         // from dest --> src and return route from src --> dest
 
         // Convert it to corresponding node_id
-        const str_id = dest.nodeId.toString("hex");
+        const dest_str_id = dest.nodeId.toString("hex");
 
         // Priority Queue  O(logn) insertion of min node
         let pq = new PriorityQueue(function(
@@ -109,13 +119,13 @@ export class Graph {
         ) {
             return a.fee > b.fee;
         });
-        pq.push({ nodeID: str_id, fee: 0 });
+        pq.push({ nodeID: dest_str_id, fee: 0 });
         // Distances will store the base_fee required to traverse from the src
         let distances: Map<string, number> = new Map(),
             // Parents will be used to find the path from dest to src later
             parents: Map<string, string> = new Map();
         for (const key of this.nodes.keys()) {
-            distances[key] = key === str_id ? 0 : Infinity;
+            distances[key] = key === dest_str_id ? 0 : Infinity;
             parents.set(key, null);
         }
 
@@ -158,8 +168,8 @@ export class Graph {
             }
         }
         // Lets return the route if exists from src to dest
-        return this.path_ret(str_id, src.nodeId.toString("hex"), parents).length
-            ? this.path_ret(str_id, src.nodeId.toString("hex"), parents)
+        return this.path_ret(dest_str_id, src.nodeId.toString("hex"), parents).length
+            ? this.path_ret(dest_str_id, src.nodeId.toString("hex"), parents)
             : null;
     }
 
