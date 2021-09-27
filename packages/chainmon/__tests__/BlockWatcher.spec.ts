@@ -3,7 +3,7 @@
 import sinon from "sinon";
 import { expect } from "chai";
 import { BlockWatcher } from "../lib/BlockWatcher";
-import { BitcoindClient } from "../../bitcoind/dist";
+import { BitcoindClient } from "../../bitcoind";
 
 const TestnetHeaders = require("../__fixtures__/TestnetHeaders.json");
 const headerLookup: any = hash => TestnetHeaders[hash];
