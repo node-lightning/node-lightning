@@ -60,7 +60,13 @@ export class TxWatcher extends EventEmitter {
     }
 
     private _onRawTx(buf: Buffer) {
-        const tx = Tx.fromBuffer(buf);
+        let tx: Tx;
+        try {
+            tx = Tx.fromBuffer(buf);
+        } catch (ex) {
+            this.emit("error", ex, buf);
+            return;
+        }
         this.emit("tx", tx);
         this._checkOutpoints(tx);
     }
