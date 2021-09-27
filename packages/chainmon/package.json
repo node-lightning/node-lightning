@@ -1,6 +1,6 @@
 {
   "name": "@node-lightning/chainmon",
-  "version": "0.24.0",
+  "version": "0.24.1",
   "description": "Bitcoin on-chain transaction monitoring tool",
   "main": "dist/index.js",
   "scripts": {
@@ -18,9 +18,9 @@
     "url": "git+https://github.com/altangent/node-lightning.git"
   },
   "dependencies": {
-    "@node-lightning/bitcoin": "^0.24.0",
-    "@node-lightning/bitcoind": "^0.24.0",
-    "@node-lightning/logger": "^0.24.0"
+    "@node-lightning/bitcoin": "^0.24.1",
+    "@node-lightning/bitcoind": "^0.24.1",
+    "@node-lightning/logger": "^0.24.1"
   },
   "publishConfig": {
     "access": "public"
