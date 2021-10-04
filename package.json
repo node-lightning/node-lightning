@@ -9,7 +9,9 @@
     "lint": "lerna run lint",
     "test": "lerna run test",
     "build": "lerna run build",
-    "bootstrap:ci": "lerna bootstrap --hoist"
+    "bootstrap:ci": "lerna bootstrap --hoist",
+    "version": "lerna version --no-push --no-git-tag-version",
+    "publish": "lerna publish from-package"
   },
   "keywords": [
     "lightning-network",
