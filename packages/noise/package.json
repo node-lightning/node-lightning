@@ -1,6 +1,6 @@
 {
   "name": "@node-lightning/noise",
-  "version": "0.24.1",
+  "version": "0.25.0",
   "description": "BOLT 8 Lightning Network Noise Protocol Socket",
   "main": "dist/index.js",
   "scripts": {
@@ -25,8 +25,8 @@
     "url": "git+https://github.com/altangent/node-lightning.git"
   },
   "dependencies": {
-    "@node-lightning/crypto": "^0.24.1",
-    "@node-lightning/logger": "^0.24.1"
+    "@node-lightning/crypto": "^0.25.0",
+    "@node-lightning/logger": "^0.25.0"
   },
   "publishConfig": {
     "access": "public"
