@@ -1,6 +1,6 @@
 {
   "name": "@node-lightning/logger",
-  "version": "0.26.0",
+  "version": "0.26.1",
   "description": "Logging tool for Node-Lightning applications",
   "main": "dist/index.js",
   "scripts": {
