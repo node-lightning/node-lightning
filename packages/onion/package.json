@@ -1,7 +1,7 @@
 {
   "name": "@node-lightning/onion",
   "private": true,
-  "version": "0.25.0",
+  "version": "0.26.0",
   "description": "Lightning Network Onion Routing",
   "keywords": [
     "lightning network",
@@ -25,11 +25,11 @@
     "prepublish": "npm run build"
   },
   "dependencies": {
-    "@node-lightning/bufio": "^0.25.0",
-    "@node-lightning/core": "^0.25.0",
-    "@node-lightning/crypto": "^0.25.0",
-    "@node-lightning/logger": "^0.25.0",
-    "@node-lightning/wire": "^0.25.0"
+    "@node-lightning/bufio": "^0.26.0",
+    "@node-lightning/core": "^0.26.0",
+    "@node-lightning/crypto": "^0.26.0",
+    "@node-lightning/logger": "^0.26.0",
+    "@node-lightning/wire": "^0.26.0"
   },
   "publishConfig": {
     "access": "public"
