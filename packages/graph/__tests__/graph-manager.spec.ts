@@ -197,9 +197,9 @@ describe("GraphManager", () => {
         }
 
         it("should remove a channel from the graph", () => {
-            const outpoint = OutPoint.fromString("1111111111111111111111111111111111111111111111111111111111111111:0"); // prettier-ignore
-            gossipEmitter.emit("message", createMsg(new ShortChannelId(1, 1, 0), outpoint));
-            gossipEmitter.emit("message", createMsg(new ShortChannelId(1, 1, 1)));
+            const outpoint = OutPoint.fromString("1111111111111111111111111111111111111111111111111111111111111111:1"); // prettier-ignore
+            gossipEmitter.emit("message", createMsg(new ShortChannelId(1, 1, 0)));
+            gossipEmitter.emit("message", createMsg(new ShortChannelId(1, 1, 1), outpoint));
             expect(sut.graph.channels.size).to.equal(2);
             sut.removeChannel(outpoint);
             expect(sut.graph.channels.size).to.equal(1);
