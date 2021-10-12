@@ -14,6 +14,8 @@ export enum ExtKeyErrorCode {
     IncorrectKeyVersion,
     InvalidPath,
     InvalidDerivation,
+    InvalidPrivateKey,
+    InvalidPublicKey,
 }
 
 export class ExtKeyError extends Error {
@@ -34,6 +36,12 @@ export class ExtKeyError extends Error {
                 break;
             case ExtKeyErrorCode.InvalidDerivation:
                 msg = "Attempting to dervice a hardened public key from a parent public key";
+                break;
+            case ExtKeyErrorCode.InvalidPrivateKey:
+                msg = "Invalid private key [key=" + data + "]";
+                break;
+            case ExtKeyErrorCode.InvalidPublicKey:
+                msg = "Invalid public key [key=" + data + "]";
                 break;
             default:
                 msg = "Unknown error";
@@ -99,6 +107,14 @@ export class ExtPrivateKey {
         const chaincode = r.readBytes(32);
         const rawkey = r.readBytes(33);
 
+        if (depth === 0 && !parentFingerprint.equals(Buffer.alloc(4))) {
+            throw new ExtKeyError(ExtKeyErrorCode.InvalidEncoding, input);
+        }
+
+        if (depth === 0 && childNum !== 0) {
+            throw new ExtKeyError(ExtKeyErrorCode.InvalidEncoding, input);
+        }
+
         const key = new ExtPrivateKey();
         key.version = version;
         key.depth = depth;
@@ -106,10 +122,21 @@ export class ExtPrivateKey {
         key.number = childNum;
         key.chainCode = chaincode;
 
+        if (rawkey[0] !== 0x00) {
+            throw new ExtKeyError(ExtKeyErrorCode.InvalidEncoding, input);
+        }
+
         if (version === ExtKeyType.MainnetPrivate || version === ExtKeyType.TestnetPrivate) {
             key.privateKey = rawkey.slice(1);
         } else {
             throw new ExtKeyError(ExtKeyErrorCode.IncorrectKeyVersion, input);
+        }
+
+        if (!crypto.validPrivateKey(key.privateKey)) {
+            throw new ExtKeyError(
+                ExtKeyErrorCode.InvalidPrivateKey,
+                key.privateKey.toString("hex"),
+            );
         }
 
         return key;
@@ -205,6 +232,14 @@ export class ExtPublicKey {
         const chaincode = r.readBytes(32);
         const pubkey = r.readBytes(33);
 
+        if (depth === 0 && !parentFingerprint.equals(Buffer.alloc(4))) {
+            throw new ExtKeyError(ExtKeyErrorCode.InvalidEncoding, input);
+        }
+
+        if (depth === 0 && childNum !== 0) {
+            throw new ExtKeyError(ExtKeyErrorCode.InvalidEncoding, input);
+        }
+
         const key = new ExtPublicKey();
         key.version = version;
         key.depth = depth;
@@ -216,6 +251,10 @@ export class ExtPublicKey {
             key.publicKey = pubkey;
         } else {
             throw new ExtKeyError(ExtKeyErrorCode.IncorrectKeyVersion, input);
+        }
+
+        if (!crypto.validPublicKey(key.publicKey)) {
+            throw new ExtKeyError(ExtKeyErrorCode.InvalidPublicKey, key.publicKey.toString("hex"));
         }
 
         return key;

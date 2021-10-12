@@ -118,4 +118,151 @@ describe("ExtPrivateKey", () => {
             });
         }
     });
+
+    describe("vector 3", () => {
+        const seed = Buffer.from(
+            "4b381541583be4423346c643850da4b320e46a87ae3d2a4e6da11eba819cd4acba45d239319ac14f863b8d5ab5a0d0c64d2e8a1e7d1457df2e5a3c51c73235be",
+            "hex",
+        );
+
+        const chains = [
+            [
+                "m",
+                "xprv9s21ZrQH143K25QhxbucbDDuQ4naNntJRi4KUfWT7xo4EKsHt2QJDu7KXp1A3u7Bi1j8ph3EGsZ9Xvz9dGuVrtHHs7pXeTzjuxBrCmmhgC6",
+                "xpub661MyMwAqRbcEZVB4dScxMAdx6d4nFc9nvyvH3v4gJL378CSRZiYmhRoP7mBy6gSPSCYk6SzXPTf3ND1cZAceL7SfJ1Z3GC8vBgp2epUt13",
+            ],
+            [
+                "m/0'",
+                "xprv9uPDJpEQgRQfDcW7BkF7eTya6RPxXeJCqCJGHuCJ4GiRVLzkTXBAJMu2qaMWPrS7AANYqdq6vcBcBUdJCVVFceUvJFjaPdGZ2y9WACViL4L",
+                "xpub68NZiKmJWnxxS6aaHmn81bvJeTESw724CRDs6HbuccFQN9Ku14VQrADWgqbhhTHBaohPX4CjNLf9fq9MYo6oDaPPLPxSb7gwQN3ih19Zm4Y",
+            ],
+        ];
+
+        for (const [path, xprv, xpub] of chains) {
+            it(path, () => {
+                const result = ExtPrivateKey.fromPath(path, seed, ExtKeyType.MainnetPrivate);
+                assertExtPrivateKey(result, xprv);
+                assertExtPublicKey(result.toPubKey(), xpub);
+            });
+        }
+    });
+
+    describe("vector 4", () => {
+        const seed = Buffer.from(
+            "3ddd5602285899a946114506157c7997e5444528f3003f6134712147db19b678",
+            "hex",
+        );
+
+        const chains = [
+            [
+                "m",
+                "xprv9s21ZrQH143K48vGoLGRPxgo2JNkJ3J3fqkirQC2zVdk5Dgd5w14S7fRDyHH4dWNHUgkvsvNDCkvAwcSHNAQwhwgNMgZhLtQC63zxwhQmRv",
+                "xpub661MyMwAqRbcGczjuMoRm6dXaLDEhW1u34gKenbeYqAix21mdUKJyuyu5F1rzYGVxyL6tmgBUAEPrEz92mBXjByMRiJdba9wpnN37RLLAXa",
+            ],
+            [
+                "m/0'",
+                "xprv9vB7xEWwNp9kh1wQRfCCQMnZUEG21LpbR9NPCNN1dwhiZkjjeGRnaALmPXCX7SgjFTiCTT6bXes17boXtjq3xLpcDjzEuGLQBM5ohqkao9G",
+                "xpub69AUMk3qDBi3uW1sXgjCmVjJ2G6WQoYSnNHyzkmdCHEhSZ4tBok37xfFEqHd2AddP56Tqp4o56AePAgCjYdvpW2PU2jbUPFKsav5ut6Ch1m",
+            ],
+            [
+                "m/0'/1'",
+                "xprv9xJocDuwtYCMNAo3Zw76WENQeAS6WGXQ55RCy7tDJ8oALr4FWkuVoHJeHVAcAqiZLE7Je3vZJHxspZdFHfnBEjHqU5hG1Jaj32dVoS6XLT1",
+                "xpub6BJA1jSqiukeaesWfxe6sNK9CCGaujFFSJLomWHprUL9DePQ4JDkM5d88n49sMGJxrhpjazuXYWdMf17C9T5XnxkopaeS7jGk1GyyVziaMt",
+            ],
+        ];
+
+        for (const [path, xprv, xpub] of chains) {
+            it(path, () => {
+                const result = ExtPrivateKey.fromPath(path, seed, ExtKeyType.MainnetPrivate);
+                assertExtPrivateKey(result, xprv);
+                assertExtPublicKey(result.toPubKey(), xpub);
+            });
+        }
+    });
+
+    describe("vector 5", () => {
+        const vectors = [
+            [
+                "xpub661MyMwAqRbcEYS8w7XLSVeEsBXy79zSzH1J8vCdxAZningWLdN3zgtU6LBpB85b3D2yc8sfvZU521AAwdZafEz7mnzBBsz4wKY5fTtTQBm",
+                "xpub (pubkey version / prvkey mismatch)",
+            ],
+            [
+                "xprv9s21ZrQH143K24Mfq5zL5MhWK9hUhhGbd45hLXo2Pq2oqzMMo63oStZzFGTQQD3dC4H2D5GBj7vWvSQaaBv5cxi9gafk7NF3pnBju6dwKvH",
+                "xprv (prvkey version / pubkey mismatch)",
+            ],
+            [
+                "xpub661MyMwAqRbcEYS8w7XLSVeEsBXy79zSzH1J8vCdxAZningWLdN3zgtU6Txnt3siSujt9RCVYsx4qHZGc62TG4McvMGcAUjeuwZdduYEvFn",
+                "xpub (invalid pubkey prefix 04)",
+            ],
+            [
+                "xprv9s21ZrQH143K24Mfq5zL5MhWK9hUhhGbd45hLXo2Pq2oqzMMo63oStZzFGpWnsj83BHtEy5Zt8CcDr1UiRXuWCmTQLxEK9vbz5gPstX92JQ",
+                "xprv (invalid prvkey prefix 04)",
+            ],
+            [
+                "xpub661MyMwAqRbcEYS8w7XLSVeEsBXy79zSzH1J8vCdxAZningWLdN3zgtU6N8ZMMXctdiCjxTNq964yKkwrkBJJwpzZS4HS2fxvyYUA4q2Xe4",
+                "xpub (invalid pubkey prefix 01)",
+            ],
+            [
+                "xprv9s21ZrQH143K24Mfq5zL5MhWK9hUhhGbd45hLXo2Pq2oqzMMo63oStZzFAzHGBP2UuGCqWLTAPLcMtD9y5gkZ6Eq3Rjuahrv17fEQ3Qen6J",
+                "xprv (invalid prvkey prefix 01)",
+            ],
+            [
+                "xprv9s2SPatNQ9Vc6GTbVMFPFo7jsaZySyzk7L8n2uqKXJen3KUmvQNTuLh3fhZMBoG3G4ZW1N2kZuHEPY53qmbZzCHshoQnNf4GvELZfqTUrcv",
+                "xprv (zero depth with non-zero parent fingerprint)",
+            ],
+            [
+                "xpub661no6RGEX3uJkY4bNnPcw4URcQTrSibUZ4NqJEw5eBkv7ovTwgiT91XX27VbEXGENhYRCf7hyEbWrR3FewATdCEebj6znwMfQkhRYHRLpJ",
+                "xpub (zero depth with non-zero parent fingerprint)",
+            ],
+            [
+                "xprv9s21ZrQH4r4TsiLvyLXqM9P7k1K3EYhA1kkD6xuquB5i39AU8KF42acDyL3qsDbU9NmZn6MsGSUYZEsuoePmjzsB3eFKSUEh3Gu1N3cqVUN",
+                "xprv (zero depth with non-zero index)",
+            ],
+            [
+                "xpub661MyMwAuDcm6CRQ5N4qiHKrJ39Xe1R1NyfouMKTTWcguwVcfrZJaNvhpebzGerh7gucBvzEQWRugZDuDXjNDRmXzSZe4c7mnTK97pTvGS8",
+                "xpub (zero depth with non-zero index)",
+            ],
+            [
+                "DMwo58pR1QLEFihHiXPVykYB6fJmsTeHvyTp7hRThAtCX8CvYzgPcn8XnmdfHGMQzT7ayAmfo4z3gY5KfbrZWZ6St24UVf2Qgo6oujFktLHdHY4",
+                "(unknown extended key version)",
+            ],
+            [
+                "DMwo58pR1QLEFihHiXPVykYB6fJmsTeHvyTp7hRThAtCX8CvYzgPcn8XnmdfHPmHJiEDXkTiJTVV9rHEBUem2mwVbbNfvT2MTcAqj3nesx8uBf9",
+                "(unknown extended key version)",
+            ],
+            [
+                "xprv9s21ZrQH143K24Mfq5zL5MhWK9hUhhGbd45hLXo2Pq2oqzMMo63oStZzF93Y5wvzdUayhgkkFoicQZcP3y52uPPxFnfoLZB21Teqt1VvEHx",
+                "xprv (unknown extended key version)",
+            ],
+            [
+                "xprv9s21ZrQH143K24Mfq5zL5MhWK9hUhhGbd45hLXo2Pq2oqzMMo63oStZzFAzHGBP2UuGCqWLTAPLcMtD5SDKr24z3aiUvKr9bJpdrcLg1y3G",
+                "xprv (private key n not in 1..n-1)",
+            ],
+            [
+                "xpub661MyMwAqRbcEYS8w7XLSVeEsBXy79zSzH1J8vCdxAZningWLdN3zgtU6Q5JXayek4PRsn35jii4veMimro1xefsM58PgBMrvdYre8QyULY",
+                "xpub (invalid pubkey 020000000000000000000000000000000000000000000000000000000000000007)",
+            ],
+            [
+                "xprv9s21ZrQH143K3QTDL4LXw2F7HEK3wJUD2nW2nRk4stbPy6cq3jPPqjiChkVvvNKmPGJxWUtg6LnF5kejMRNNU3TGtRBeJgk33yuGBxrMPHL",
+                "xprv (invalid checksum)",
+            ],
+        ];
+
+        for (const [vector, title] of vectors) {
+            it("invalid " + title, () => {
+                if (vector.startsWith("xpub")) {
+                    expect(() => ExtPublicKey.decode(vector)).to.throw();
+                } else if (vector.startsWith("xprv")) {
+                    expect(() => ExtPrivateKey.decode(vector)).to.throw();
+                } else {
+                    expect(() => ExtPublicKey.decode(vector)).to.throw();
+                    expect(() => ExtPrivateKey.decode(vector)).to.throw();
+                }
+            });
+        }
+
+        /**
+
+         */
+    });
 });
