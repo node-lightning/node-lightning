@@ -12,6 +12,7 @@ export enum ExtKeyType {
 export enum ExtKeyErrorCode {
     InvalidEncoding,
     IncorrectKeyVersion,
+    InvalidPath,
 }
 
 export class ExtKeyError extends Error {
@@ -27,6 +28,9 @@ export class ExtKeyError extends Error {
             case ExtKeyErrorCode.IncorrectKeyVersion:
                 msg = "Incorrect key version [data=" + data + "]";
                 break;
+            case ExtKeyErrorCode.InvalidPath:
+                msg = "Invalid path [path=" + data + "]";
+                break;
             default:
                 msg = "Unknown error";
         }
@@ -38,7 +42,32 @@ export class ExtKeyError extends Error {
 }
 
 export class ExtPrivateKey {
-    public static parse(input: string): ExtPrivateKey {
+    public static fromPath(path: string, seed: Buffer, version: ExtKeyType): ExtPrivateKey {
+        const parts = path.split("/");
+        if (parts[0] !== "m" || parts.length > 255) {
+            throw new ExtKeyError(ExtKeyErrorCode.InvalidPath, path);
+        }
+        let key = ExtPrivateKey.deriveMaster(seed, version);
+
+        for (let i = 1; i < parts.length; i++) {
+            const part = parts[i];
+
+            const hardened = part.endsWith("h") || part.endsWith("H");
+            const num = hardened
+                ? 2 ** 31 + Number(part.substring(0, part.length - 1))
+                : Number(part);
+
+            if (isNaN(num) || num < 0 || num >= 2 ** 32 || (!hardened && num >= 2 ** 31)) {
+                throw new ExtKeyError(ExtKeyErrorCode.InvalidPath, path);
+            }
+
+            key = key.derivePrivate(num);
+        }
+
+        return key;
+    }
+
+    public static decode(input: string): ExtPrivateKey {
         const buf = Base58Check.decode(input);
 
         if (buf.length !== 78) {
@@ -148,10 +177,6 @@ export class ExtPrivateKey {
         result.privateKey = crypto.privateKeyTweakAdd(ll, this.privateKey);
         result.chainCode = lr;
 
-        if (!crypto.validPrivateKey(result.privateKey)) {
-            console.log("NOT VALID");
-        }
-
         return result;
     }
 
@@ -161,7 +186,7 @@ export class ExtPrivateKey {
 }
 
 export class ExtPublicKey {
-    public static parse(input: string): ExtPublicKey {
+    public static decode(input: string): ExtPublicKey {
         const buf = Base58Check.decode(input);
 
         if (buf.length !== 78) {
