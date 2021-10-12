@@ -26,10 +26,24 @@ describe("ExtPrivateKey", () => {
         );
     }
 
+    function assertChain(seed: Buffer, vectors: [string, string, string][]) {
+        for (const [path, xprv, xpub] of vectors) {
+            it(path, () => {
+                const privKey = ExtPrivateKey.fromPath(path, seed, ExtKeyType.MainnetPrivate);
+                const pubKey = privKey.toPubKey();
+                assertExtPrivateKey(privKey, xprv);
+                assertExtPublicKey(pubKey, xpub);
+
+                expect(privKey.encode()).to.equal(xprv);
+                expect(pubKey.encode()).to.equal(xpub);
+            });
+        }
+    }
+
     describe("vector 1", () => {
         const seed = Buffer.from("000102030405060708090a0b0c0d0e0f", "hex");
 
-        const chains = [
+        const vectors: [string, string, string][] = [
             [
                 "m",
                 "xprv9s21ZrQH143K3QTDL4LXw2F7HEK3wJUD2nW2nRk4stbPy6cq3jPPqjiChkVvvNKmPGJxWUtg6LnF5kejMRNNU3TGtRBeJgk33yuGBxrMPHi",
@@ -62,13 +76,7 @@ describe("ExtPrivateKey", () => {
             ],
         ];
 
-        for (const [path, xprv, xpub] of chains) {
-            it(path, () => {
-                const result = ExtPrivateKey.fromPath(path, seed, ExtKeyType.MainnetPrivate);
-                assertExtPrivateKey(result, xprv);
-                assertExtPublicKey(result.toPubKey(), xpub);
-            });
-        }
+        assertChain(seed, vectors);
     });
 
     describe("vector 2", () => {
@@ -77,7 +85,7 @@ describe("ExtPrivateKey", () => {
             "hex",
         );
 
-        const chains = [
+        const vectors: [string, string, string][] = [
             [
                 "m",
                 "xprv9s21ZrQH143K31xYSDQpPDxsXRTUcvj2iNHm5NUtrGiGG5e2DtALGdso3pGz6ssrdK4PFmM8NSpSBHNqPqm55Qn3LqFtT2emdEXVYsCzC2U",
@@ -110,13 +118,7 @@ describe("ExtPrivateKey", () => {
             ],
         ];
 
-        for (const [path, xprv, xpub] of chains) {
-            it(path, () => {
-                const result = ExtPrivateKey.fromPath(path, seed, ExtKeyType.MainnetPrivate);
-                assertExtPrivateKey(result, xprv);
-                assertExtPublicKey(result.toPubKey(), xpub);
-            });
-        }
+        assertChain(seed, vectors);
     });
 
     describe("vector 3", () => {
@@ -125,7 +127,7 @@ describe("ExtPrivateKey", () => {
             "hex",
         );
 
-        const chains = [
+        const vectors: [string, string, string][] = [
             [
                 "m",
                 "xprv9s21ZrQH143K25QhxbucbDDuQ4naNntJRi4KUfWT7xo4EKsHt2QJDu7KXp1A3u7Bi1j8ph3EGsZ9Xvz9dGuVrtHHs7pXeTzjuxBrCmmhgC6",
@@ -138,13 +140,7 @@ describe("ExtPrivateKey", () => {
             ],
         ];
 
-        for (const [path, xprv, xpub] of chains) {
-            it(path, () => {
-                const result = ExtPrivateKey.fromPath(path, seed, ExtKeyType.MainnetPrivate);
-                assertExtPrivateKey(result, xprv);
-                assertExtPublicKey(result.toPubKey(), xpub);
-            });
-        }
+        assertChain(seed, vectors);
     });
 
     describe("vector 4", () => {
@@ -153,7 +149,7 @@ describe("ExtPrivateKey", () => {
             "hex",
         );
 
-        const chains = [
+        const vectors: [string, string, string][] = [
             [
                 "m",
                 "xprv9s21ZrQH143K48vGoLGRPxgo2JNkJ3J3fqkirQC2zVdk5Dgd5w14S7fRDyHH4dWNHUgkvsvNDCkvAwcSHNAQwhwgNMgZhLtQC63zxwhQmRv",
@@ -171,13 +167,7 @@ describe("ExtPrivateKey", () => {
             ],
         ];
 
-        for (const [path, xprv, xpub] of chains) {
-            it(path, () => {
-                const result = ExtPrivateKey.fromPath(path, seed, ExtKeyType.MainnetPrivate);
-                assertExtPrivateKey(result, xprv);
-                assertExtPublicKey(result.toPubKey(), xpub);
-            });
-        }
+        assertChain(seed, vectors);
     });
 
     describe("vector 5", () => {

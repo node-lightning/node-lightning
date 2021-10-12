@@ -214,6 +214,19 @@ export class ExtPrivateKey {
     public derivePublic(i: number): ExtPublicKey {
         return this.derivePrivate(i).toPubKey();
     }
+
+    public encode(): string {
+        const w = new BufferWriter(Buffer.alloc(78));
+        w.writeUInt32BE(this.version);
+        w.writeUInt8(this.depth);
+        w.writeBytes(this.parentFingerprint);
+        w.writeUInt32BE(this.number);
+        w.writeBytes(this.chainCode);
+        w.writeUInt8(0);
+        w.writeBytes(this.privateKey);
+        const buf = w.toBuffer();
+        return Base58Check.encode(buf);
+    }
 }
 
 export class ExtPublicKey {
@@ -300,5 +313,17 @@ export class ExtPublicKey {
         result.chainCode = chainCode;
 
         return result;
+    }
+
+    public encode(): string {
+        const w = new BufferWriter(Buffer.alloc(78));
+        w.writeUInt32BE(this.version);
+        w.writeUInt8(this.depth);
+        w.writeBytes(this.parentFingerprint);
+        w.writeUInt32BE(this.number);
+        w.writeBytes(this.chainCode);
+        w.writeBytes(this.publicKey);
+        const buf = w.toBuffer();
+        return Base58Check.encode(buf);
     }
 }
