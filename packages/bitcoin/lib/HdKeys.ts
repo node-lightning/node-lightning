@@ -13,6 +13,7 @@ export enum ExtKeyErrorCode {
     InvalidEncoding,
     IncorrectKeyVersion,
     InvalidPath,
+    InvalidDerivation,
 }
 
 export class ExtKeyError extends Error {
@@ -31,6 +32,9 @@ export class ExtKeyError extends Error {
             case ExtKeyErrorCode.InvalidPath:
                 msg = "Invalid path [path=" + data + "]";
                 break;
+            case ExtKeyErrorCode.InvalidDerivation:
+                msg = "Attempting to dervice a hardened public key from a parent public key";
+                break;
             default:
                 msg = "Unknown error";
         }
@@ -47,12 +51,12 @@ export class ExtPrivateKey {
         if (parts[0] !== "m" || parts.length > 255) {
             throw new ExtKeyError(ExtKeyErrorCode.InvalidPath, path);
         }
-        let key = ExtPrivateKey.deriveMaster(seed, version);
+        let key = ExtPrivateKey.fromSeed(seed, version);
 
         for (let i = 1; i < parts.length; i++) {
             const part = parts[i];
 
-            const hardened = part.endsWith("h") || part.endsWith("H");
+            const hardened = part.endsWith("'");
             const num = hardened
                 ? 2 ** 31 + Number(part.substring(0, part.length - 1))
                 : Number(part);
@@ -67,6 +71,19 @@ export class ExtPrivateKey {
         return key;
     }
 
+    public static fromSeed(seed: Buffer, version: ExtKeyType): ExtPrivateKey {
+        const l = crypto.hmac(Buffer.from("Bitcoin seed"), seed, "sha512");
+
+        const key = new ExtPrivateKey();
+        key.version = version;
+        key.depth = 0;
+        key.number = 0;
+        key.parentFingerprint = Buffer.from([0, 0, 0, 0]);
+        key.privateKey = l.slice(0, 32);
+        key.chainCode = l.slice(32);
+        return key;
+    }
+
     public static decode(input: string): ExtPrivateKey {
         const buf = Base58Check.decode(input);
 
@@ -77,7 +94,7 @@ export class ExtPrivateKey {
         const r = new BufferReader(buf);
         const version: ExtKeyType = r.readUInt32BE();
         const depth = r.readUInt8();
-        const fingerprint = r.readBytes(4);
+        const parentFingerprint = r.readBytes(4);
         const childNum = r.readUInt32BE();
         const chaincode = r.readBytes(32);
         const rawkey = r.readBytes(33);
@@ -85,7 +102,7 @@ export class ExtPrivateKey {
         const key = new ExtPrivateKey();
         key.version = version;
         key.depth = depth;
-        key.parentFingerprint = fingerprint;
+        key.parentFingerprint = parentFingerprint;
         key.number = childNum;
         key.chainCode = chaincode;
 
@@ -95,19 +112,6 @@ export class ExtPrivateKey {
             throw new ExtKeyError(ExtKeyErrorCode.IncorrectKeyVersion, input);
         }
 
-        return key;
-    }
-
-    public static deriveMaster(seed: Buffer, version: ExtKeyType): ExtPrivateKey {
-        const l = crypto.hmac(Buffer.from("Bitcoin seed"), seed, "sha512");
-
-        const key = new ExtPrivateKey();
-        key.version = version;
-        key.depth = 0;
-        key.number = 0;
-        key.parentFingerprint = Buffer.from([0, 0, 0, 0]);
-        key.privateKey = l.slice(0, 32);
-        key.chainCode = l.slice(32);
         return key;
     }
 
@@ -135,7 +139,7 @@ export class ExtPrivateKey {
         return this._fingerprint;
     }
 
-    public toExtPublicKey(): ExtPublicKey {
+    public toPubKey(): ExtPublicKey {
         const result = new ExtPublicKey();
         result.version =
             this.version === ExtKeyType.MainnetPrivate
@@ -143,7 +147,7 @@ export class ExtPrivateKey {
                 : ExtKeyType.TestnetPublic;
         result.depth = this.depth;
         result.number = this.number;
-        result.fingerprint = Buffer.from(this.parentFingerprint);
+        result.parentFingerprint = Buffer.from(this.parentFingerprint);
         result.chainCode = Buffer.from(this.chainCode);
         result.publicKey = crypto.getPublicKey(this.privateKey, true);
         return result;
@@ -181,7 +185,7 @@ export class ExtPrivateKey {
     }
 
     public derivePublic(i: number): ExtPublicKey {
-        return this.derivePrivate(i).toExtPublicKey();
+        return this.derivePrivate(i).toPubKey();
     }
 }
 
@@ -196,7 +200,7 @@ export class ExtPublicKey {
         const r = new BufferReader(buf);
         const version: ExtKeyType = r.readUInt32BE();
         const depth = r.readUInt8();
-        const fingerprint = r.readBytes(4);
+        const parentFingerprint = r.readBytes(4);
         const childNum = r.readUInt32BE();
         const chaincode = r.readBytes(32);
         const pubkey = r.readBytes(33);
@@ -204,7 +208,7 @@ export class ExtPublicKey {
         const key = new ExtPublicKey();
         key.version = version;
         key.depth = depth;
-        key.fingerprint = fingerprint;
+        key.parentFingerprint = parentFingerprint;
         key.number = childNum;
         key.chainCode = chaincode;
 
@@ -219,8 +223,43 @@ export class ExtPublicKey {
 
     public version: ExtKeyType;
     public depth: number;
-    public fingerprint: Buffer;
+    public parentFingerprint: Buffer;
     public number: number;
     public chainCode: Buffer;
     public publicKey: Buffer;
+
+    private _fingerprint: Buffer;
+
+    public get fingerprint(): Buffer {
+        if (!this._fingerprint) {
+            this._fingerprint = crypto.hash160(this.publicKey).slice(0, 4);
+        }
+        return this._fingerprint;
+    }
+
+    public derivePublic(i: number): ExtPublicKey {
+        if (i >= 2 ** 31) {
+            throw new ExtKeyError(ExtKeyErrorCode.InvalidDerivation);
+        }
+
+        const data = new BufferWriter(Buffer.alloc(37));
+        data.writeBytes(this.publicKey);
+        data.writeUInt32BE(i);
+
+        const l = crypto.hmac(this.chainCode, data.toBuffer());
+        const ll = l.slice(0, 32);
+        const lr = l.slice(32);
+
+        const publicKey = crypto.publicKeyTweakAdd(ll, this.publicKey, true);
+        const chainCode = lr;
+
+        const result = new ExtPublicKey();
+        result.version = this.version;
+        result.depth = this.depth + 1;
+        result.number = this.number;
+        result.publicKey = publicKey;
+        result.chainCode = chainCode;
+
+        return result;
+    }
 }
