@@ -8,6 +8,8 @@ describe("Address", () => {
     const mainnet: NetworkConfig = {
         p2pkhPrefix: 0,
         p2shPrefix: 5,
+        xpubPrefix: 0,
+        xprvPrefix: 0,
     };
 
     let sut: Address;

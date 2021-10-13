@@ -6,6 +6,8 @@ import { Script } from "./Script";
 export type NetworkConfig = {
     p2pkhPrefix: number;
     p2shPrefix: number;
+    xpubPrefix: number;
+    xprvPrefix: number;
 };
 
 export class Address {

@@ -1,9 +1,10 @@
 import { expect } from "chai";
-import { ExtKeyType, ExtPrivateKey, ExtPublicKey } from "../lib/HdKeys";
+import { ExtKeyType, HdKey } from "../lib/HdKeys";
 
-describe("ExtPrivateKey", () => {
-    function assertExtPrivateKey(result: ExtPrivateKey, xprv: string) {
-        const exp = ExtPrivateKey.decode(xprv);
+describe("HdKey", () => {
+    function assertExtPrivateKey(result: HdKey, xprv: string) {
+        const exp = HdKey.decode(xprv);
+        expect(result.isPrivate).to.equal(true);
         expect(result.version).to.equal(exp.version);
         expect(result.depth).to.equal(exp.depth);
         expect(result.number).to.equal(exp.number);
@@ -14,8 +15,9 @@ describe("ExtPrivateKey", () => {
         );
     }
 
-    function assertExtPublicKey(result: ExtPublicKey, xpub: string) {
-        const exp = ExtPublicKey.decode(xpub);
+    function assertExtPublicKey(result: HdKey, xpub: string) {
+        const exp = HdKey.decode(xpub);
+        expect(result.isPrivate).to.equal(false);
         expect(result.version).to.equal(exp.version);
         expect(result.depth).to.equal(exp.depth);
         expect(result.number).to.equal(exp.number);
@@ -29,7 +31,7 @@ describe("ExtPrivateKey", () => {
     function assertChain(seed: Buffer, vectors: [string, string, string][]) {
         for (const [path, xprv, xpub] of vectors) {
             it(path, () => {
-                const privKey = ExtPrivateKey.fromPath(path, seed, ExtKeyType.MainnetPrivate);
+                const privKey = HdKey.fromPath(path, seed, ExtKeyType.MainnetPrivate);
                 const pubKey = privKey.toPubKey();
                 assertExtPrivateKey(privKey, xprv);
                 assertExtPublicKey(pubKey, xpub);
@@ -240,19 +242,22 @@ describe("ExtPrivateKey", () => {
 
         for (const [vector, title] of vectors) {
             it("invalid " + title, () => {
-                if (vector.startsWith("xpub")) {
-                    expect(() => ExtPublicKey.decode(vector)).to.throw();
-                } else if (vector.startsWith("xprv")) {
-                    expect(() => ExtPrivateKey.decode(vector)).to.throw();
-                } else {
-                    expect(() => ExtPublicKey.decode(vector)).to.throw();
-                    expect(() => ExtPrivateKey.decode(vector)).to.throw();
-                }
+                expect(() => HdKey.decode(vector)).to.throw();
             });
         }
+    });
 
-        /**
+    it("pub key cannot derive private key", () => {
+        const seed = Buffer.alloc(32, 0x01);
+        const master = HdKey.fromSeed(seed, ExtKeyType.MainnetPrivate);
+        expect(() => master.derivePublic(0).derivePrivate(0)).to.throw();
+    });
 
-         */
+    it("pub key can derive pub key", () => {
+        const seed = Buffer.alloc(32, 0x01);
+        const master = HdKey.fromSeed(seed, ExtKeyType.MainnetPrivate);
+        const key = master.derivePublic(0).derivePublic(1);
+        expect(key.depth).to.equal(2);
+        console.log(key);
     });
 });
