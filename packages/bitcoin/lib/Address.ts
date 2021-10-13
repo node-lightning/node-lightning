@@ -1,0 +1,33 @@
+import { hash160 } from "@node-lightning/crypto";
+import { BufferWriter } from "../../bufio/dist";
+import { Base58Check } from "./Base58Check";
+import { Script } from "./Script";
+
+export type NetworkConfig = {
+    p2pkhPrefix: number;
+    p2shPrefix: number;
+};
+
+export class Address {
+    public network: NetworkConfig;
+
+    constructor(network: NetworkConfig) {
+        this.network = network;
+    }
+
+    public createP2PKH(pubkey: Buffer): string {
+        const hash = hash160(pubkey);
+        const w = new BufferWriter(Buffer.alloc(21));
+        w.writeUInt8(this.network.p2pkhPrefix);
+        w.writeBytes(hash);
+        return Base58Check.encode(w.toBuffer());
+    }
+
+    public createP2SH(script: Script): string {
+        const hash = hash160(script.serializeCmds());
+        const w = new BufferWriter(Buffer.alloc(21));
+        w.writeUInt8(this.network.p2shPrefix);
+        w.writeBytes(hash);
+        return Base58Check.encode(w.toBuffer());
+    }
+}
