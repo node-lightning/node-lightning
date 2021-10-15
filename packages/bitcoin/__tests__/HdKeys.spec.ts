@@ -1,10 +1,9 @@
 import { expect } from "chai";
-import { ExtKeyType, HdKey } from "../lib/HdKeys";
+import { ExtKeyType, HdPrivateKey, HdPublicKey } from "../lib/HdKeys";
 
 describe("HdKey", () => {
-    function assertExtPrivateKey(result: HdKey, xprv: string) {
-        const exp = HdKey.decode(xprv);
-        expect(result.isPrivate).to.equal(true);
+    function assertExtPrivateKey(result: HdPrivateKey, xprv: string) {
+        const exp = HdPrivateKey.decode(xprv);
         expect(result.version).to.equal(exp.version);
         expect(result.depth).to.equal(exp.depth);
         expect(result.number).to.equal(exp.number);
@@ -15,9 +14,8 @@ describe("HdKey", () => {
         );
     }
 
-    function assertExtPublicKey(result: HdKey, xpub: string) {
-        const exp = HdKey.decode(xpub);
-        expect(result.isPrivate).to.equal(false);
+    function assertExtPublicKey(result: HdPublicKey, xpub: string) {
+        const exp = HdPublicKey.decode(xpub);
         expect(result.version).to.equal(exp.version);
         expect(result.depth).to.equal(exp.depth);
         expect(result.number).to.equal(exp.number);
@@ -31,7 +29,7 @@ describe("HdKey", () => {
     function assertChain(seed: Buffer, vectors: [string, string, string][]) {
         for (const [path, xprv, xpub] of vectors) {
             it(path, () => {
-                const privKey = HdKey.fromPath(path, seed, ExtKeyType.MainnetPrivate);
+                const privKey = HdPrivateKey.fromPath(path, seed, ExtKeyType.MainnetPrivate);
                 const pubKey = privKey.toPubKey();
                 assertExtPrivateKey(privKey, xprv);
                 assertExtPublicKey(pubKey, xpub);
@@ -242,22 +240,17 @@ describe("HdKey", () => {
 
         for (const [vector, title] of vectors) {
             it("invalid " + title, () => {
-                expect(() => HdKey.decode(vector)).to.throw();
+                expect(() => HdPublicKey.decode(vector)).to.throw();
             });
         }
     });
 
-    it("pub key cannot derive private key", () => {
-        const seed = Buffer.alloc(32, 0x01);
-        const master = HdKey.fromSeed(seed, ExtKeyType.MainnetPrivate);
-        expect(() => master.derivePublic(0).derivePrivate(0)).to.throw();
-    });
-
-    it("pub key can derive pub key", () => {
-        const seed = Buffer.alloc(32, 0x01);
-        const master = HdKey.fromSeed(seed, ExtKeyType.MainnetPrivate);
-        const key = master.derivePublic(0).derivePublic(1);
-        expect(key.depth).to.equal(2);
-        console.log(key);
+    describe("HdPubKey", () => {
+        it("pub key can derive pub key", () => {
+            const seed = Buffer.alloc(32, 0x01);
+            const master = HdPrivateKey.fromSeed(seed, ExtKeyType.MainnetPrivate);
+            const key = master.derive(0).derive(1);
+            expect(key.depth).to.equal(2);
+        });
     });
 });

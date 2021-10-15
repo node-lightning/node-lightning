@@ -17,6 +17,8 @@ export enum ExtKeyErrorCode {
     InvalidDerivation,
     InvalidPrivateKey,
     InvalidPublicKey,
+    ExpectedPublicKey,
+    ExpectedPrivateKey,
 }
 
 export class ExtKeyError extends Error {
@@ -47,6 +49,12 @@ export class ExtKeyError extends Error {
             case ExtKeyErrorCode.InvalidPublicKey:
                 msg = "Invalid public key [key=" + data + "]";
                 break;
+            case ExtKeyErrorCode.ExpectedPrivateKey:
+                msg = "Expected private key [data=" + data + "]";
+                break;
+            case ExtKeyErrorCode.ExpectedPublicKey:
+                msg = "Expected public key [data=" + data + "]";
+                break;
             default:
                 msg = "Unknown error";
         }
@@ -57,46 +65,8 @@ export class ExtKeyError extends Error {
     }
 }
 
-export class HdKey {
-    public static fromPath(path: string, seed: Buffer, version: ExtKeyType): HdKey {
-        const parts = path.split("/");
-        if (parts[0] !== "m" || parts.length > 255) {
-            throw new ExtKeyError(ExtKeyErrorCode.InvalidPath, path);
-        }
-        let key = HdKey.fromSeed(seed, version);
-
-        for (let i = 1; i < parts.length; i++) {
-            const part = parts[i];
-
-            const hardened = part.endsWith("'");
-            const num = hardened
-                ? 2 ** 31 + Number(part.substring(0, part.length - 1))
-                : Number(part);
-
-            if (isNaN(num) || num < 0 || num >= 2 ** 32 || (!hardened && num >= 2 ** 31)) {
-                throw new ExtKeyError(ExtKeyErrorCode.InvalidPath, path);
-            }
-
-            key = key.derivePrivate(num);
-        }
-
-        return key;
-    }
-
-    public static fromSeed(seed: Buffer, version: ExtKeyType): HdKey {
-        const l = crypto.hmac(Buffer.from("Bitcoin seed"), seed, "sha512");
-
-        const key = new HdKey();
-        key.version = version;
-        key.depth = 0;
-        key.number = 0;
-        key.parentFingerprint = Buffer.from([0, 0, 0, 0]);
-        key.chainCode = l.slice(32);
-        key._privateKey = l.slice(0, 32);
-        return key;
-    }
-
-    public static decode(input: string): HdKey {
+export class HdCodec {
+    public static decode(input: string): HdPrivateKey | HdPublicKey {
         const buf = Base58Check.decode(input);
 
         if (buf.length !== 78) {
@@ -119,40 +89,42 @@ export class HdKey {
             throw new ExtKeyError(ExtKeyErrorCode.InvalidEncoding, input);
         }
 
-        const key = new HdKey();
-        key.version = version;
-        key.depth = depth;
-        key.parentFingerprint = parentFingerprint;
-        key.number = childNum;
-        key.chainCode = chaincode;
+        let key: HdPrivateKey | HdPublicKey;
 
         // private key
         if (version === ExtKeyType.MainnetPrivate || version === ExtKeyType.TestnetPrivate) {
+            key = new HdPrivateKey();
+
             // validate correct prefix
             if (rawkey[0] !== 0x00) {
                 throw new ExtKeyError(ExtKeyErrorCode.InvalidEncoding, input);
             }
 
-            key._privateKey = rawkey.slice(1);
+            if (key instanceof HdPrivateKey) {
+                key.privateKey = rawkey.slice(1);
 
-            // vaildate private key is valid
-            if (!crypto.validPrivateKey(key.privateKey)) {
-                throw new ExtKeyError(
-                    ExtKeyErrorCode.InvalidPrivateKey,
-                    key.privateKey.toString("hex"),
-                );
+                // vaildate private key is valid
+                if (!crypto.validPrivateKey(key.privateKey)) {
+                    throw new ExtKeyError(
+                        ExtKeyErrorCode.InvalidPrivateKey,
+                        key.privateKey.toString("hex"),
+                    );
+                }
             }
         }
         // public key
         else if (version === ExtKeyType.MainnetPublic || version === ExtKeyType.TestnetPublic) {
-            key._publicKey = rawkey;
+            key = new HdPublicKey();
+            if (key instanceof HdPublicKey) {
+                key.publicKey = rawkey;
 
-            // validate public key is ok
-            if (!crypto.validPublicKey(key.publicKey)) {
-                throw new ExtKeyError(
-                    ExtKeyErrorCode.InvalidPublicKey,
-                    key.publicKey.toString("hex"),
-                );
+                // validate public key is ok
+                if (!crypto.validPublicKey(key.publicKey)) {
+                    throw new ExtKeyError(
+                        ExtKeyErrorCode.InvalidPublicKey,
+                        key.publicKey.toString("hex"),
+                    );
+                }
             }
         }
         // unknown key type
@@ -160,7 +132,82 @@ export class HdKey {
             throw new ExtKeyError(ExtKeyErrorCode.IncorrectKeyVersion, input);
         }
 
+        // apply the rest of the values
+        key.version = version;
+        key.depth = depth;
+        key.parentFingerprint = parentFingerprint;
+        key.number = childNum;
+        key.chainCode = chaincode;
+
         return key;
+    }
+
+    public static encode(key: HdPrivateKey | HdPublicKey) {
+        const w = new BufferWriter(Buffer.alloc(78));
+        w.writeUInt32BE(key.version);
+        w.writeUInt8(key.depth);
+        w.writeBytes(key.parentFingerprint);
+        w.writeUInt32BE(key.number);
+        w.writeBytes(key.chainCode);
+
+        if (key instanceof HdPrivateKey) {
+            w.writeUInt8(0);
+            w.writeBytes(key.privateKey);
+        } else {
+            w.writeBytes(key.publicKey);
+        }
+
+        const buf = w.toBuffer();
+        return Base58Check.encode(buf);
+    }
+}
+
+export class HdPrivateKey {
+    public static fromPath(path: string, seed: Buffer, version: ExtKeyType): HdPrivateKey {
+        const parts = path.split("/");
+        if (parts[0] !== "m" || parts.length > 255) {
+            throw new ExtKeyError(ExtKeyErrorCode.InvalidPath, path);
+        }
+        let key = HdPrivateKey.fromSeed(seed, version);
+
+        for (let i = 1; i < parts.length; i++) {
+            const part = parts[i];
+
+            const hardened = part.endsWith("'");
+            const num = hardened
+                ? 2 ** 31 + Number(part.substring(0, part.length - 1))
+                : Number(part);
+
+            if (isNaN(num) || num < 0 || num >= 2 ** 32 || (!hardened && num >= 2 ** 31)) {
+                throw new ExtKeyError(ExtKeyErrorCode.InvalidPath, path);
+            }
+
+            key = key.derive(num);
+        }
+
+        return key;
+    }
+
+    public static fromSeed(seed: Buffer, version: ExtKeyType): HdPrivateKey {
+        const l = crypto.hmac(Buffer.from("Bitcoin seed"), seed, "sha512");
+
+        const key = new HdPrivateKey();
+        key.version = version;
+        key.depth = 0;
+        key.number = 0;
+        key.parentFingerprint = Buffer.from([0, 0, 0, 0]);
+        key.chainCode = l.slice(32);
+        key.privateKey = l.slice(0, 32);
+        return key;
+    }
+
+    public static decode(input: string): HdPrivateKey {
+        const result = HdCodec.decode(input);
+        if (!(result instanceof HdPrivateKey)) {
+            throw new ExtKeyError(ExtKeyErrorCode.ExpectedPrivateKey, input);
+        } else {
+            return result;
+        }
     }
 
     public version: ExtKeyType;
@@ -168,25 +215,17 @@ export class HdKey {
     public parentFingerprint: Buffer;
     public number: number;
     public chainCode: Buffer;
+    public privateKey: Buffer;
 
-    private _privateKey: Buffer;
     private _publicKey: Buffer;
     private _fingerprint: Buffer;
-
-    public get isPrivate(): boolean {
-        return Buffer.isBuffer(this._privateKey);
-    }
 
     public get isHardened(): boolean {
         return this.number >= 2 ** 31;
     }
 
-    public get privateKey(): Buffer {
-        return this._privateKey;
-    }
-
     public get publicKey(): Buffer {
-        if (!this._publicKey && this.isPrivate) {
+        if (!this._publicKey) {
             this._publicKey = crypto.getPublicKey(this.privateKey, true);
         }
         return this._publicKey;
@@ -199,8 +238,8 @@ export class HdKey {
         return this._fingerprint;
     }
 
-    public derivePrivate(i: number): HdKey {
-        const result = new HdKey();
+    public derive(i: number): HdPrivateKey {
+        const result = new HdPrivateKey();
         result.version = this.version;
         result.depth = this.depth + 1;
         result.number = i;
@@ -224,20 +263,61 @@ export class HdKey {
         const ll = l.slice(0, 32);
         const lr = l.slice(32);
 
-        result._privateKey = crypto.privateKeyTweakAdd(ll, this.privateKey);
+        result.privateKey = crypto.privateKeyTweakAdd(ll, this.privateKey);
         result.chainCode = lr;
 
         return result;
     }
 
-    public derivePublic(i: number): HdKey {
-        // when private key, we can derive anything including hardened
-        // public keys.  In order to do this we first derive the private
-        // key then convert it to a public key
-        if (this.isPrivate) {
-            return this.derivePrivate(i).toPubKey();
-        }
+    public toPubKey(): HdPublicKey {
+        const result = new HdPublicKey();
+        result.version =
+            this.version === ExtKeyType.MainnetPrivate || this.version === ExtKeyType.MainnetPublic
+                ? ExtKeyType.MainnetPublic
+                : ExtKeyType.TestnetPublic;
+        result.depth = this.depth;
+        result.number = this.number;
+        result.parentFingerprint = Buffer.from(this.parentFingerprint);
+        result.chainCode = Buffer.from(this.chainCode);
+        result.publicKey = this.publicKey;
+        return result;
+    }
 
+    public encode(): string {
+        return HdCodec.encode(this);
+    }
+}
+
+export class HdPublicKey {
+    public static decode(input: string): HdPublicKey {
+        const result = HdCodec.decode(input);
+        if (!(result instanceof HdPublicKey)) {
+            throw new ExtKeyError(ExtKeyErrorCode.ExpectedPublicKey, input);
+        }
+        return result;
+    }
+
+    public version: ExtKeyType;
+    public depth: number;
+    public parentFingerprint: Buffer;
+    public number: number;
+    public chainCode: Buffer;
+    public publicKey: Buffer;
+
+    private _fingerprint: Buffer;
+
+    public get isHardened(): boolean {
+        return this.number >= 2 ** 31;
+    }
+
+    public get fingerprint(): Buffer {
+        if (!this._fingerprint) {
+            this._fingerprint = crypto.hash160(this.publicKey);
+        }
+        return this._fingerprint;
+    }
+
+    public derivePublic(i: number): HdPublicKey {
         // From here on we're working with a public key, so we cannot
         // derive hardened public keys.
         if (i >= 2 ** 31) {
@@ -255,45 +335,17 @@ export class HdKey {
         const childPubKey = crypto.publicKeyTweakAdd(this.publicKey, ll, true);
         const childChainCode = lr;
 
-        const child = new HdKey();
+        const child = new HdPublicKey();
         child.version = this.version;
         child.depth = this.depth + 1;
         child.number = this.number;
-        child._publicKey = childPubKey;
+        child.publicKey = childPubKey;
         child.chainCode = childChainCode;
 
         return child;
     }
 
-    public toPubKey(): HdKey {
-        const result = new HdKey();
-        result.version =
-            this.version === ExtKeyType.MainnetPrivate || this.version === ExtKeyType.MainnetPublic
-                ? ExtKeyType.MainnetPublic
-                : ExtKeyType.TestnetPublic;
-        result.depth = this.depth;
-        result.number = this.number;
-        result.parentFingerprint = Buffer.from(this.parentFingerprint);
-        result.chainCode = Buffer.from(this.chainCode);
-        result._publicKey = this.publicKey;
-        return result;
-    }
-
     public encode(): string {
-        const w = new BufferWriter(Buffer.alloc(78));
-        w.writeUInt32BE(this.version);
-        w.writeUInt8(this.depth);
-        w.writeBytes(this.parentFingerprint);
-        w.writeUInt32BE(this.number);
-        w.writeBytes(this.chainCode);
-
-        if (this.isPrivate) {
-            w.writeUInt8(0);
-            w.writeBytes(this.privateKey);
-        } else {
-            w.writeBytes(this.publicKey);
-        }
-        const buf = w.toBuffer();
-        return Base58Check.encode(buf);
+        return HdCodec.encode(this);
     }
 }
