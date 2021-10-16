@@ -6,17 +6,10 @@ import { Script } from "../lib/Script";
 import { OpCode } from "../lib";
 
 describe("Address", () => {
-    const mainnet: Network = {
-        p2pkhPrefix: 0,
-        p2shPrefix: 5,
-        xpubPrefix: 0,
-        xprvPrefix: 0,
-    };
-
     let sut: Address;
 
     beforeEach(() => {
-        sut = new Address(mainnet);
+        sut = new Address(Network.mainnet);
     });
 
     it("P2PKH uncompressed", () => {
