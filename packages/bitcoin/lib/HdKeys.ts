@@ -1,12 +1,10 @@
 import * as crypto from "@node-lightning/crypto";
 import { BufferReader, BufferWriter } from "../../bufio/dist";
 import { Base58Check } from "./Base58Check";
+import { Network } from "./Network";
 
 export enum HdKeyType {
-    MainnetPublic = 0x0488b21e,
-    MainnetPrivate = 0x0488ade4,
-    TestnetPublic = 0x043587cf,
-    TestnetPrivate = 0x04358394,
+    x = "x",
 }
 
 export enum HdKeyErrorCode {
@@ -19,6 +17,7 @@ export enum HdKeyErrorCode {
     InvalidPublicKey,
     ExpectedPublicKey,
     ExpectedPrivateKey,
+    UnkownVersion,
 }
 
 export class HdKeyError extends Error {
@@ -28,14 +27,14 @@ export class HdKeyError extends Error {
     constructor(code: HdKeyErrorCode, data?: string) {
         let msg;
         switch (code) {
+            case HdKeyErrorCode.UnkownVersion:
+                msg = "Unkown version [data=" + data + "]";
+                break;
             case HdKeyErrorCode.PrivateKeyHidden:
                 msg = "Private key is not accessible from public key";
                 break;
             case HdKeyErrorCode.InvalidEncoding:
                 msg = "Invalid encoding [data=" + data + "]";
-                break;
-            case HdKeyErrorCode.IncorrectKeyVersion:
-                msg = "Incorrect key version [data=" + data + "]";
                 break;
             case HdKeyErrorCode.InvalidPath:
                 msg = "Invalid path [path=" + data + "]";
@@ -66,6 +65,17 @@ export class HdKeyError extends Error {
 }
 
 export class HdKeyCodec {
+    public static decodeVersion(version: number): [Network, HdKeyType, boolean] {
+        for (const network of Network.all) {
+            if (version === network.xpubPrefix) {
+                return [network, HdKeyType.x, false];
+            } else if (version === network.xprvPrefix) {
+                return [network, HdKeyType.x, true];
+            }
+        }
+        throw new HdKeyError(HdKeyErrorCode.UnkownVersion, version.toString());
+    }
+
     public static decode(input: string): HdPrivateKey | HdPublicKey {
         const buf = Base58Check.decode(input);
 
@@ -74,12 +84,14 @@ export class HdKeyCodec {
         }
 
         const r = new BufferReader(buf);
-        const version: HdKeyType = r.readUInt32BE();
+        const version: number = r.readUInt32BE();
         const depth = r.readUInt8();
         const parentFingerprint = r.readBytes(4);
         const childNum = r.readUInt32BE();
         const chaincode = r.readBytes(32);
         const rawkey = r.readBytes(33);
+
+        const [network, type, isPrivate] = HdKeyCodec.decodeVersion(version);
 
         if (depth === 0 && !parentFingerprint.equals(Buffer.alloc(4))) {
             throw new HdKeyError(HdKeyErrorCode.InvalidEncoding, input);
@@ -92,7 +104,7 @@ export class HdKeyCodec {
         let key: HdPrivateKey | HdPublicKey;
 
         // private key
-        if (version === HdKeyType.MainnetPrivate || version === HdKeyType.TestnetPrivate) {
+        if (isPrivate) {
             key = new HdPrivateKey();
 
             // validate correct prefix
@@ -113,7 +125,7 @@ export class HdKeyCodec {
             }
         }
         // public key
-        else if (version === HdKeyType.MainnetPublic || version === HdKeyType.TestnetPublic) {
+        else if (!isPrivate) {
             key = new HdPublicKey();
             if (key instanceof HdPublicKey) {
                 key.publicKey = rawkey;
@@ -129,11 +141,12 @@ export class HdKeyCodec {
         }
         // unknown key type
         else {
-            throw new HdKeyError(HdKeyErrorCode.IncorrectKeyVersion, input);
+            throw new HdKeyError(HdKeyErrorCode.UnkownVersion, input);
         }
 
         // apply the rest of the values
-        key.version = version;
+        key.network = network;
+        key.type = type;
         key.depth = depth;
         key.parentFingerprint = parentFingerprint;
         key.number = childNum;
@@ -163,12 +176,17 @@ export class HdKeyCodec {
 }
 
 export class HdPrivateKey {
-    public static fromPath(path: string, seed: Buffer, version: HdKeyType): HdPrivateKey {
+    public static fromPath(
+        path: string,
+        seed: Buffer,
+        network: Network,
+        type = HdKeyType.x,
+    ): HdPrivateKey {
         const parts = path.split("/");
         if (parts[0] !== "m" || parts.length > 255) {
             throw new HdKeyError(HdKeyErrorCode.InvalidPath, path);
         }
-        let key = HdPrivateKey.fromSeed(seed, version);
+        let key = HdPrivateKey.fromSeed(seed, network, type);
 
         for (let i = 1; i < parts.length; i++) {
             const part = parts[i];
@@ -188,11 +206,12 @@ export class HdPrivateKey {
         return key;
     }
 
-    public static fromSeed(seed: Buffer, version: HdKeyType): HdPrivateKey {
+    public static fromSeed(seed: Buffer, network: Network, type = HdKeyType.x): HdPrivateKey {
         const l = crypto.hmac(Buffer.from("Bitcoin seed"), seed, "sha512");
 
         const key = new HdPrivateKey();
-        key.version = version;
+        key.network = network;
+        key.type = type;
         key.depth = 0;
         key.number = 0;
         key.parentFingerprint = Buffer.from([0, 0, 0, 0]);
@@ -210,7 +229,8 @@ export class HdPrivateKey {
         }
     }
 
-    public version: HdKeyType;
+    public type: HdKeyType;
+    public network: Network;
     public depth: number;
     public parentFingerprint: Buffer;
     public number: number;
@@ -219,6 +239,13 @@ export class HdPrivateKey {
 
     private _publicKey: Buffer;
     private _fingerprint: Buffer;
+
+    public get version(): number {
+        switch (this.type) {
+            case HdKeyType.x:
+                return this.network.xprvPrefix;
+        }
+    }
 
     public get isHardened(): boolean {
         return this.number >= 2 ** 31;
@@ -240,7 +267,8 @@ export class HdPrivateKey {
 
     public derive(i: number): HdPrivateKey {
         const result = new HdPrivateKey();
-        result.version = this.version;
+        result.network = this.network;
+        result.type = this.type;
         result.depth = this.depth + 1;
         result.number = i;
         result.parentFingerprint = Buffer.from(this.fingerprint.slice(0, 4));
@@ -271,10 +299,8 @@ export class HdPrivateKey {
 
     public toPubKey(): HdPublicKey {
         const result = new HdPublicKey();
-        result.version =
-            this.version === HdKeyType.MainnetPrivate || this.version === HdKeyType.MainnetPublic
-                ? HdKeyType.MainnetPublic
-                : HdKeyType.TestnetPublic;
+        result.network = this.network;
+        result.type = this.type;
         result.depth = this.depth;
         result.number = this.number;
         result.parentFingerprint = Buffer.from(this.parentFingerprint);
@@ -297,7 +323,8 @@ export class HdPublicKey {
         return result;
     }
 
-    public version: HdKeyType;
+    public network: Network;
+    public type: HdKeyType;
     public depth: number;
     public parentFingerprint: Buffer;
     public number: number;
@@ -305,6 +332,13 @@ export class HdPublicKey {
     public publicKey: Buffer;
 
     private _fingerprint: Buffer;
+
+    public get version(): number {
+        switch (this.type) {
+            case HdKeyType.x:
+                return this.network.xpubPrefix;
+        }
+    }
 
     public get isHardened(): boolean {
         return this.number >= 2 ** 31;
@@ -336,7 +370,8 @@ export class HdPublicKey {
         const childChainCode = lr;
 
         const child = new HdPublicKey();
-        child.version = this.version;
+        child.network = this.network;
+        child.type = this.type;
         child.depth = this.depth + 1;
         child.number = this.number;
         child.publicKey = childPubKey;

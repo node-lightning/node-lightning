@@ -1,5 +1,6 @@
 import { expect } from "chai";
 import { HdKeyType, HdPrivateKey, HdPublicKey } from "../lib/HdKeys";
+import { Network } from "../lib/Network";
 
 describe("HdKey", () => {
     function assertExtPrivateKey(result: HdPrivateKey, xprv: string) {
@@ -29,7 +30,7 @@ describe("HdKey", () => {
     function assertChain(seed: Buffer, vectors: [string, string, string][]) {
         for (const [path, xprv, xpub] of vectors) {
             it(path, () => {
-                const privKey = HdPrivateKey.fromPath(path, seed, HdKeyType.MainnetPrivate);
+                const privKey = HdPrivateKey.fromPath(path, seed, Network.mainnet);
                 const pubKey = privKey.toPubKey();
                 assertExtPrivateKey(privKey, xprv);
                 assertExtPublicKey(pubKey, xpub);
@@ -248,7 +249,7 @@ describe("HdKey", () => {
     describe("HdPubKey", () => {
         it("pub key can derive pub key", () => {
             const seed = Buffer.alloc(32, 0x01);
-            const master = HdPrivateKey.fromSeed(seed, HdKeyType.MainnetPrivate);
+            const master = HdPrivateKey.fromSeed(seed, Network.mainnet);
             const key = master.derive(0).derive(1);
             expect(key.depth).to.equal(2);
         });
