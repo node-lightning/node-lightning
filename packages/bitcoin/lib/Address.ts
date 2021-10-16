@@ -1,19 +1,13 @@
 import { hash160 } from "@node-lightning/crypto";
 import { BufferWriter } from "../../bufio/dist";
 import { Base58Check } from "./Base58Check";
+import { Network } from "./Network";
 import { Script } from "./Script";
 
-export type NetworkConfig = {
-    p2pkhPrefix: number;
-    p2shPrefix: number;
-    xpubPrefix: number;
-    xprvPrefix: number;
-};
-
 export class Address {
-    public network: NetworkConfig;
+    public network: Network;
 
-    constructor(network: NetworkConfig) {
+    constructor(network: Network) {
         this.network = network;
     }
 

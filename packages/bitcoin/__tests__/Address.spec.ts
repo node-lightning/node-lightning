@@ -1,11 +1,12 @@
 import { expect } from "chai";
 import * as crypto from "@node-lightning/crypto";
-import { Address, NetworkConfig } from "../lib/Address";
+import { Address } from "../lib/Address";
+import { Network } from "../lib/Network";
 import { Script } from "../lib/Script";
 import { OpCode } from "../lib";
 
 describe("Address", () => {
-    const mainnet: NetworkConfig = {
+    const mainnet: Network = {
         p2pkhPrefix: 0,
         p2shPrefix: 5,
         xpubPrefix: 0,
