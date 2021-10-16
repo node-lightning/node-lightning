@@ -3,8 +3,8 @@ export class Network {
         readonly name: string,
         readonly p2pkhPrefix: number,
         readonly p2shPrefix: number,
-        readonly xpubPrefix: number,
-        readonly xprvPrefix: number,
+        readonly xpubVersion: number,
+        readonly xprvVersion: number,
     ) {}
 
     public isMainnet() {

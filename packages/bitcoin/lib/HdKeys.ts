@@ -67,9 +67,9 @@ export class HdKeyError extends Error {
 export class HdKeyCodec {
     public static decodeVersion(version: number): [Network, HdKeyType, boolean] {
         for (const network of Network.all) {
-            if (version === network.xpubPrefix) {
+            if (version === network.xpubVersion) {
                 return [network, HdKeyType.x, false];
-            } else if (version === network.xprvPrefix) {
+            } else if (version === network.xprvVersion) {
                 return [network, HdKeyType.x, true];
             }
         }
@@ -243,7 +243,7 @@ export class HdPrivateKey {
     public get version(): number {
         switch (this.type) {
             case HdKeyType.x:
-                return this.network.xprvPrefix;
+                return this.network.xprvVersion;
         }
     }
 
@@ -336,7 +336,7 @@ export class HdPublicKey {
     public get version(): number {
         switch (this.type) {
             case HdKeyType.x:
-                return this.network.xpubPrefix;
+                return this.network.xpubVersion;
         }
     }
 
