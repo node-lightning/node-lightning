@@ -111,3 +111,42 @@ describe(".getPublicKey()", () => {
         );
     });
 });
+
+describe(".convertPublicKey()", () => {
+    const privkey = Buffer.from(
+        "1111111111111111111111111111111111111111111111111111111111111111",
+        "hex",
+    );
+
+    it("should return compressed when compressed", () => {
+        const pubkey = key.getPublicKey(privkey, true);
+        const result = key.convertPublicKey(pubkey, true);
+        expect(result.toString("hex")).to.equal(
+            "034f355bdcb7cc0af728ef3cceb9615d90684bb5b2ca5f859ab0f0b704075871aa",
+        );
+    });
+
+    it("should return uncompressed when compressed", () => {
+        const pubkey = key.getPublicKey(privkey, true);
+        const result = key.convertPublicKey(pubkey, false);
+        expect(result.toString("hex")).to.equal(
+            "044f355bdcb7cc0af728ef3cceb9615d90684bb5b2ca5f859ab0f0b704075871aa385b6b1b8ead809ca67454d9683fcf2ba03456d6fe2c4abe2b07f0fbdbb2f1c1",
+        );
+    });
+
+    it("should return compressed when uncompressed", () => {
+        const pubkey = key.getPublicKey(privkey, false);
+        const result = key.convertPublicKey(pubkey, true);
+        expect(result.toString("hex")).to.equal(
+            "034f355bdcb7cc0af728ef3cceb9615d90684bb5b2ca5f859ab0f0b704075871aa",
+        );
+    });
+
+    it("should return uncompressed when uncompressed", () => {
+        const pubkey = key.getPublicKey(privkey, false);
+        const result = key.convertPublicKey(pubkey, false);
+        expect(result.toString("hex")).to.equal(
+            "044f355bdcb7cc0af728ef3cceb9615d90684bb5b2ca5f859ab0f0b704075871aa385b6b1b8ead809ca67454d9683fcf2ba03456d6fe2c4abe2b07f0fbdbb2f1c1",
+        );
+    });
+});
