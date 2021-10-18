@@ -1,4 +1,5 @@
 export enum BitcoinErrorCode {
+    InvalidPrivateKey,
     Base58ChecksumFailed,
     PubKeyInvalid,
     PubKeyHashInvalid,

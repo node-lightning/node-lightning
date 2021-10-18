@@ -2,10 +2,12 @@ import { BitcoinErrorCode } from "./BitcoinErrorCode";
 
 function getMessage(code: BitcoinErrorCode) {
     switch (code) {
+        case BitcoinErrorCode.InvalidPrivateKey:
+            return "Invalid private key";
         case BitcoinErrorCode.Base58ChecksumFailed:
             return "Base58Check checksum failed";
         case BitcoinErrorCode.PubKeyInvalid:
-            return "Invalid pubkey";
+            return "Invalid public key";
         case BitcoinErrorCode.PubKeyHashInvalid:
             return "Invalid pubkeyhash";
         case BitcoinErrorCode.SigEncodingInvalid:
@@ -24,7 +26,8 @@ function getMessage(code: BitcoinErrorCode) {
 }
 
 export class BitcoinError extends Error {
-    constructor(readonly code: BitcoinErrorCode, readonly data?: any) {
+    constructor(readonly code: BitcoinErrorCode, readonly info?: any) {
         super(getMessage(code));
+        this.name = "BitcoinError";
     }
 }
