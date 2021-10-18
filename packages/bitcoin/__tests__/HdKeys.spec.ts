@@ -1,5 +1,6 @@
 import { expect } from "chai";
-import { HdPrivateKey, HdPublicKey } from "../lib/HdKeys";
+import { HdPrivateKey } from "../lib/HdPrivateKey";
+import { HdPublicKey } from "../lib/HdPublicKey";
 import { Network } from "../lib/Network";
 
 describe("HdKey", () => {
@@ -244,14 +245,5 @@ describe("HdKey", () => {
                 expect(() => HdPublicKey.decode(vector)).to.throw();
             });
         }
-    });
-
-    describe("HdPubKey", () => {
-        it("pub key can derive pub key", () => {
-            const seed = Buffer.alloc(32, 0x01);
-            const master = HdPrivateKey.fromSeed(seed, Network.mainnet);
-            const key = master.derive(0).derive(1);
-            expect(key.depth).to.equal(2);
-        });
     });
 });
