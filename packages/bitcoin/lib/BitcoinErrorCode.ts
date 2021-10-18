@@ -8,4 +8,5 @@ export enum BitcoinErrorCode {
     MultiSigSetupInvalid,
     Hash160Invalid,
     Hash256Invalid,
+    NetworkMismatch,
 }

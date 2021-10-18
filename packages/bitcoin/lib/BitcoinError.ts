@@ -19,7 +19,9 @@ function getMessage(code: BitcoinErrorCode) {
         case BitcoinErrorCode.Hash160Invalid:
             return "Hash160 requires 20-byte Buffer";
         case BitcoinErrorCode.Hash256Invalid:
-            return "return Hash256 requires 32-byte Buffer";
+            return "Hash256 requires 32-byte Buffer";
+        case BitcoinErrorCode.NetworkMismatch:
+            return "Network mismatch";
         default:
             return "Unknown";
     }
