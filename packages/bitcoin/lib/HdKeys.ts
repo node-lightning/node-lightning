@@ -1,69 +1,14 @@
 import * as crypto from "@node-lightning/crypto";
 import { BufferReader, BufferWriter } from "../../bufio/dist";
 import { Base58Check } from "./Base58Check";
+import { BitcoinError } from "./BitcoinError";
+import { BitcoinErrorCode } from "./BitcoinErrorCode";
 import { Network } from "./Network";
 import { PrivateKey } from "./PrivateKey";
 import { PublicKey } from "./PublicKey";
 
 export enum HdKeyType {
     x = "x",
-}
-
-export enum HdKeyErrorCode {
-    PrivateKeyHidden,
-    InvalidEncoding,
-    IncorrectKeyVersion,
-    InvalidPath,
-    InvalidDerivation,
-    InvalidPrivateKey,
-    InvalidPublicKey,
-    ExpectedPublicKey,
-    ExpectedPrivateKey,
-    UnkownVersion,
-}
-
-export class HdKeyError extends Error {
-    public code: HdKeyErrorCode;
-    public data: string;
-
-    constructor(code: HdKeyErrorCode, data?: string) {
-        let msg;
-        switch (code) {
-            case HdKeyErrorCode.UnkownVersion:
-                msg = "Unkown version [data=" + data + "]";
-                break;
-            case HdKeyErrorCode.PrivateKeyHidden:
-                msg = "Private key is not accessible from public key";
-                break;
-            case HdKeyErrorCode.InvalidEncoding:
-                msg = "Invalid encoding [data=" + data + "]";
-                break;
-            case HdKeyErrorCode.InvalidPath:
-                msg = "Invalid path [path=" + data + "]";
-                break;
-            case HdKeyErrorCode.InvalidDerivation:
-                msg = "Attempting to dervice a hardened public key from a parent public key";
-                break;
-            case HdKeyErrorCode.InvalidPrivateKey:
-                msg = "Invalid private key [key=" + data + "]";
-                break;
-            case HdKeyErrorCode.InvalidPublicKey:
-                msg = "Invalid public key [key=" + data + "]";
-                break;
-            case HdKeyErrorCode.ExpectedPrivateKey:
-                msg = "Expected private key [data=" + data + "]";
-                break;
-            case HdKeyErrorCode.ExpectedPublicKey:
-                msg = "Expected public key [data=" + data + "]";
-                break;
-            default:
-                msg = "Unknown error";
-        }
-
-        super(msg);
-        this.code = code;
-        this.data = data;
-    }
 }
 
 export class HdKeyCodec {
@@ -75,14 +20,14 @@ export class HdKeyCodec {
                 return [network, HdKeyType.x, true];
             }
         }
-        throw new HdKeyError(HdKeyErrorCode.UnkownVersion, version.toString());
+        throw new BitcoinError(BitcoinErrorCode.UnkownHdKeyVersion, version.toString());
     }
 
     public static decode(input: string): HdPrivateKey | HdPublicKey {
         const buf = Base58Check.decode(input);
 
         if (buf.length !== 78) {
-            throw new HdKeyError(HdKeyErrorCode.InvalidEncoding, input);
+            throw new BitcoinError(BitcoinErrorCode.InvalidHdEncoding, input);
         }
 
         const r = new BufferReader(buf);
@@ -96,11 +41,11 @@ export class HdKeyCodec {
         const [network, type, isPrivate] = HdKeyCodec.decodeVersion(version);
 
         if (depth === 0 && !parentFingerprint.equals(Buffer.alloc(4))) {
-            throw new HdKeyError(HdKeyErrorCode.InvalidEncoding, input);
+            throw new BitcoinError(BitcoinErrorCode.InvalidHdEncoding, input);
         }
 
         if (depth === 0 && childNum !== 0) {
-            throw new HdKeyError(HdKeyErrorCode.InvalidEncoding, input);
+            throw new BitcoinError(BitcoinErrorCode.InvalidHdEncoding, input);
         }
 
         let key: HdPrivateKey | HdPublicKey;
@@ -111,7 +56,7 @@ export class HdKeyCodec {
 
             // validate correct prefix
             if (rawkey[0] !== 0x00) {
-                throw new HdKeyError(HdKeyErrorCode.InvalidEncoding, input);
+                throw new BitcoinError(BitcoinErrorCode.InvalidHdEncoding, input);
             }
 
             // construct and validate private key
@@ -130,7 +75,7 @@ export class HdKeyCodec {
         }
         // unknown key type
         else {
-            throw new HdKeyError(HdKeyErrorCode.UnkownVersion, input);
+            throw new BitcoinError(BitcoinErrorCode.UnkownHdKeyVersion, input);
         }
 
         // apply the rest of the values
@@ -173,7 +118,7 @@ export class HdPrivateKey {
     ): HdPrivateKey {
         const parts = path.split("/");
         if (parts[0] !== "m" || parts.length > 255) {
-            throw new HdKeyError(HdKeyErrorCode.InvalidPath, path);
+            throw new BitcoinError(BitcoinErrorCode.InvalidHdPath, path);
         }
         let key = HdPrivateKey.fromSeed(seed, network, type);
 
@@ -186,7 +131,7 @@ export class HdPrivateKey {
                 : Number(part);
 
             if (isNaN(num) || num < 0 || num >= 2 ** 32 || (!hardened && num >= 2 ** 31)) {
-                throw new HdKeyError(HdKeyErrorCode.InvalidPath, path);
+                throw new BitcoinError(BitcoinErrorCode.InvalidHdPath, path);
             }
 
             key = key.derive(num);
@@ -212,7 +157,7 @@ export class HdPrivateKey {
     public static decode(input: string): HdPrivateKey {
         const result = HdKeyCodec.decode(input);
         if (!(result instanceof HdPrivateKey)) {
-            throw new HdKeyError(HdKeyErrorCode.ExpectedPrivateKey, input);
+            throw new BitcoinError(BitcoinErrorCode.InvalidHdPrivateKey, input);
         } else {
             return result;
         }
@@ -307,7 +252,7 @@ export class HdPublicKey {
     public static decode(input: string): HdPublicKey {
         const result = HdKeyCodec.decode(input);
         if (!(result instanceof HdPublicKey)) {
-            throw new HdKeyError(HdKeyErrorCode.ExpectedPublicKey, input);
+            throw new BitcoinError(BitcoinErrorCode.InvalidHdPublicKey, input);
         }
         return result;
     }
@@ -344,7 +289,7 @@ export class HdPublicKey {
         // From here on we're working with a public key, so we cannot
         // derive hardened public keys.
         if (i >= 2 ** 31) {
-            throw new HdKeyError(HdKeyErrorCode.InvalidDerivation);
+            throw new BitcoinError(BitcoinErrorCode.InvalidHdDerivation);
         }
 
         const data = new BufferWriter(Buffer.alloc(37));

@@ -22,6 +22,20 @@ function getMessage(code: BitcoinErrorCode) {
             return "Hash256 requires 32-byte Buffer";
         case BitcoinErrorCode.NetworkMismatch:
             return "Network mismatch";
+
+        case BitcoinErrorCode.UnkownHdKeyVersion:
+            return "Unkown HD key version";
+        case BitcoinErrorCode.InvalidHdEncoding:
+            return "Invalid HD encoding";
+        case BitcoinErrorCode.InvalidHdPath:
+            return "Invalid HD key path";
+        case BitcoinErrorCode.InvalidHdDerivation:
+            return "Invalid HD key derivation";
+        case BitcoinErrorCode.InvalidHdPrivateKey:
+            return "Invalid HD private key";
+        case BitcoinErrorCode.InvalidHdPublicKey:
+            return "Invalid HD public key";
+
         default:
             return "Unknown";
     }
