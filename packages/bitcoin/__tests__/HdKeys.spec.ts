@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { HdKeyType, HdPrivateKey, HdPublicKey } from "../lib/HdKeys";
+import { HdPrivateKey, HdPublicKey } from "../lib/HdKeys";
 import { Network } from "../lib/Network";
 
 describe("HdKey", () => {
@@ -8,7 +8,7 @@ describe("HdKey", () => {
         expect(result.version).to.equal(exp.version);
         expect(result.depth).to.equal(exp.depth);
         expect(result.number).to.equal(exp.number);
-        expect(result.privateKey.toString("hex")).to.equal(exp.privateKey.toString("hex"));
+        expect(result.privateKey.toHex()).to.equal(exp.privateKey.toHex());
         expect(result.chainCode.toString("hex")).to.equal(exp.chainCode.toString("hex"));
         expect(result.parentFingerprint.toString("hex")).to.equal(
             exp.parentFingerprint.toString("hex"),
@@ -20,7 +20,7 @@ describe("HdKey", () => {
         expect(result.version).to.equal(exp.version);
         expect(result.depth).to.equal(exp.depth);
         expect(result.number).to.equal(exp.number);
-        expect(result.publicKey.toString("hex")).to.equal(exp.publicKey.toString("hex"));
+        expect(result.publicKey.toHex()).to.equal(exp.publicKey.toHex());
         expect(result.chainCode.toString("hex")).to.equal(exp.chainCode.toString("hex"));
         expect(result.parentFingerprint.toString("hex")).to.equal(
             exp.parentFingerprint.toString("hex"),

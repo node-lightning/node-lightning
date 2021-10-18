@@ -2,6 +2,8 @@ import * as crypto from "@node-lightning/crypto";
 import { BufferReader, BufferWriter } from "../../bufio/dist";
 import { Base58Check } from "./Base58Check";
 import { Network } from "./Network";
+import { PrivateKey } from "./PrivateKey";
+import { PublicKey } from "./PublicKey";
 
 export enum HdKeyType {
     x = "x",
@@ -112,31 +114,18 @@ export class HdKeyCodec {
                 throw new HdKeyError(HdKeyErrorCode.InvalidEncoding, input);
             }
 
+            // construct and validate private key
             if (key instanceof HdPrivateKey) {
-                key.privateKey = rawkey.slice(1);
-
-                // vaildate private key is valid
-                if (!crypto.validPrivateKey(key.privateKey)) {
-                    throw new HdKeyError(
-                        HdKeyErrorCode.InvalidPrivateKey,
-                        key.privateKey.toString("hex"),
-                    );
-                }
+                key.privateKey = new PrivateKey(rawkey.slice(1), network);
             }
         }
         // public key
         else if (!isPrivate) {
             key = new HdPublicKey();
-            if (key instanceof HdPublicKey) {
-                key.publicKey = rawkey;
 
-                // validate public key is ok
-                if (!crypto.validPublicKey(key.publicKey)) {
-                    throw new HdKeyError(
-                        HdKeyErrorCode.InvalidPublicKey,
-                        key.publicKey.toString("hex"),
-                    );
-                }
+            // construct and validate public key
+            if (key instanceof HdPublicKey) {
+                key.publicKey = new PublicKey(rawkey, network);
             }
         }
         // unknown key type
@@ -165,9 +154,9 @@ export class HdKeyCodec {
 
         if (key instanceof HdPrivateKey) {
             w.writeUInt8(0);
-            w.writeBytes(key.privateKey);
+            w.writeBytes(key.privateKey.toBuffer());
         } else {
-            w.writeBytes(key.publicKey);
+            w.writeBytes(key.publicKey.toBuffer(true));
         }
 
         const buf = w.toBuffer();
@@ -216,7 +205,7 @@ export class HdPrivateKey {
         key.number = 0;
         key.parentFingerprint = Buffer.from([0, 0, 0, 0]);
         key.chainCode = l.slice(32);
-        key.privateKey = l.slice(0, 32);
+        key.privateKey = new PrivateKey(l.slice(0, 32), network);
         return key;
     }
 
@@ -235,9 +224,9 @@ export class HdPrivateKey {
     public parentFingerprint: Buffer;
     public number: number;
     public chainCode: Buffer;
-    public privateKey: Buffer;
+    public privateKey: PrivateKey;
 
-    private _publicKey: Buffer;
+    private _publicKey: PublicKey;
     private _fingerprint: Buffer;
 
     public get version(): number {
@@ -251,16 +240,16 @@ export class HdPrivateKey {
         return this.number >= 2 ** 31;
     }
 
-    public get publicKey(): Buffer {
+    public get publicKey(): PublicKey {
         if (!this._publicKey) {
-            this._publicKey = crypto.getPublicKey(this.privateKey, true);
+            this._publicKey = this.privateKey.toPubKey();
         }
         return this._publicKey;
     }
 
     public get fingerprint(): Buffer {
         if (!this._fingerprint) {
-            this._fingerprint = crypto.hash160(this.publicKey);
+            this._fingerprint = crypto.hash160(this.publicKey.toBuffer(true));
         }
         return this._fingerprint;
     }
@@ -278,12 +267,12 @@ export class HdPrivateKey {
         // hardened
         if (i >= 2 ** 31) {
             data.writeUInt8(0);
-            data.writeBytes(this.privateKey);
+            data.writeBytes(this.privateKey.toBuffer());
             data.writeUInt32BE(i);
         }
         // normal child
         else {
-            data.writeBytes(crypto.getPublicKey(this.privateKey, true));
+            data.writeBytes(this.privateKey.toPubKey().toBuffer(true));
             data.writeUInt32BE(i);
         }
 
@@ -291,7 +280,7 @@ export class HdPrivateKey {
         const ll = l.slice(0, 32);
         const lr = l.slice(32);
 
-        result.privateKey = crypto.privateKeyTweakAdd(ll, this.privateKey);
+        result.privateKey = this.privateKey.tweakAdd(ll);
         result.chainCode = lr;
 
         return result;
@@ -329,7 +318,7 @@ export class HdPublicKey {
     public parentFingerprint: Buffer;
     public number: number;
     public chainCode: Buffer;
-    public publicKey: Buffer;
+    public publicKey: PublicKey;
 
     private _fingerprint: Buffer;
 
@@ -346,7 +335,7 @@ export class HdPublicKey {
 
     public get fingerprint(): Buffer {
         if (!this._fingerprint) {
-            this._fingerprint = crypto.hash160(this.publicKey);
+            this._fingerprint = crypto.hash160(this.publicKey.toBuffer(true));
         }
         return this._fingerprint;
     }
@@ -359,14 +348,14 @@ export class HdPublicKey {
         }
 
         const data = new BufferWriter(Buffer.alloc(37));
-        data.writeBytes(this.publicKey);
+        data.writeBytes(this.publicKey.toBuffer(true));
         data.writeUInt32BE(i);
 
         const l = crypto.hmac(this.chainCode, data.toBuffer());
         const ll = l.slice(0, 32);
         const lr = l.slice(32);
 
-        const childPubKey = crypto.publicKeyTweakAdd(this.publicKey, ll, true);
+        const childPubKey = this.publicKey.tweakAdd(ll);
         const childChainCode = lr;
 
         const child = new HdPublicKey();
