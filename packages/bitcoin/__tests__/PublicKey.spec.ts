@@ -12,6 +12,38 @@ describe("PublicKey", () => {
         sut = new PublicKey(pubkey, Network.mainnet);
     });
 
+    it("throws on invalid public key length", () => {
+        expect(() => new PublicKey(Buffer.alloc(1), Network.mainnet)).to.throw(
+            "Invalid public key",
+        );
+    });
+
+    it("throws on invalid public key point", () => {
+        expect(
+            () =>
+                new PublicKey(
+                    Buffer.from(
+                        "030000000000000000000000000000000000000000000000000000000000000000",
+                        "hex",
+                    ),
+                    Network.mainnet,
+                ),
+        ).to.throw("Invalid public key");
+    });
+
+    it("throws on invalid prefix", () => {
+        expect(
+            () =>
+                new PublicKey(
+                    Buffer.from(
+                        "011b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f",
+                        "hex",
+                    ),
+                    Network.mainnet,
+                ),
+        ).to.throw("Invalid public key");
+    });
+
     describe(".toBuffer()", () => {
         it("compressed", () => {
             expect(sut.toBuffer(true).toString("hex")).to.equal(
