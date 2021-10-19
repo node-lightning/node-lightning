@@ -101,7 +101,7 @@ export class Bech32 {
      * @param pad
      * @returns
      */
-    public static wordsToBuffer(words: number[], pad: boolean = true): Buffer {
+    public static wordsToBuffer(words: number[], pad: boolean): Buffer {
         return Buffer.from(convertWords(words, 5, 8, pad));
     }
 
@@ -115,7 +115,7 @@ export class Bech32 {
      * @param pad default=false
      * @returns
      */
-    public static bufferToWords(buffer: Buffer, pad: boolean = false): number[] {
+    public static bufferToWords(buffer: Buffer, pad: boolean): number[] {
         return convertWords(buffer, 8, 5, pad);
     }
 
