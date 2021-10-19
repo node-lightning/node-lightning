@@ -36,6 +36,13 @@ function getMessage(code: BitcoinErrorCode) {
         case BitcoinErrorCode.InvalidHdPublicKey:
             return "Invalid HD public key";
 
+        case BitcoinErrorCode.InvalidBech32Encoding:
+            return "Invalid bech32 encoding";
+        case BitcoinErrorCode.InvalidBech32Hrp:
+            return "Invalid bech32 human readable part";
+        case BitcoinErrorCode.InvalidBech32Checksum:
+            return "Invalid bech32 checksum";
+
         default:
             return "Unknown";
     }

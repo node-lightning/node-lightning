@@ -1,3 +1,6 @@
+import { BitcoinError } from "./BitcoinError";
+import { BitcoinErrorCode } from "./BitcoinErrorCode";
+
 const ALPHABET = "qpzry9x8gf2tvdw0s3jn54khce6mua7l";
 const GENERATOR = [0x3b6a57b2, 0x26508e6d, 0x1ea119fa, 0x3d4233dd, 0x2a1462b3];
 
@@ -47,7 +50,7 @@ export class Bech32 {
             if (char >= "a" && char <= "z") hasLower = true;
         }
         if (hasUpper && hasLower) {
-            throw new Error("Mixed case");
+            throw new BitcoinError(BitcoinErrorCode.InvalidBech32Encoding, encoded);
         }
 
         // convert to lowercase for processing
@@ -56,10 +59,10 @@ export class Bech32 {
         // validate HRP length
         const hrpIdx = encoded.lastIndexOf("1");
         if (hrpIdx < 1) {
-            throw new Error("too short");
+            throw new BitcoinError(BitcoinErrorCode.InvalidBech32Hrp, encoded);
         }
         if (hrpIdx + 7 > encoded.length) {
-            throw new Error("too long");
+            throw new BitcoinError(BitcoinErrorCode.InvalidBech32Hrp, encoded);
         }
 
         const hrp = encoded.substring(0, hrpIdx);
@@ -68,7 +71,7 @@ export class Bech32 {
         for (const char of hrp) {
             const code = char.charCodeAt(0);
             if (code < 33 || code > 126) {
-                throw new Error("Invalid HRP character");
+                throw new BitcoinError(BitcoinErrorCode.InvalidBech32Hrp, encoded);
             }
         }
 
@@ -76,13 +79,13 @@ export class Bech32 {
         for (let i = hrpIdx + 1; i < encoded.length; i++) {
             const word = ALPHABET.indexOf(encoded[i]);
             if (word === -1) {
-                throw new Error("invalid encoding");
+                throw new BitcoinError(BitcoinErrorCode.InvalidBech32Encoding, encoded);
             }
             words.push(word);
         }
 
         if (!verifyChecksum(hrp, words)) {
-            throw new Error("Checksum failed");
+            throw new BitcoinError(BitcoinErrorCode.InvalidBech32Checksum, encoded);
         }
 
         return {

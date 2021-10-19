@@ -18,4 +18,9 @@ export enum BitcoinErrorCode {
     InvalidHdPrivateKey,
     InvalidHdPublicKey,
     UnkownHdKeyVersion,
+
+    // bech32
+    InvalidBech32Encoding,
+    InvalidBech32Hrp,
+    InvalidBech32Checksum,
 }
