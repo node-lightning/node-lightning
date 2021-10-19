@@ -86,6 +86,22 @@ describe("PublicKey", () => {
         });
     });
 
+    describe(".toLegacyAddress()", () => {
+        it("compressed", () => {
+            expect(sut.toLegacyAddress(true)).to.equal("1C6Rc3w25VHud3dLDamutaqfKWqhrLRTaD");
+        });
+
+        it("uncompressed", () => {
+            expect(sut.toLegacyAddress(false)).to.equal("1BCwRkTsYzK5aNK4sdF7Bpti3PhrkPtLc4");
+        });
+    });
+
+    describe(".toSegwitAddress()", () => {
+        it("creates address", () => {
+            expect(sut.toSegwitAddress()).to.equal("bc1q0xcqpzrky6eff2g52qdye53xkk9jxkvrh6yhyw");
+        });
+    });
+
     describe(".tweakAdd()", () => {
         it("adds tweak * generator to the point", () => {
             const tweak = Buffer.from("0000000000000000000000000000000000000000000000000000000000000000", "hex"); // prettier-ignore

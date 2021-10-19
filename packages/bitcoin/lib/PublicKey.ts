@@ -1,4 +1,5 @@
 import * as crypto from "@node-lightning/crypto";
+import { Address } from "./Address";
 import { BitcoinError } from "./BitcoinError";
 import { BitcoinErrorCode } from "./BitcoinErrorCode";
 import { Network } from "./Network";
@@ -68,7 +69,7 @@ export class PublicKey {
      * @param compressed
      * @returns 20-byte hash160 of the public key
      */
-    public hash160(compressed: boolean = true): Buffer {
+    public hash160(compressed: boolean): Buffer {
         return crypto.hash160(this.toBuffer(compressed));
     }
 
@@ -90,5 +91,22 @@ export class PublicKey {
      */
     public toHex(compressed: boolean = true): string {
         return this.toBuffer(compressed).toString("hex");
+    }
+
+    /**
+     * Returns a P2PKH for the public key.
+     * @param compressed
+     * @returns Base58 encoded Bitcoin address
+     */
+    public toLegacyAddress(compressed: boolean): string {
+        return Address.encodeLegacy(this.network.p2pkhPrefix, this.hash160(compressed));
+    }
+
+    /**
+     * Returns a P2WPKH address for the public key.
+     * @returns bech32 encoded segwit address
+     */
+    public toSegwitAddress(): string {
+        return Address.encodeSegwit(this.network.p2wpkhPrefix, 0, this.hash160(true));
     }
 }
