@@ -1,6 +1,7 @@
 import * as crypto from "@node-lightning/crypto";
 import { BitcoinError, BitcoinErrorCode } from ".";
 import { BufferWriter } from "../../bufio/dist";
+import { Address } from "./Address";
 import { HdKeyCodec } from "./HdKeyCodec";
 import { HdKeyType } from "./HdKeyType";
 import { Network } from "./Network";
@@ -74,5 +75,9 @@ export class HdPublicKey {
 
     public encode(): string {
         return HdKeyCodec.encode(this);
+    }
+
+    public toAddress(): string {
+        return Address.encodeLegacy(this.network.p2pkhPrefix, this.publicKey.hash160(true));
     }
 }
