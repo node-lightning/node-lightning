@@ -43,8 +43,12 @@ function getMessage(code: BitcoinErrorCode) {
         case BitcoinErrorCode.InvalidBech32Checksum:
             return "Invalid bech32 checksum";
 
-        default:
-            return "Unknown";
+        case BitcoinErrorCode.UnknownAddressPrefix:
+            return "Unknown address prefix";
+        case BitcoinErrorCode.InvalidSegwitVersion:
+            return "Unknown segwit version";
+        case BitcoinErrorCode.InvalidWitnessProgram:
+            return "Invalid witness program";
     }
 }
 

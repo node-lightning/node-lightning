@@ -23,4 +23,9 @@ export enum BitcoinErrorCode {
     InvalidBech32Encoding,
     InvalidBech32Hrp,
     InvalidBech32Checksum,
+
+    // addresses
+    UnknownAddressPrefix,
+    InvalidSegwitVersion,
+    InvalidWitnessProgram,
 }
