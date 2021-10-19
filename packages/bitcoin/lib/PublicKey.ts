@@ -64,6 +64,15 @@ export class PublicKey {
     }
 
     /**
+     * Returns the hash160 of the public key
+     * @param compressed
+     * @returns 20-byte hash160 of the public key
+     */
+    public hash160(compressed: boolean = true): Buffer {
+        return crypto.hash160(this.toBuffer(compressed));
+    }
+
+    /**
      * Serializes the PublicKey instance into a 33-byte or 65-byte SEC
      * encoded buffer.
      * @param compressed

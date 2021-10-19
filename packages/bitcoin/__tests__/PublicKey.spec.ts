@@ -72,6 +72,20 @@ describe("PublicKey", () => {
         });
     });
 
+    describe(".hash160()", () => {
+        it("compressed", () => {
+            expect(sut.hash160(true).toString("hex")).to.equal(
+                "79b000887626b294a914501a4cd226b58b235983",
+            );
+        });
+
+        it("uncompressed", () => {
+            expect(sut.hash160(false).toString("hex")).to.equal(
+                "6ff3443c994fb2c821969dae53bd5b5052d8394f",
+            );
+        });
+    });
+
     describe(".tweakAdd()", () => {
         it("adds tweak * generator to the point", () => {
             const tweak = Buffer.from("0000000000000000000000000000000000000000000000000000000000000000", "hex"); // prettier-ignore
