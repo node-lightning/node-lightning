@@ -62,3 +62,14 @@ export function createPrivateKey(): Buffer {
 export function getPublicKey(privKey: Buffer, compressed = true): Buffer {
     return Buffer.from(secp256k1.publicKeyCreate(privKey, compressed));
 }
+
+/**
+ * Converts a public key between compressed and uncompressed format. If
+ * the for
+ * @param pubkey 33- or 65-byte buffer
+ * @param compressed true when it should return 33-byte compressed public key
+ * @returns
+ */
+export function convertPublicKey(pubkey: Buffer, compressed: boolean = true): Buffer {
+    return Buffer.from(secp256k1.publicKeyConvert(pubkey, compressed));
+}
