@@ -16,9 +16,9 @@ import { expect } from "chai";
 describe("DnsPeerQuery", () => {
     describe(".query()", () => {
         it("should bubble up resolver exceptions from resolver.resolveSrv", async () => {
-            let resolver = new dnsPromises.Resolver();
+            const resolver = new dnsPromises.Resolver();
             Sinon.stub(resolver, "resolveSrv").throws();
-            var dnsPeerQuery = new DnsPeerQuery(resolver);
+            const dnsPeerQuery = new DnsPeerQuery(resolver);
 
             await expect(
                 dnsPeerQuery.query({
@@ -28,10 +28,10 @@ describe("DnsPeerQuery", () => {
         });
 
         it("should successfully serialize query options into properly formatted dns seed", async () => {
-            let resolver = new dnsPromises.Resolver();
-            let resolveSrvStub = Sinon.stub(resolver, "resolveSrv").returns(Promise.resolve([]));
+            const resolver = new dnsPromises.Resolver();
+            const resolveSrvStub = Sinon.stub(resolver, "resolveSrv").returns(Promise.resolve([]));
 
-            var dnsPeerQuery = new DnsPeerQuery(resolver);
+            const dnsPeerQuery = new DnsPeerQuery(resolver);
 
             await dnsPeerQuery.query({
                 realm: 0,
@@ -44,9 +44,9 @@ describe("DnsPeerQuery", () => {
         });
 
         it("should return peers using information from resolver", async () => {
-            var resolver = new dnsPromises.Resolver();
+            const resolver = new dnsPromises.Resolver();
 
-            let resolveSrvStub = Sinon.stub(resolver, "resolveSrv").returns(
+            const resolveSrvStub = Sinon.stub(resolver, "resolveSrv").returns(
                 Promise.resolve([
                     {
                         name:
@@ -58,13 +58,13 @@ describe("DnsPeerQuery", () => {
                 ]),
             );
 
-            let resolveStub = Sinon.stub(resolver, "resolve").returns(
+            const resolveStub = Sinon.stub(resolver, "resolve").returns(
                 Promise.resolve(["139.59.143.87"]),
             );
 
-            var dnsPeerQuery = new DnsPeerQuery(resolver);
+            const dnsPeerQuery = new DnsPeerQuery(resolver);
 
-            let peerHostRecords = await dnsPeerQuery.query({
+            const peerHostRecords = await dnsPeerQuery.query({
                 dnsSeed: "lseed.bitcoinstats.com",
             });
 
@@ -85,9 +85,9 @@ describe("DnsPeerQuery", () => {
         });
 
         it("should filter out failed ip resolutions", async () => {
-            var resolver = new dnsPromises.Resolver();
+            const resolver = new dnsPromises.Resolver();
 
-            let resolveSrvStub = Sinon.stub(resolver, "resolveSrv").returns(
+            const resolveSrvStub = Sinon.stub(resolver, "resolveSrv").returns(
                 Promise.resolve([
                     {
                         name:
@@ -104,24 +104,23 @@ describe("DnsPeerQuery", () => {
                         priority: 0,
                     },
                     {
-                        name:
-                            "invalid-bech32-encoded-public-key.lseed.bitcoinstats.com.",
+                        name: "invalid-bech32-encoded-public-key.lseed.bitcoinstats.com.",
                         port: 9735,
                         weight: 0,
                         priority: 0,
-                    }
+                    },
                 ]),
             );
 
-            let resolveStub = Sinon.stub(resolver, "resolve")
+            const resolveStub = Sinon.stub(resolver, "resolve")
                 .onFirstCall()
                 .returns(Promise.resolve(["139.59.143.87"]))
                 .onSecondCall()
                 .returns(Promise.reject(new Error()));
 
-            var dnsPeerQuery = new DnsPeerQuery(resolver);
+            const dnsPeerQuery = new DnsPeerQuery(resolver);
 
-            let results = await dnsPeerQuery.query({
+            const results = await dnsPeerQuery.query({
                 dnsSeed: "lseed.bitcoinstats.com",
             });
 
