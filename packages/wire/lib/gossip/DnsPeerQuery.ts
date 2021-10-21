@@ -40,17 +40,6 @@ export interface DnsPeerQueryOptions {
  * known peers. A domain name server that implements BOLT #10 is
  * referred to as a DNS Seed and answers incoming DNS queries of
  * type A, AAAA, or SRV.
- *
- * The query method starts by querying a DNS seed for SRV records.
- * This will result in a list of returned SRV records that each
- * represent a lightning node that can be connected to. Each record
- * is a subdomain of the dns seed where the first component of the
- * subdomain is the bech32 encoded public key of the node (also known
- * as the node_id). Each subdomain can subsequently be used to query
- * the DNS seed for the A (or AAA) records of the lightning node with
- *  the specified node_id. The query method ends by constructing peer
- *  host records using the port from the SRV records and the ip
- * address from the A (or AAA) records.
  */
 export class DnsPeerQuery {
     private resolver: dnsPromises.Resolver;
@@ -59,6 +48,20 @@ export class DnsPeerQuery {
         this.resolver = resolver || new dnsPromises.Resolver();
     }
 
+    /**
+     * The query method starts by querying a DNS seed for SRV records.
+     * This will result in a list of returned SRV records that each
+     * represent a lightning node that can be connected to. Each record
+     * is a subdomain of the dns seed where the first component of the
+     * subdomain is the bech32 encoded public key of the node (also known
+     * as the node_id). Each subdomain can subsequently be used to query
+     * the DNS seed for the A (or AAA) records of the lightning node with
+     * the specified node_id. The query method ends by constructing peer
+     * host records using the port from the SRV records and the ip
+     * address from the A (or AAA) records.
+     * @param dnsPeerQueryOptions
+     * @returns valid peer host records
+     */
     public async query(dnsPeerQueryOptions: DnsPeerQueryOptions): Promise<PeerHostRecord[]> {
         const dnsSeed = this._buildUrl(dnsPeerQueryOptions);
         const peerSrvRecords: SrvRecord[] = await this._getPeerSrvRecords(dnsSeed);
