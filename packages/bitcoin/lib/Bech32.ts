@@ -53,8 +53,7 @@ export class Bech32 {
      */
     public static decode(
         encoded: string,
-        version: Bech32Version = Bech32Version.Bech32,
-    ): { hrp: string; words: number[] } {
+    ): { hrp: string; words: number[]; version: Bech32Version } {
         // validate either uppercase or lowercase
         let hasUpper = false;
         let hasLower = false;
@@ -97,13 +96,15 @@ export class Bech32 {
             words.push(word);
         }
 
-        if (!verifyChecksum(hrp, words, version)) {
+        const checksum = calculateChecksum(hrp, words);
+        if (checksum !== Bech32Version.Bech32 && checksum !== Bech32Version.Bech32m) {
             throw new BitcoinError(BitcoinErrorCode.InvalidBech32Checksum, encoded);
         }
 
         return {
             hrp,
             words: words.slice(0, words.length - 6),
+            version: checksum,
         };
     }
 
@@ -238,10 +239,9 @@ function hrpExpand(hrp: string): number[] {
     return results;
 }
 
-function verifyChecksum(hrp: string, data: number[], constant: Bech32Version): boolean {
+function calculateChecksum(hrp: string, data: number[]): number {
     const combined = hrpExpand(hrp).concat(data);
-    const val = polymod(combined);
-    return val === constant;
+    return polymod(combined);
 }
 
 function createChecksum(hrp: string, data: number[], constant: Bech32Version): number[] {

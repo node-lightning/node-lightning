@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { Bech32, Bech32Version } from "../lib/Bech32";
+import { Bech32 } from "../lib/Bech32";
 
 describe("Bech32", () => {
     describe(".wordsToBuffer()", () => {
@@ -154,8 +154,8 @@ describe("Bech32", () => {
 
         for (const test of valid) {
             it("valid " + test, () => {
-                const decoded = Bech32.decode(test, Bech32Version.Bech32m);
-                const encoded = Bech32.encode(decoded.hrp, decoded.words, Bech32Version.Bech32m);
+                const decoded = Bech32.decode(test);
+                const encoded = Bech32.encode(decoded.hrp, decoded.words, decoded.version);
                 expect(encoded).to.equal(test.toLowerCase());
             });
         }
@@ -179,7 +179,7 @@ describe("Bech32", () => {
 
         for (const test of invalid) {
             it("invalid " + test, () => {
-                expect(() => Bech32.decode(test, Bech32Version.Bech32m)).to.throw();
+                expect(() => Bech32.decode(test)).to.throw();
             });
         }
     });
