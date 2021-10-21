@@ -44,7 +44,7 @@ export class GraphManager extends EventEmitter {
     public removeChannel(outpoint: OutPoint) {
         const outpointStr = outpoint.toString();
         for (const channel of this.graph.channels.values()) {
-            if (outpointStr === channel.channelPoint.toString()) {
+            if (outpointStr === channel?.channelPoint?.toString()) {
                 this.graph.removeChannel(channel);
                 this.emit("channel_closed", channel);
                 return;

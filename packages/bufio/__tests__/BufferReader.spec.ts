@@ -89,7 +89,7 @@ describe("BufferReader", () => {
         it("should read to end", () => {
             expect(br.readBytes(8)).to.deep.equal(Buffer.from([0, 0, 0, 0, 0, 0, 0, 3]));
         });
-        it("should throw when at end", () => {
+        it("should throw when at end if length specified", () => {
             expect(() => br.readBytes(1)).to.throw("Index out of range");
         });
         it("should read remaining bytes when at start", () => {
@@ -101,10 +101,15 @@ describe("BufferReader", () => {
             br.readBytes(1);
             expect(br.readBytes()).to.deep.equal(Buffer.from([0, 0, 1]));
         });
-        it("should throw error when at end of buffer", () => {
+        it("should return empty buffer when at end but no length specified", () => {
             br = new BufferReader(Buffer.from([1]));
             br.readBytes(1);
-            expect(() => br.readBytes()).to.throw("Index out of range");
+            expect(br.readBytes()).to.deep.equal(Buffer.alloc(0));
+        });
+        it("should return empty buffer when at end but no length specified", () => {
+            br = new BufferReader(Buffer.alloc(0));
+            expect(br.readBytes()).to.deep.equal(Buffer.alloc(0));
+            expect(() => br.readBytes(1)).to.throw("Index out of range");
         });
         it("should return empty buffer is read length is 0", () => {
             br = new BufferReader(Buffer.alloc(0));

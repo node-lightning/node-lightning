@@ -216,7 +216,10 @@ export class BufferReader {
             this._lastReadBytes = len;
             return result;
         } else {
-            if (this._position === this._buffer.length) throw new RangeError("Index out of range");
+            if (this._position === this._buffer.length) {
+                this._lastReadBytes = 0;
+                return Buffer.alloc(0);
+            }
             const slice = this._buffer.slice(this._position);
             const result = Buffer.alloc(slice.length, slice);
             this._position = this._buffer.length;

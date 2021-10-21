@@ -185,10 +185,10 @@ describe("GraphManager", () => {
     });
 
     describe("close channel", () => {
-        function createMsg() {
+        function createMsg(scid: ShortChannelId, outpoint?: OutPoint) {
             const msg = new ExtendedChannelAnnouncementMessage();
             msg.shortChannelId = scid;
-            msg.outpoint = new OutPoint("1111111111111111111111111111111111111111111111111111111111111111", 0); // prettier-ignore
+            msg.outpoint = outpoint;
             msg.capacity = BigInt(1000);
             msg.nodeId1 = node1;
             msg.nodeId2 = node2;
@@ -197,10 +197,12 @@ describe("GraphManager", () => {
         }
 
         it("should remove a channel from the graph", () => {
-            gossipEmitter.emit("message", createMsg());
+            const outpoint = OutPoint.fromString("1111111111111111111111111111111111111111111111111111111111111111:1"); // prettier-ignore
+            gossipEmitter.emit("message", createMsg(new ShortChannelId(1, 1, 0)));
+            gossipEmitter.emit("message", createMsg(new ShortChannelId(1, 1, 1), outpoint));
+            expect(sut.graph.channels.size).to.equal(2);
+            sut.removeChannel(outpoint);
             expect(sut.graph.channels.size).to.equal(1);
-            sut.removeChannel(new OutPoint("1111111111111111111111111111111111111111111111111111111111111111", 0)); // prettier-ignore
-            expect(sut.graph.channels.size).to.equal(0);
         });
     });
 });
