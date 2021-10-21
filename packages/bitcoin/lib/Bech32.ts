@@ -4,6 +4,11 @@ import { BitcoinErrorCode } from "./BitcoinErrorCode";
 const ALPHABET = "qpzry9x8gf2tvdw0s3jn54khce6mua7l";
 const GENERATOR = [0x3b6a57b2, 0x26508e6d, 0x1ea119fa, 0x3d4233dd, 0x2a1462b3];
 
+export enum Bech32Version {
+    Bech32 = 1,
+    Bech32m = 0x2bc830a3,
+}
+
 /**
  * Encoding utilities for Bech32 encodings as defined in BIP173:
  * https://github.com/bitcoin/bips/blob/master/bip-0173.mediawiki#Bech32
@@ -22,10 +27,15 @@ export class Bech32 {
      * checksum.
      * @param hrp human readable part
      * @param words 5-bit words
+     * @param version bech32 or bech32m
      * @returns BECH32 encoded string
      */
-    public static encode(hrp: string, words: number[]): string {
-        const checksum = createChecksum(hrp, words);
+    public static encode(
+        hrp: string,
+        words: number[],
+        version: Bech32Version = Bech32Version.Bech32,
+    ): string {
+        const checksum = createChecksum(hrp, words, version);
         const combined = words.concat(checksum);
         let result = hrp + "1";
         for (let i = 0; i < combined.length; i++) {
@@ -41,7 +51,10 @@ export class Bech32 {
      * @param encoded
      * @returns
      */
-    public static decode(encoded: string): { hrp: string; words: number[] } {
+    public static decode(
+        encoded: string,
+        version: Bech32Version = Bech32Version.Bech32,
+    ): { hrp: string; words: number[] } {
         // validate either uppercase or lowercase
         let hasUpper = false;
         let hasLower = false;
@@ -84,7 +97,7 @@ export class Bech32 {
             words.push(word);
         }
 
-        if (!verifyChecksum(hrp, words)) {
+        if (!verifyChecksum(hrp, words, version)) {
             throw new BitcoinError(BitcoinErrorCode.InvalidBech32Checksum, encoded);
         }
 
@@ -225,17 +238,17 @@ function hrpExpand(hrp: string): number[] {
     return results;
 }
 
-function verifyChecksum(hrp: string, data: number[]): boolean {
+function verifyChecksum(hrp: string, data: number[], constant: Bech32Version): boolean {
     const combined = hrpExpand(hrp).concat(data);
     const val = polymod(combined);
-    return val === 1;
+    return val === constant;
 }
 
-function createChecksum(hrp: string, data: number[]): number[] {
+function createChecksum(hrp: string, data: number[], constant: Bech32Version): number[] {
     const values = hrpExpand(hrp)
         .concat(data)
         .concat([0, 0, 0, 0, 0, 0]);
-    const mod = polymod(values) ^ 1;
+    const mod = polymod(values) ^ constant;
     const results: number[] = [];
     for (let i = 0; i < 6; i++) {
         results.push((mod >> (5 * (5 - i))) & 31);

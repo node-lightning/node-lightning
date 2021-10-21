@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { Bech32 } from "../lib/Bech32";
+import { Bech32, Bech32Version } from "../lib/Bech32";
 
 describe("Bech32", () => {
     describe(".wordsToBuffer()", () => {
@@ -137,6 +137,49 @@ describe("Bech32", () => {
         for (const test of invalid) {
             it("invalid " + test, () => {
                 expect(() => Bech32.decode(test)).to.throw();
+            });
+        }
+    });
+
+    describe("BIP350 Vectors", () => {
+        const valid = [
+            "A1LQFN3A",
+            "a1lqfn3a",
+            "an83characterlonghumanreadablepartthatcontainsthetheexcludedcharactersbioandnumber11sg7hg6",
+            "abcdef1l7aum6echk45nj3s0wdvt2fg8x9yrzpqzd3ryx",
+            "11llllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllludsr8",
+            "split1checkupstagehandshakeupstreamerranterredcaperredlc445v",
+            "?1v759aa",
+        ];
+
+        for (const test of valid) {
+            it("valid " + test, () => {
+                const decoded = Bech32.decode(test, Bech32Version.Bech32m);
+                const encoded = Bech32.encode(decoded.hrp, decoded.words, Bech32Version.Bech32m);
+                expect(encoded).to.equal(test.toLowerCase());
+            });
+        }
+
+        const invalid = [
+            "\x201xj0phk", // HRP character out of range
+            "\x7f1g6xzxy", // HRP character out of range
+            "\x801vctc34", // HRP character out of range
+            // "an84characterslonghumanreadablepartthatcontainsthetheexcludedcharactersbioandnumber11d6pts4", // overall max length exceeded
+            "qyrz8wqd2c9m", // No separator character
+            "1qyrz8wqd2c9m", // Empty HRP
+            "y1b0jsk6g", // Invalid data character
+            "lt1igcx5c0", // Invalid data character
+            "in1muywd", // Too short checksum
+            "mm1crxm3i", // Invalid character in checksum
+            "au1s5cgom", // Invalid character in checksum
+            "M1VUXWEZ", // checksum calculated with uppercase form of HRP
+            "16plkw9", // empty HRP
+            "1p2gdwpf", // empty HRP
+        ];
+
+        for (const test of invalid) {
+            it("invalid " + test, () => {
+                expect(() => Bech32.decode(test, Bech32Version.Bech32m)).to.throw();
             });
         }
     });
