@@ -66,6 +66,11 @@ async function connectToPeer(peerInfo: { rpk: string; host: string; port: number
     localFeatures.set(InitFeatureFlags.optionDataLossProtectOptional);
     localFeatures.set(InitFeatureFlags.gossipQueriesOptional);
 
+    if (config.bootstrapPeers) {
+        await gossipManager.bootstrapPeers(ls, localFeatures, [chainHash], logger, config.dnsSeed);
+        return;
+    }
+
     // constructs the peer and attaches a logger for tthe peer.
     const peer = new Peer(ls, localFeatures, [chainHash], logger);
     peer.on("open", () => logger.info("connecting"));

@@ -1,4 +1,4 @@
-import { HashByteOrder, ShortChannelId } from "@node-lightning/core";
+import { BitField, HashByteOrder, ShortChannelId } from "@node-lightning/core";
 import { OutPoint } from "@node-lightning/core";
 import { ILogger } from "@node-lightning/logger";
 import { EventEmitter } from "events";
@@ -7,8 +7,10 @@ import { ExtendedChannelAnnouncementMessage } from "../messages/ExtendedChannelA
 import { IWireMessage } from "../messages/IWireMessage";
 import { MessageType } from "../MessageType";
 import { Peer } from "../Peer";
+import { PeerHostRecord } from "../PeerHostRecord";
 import { PeerState } from "../PeerState";
 import { WireError, WireErrorCode } from "../WireError";
+import { DnsPeerQuery } from "./DnsPeerQuery";
 import { GossipFilter } from "./GossipFilter";
 import { GossipPeer } from "./GossipPeer";
 import { GossipRelay, IGossipRelay } from "./GossipRelay";
@@ -43,6 +45,7 @@ export class GossipManager extends EventEmitter {
     public syncState: SyncState;
     public isSynchronizing: boolean;
     public gossipRelay: IGossipRelay;
+    public dnsPeerQuery: DnsPeerQuery;
     public readonly peers: Set<GossipPeer>;
     public readonly logger: ILogger;
 
@@ -108,6 +111,27 @@ export class GossipManager extends EventEmitter {
 
         if (peer.state === PeerState.Ready) {
             this._onPeerReady(peer);
+        }
+    }
+
+    /**
+     * Uses a dns seed to discover and add peers to be managed by the GossipManager.
+     */
+    public async bootstrapPeers(
+        ls: Buffer,
+        localFeatures: BitField<any>,
+        localChains: Buffer[],
+        logger: ILogger,
+        dnsSeed: string,
+    ): Promise<void> {
+        if (!this.started) throw new WireError(WireErrorCode.gossipManagerNotStarted);
+
+        const peerRecords: PeerHostRecord[] = await this.dnsPeerQuery.query({ dnsSeed: dnsSeed });
+
+        for (const peerRecord of peerRecords) {
+            const peer = new Peer(ls, localFeatures, localChains, logger);
+            this.addPeer(peer);
+            peer.connect(peerRecord.publicKey, peerRecord.address, peerRecord.port);
         }
     }
 
