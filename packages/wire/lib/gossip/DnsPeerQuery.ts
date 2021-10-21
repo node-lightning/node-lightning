@@ -60,12 +60,12 @@ export class DnsPeerQuery {
     }
 
     public async query(dnsPeerQueryOptions: DnsPeerQueryOptions): Promise<PeerHostRecord[]> {
-        const dnsSeed = this.buildUrl(dnsPeerQueryOptions);
-        const peerSrvRecords: SrvRecord[] = await this.getPeerSrvRecords(dnsSeed);
+        const dnsSeed = this._buildUrl(dnsPeerQueryOptions);
+        const peerSrvRecords: SrvRecord[] = await this._getPeerSrvRecords(dnsSeed);
         const peerHostRecordPromises: Promise<PeerHostRecord>[] = [];
 
         for (const peerSrvRecord of peerSrvRecords) {
-            peerHostRecordPromises.push(this.createPeerHostRecord(peerSrvRecord));
+            peerHostRecordPromises.push(this._createPeerHostRecord(peerSrvRecord));
         }
 
         const peerHostRecordSettlements = await Promise.allSettled(peerHostRecordPromises);
@@ -77,17 +77,17 @@ export class DnsPeerQuery {
         return peers;
     }
 
-    private async createPeerHostRecord(peerSrvRecord: SrvRecord): Promise<PeerHostRecord> {
-        const peerAddress = await this.resolveSrvNameToIp(peerSrvRecord.name);
+    private async _createPeerHostRecord(peerSrvRecord: SrvRecord): Promise<PeerHostRecord> {
+        const peerAddress = await this._resolveSrvNameToIp(peerSrvRecord.name);
 
         return new PeerHostRecord(
-            this.getPublicKeyFromSrvRecord(peerSrvRecord),
+            this._getPublicKeyFromSrvRecord(peerSrvRecord),
             peerAddress,
             peerSrvRecord.port,
         );
     }
 
-    private buildUrl(dnsPeerQueryOptions: DnsPeerQueryOptions): string {
+    private _buildUrl(dnsPeerQueryOptions: DnsPeerQueryOptions): string {
         let { dnsSeed } = dnsPeerQueryOptions;
         const { realm, addressTypes, nodeId, desiredReplyRecords } = dnsPeerQueryOptions;
 
@@ -114,17 +114,17 @@ export class DnsPeerQuery {
         return dnsSeed;
     }
 
-    private getPublicKeyFromSrvRecord(srvRecord: SrvRecord): Buffer {
+    private _getPublicKeyFromSrvRecord(srvRecord: SrvRecord): Buffer {
         const domainComponents = srvRecord.name.split(".");
         const { words } = bech32.decode(domainComponents[0]);
         return Buffer.from(bech32.fromWords(words));
     }
 
-    private getPeerSrvRecords(dnsSeed: string): Promise<SrvRecord[]> {
+    private _getPeerSrvRecords(dnsSeed: string): Promise<SrvRecord[]> {
         return this.resolver.resolveSrv(dnsSeed);
     }
 
-    private async resolveSrvNameToIp(hostname: string): Promise<string> {
+    private async _resolveSrvNameToIp(hostname: string): Promise<string> {
         const ipAddresses: string[] = await this.resolver.resolve(hostname, "A");
         return ipAddresses?.[0];
     }
