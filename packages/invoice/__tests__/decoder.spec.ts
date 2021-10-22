@@ -130,7 +130,8 @@ describe("decoder", () => {
         );
     });
 
-    it("must check sha256 of h field matches the hashed description"); // this should be moved to the validator
+    // TODO: this should be moved to the validator
+    it("must check sha256 of h field matches the hashed description");
 
     it("must use n field (payee node) to validate signature instead of performing signature recovery if a valid n is provided", () => {
         const input =
