@@ -3,23 +3,37 @@
     "env": {
         "browser": false,
         "es6": true,
-        "node": true
+        "node": true,
+        "mocha": true
     },
     "extends": [
         "eslint:recommended",
         "plugin:@typescript-eslint/recommended",
         "plugin:@typescript-eslint/recommended-requiring-type-checking",
         "prettier",
-        "prettier/@typescript-eslint"
+        "prettier/@typescript-eslint",
+        "plugin:mocha/recommended"
     ],
     "parser": "@typescript-eslint/parser",
-    "plugins": ["@typescript-eslint"],
+    "plugins": [
+        "@typescript-eslint",
+        "mocha"
+    ],
     "rules": {
         "no-console": "warn",
-        "quotes": ["error", "double", { "avoidEscape": true, "allowTemplateLiterals": true }],
-        "semi": ["error", "always"],
+        "quotes": [
+            "error",
+            "double",
+            {
+                "avoidEscape": true,
+                "allowTemplateLiterals": true
+            }
+        ],
+        "semi": [
+            "error",
+            "always"
+        ],
         // "sort-imports": ["warn", { "allowSeparatedGroups": true, "ignoreCase": true  }], // ignored since sorting isn't the same
-
         //
         // @typescript-eslint Settings below
         //
@@ -28,14 +42,11 @@
         //
         // Default TSLint can be found here:
         // https://github.com/palantir/tslint/blob/master/src/configs/all.ts
-
-
         "@typescript-eslint/no-inferrable-types": "off",
         "@typescript-eslint/restrict-template-expressions": "off",
         "@typescript-eslint/no-unnecessary-type-assertion": "off",
         "@typescript-eslint/no-explicit-any": "off",
         "@typescript-eslint/explicit-module-boundary-types": "off", // eventually enable this
-
         // adapted from TSLint `member-access`
         // https://palantir.github.io/tslint/rules/member-access/
         "@typescript-eslint/explicit-member-accessibility": [
@@ -47,7 +58,6 @@
                 }
             }
         ],
-
         // adapted from TSLint `member-ordering` using `statics-first` option
         // https://palantir.github.io/tslint/rules/member-ordering/
         "@typescript-eslint/member-ordering": [
@@ -61,7 +71,10 @@
                     "instance-method"
                 ]
             }
-        ]
+        ],
+        "mocha/no-skipped-tests": "error",
+        "mocha/no-exclusive-tests": "error",
+        "mocha/no-mocha-arrows": "off"
     },
     "ignorePatterns": [
         "**/node_modules",
@@ -71,7 +84,7 @@
     "overrides": [
         {
             "files": "__tests__/**/*",
-            "rules":{
+            "rules": {
                 "no-sparse-arrays": "off",
                 "@typescript-eslint/no-explicit-any": "off",
                 "@typescript-eslint/unbound-method": "off",
@@ -83,5 +96,4 @@
             }
         }
     ]
-
 }
