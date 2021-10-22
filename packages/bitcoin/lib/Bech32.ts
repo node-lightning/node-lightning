@@ -206,8 +206,30 @@ function convertWords(
         }
     }
 
-    if (pad && bits > 0) {
-        result.push((value << (outBits - bits)) & maxV);
+    if (pad) {
+        if (bits > 0) {
+            result.push((value << (outBits - bits)) & maxV);
+        }
+    } else {
+        if (bits >= inBits) {
+            throw new BitcoinError(BitcoinErrorCode.InvalidBech32Encoding, {
+                data,
+                inBits,
+                outBits,
+                pad,
+                reason: "excess padding found",
+            });
+        }
+
+        if ((value << (outBits - bits)) & maxV) {
+            throw new BitcoinError(BitcoinErrorCode.InvalidBech32Encoding, {
+                data,
+                inBits,
+                outBits,
+                pad,
+                reason: "failed to encode all data",
+            });
+        }
     }
 
     return result;

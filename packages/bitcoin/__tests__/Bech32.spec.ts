@@ -11,9 +11,10 @@ describe("Bech32", () => {
                 expect(result.toString("hex")).to.equal("004430");
             });
 
-            it("pad=false, excludes overflowed words", () => {
-                const result = Bech32.wordsToBuffer(words, false);
-                expect(result.toString("hex")).to.equal("0044");
+            it("pad=false, throws", () => {
+                expect(() => Bech32.wordsToBuffer(words, false)).to.throw(
+                    "Invalid bech32 encoding",
+                );
             });
         });
 
