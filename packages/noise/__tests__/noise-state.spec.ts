@@ -33,14 +33,13 @@ describe("NoiseState", () => {
         });
 
         describe("act2", () => {
-            before(() => {
+            it("should set the hash correctly", () => {
                 const input = Buffer.from(
                     "0002466d7fcae563e5cb09a0d1870bb580344804617879a14949cf22285f1bae3f276e2470b93aac583c9ef6eafca3f730ae",
                     "hex",
                 );
                 sut.initiatorAct2(input);
-            });
-            it("should set the hash correctly", () => {
+
                 expect(sut.h.toString("hex")).to.deep.equal(
                     "90578e247e98674e661013da3c5c1ca6a8c8f48c90b485c0dfa1494e23d56d72",
                 );
@@ -186,15 +185,13 @@ describe("NoiseState", () => {
         const sent = [];
 
         describe("act 1", () => {
-            before(() => {
+            it("should setup hash", () => {
                 sut = new NoiseState({ ls, es });
                 const input = Buffer.from(
                     "00036360e856310ce5d294e8be33fc807077dc56ac80d95d9cd4ddbd21325eff73f70df6086551151f58b8afe6c195782c6a",
                     "hex",
                 );
                 sut.receiveAct1(input);
-            });
-            it("should setup hash", () => {
                 expect(sut.h.toString("hex")).to.equal(
                     "9d1ffbb639e7e20021d9259491dc7b160aab270fb1339ef135053f6f2cebe9ce",
                 );

@@ -76,7 +76,7 @@ describe("NoiseSocket", () => {
 
                 sandbox.stub(sut, "_initiateHandshake").throws(new Error("boom"));
                 const spy = sinon.spy(sut, "destroy");
-                // tslint:disable-next-line: no-empty
+                // eslint-disable-next-line @typescript-eslint/no-empty-function
                 sut.on("error", () => {});
 
                 (sut as any)._onConnected();

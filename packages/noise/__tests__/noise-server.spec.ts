@@ -27,8 +27,7 @@ describe("NoiseServer", () => {
 
     describe(".address()", () => {
         it("should return the address", done => {
-            let sut;
-            sut = new NoiseServer({ ls });
+            const sut = new NoiseServer({ ls });
             sut.listen({ port: 10000, host: "127.0.0.1" }, () => {
                 try {
                     const result = sut.address();
@@ -49,8 +48,7 @@ describe("NoiseServer", () => {
             expect(sut.listening).to.be.false;
         });
         it("should return true once listening", done => {
-            let sut;
-            sut = new NoiseServer({ ls });
+            const sut = new NoiseServer({ ls });
             sut.listen({ port: 10000, host: "127.0.0.1" }, () => {
                 try {
                     expect(sut.listening).to.be.true;
