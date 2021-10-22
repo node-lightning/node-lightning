@@ -6,6 +6,10 @@ const filePath = "test.log";
 
 describe("ConsoleTransport", () => {
     describe(".write", () => {
+        after(() => {
+            fs.unlinkSync(filePath);
+        });
+
         it("should write to the console", () => {
             const sut = new FileTransport(filePath);
             sut.write("hello");
@@ -13,6 +17,6 @@ describe("ConsoleTransport", () => {
             const actual = fs.readFileSync(filePath, { encoding: "utf8" });
             expect(actual).to.equal("hello\n");
         });
-        fs.unlinkSync(filePath);
+
     });
 });
