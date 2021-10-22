@@ -15,7 +15,7 @@ import { TxFactory } from "../../lib/lightning/TxFactory";
 import { ScriptFactory } from "../../lib/lightning/ScriptFactory";
 import { Htlc } from "../../lib/lightning/Htlc";
 import { HtlcDirection } from "../../lib/lightning/HtlcDirection";
-import { hash256, sha256 } from "@node-lightning/crypto";
+import { sha256 } from "@node-lightning/crypto";
 
 describe("TxFactory", () => {
     const b = (hex: string) => Buffer.from(hex, "hex");

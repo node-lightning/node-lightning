@@ -227,7 +227,7 @@ output: ERROR`,
                 // insert values
                 for (let insert = 0; insert < tests.length; insert++) {
                     {
-                        let { ok, i, secret } = tests[insert];
+                        const { ok, i, secret } = tests[insert];
                         if (ok) {
                             sut.insert(secret, i);
                         } else {
@@ -237,11 +237,9 @@ output: ERROR`,
                         }
                     }
 
-                    console.log("inserted", insert);
-
                     // for each insertion validate all prior insertions
                     for (let derive = insert; derive >= 0; derive--) {
-                        let { ok, i, secret } = tests[derive];
+                        const { ok, i, secret } = tests[derive];
                         if (ok) {
                             expect(sut.derive(i)).to.deep.equal(secret);
                         } else {

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 const { expect } = require("chai");
 const { ChannelKeys } = require("../../lib/lightning/ChannelKeys");
 
@@ -22,7 +23,7 @@ describe("ChannelKeys", () => {
 
         describe("#derivePubKey()", () => {
             it("should create a valid public key", () => {
-                let result = ChannelKeys.derivePubKey(perCommitmentPoint, basePoint);
+                const result = ChannelKeys.derivePubKey(perCommitmentPoint, basePoint);
                 expect(result).to.deep.equal(
                     Buffer.from(
                         "0235f2dbfaa89b57ec7b055afe29849ef7ddfeb1cefdb9ebdc43f5494984db29e5",
@@ -34,7 +35,7 @@ describe("ChannelKeys", () => {
 
         describe("#derivePrivKey()", () => {
             it("should create a valid private key", () => {
-                let result = ChannelKeys.derivePrivKey(perCommitmentPoint, baseSecret);
+                const result = ChannelKeys.derivePrivKey(perCommitmentPoint, baseSecret);
                 expect(result).to.deep.equal(
                     Buffer.from(
                         "cbced912d3b21bf196a766651e436aff192362621ce317704ea2f75d87e7be0f",
@@ -46,7 +47,7 @@ describe("ChannelKeys", () => {
 
         describe("#deriveRevocationPubKey()", () => {
             it("should create a valid revocation public key", () => {
-                let result = ChannelKeys.deriveRevocationPubKey(perCommitmentPoint, basePoint);
+                const result = ChannelKeys.deriveRevocationPubKey(perCommitmentPoint, basePoint);
                 expect(result).to.deep.equal(
                     Buffer.from(
                         "02916e326636d19c33f13e8c0c3a03dd157f332f3e99c317c141dd865eb01f8ff0",
@@ -58,7 +59,7 @@ describe("ChannelKeys", () => {
 
         describe("#deriveRevocationPrivKey()", () => {
             it("should create a valid revocation private key", () => {
-                let result = ChannelKeys.deriveRevocationPrivKey(perCommitmentSecret, baseSecret);
+                const result = ChannelKeys.deriveRevocationPrivKey(perCommitmentSecret, baseSecret);
                 expect(result).to.deep.equal(
                     Buffer.from(
                         "d09ffff62ddb2297ab000cc85bcb4283fdeb6aa052affbc9dddcf33b61078110",
