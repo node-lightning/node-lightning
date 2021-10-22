@@ -3,6 +3,7 @@ import sinon from "sinon";
 import { BitcoindClient } from "@node-lightning/bitcoind";
 import { BlockDiffer } from "../lib/BlockDiffer";
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const TestnetHeaders = require("../__fixtures__/TestnetHeaders.json");
 const headerLookup: any = hash => TestnetHeaders[hash];
 
