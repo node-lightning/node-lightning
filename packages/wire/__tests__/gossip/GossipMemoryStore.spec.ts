@@ -159,11 +159,11 @@ describe("GossipMemoryStore", () => {
         });
 
         it("should unlink channel_update for node_1", async () => {
-            const results = await sut.findChannelUpdate(scid, 0);
+            await sut.findChannelUpdate(scid, 0);
         });
 
         it("should unlink channel_update for node_2", async () => {
-            const results = await sut.findChannelUpdate(scid, 1);
+            await sut.findChannelUpdate(scid, 1);
         });
 
         it("should delete outpoint link");
