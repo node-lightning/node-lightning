@@ -1,5 +1,6 @@
 // tslint:disable: no-unused-expression
 import { expect } from "chai";
+import { AddressInfo } from "net";
 import { NoiseServer } from "../lib/noise-server";
 
 describe("NoiseServer", () => {
@@ -30,7 +31,7 @@ describe("NoiseServer", () => {
             const sut = new NoiseServer({ ls });
             sut.listen({ port: 10000, host: "127.0.0.1" }, () => {
                 try {
-                    const result = sut.address();
+                    const result = sut.address() as AddressInfo;
                     expect(result.address).to.equal("127.0.0.1");
                     expect(result.family).to.equal("IPv4");
                     expect(result.port).to.equal(10000);
