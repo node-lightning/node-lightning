@@ -1,6 +1,6 @@
 import { BufferWriter } from "../../bufio/dist";
 import { Base58Check } from "./Base58Check";
-import { Bech32 } from "./Bech32";
+import { Bech32, Bech32Version } from "./Bech32";
 import { BitcoinError } from "./BitcoinError";
 import { BitcoinErrorCode } from "./BitcoinErrorCode";
 import { Network } from "./Network";
@@ -72,11 +72,20 @@ export class Address {
     public static decodeSegwit(
         encoded: string,
     ): { network: Network; version: number; program: Buffer } {
-        const { hrp, words } = Bech32.decode(encoded);
+        const { hrp, words, version: checksum } = Bech32.decode(encoded);
         const version = words[0];
         if (version < 0 || version > 16) {
             throw new BitcoinError(BitcoinErrorCode.InvalidSegwitVersion, { encoded, version });
         }
+
+        if (version === 0 && checksum !== Bech32Version.Bech32) {
+            throw new BitcoinError(BitcoinErrorCode.InvalidBech32Encoding);
+        }
+
+        if (version > 0 && checksum !== Bech32Version.Bech32m) {
+            throw new BitcoinError(BitcoinErrorCode.InvalidBech32Encoding);
+        }
+
         const program = Bech32.wordsToBuffer(words.slice(1), false);
 
         if (version === 0 && program.length !== 20 && program.length !== 32) {
@@ -88,7 +97,7 @@ export class Address {
             });
         }
 
-        if (version > 0 && (program.length < 2 || program.length > 40)) {
+        if (program.length < 2 || program.length > 40) {
             throw new BitcoinError(BitcoinErrorCode.InvalidWitnessProgram, {
                 encoded,
                 version,
