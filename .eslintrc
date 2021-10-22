@@ -74,7 +74,12 @@
         ],
         "mocha/no-skipped-tests": "error",
         "mocha/no-exclusive-tests": "error",
-        "mocha/no-mocha-arrows": "off"
+        "mocha/no-mocha-arrows": "off",
+        "mocha/no-setup-in-describe": "off",
+        "mocha/no-identical-title": "off",
+        "mocha/max-top-level-suites": "off",
+        "mocha/no-pending-tests": "off",
+        "mocha/no-hooks-for-single-case": "off"
     },
     "ignorePatterns": [
         "**/node_modules",
