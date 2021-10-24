@@ -42,8 +42,8 @@ const mainnet = new Network(
 
 const testnet = new Network(
     "testnet",
-    0xc4,
     0x6f,
+    0xc4,
     "tb",
     "tb",
     0x043587cf,
