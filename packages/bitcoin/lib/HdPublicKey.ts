@@ -6,6 +6,7 @@ import { HdKeyCodec } from "./HdKeyCodec";
 import { HdKeyType } from "./HdKeyType";
 import { Network } from "./Network";
 import { PublicKey } from "./PublicKey";
+import { Script } from "./Script";
 
 /**
  * A hierarchical deterministic extended public key as defined in BIP32.
@@ -94,6 +95,8 @@ export class HdPublicKey {
         switch (this.type) {
             case HdKeyType.x:
                 return this.network.xpubVersion;
+            case HdKeyType.y:
+                return this.network.ypubVersion;
         }
     }
 
@@ -205,6 +208,15 @@ export class HdPublicKey {
      * @returns
      */
     public toAddress(): string {
-        return Address.encodeLegacy(this.network.p2pkhPrefix, this.publicKey.hash160(true));
+        const pubkeyhash = this.publicKey.hash160(true);
+        switch (this.type) {
+            case HdKeyType.x:
+                return Address.encodeLegacy(this.network.p2pkhPrefix, pubkeyhash);
+            case HdKeyType.y:
+                return Address.encodeLegacy(
+                    this.network.p2shPrefix,
+                    Script.p2wpkhLock(pubkeyhash).hash160(),
+                );
+        }
     }
 }

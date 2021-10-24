@@ -8,6 +8,8 @@ import { HdPublicKey } from "./HdPublicKey";
 import { Network } from "./Network";
 import { PrivateKey } from "./PrivateKey";
 
+const BIP49_PURPOSE = 0x80000031;
+
 /**
  * Represnts a hierarchical deterministic extended private key as defined
  * in BIP32. This class contains helper methods to derive child keys and
@@ -58,6 +60,10 @@ export class HdPrivateKey {
             const num = hardened
                 ? 2 ** 31 + Number(part.substring(0, part.length - 1))
                 : Number(part);
+
+            if (type === HdKeyType.y && i === 1 && num !== BIP49_PURPOSE) {
+                throw new BitcoinError(BitcoinErrorCode.InvalidHdPath, path);
+            }
 
             if (isNaN(num) || num < 0 || num >= 2 ** 32 || (!hardened && num >= 2 ** 31)) {
                 throw new BitcoinError(BitcoinErrorCode.InvalidHdPath, path);
@@ -190,6 +196,8 @@ export class HdPrivateKey {
         switch (this.type) {
             case HdKeyType.x:
                 return this.network.xprvVersion;
+            case HdKeyType.y:
+                return this.network.yprvVersion;
         }
     }
 
