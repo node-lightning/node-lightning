@@ -32,14 +32,15 @@ export class HdPrivateKey {
      * @param path string path
      * @param seed 32-byte seed
      * @param network network that the private key belongs to
-     * @param type type of HD key (x, y, z)
+     * @param type type of HD key (x, y, z) which defaults to x when a
+     * BIP49 or BIP84 path is not detected
      * @returns the extended private key at the defined path
      */
     public static fromPath(
         path: string,
         seed: Buffer,
         network: Network,
-        type = HdKeyType.x,
+        type?: HdKeyType,
     ): HdPrivateKey {
         const parts = path.split("/");
 
@@ -49,26 +50,41 @@ export class HdPrivateKey {
             throw new BitcoinError(BitcoinErrorCode.InvalidHdPath, path);
         }
 
-        // generate the master key
-        let key = HdPrivateKey.fromSeed(seed, network, type);
-
-        // perform derivations
+        // calculate the nums before we do anything else
+        const nums: number[] = [];
         for (let i = 1; i < parts.length; i++) {
             const part = parts[i];
 
+            // extract number
             const hardened = part.endsWith("'");
             const num = hardened
                 ? 2 ** 31 + Number(part.substring(0, part.length - 1))
                 : Number(part);
 
-            if (type === HdKeyType.y && i === 1 && num !== BIP49_PURPOSE) {
-                throw new BitcoinError(BitcoinErrorCode.InvalidHdPath, path);
-            }
-
+            // validate path was correct
             if (isNaN(num) || num < 0 || num >= 2 ** 32 || (!hardened && num >= 2 ** 31)) {
                 throw new BitcoinError(BitcoinErrorCode.InvalidHdPath, path);
             }
 
+            nums.push(num);
+        }
+
+        // if the `purpose` path is 49', the type is y
+        if (!type) {
+            if (nums[0] && nums[0] === BIP49_PURPOSE) {
+                type = HdKeyType.y;
+            }
+            // otherwise it's x
+            else {
+                type = HdKeyType.x;
+            }
+        }
+
+        // generate the master key
+        let key = HdPrivateKey.fromSeed(seed, network, type);
+
+        // perform derivations from the master
+        for (const num of nums) {
             key = key.derive(num);
         }
 
