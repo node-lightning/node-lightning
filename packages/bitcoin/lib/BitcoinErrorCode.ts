@@ -32,4 +32,6 @@ export enum BitcoinErrorCode {
     // mnemonics
     InvalidMnemonicWordList,
     InvalidMnemonicEntropy,
+    InvalidMnemonicWord,
+    InvalidMnemonicChecksum,
 }

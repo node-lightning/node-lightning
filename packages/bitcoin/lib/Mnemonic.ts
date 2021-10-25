@@ -49,7 +49,7 @@ export class Mnemonic {
      *
      * @returns
      */
-    public static seedFromPhrase(phrase: string, password?: string): Promise<Buffer> {
+    public static phraseToSeed(phrase: string, password?: string): Promise<Buffer> {
         const key = Buffer.from(phrase.normalize("NFKD"), "utf-8");
         const salt = Buffer.from(("mnemonic" + (password || "")).normalize("NFKD"), "utf-8");
         return pbkdf2(key, salt, 2048, 64, "sha512");
@@ -122,31 +122,125 @@ export class Mnemonic {
             throw new BitcoinError(BitcoinErrorCode.InvalidMnemonicEntropy, { entropy });
         }
 
+        // convert the buffer into a bigint so we can more easily perform
+        // bit shift operations. The buffer was assumed to be in big-endian
+        let num = bigFromBufBE(entropy);
+
         // calcultes the checkcum bits as ENT / 32
         const checksumBits = entropy.length / 4;
 
         // extract the first xx bits from the checksum
         const checksum = sha256(entropy)[0] >> (8 - checksumBits);
 
-        // append the chucksum bits to the entropy bits
-        let num = bigFromBufBE(entropy);
+        // left shift the entropy and encoding the checksum as the lowest
+        // bits of our value.
         num <<= BigInt(checksumBits);
         num |= BigInt(checksum);
 
-        // convert into 11-bit chunks that represent an index in the wordlist
+        // Convert into words by taking 11-bit chunks. We do this by
+        // masking the lower 11 bits, the perform a right shift of 11
+        // bits until we have consumed the entire entropy length
         const words = [];
-        let bits = 0;
-        const totalBits = entropy.length * 8 + checksumBits;
-        while (bits < totalBits) {
+        const entropyBits = entropy.length * 8;
+        const totalBits = entropyBits + checksumBits;
+        for (let bits = 0; bits < totalBits; bits += 11) {
+            // find the index and subsequent word using a bitmask
             const index = num & 2047n;
             const word = wordlist[Number(index)];
+
+            // insert the found word into the first position of the array
+            // our bits are encoded in LE
             words.unshift(word);
 
+            // consume the 11 bits via right shift
             num >>= 11n;
-            bits += 11;
         }
 
         // return the concatenated phrase
         return words.join(" ");
+    }
+
+    /**
+     * Converts a phrase into an entropy buffer. This method extracts
+     * and validates the checksum that is included in the phrase.
+     *
+     * @param phrase mnemonic phrase
+     * @param wordlist a word list that must  contain 2048 words
+     * @throw {@link BitcoinError} throws if word list does not have 2048
+     * words. Throws if there is a word that does not below. Throws if
+     * the checksum fails.
+     * @returns
+     */
+    public static phraseToEntropy(phrase: string, wordlist: string[] = Mnemonic.English): Buffer {
+        // ensure word list has 2048 words in it
+        if (wordlist.length !== 2048) {
+            throw new BitcoinError(BitcoinErrorCode.InvalidMnemonicWordList, {
+                expected: 2048,
+                got: wordlist.length,
+            });
+        }
+
+        // split phrase into words
+        const words = phrase.split(" ");
+
+        // convert words into indices (11-bits each) and throw if we
+        // can't find a word
+        const indices = [];
+        for (const word of words) {
+            const index = wordlist.findIndex(p => p === word);
+            if (index === -1) {
+                throw new BitcoinError(BitcoinErrorCode.InvalidMnemonicWord, { word, phrase });
+            }
+            indices.push(index);
+        }
+
+        // encode words into a number
+        let num = 0n;
+        for (const index of indices) {
+            num <<= 11n;
+            num |= BigInt(index);
+        }
+
+        // calculate the checksum bits as CS = MS * 11 / 33. This is
+        // given from
+        //      CS = ENT / 33 and MS
+        //      MS = (ENT + CS) / 11
+        const checksumBits = BigInt((words.length * 11) / 33);
+
+        // extract the checksum from the lowest values
+        const checksumMask = (1n << checksumBits) - 1n;
+        const checksum = Number(num & checksumMask);
+
+        // remove the checksum to obtain just the entropy
+        num >>= checksumBits;
+
+        // calculate the bits of entropy via 352 * MS / 33 which is
+        // obtained from
+        //      CS = ENT / 33 and MS
+        //      MS = (ENT + CS) / 11
+        const entropyBits = (352 * words.length) / 33;
+        const entropyBytes = entropyBits / 8;
+
+        // entropy was originally big endian, so we need to do this in
+        // reverse
+        const entropy = Buffer.alloc(entropyBytes);
+        for (let i = entropy.length - 1; i >= 0; i--) {
+            entropy[i] = Number(num & 0xffn);
+            num >>= 8n;
+        }
+
+        // calcualte the checksum and validate that the calculated and
+        // extracted values match
+        const calcedChecksumBits = entropy.length / 4;
+        const calcedChecksum = sha256(entropy)[0] >> (8 - calcedChecksumBits);
+        if (calcedChecksum !== checksum) {
+            throw new BitcoinError(BitcoinErrorCode.InvalidMnemonicChecksum, {
+                expected: checksum,
+                got: calcedChecksum,
+                phrase,
+            });
+        }
+
+        return entropy;
     }
 }

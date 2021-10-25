@@ -54,6 +54,10 @@ function getMessage(code: BitcoinErrorCode) {
             return "Invalid mnemonic word list";
         case BitcoinErrorCode.InvalidMnemonicEntropy:
             return "Invalid mnemonic entropy";
+        case BitcoinErrorCode.InvalidMnemonicWord:
+            return "Unknown mnemonic word";
+        case BitcoinErrorCode.InvalidMnemonicChecksum:
+            return "Mnemonic checksum failed";
     }
 }
 

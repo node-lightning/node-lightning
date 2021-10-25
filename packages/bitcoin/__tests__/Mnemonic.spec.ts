@@ -8,13 +8,13 @@ const vectors = require("../__fixtures__/mnemonic.json");
 describe("Mnemonic", () => {
     describe("BIP39 Vectors", () => {
         describe("English", () => {
-            describe(".seedFromPhrase()", () => {
+            describe(".phraseToSeed()", () => {
                 for (const [, phrase, seedHex, xprv] of vectors.english) {
                     it(`${phrase.substring(0, 32).padEnd(32, " ")}... => ${seedHex.substring(
                         0,
                         32,
                     )}...`, async () => {
-                        const seed = await Mnemonic.seedFromPhrase(phrase, "TREZOR");
+                        const seed = await Mnemonic.phraseToSeed(phrase, "TREZOR");
                         const masterkey = HdPrivateKey.fromSeed(seed, Network.mainnet);
                         expect(seed.toString("hex")).to.equal(seedHex);
                         expect(masterkey.encode()).to.equal(xprv);
@@ -29,6 +29,17 @@ describe("Mnemonic", () => {
                         .padEnd(32, " ")}...`, () => {
                         const result = Mnemonic.entropyToPhrase(Buffer.from(entropy, "hex"));
                         expect(result).to.equal(phrase);
+                    });
+                }
+            });
+
+            describe(".phraseToEntropy()", () => {
+                for (const [entropy, phrase] of vectors.english) {
+                    it(`${phrase.substring(0, 32).padEnd(32, " ")}... => ${entropy
+                        .substring(0, 32)
+                        .padEnd(32, " ")}...`, () => {
+                        const result = Mnemonic.phraseToEntropy(phrase);
+                        expect(result.toString("hex")).to.equal(entropy);
                     });
                 }
             });
@@ -57,6 +68,28 @@ describe("Mnemonic", () => {
                         );
                 });
             }
+        });
+    });
+
+    describe(".phraseToEntropy()", () => {
+        it("throws with invalid word list", () => {
+            const phrase =
+                "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";
+            expect(() => Mnemonic.phraseToEntropy(phrase, ["hello", "world"])).to.throw(
+                "Invalid mnemonic word list",
+            );
+        });
+
+        it("throws with invalid word", () => {
+            const phrase =
+                "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abando about";
+            expect(() => Mnemonic.phraseToEntropy(phrase)).to.throw("Unknown mnemonic word");
+        });
+
+        it("throws with invalid checksum", () => {
+            const phrase =
+                "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon";
+            expect(() => Mnemonic.phraseToEntropy(phrase)).to.throw("Mnemonic checksum failed");
         });
     });
 });
