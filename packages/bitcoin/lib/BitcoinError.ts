@@ -49,6 +49,11 @@ function getMessage(code: BitcoinErrorCode) {
             return "Unknown segwit version";
         case BitcoinErrorCode.InvalidWitnessProgram:
             return "Invalid witness program";
+
+        case BitcoinErrorCode.InvalidMnemonicWordList:
+            return "Invalid mnemonic word list";
+        case BitcoinErrorCode.InvalidMnemonicEntropy:
+            return "Invalid mnemonic entropy";
     }
 }
 

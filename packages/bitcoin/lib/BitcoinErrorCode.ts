@@ -28,4 +28,8 @@ export enum BitcoinErrorCode {
     UnknownAddressPrefix,
     InvalidSegwitVersion,
     InvalidWitnessProgram,
+
+    // mnemonics
+    InvalidMnemonicWordList,
+    InvalidMnemonicEntropy,
 }
