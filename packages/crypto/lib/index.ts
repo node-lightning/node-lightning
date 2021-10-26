@@ -6,5 +6,6 @@ export * from "./hash";
 export * from "./hkdf";
 export * from "./hmac";
 export * from "./key";
+export * from "./pbkdf2";
 export * from "./secp256k1";
 export * from "./xor";
