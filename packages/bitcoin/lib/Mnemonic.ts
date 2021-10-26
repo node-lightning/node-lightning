@@ -1,24 +1,8 @@
-import crypto from "crypto";
-import { sha256 } from "@node-lightning/crypto";
+import { sha256, pbkdf2 } from "@node-lightning/crypto";
 import { EnglishWordList } from "./MnemonicWordLists";
 import { bigFromBufBE } from "../../bufio/dist";
 import { BitcoinError } from "./BitcoinError";
 import { BitcoinErrorCode } from "./BitcoinErrorCode";
-
-export function pbkdf2(
-    password: Buffer,
-    salt: Buffer,
-    iterations: number,
-    keylen: number,
-    hmac: string,
-): Promise<Buffer> {
-    return new Promise((resolve, reject) => {
-        crypto.pbkdf2(password, salt, iterations, keylen, hmac, (err, result) => {
-            if (err) reject(err);
-            else resolve(result);
-        });
-    });
-}
 
 /**
  * Implements mnemonic seed generation methods as specified in BIP39.

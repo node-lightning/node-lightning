@@ -12,6 +12,7 @@ export * from "./HdPrivateKey";
 export * from "./HdPublicKey";
 export * from "./LexicographicalSorters";
 export * from "./LockTime";
+export * from "./Mnemonic";
 export * from "./Network";
 export * from "./OpCodes";
 export * from "./OutPoint";
