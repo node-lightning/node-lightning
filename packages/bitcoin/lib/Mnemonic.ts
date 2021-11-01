@@ -196,29 +196,29 @@ export class Mnemonic {
  */
 function convert(inWords: Iterable<number>, inSize: number, outSize: number): [number[], number] {
     const outWords: number[] = [];
+    const outMask = (1 << outSize) - 1;
 
     let bufBits = 0;
     let buf = 0;
 
-    for (const word of inWords) {
-        // push each word into the LSBs of a buffer
+    for (const inWord of inWords) {
+        // Constuct a new buffer by left shifting the existing value
+        // and putting the new inWord in the LSB position.
+        buf = (buf << inSize) | inWord;
         bufBits += inSize;
-        buf <<= inSize;
-        buf |= word;
 
-        // exact out words when buffer is large enough
+        // Extact outWords when buffer is large enough
         while (bufBits >= outSize) {
-            // extract word from most significant bits to retain order
-            // of inWord insertion
-            const remBits = bufBits - outSize;
-            const outWord = buf >> remBits;
-            outWords.push(outWord);
-
-            // mask remaining least significant bits
-            buf &= (1 << remBits) - 1;
+            // Extract the outWord by right shifting the remaining lower
+            // bits and masking any upper bits
             bufBits -= outSize;
+            outWords.push((buf >> bufBits) & outMask);
         }
     }
 
-    return [outWords, bufBits ? buf : null];
+    // The remainder will be the remaining lower bits or null if
+    // no remaining bits were produced.
+    const remainder = bufBits ? buf & ((1 << bufBits) - 1) : null;
+
+    return [outWords, remainder];
 }
