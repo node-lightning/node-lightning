@@ -106,39 +106,16 @@ export class Mnemonic {
             throw new BitcoinError(BitcoinErrorCode.InvalidMnemonicEntropy, { entropy });
         }
 
-        // convert the buffer into a bigint so we can more easily perform
-        // bit shift operations. The buffer was assumed to be in big-endian
-        let num = bigFromBufBE(entropy);
+        // convert the entropy into an array and push the first byte of
+        // the checksum into the output
+        const input = Array.from(entropy);
+        input.push(sha256(entropy)[0]);
 
-        // calcultes the checkcum bits as ENT / 32
-        const checksumBits = entropy.length / 4;
+        // convert bytes into 11-bit words
+        const [indices] = convert(input, 8, 11);
 
-        // extract the first xx bits from the checksum
-        const checksum = sha256(entropy)[0] >> (8 - checksumBits);
-
-        // left shift the entropy and encoding the checksum as the lowest
-        // bits of our value.
-        num <<= BigInt(checksumBits);
-        num |= BigInt(checksum);
-
-        // Convert into words by taking 11-bit chunks. We do this by
-        // masking the lower 11 bits, the perform a right shift of 11
-        // bits until we have consumed the entire entropy length
-        const words = [];
-        const entropyBits = entropy.length * 8;
-        const totalBits = entropyBits + checksumBits;
-        for (let bits = 0; bits < totalBits; bits += 11) {
-            // find the index and subsequent word using a bitmask
-            const index = num & 2047n;
-            const word = wordlist[Number(index)];
-
-            // insert the found word into the first position of the array
-            // our bits are encoded in LE
-            words.unshift(word);
-
-            // consume the 11 bits via right shift
-            num >>= 11n;
-        }
+        // map 11-bit words into the actual word
+        const words = indices.map(i => wordlist[i]);
 
         // return the concatenated phrase
         return words.join(" ");
@@ -178,40 +155,18 @@ export class Mnemonic {
             indices.push(index);
         }
 
-        // encode words into a number
-        let num = 0n;
-        for (const index of indices) {
-            num <<= 11n;
-            num |= BigInt(index);
+        // convert entropy words into bytes
+        const results = convert(indices, 11, 8);
+
+        // check if we had a remaininer which should happen in all but
+        // 24 words. If we had 24 words, there won't be a remaininder,
+        // but our checksum will be the final byte.
+        let checksum = results[1];
+        if (checksum === null) {
+            checksum = results[0].pop();
         }
 
-        // calculate the checksum bits as CS = MS * 11 / 33. This is
-        // given from
-        //      CS = ENT / 33 and MS
-        //      MS = (ENT + CS) / 11
-        const checksumBits = BigInt((words.length * 11) / 33);
-
-        // extract the checksum from the lowest values
-        const checksumMask = (1n << checksumBits) - 1n;
-        const checksum = Number(num & checksumMask);
-
-        // remove the checksum to obtain just the entropy
-        num >>= checksumBits;
-
-        // calculate the bits of entropy via 352 * MS / 33 which is
-        // obtained from
-        //      CS = ENT / 33 and MS
-        //      MS = (ENT + CS) / 11
-        const entropyBits = (352 * words.length) / 33;
-        const entropyBytes = entropyBits / 8;
-
-        // entropy was originally big endian, so we need to do this in
-        // reverse
-        const entropy = Buffer.alloc(entropyBytes);
-        for (let i = entropy.length - 1; i >= 0; i--) {
-            entropy[i] = Number(num & 0xffn);
-            num >>= 8n;
-        }
+        const entropy = Buffer.from(results[0]);
 
         // calcualte the checksum and validate that the calculated and
         // extracted values match
@@ -227,4 +182,43 @@ export class Mnemonic {
 
         return entropy;
     }
+}
+
+/**
+ * Converts words of an input bit size into output words of the output
+ * size. Conceptually, this is the equivalent of constructing a giant
+ * bit stream from the input words and then consuming the stream using
+ * the size of the output bits.
+ * @param inWords input words
+ * @param inSize bit size of input words
+ * @param outSize bit size of output words
+ * @returns
+ */
+function convert(inWords: Iterable<number>, inSize: number, outSize: number): [number[], number] {
+    const outWords: number[] = [];
+
+    let bufBits = 0;
+    let buf = 0;
+
+    for (const word of inWords) {
+        // push each word into the LSBs of a buffer
+        bufBits += inSize;
+        buf <<= inSize;
+        buf |= word;
+
+        // exact out words when buffer is large enough
+        while (bufBits >= outSize) {
+            // extract word from most significant bits to retain order
+            // of inWord insertion
+            const remBits = bufBits - outSize;
+            const outWord = buf >> remBits;
+            outWords.push(outWord);
+
+            // mask remaining least significant bits
+            buf &= (1 << remBits) - 1;
+            bufBits -= outSize;
+        }
+    }
+
+    return [outWords, bufBits ? buf : null];
 }
