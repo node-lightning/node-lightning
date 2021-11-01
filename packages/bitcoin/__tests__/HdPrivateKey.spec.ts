@@ -35,19 +35,34 @@ describe("HdPrivateKey", () => {
             expect(key.type).to.equal(HdKeyType.y);
         });
 
-        it("accept y type (BIP49)", () => {
+        it("derives z type (BIP84)", () => {
+            const key = HdPrivateKey.fromPath("m/84'/0'/0", seed, Network.mainnet);
+            expect(key.type).to.equal(HdKeyType.z);
+        });
+
+        it("accepts y type (BIP49)", () => {
             const key = HdPrivateKey.fromPath("m/49'/0'/0", seed, Network.mainnet, HdKeyType.y);
             expect(key.type).to.equal(HdKeyType.y);
         });
 
-        it("accept incorrect x type", () => {
+        it("accepts z type (BIP84)", () => {
+            const key = HdPrivateKey.fromPath("m/84'/0'/0", seed, Network.mainnet, HdKeyType.z);
+            expect(key.type).to.equal(HdKeyType.z);
+        });
+
+        it("accepts incorrect x type", () => {
             const key = HdPrivateKey.fromPath("m/49'/0'/0", seed, Network.mainnet, HdKeyType.x);
             expect(key.type).to.equal(HdKeyType.x);
         });
 
-        it("accept incorrect y type", () => {
+        it("accepts incorrect y type", () => {
             const key = HdPrivateKey.fromPath("m/44'/0'/0", seed, Network.mainnet, HdKeyType.y);
             expect(key.type).to.equal(HdKeyType.y);
+        });
+
+        it("accepts incorrect z type", () => {
+            const key = HdPrivateKey.fromPath("m/44'/0'/0", seed, Network.mainnet, HdKeyType.z);
+            expect(key.type).to.equal(HdKeyType.z);
         });
     });
 });

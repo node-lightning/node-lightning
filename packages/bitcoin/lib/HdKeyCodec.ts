@@ -20,6 +20,10 @@ export class HdKeyCodec {
                 return [network, HdKeyType.y, false];
             } else if (version === network.yprvVersion) {
                 return [network, HdKeyType.y, true];
+            } else if (version === network.zpubVersion) {
+                return [network, HdKeyType.z, false];
+            } else if (version === network.zprvVersion) {
+                return [network, HdKeyType.z, true];
             }
         }
         throw new BitcoinError(BitcoinErrorCode.UnkownHdKeyVersion, version.toString());

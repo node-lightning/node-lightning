@@ -8,7 +8,8 @@ import { HdPublicKey } from "./HdPublicKey";
 import { Network } from "./Network";
 import { PrivateKey } from "./PrivateKey";
 
-const BIP49_PURPOSE = 0x80000031;
+const BIP49_PURPOSE = 0x80000031; // 49'
+const BIP84_PURPOSE = 0x80000054; // 84'
 
 /**
  * Represnts a hierarchical deterministic extended private key as defined
@@ -69,9 +70,14 @@ export class HdPrivateKey {
             nums.push(num);
         }
 
-        // if the `purpose` path is 49', the type is y
+        // attempt to detect the type if one was not supplied...
         if (!type) {
-            if (nums[0] && nums[0] === BIP49_PURPOSE) {
+            // purpose is 84', type is z
+            if (nums[0] && nums[0] === BIP84_PURPOSE) {
+                type = HdKeyType.z;
+            }
+            // purpose is 49', type is y
+            else if (nums[0] && nums[0] === BIP49_PURPOSE) {
                 type = HdKeyType.y;
             }
             // otherwise it's x
@@ -214,6 +220,8 @@ export class HdPrivateKey {
                 return this.network.xprvVersion;
             case HdKeyType.y:
                 return this.network.yprvVersion;
+            case HdKeyType.z:
+                return this.network.zprvVersion;
         }
     }
 

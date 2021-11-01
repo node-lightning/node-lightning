@@ -97,6 +97,8 @@ export class HdPublicKey {
                 return this.network.xpubVersion;
             case HdKeyType.y:
                 return this.network.ypubVersion;
+            case HdKeyType.z:
+                return this.network.zpubVersion;
         }
     }
 
@@ -217,6 +219,8 @@ export class HdPublicKey {
                     this.network.p2shPrefix,
                     Script.p2wpkhLock(pubkeyhash).hash160(),
                 );
+            case HdKeyType.z:
+                return Address.encodeSegwit(this.network.p2wpkhPrefix, 0, pubkeyhash);
         }
     }
 }
