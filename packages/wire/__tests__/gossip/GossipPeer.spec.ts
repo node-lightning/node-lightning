@@ -6,13 +6,7 @@ import { ILogger } from "@node-lightning/logger";
 import { expect } from "chai";
 import sinon from "sinon";
 import { Duplex } from "stream";
-import {
-    GossipFilter,
-    GossipMemoryStore,
-    GossipPeer,
-    WireError,
-    WireErrorCode,
-} from "../../lib";
+import { GossipFilter, GossipMemoryStore, GossipPeer, WireError, WireErrorCode } from "../../lib";
 import { IWireMessage } from "../../lib";
 import { InitFeatureFlags } from "../../lib/flags/InitFeatureFlags";
 import { Peer } from "../../lib/Peer";

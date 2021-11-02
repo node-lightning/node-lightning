@@ -17,6 +17,5 @@ describe("ConsoleTransport", () => {
             const actual = fs.readFileSync(filePath, { encoding: "utf8" });
             expect(actual).to.equal("hello\n");
         });
-
     });
 });
