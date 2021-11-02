@@ -1,3 +1,4 @@
+import { Network } from ".";
 import { Base58Check } from "./Base58Check";
 
 export type WifDecodeResult = {
@@ -27,9 +28,9 @@ export class Wif {
      * @param compressed default of true
      * @param testnet default of false
      */
-    public static encode(privateKey: Buffer, compressed: boolean = true, testnet: boolean = false) {
+    public static encode(network: Network, privateKey: Buffer, compressed: boolean = true) {
         // 1. prefix
-        const prefix = Buffer.from([testnet ? 0xef : 0x80]);
+        const prefix = Buffer.from([network.wifPrefix]);
 
         // 2. encode as 32-byte big-endian number
 
@@ -47,7 +48,6 @@ export class Wif {
      *
      * The first byte is the prefix
      * The next 32-bytes are the private key
-     *
      *
      * @param buf
      */
