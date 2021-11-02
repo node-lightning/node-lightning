@@ -22,7 +22,7 @@ describe("PrivateKey", () => {
         expect(() => new PrivateKey(Buffer.alloc(16, 0x01), Network.mainnet)).to.throw();
     });
 
-    describe("toPubKey()", () => {
+    describe(".toPubKey()", () => {
         it("creates a valid pubkey", () => {
             const result = sut.toPubKey();
             expect(result.toHex(true)).to.equal(
@@ -48,6 +48,19 @@ describe("PrivateKey", () => {
         it("outputs raw value", () => {
             expect(sut.toHex()).to.equal(
                 "0101010101010101010101010101010101010101010101010101010101010101",
+            );
+        });
+    });
+
+    describe(".toWif()", () => {
+        it("outputs compressed WIF", () => {
+            expect(sut.toWif(true)).to.equal(
+                "KwFfNUhSDaASSAwtG7ssQM1uVX8RgX5GHWnnLfhfiQDigjioWXHH",
+            );
+        });
+        it("outputs uncompressed WIF", () => {
+            expect(sut.toWif(false)).to.equal(
+                "5HpjE2Hs7vjU4SN3YyPQCdhzCu92WoEeuE6PWNuiPyTu3ESGnzn",
             );
         });
     });
