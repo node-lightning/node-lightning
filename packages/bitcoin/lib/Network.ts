@@ -11,6 +11,7 @@ export class Network {
         readonly yprvVersion: number,
         readonly zpubVersion: number,
         readonly zprvVersion: number,
+        readonly wifPrefix: number,
     ) {}
 
     public isMainnet() {
@@ -42,6 +43,7 @@ const mainnet = new Network(
     0x049d7878, // yprv
     0x04b24746, // zpub
     0x04b2430c, // zprv
+    0x80, // 5 (uncompressed), K or L (compressed)
 );
 
 const testnet = new Network(
@@ -56,5 +58,6 @@ const testnet = new Network(
     0x044a4e28, // uprv
     0x045f1cf6, // vpub
     0x045f18bc, // vprv
+    0xef,
 );
 const all = [mainnet, testnet];
