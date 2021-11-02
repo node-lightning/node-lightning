@@ -1,4 +1,5 @@
 import * as crypto from "@node-lightning/crypto";
+import { Wif } from ".";
 import { BufferWriter } from "../../bufio/dist";
 import { BitcoinError } from "./BitcoinError";
 import { BitcoinErrorCode } from "./BitcoinErrorCode";
@@ -313,6 +314,14 @@ export class HdPrivateKey {
         result.chainCode = Buffer.from(this.chainCode);
         result.publicKey = this.privateKey.toPubKey();
         return result;
+    }
+
+    /**
+     * Returns the compressed WIF encoding
+     * @returns
+     */
+    public toWif(): string {
+        return this.privateKey.toWif(true);
     }
 
     /**

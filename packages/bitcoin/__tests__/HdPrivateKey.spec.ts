@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { HdKeyType } from "../lib";
+import { HdKeyType, Mnemonic } from "../lib";
 import { HdPrivateKey } from "../lib/HdPrivateKey";
 import { Network } from "../lib/Network";
 
@@ -63,6 +63,15 @@ describe("HdPrivateKey", () => {
         it("accepts incorrect z type", () => {
             const key = HdPrivateKey.fromPath("m/44'/0'/0", seed, Network.mainnet, HdKeyType.z);
             expect(key.type).to.equal(HdKeyType.z);
+        });
+    });
+
+    describe(".toWif()", () => {
+        it("encodes", async () => {
+            const seed = await Mnemonic.phraseToSeed("abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"); // prettier-ignore
+            const path = "m/84'/0'/0'/0/0";
+            const sut = HdPrivateKey.fromPath(path, seed, Network.mainnet);
+            expect(sut.toWif()).to.equal("KyZpNDKnfs94vbrwhJneDi77V6jF64PWPF8x5cdJb8ifgg2DUc9d");
         });
     });
 });
