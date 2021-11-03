@@ -110,21 +110,21 @@ describe("PublicKey", () => {
         });
     });
 
-    describe(".toLegacyAddress()", () => {
+    describe(".toP2pkhAddress()", () => {
         it("compressed", () => {
-            expect(sut.toLegacyAddress()).to.equal("1C6Rc3w25VHud3dLDamutaqfKWqhrLRTaD");
+            expect(sut.toP2pkhAddress()).to.equal("1C6Rc3w25VHud3dLDamutaqfKWqhrLRTaD");
         });
 
         it("uncompressed", () => {
-            expect(sut.toPubKey(false).toLegacyAddress()).to.equal(
+            expect(sut.toPubKey(false).toP2pkhAddress()).to.equal(
                 "1BCwRkTsYzK5aNK4sdF7Bpti3PhrkPtLc4",
             );
         });
     });
 
-    describe(".toSegwitAddress()", () => {
+    describe(".toP2wpkhAddress()", () => {
         it("creates address", () => {
-            expect(sut.toSegwitAddress()).to.equal("bc1q0xcqpzrky6eff2g52qdye53xkk9jxkvrh6yhyw");
+            expect(sut.toP2wpkhAddress()).to.equal("bc1q0xcqpzrky6eff2g52qdye53xkk9jxkvrh6yhyw");
         });
     });
 

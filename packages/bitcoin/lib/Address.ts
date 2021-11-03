@@ -18,7 +18,7 @@ export class Address {
      * @param hash
      * @returns
      */
-    public static encodeLegacy(prefix: number, hash: Buffer): string {
+    public static encodeBase58(prefix: number, hash: Buffer): string {
         if (hash.length !== 20) {
             throw new BitcoinError(BitcoinErrorCode.Hash160Invalid, { hash });
         }
@@ -34,7 +34,7 @@ export class Address {
      * @param encoded base58check encoded string
      * @returns
      */
-    public static decodeLegacy(
+    public static decodeBase58(
         encoded: string,
     ): { network: Network; prefix: number; hash: Buffer } {
         const data = Base58Check.decode(encoded);
@@ -58,9 +58,9 @@ export class Address {
      * @param program witness program
      * @returns
      */
-    public static encodeSegwit(prefix: string, version: number, program: Buffer): string {
+    public static encodeBech32(prefix: string, version: number, program: Buffer): string {
         const words = [version].concat(Bech32.bufferToWords(program, true));
-        return Bech32.encode(prefix, words);
+        return Bech32.encode(prefix, words, Bech32Version.Bech32);
     }
 
     /**
@@ -69,7 +69,7 @@ export class Address {
      * @param encoded
      * @returns
      */
-    public static decodeSegwit(
+    public static decodeBech32(
         encoded: string,
     ): { network: Network; version: number; program: Buffer } {
         const { hrp, words, version: checksum } = Bech32.decode(encoded);

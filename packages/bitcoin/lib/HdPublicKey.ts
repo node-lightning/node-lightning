@@ -213,14 +213,14 @@ export class HdPublicKey {
         const pubkeyhash = this.publicKey.hash160();
         switch (this.type) {
             case HdKeyType.x:
-                return Address.encodeLegacy(this.network.p2pkhPrefix, pubkeyhash);
+                return Address.encodeBase58(this.network.p2pkhPrefix, pubkeyhash);
             case HdKeyType.y:
-                return Address.encodeLegacy(
+                return Address.encodeBase58(
                     this.network.p2shPrefix,
                     Script.p2wpkhLock(pubkeyhash).hash160(),
                 );
             case HdKeyType.z:
-                return Address.encodeSegwit(this.network.p2wpkhPrefix, 0, pubkeyhash);
+                return Address.encodeBech32(this.network.p2wpkhPrefix, 0, pubkeyhash);
         }
     }
 }

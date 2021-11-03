@@ -1,5 +1,6 @@
 import * as crypto from "@node-lightning/crypto";
-import { PrivateKey } from ".";
+import { PrivateKey } from "./PrivateKey";
+import { Script } from "./Script";
 import { Address } from "./Address";
 import { BitcoinError } from "./BitcoinError";
 import { BitcoinErrorCode } from "./BitcoinErrorCode";
@@ -118,15 +119,15 @@ export class PublicKey {
      * Returns a P2PKH for the public key.
      * @returns Base58 encoded Bitcoin address
      */
-    public toLegacyAddress(): string {
-        return Address.encodeLegacy(this.network.p2pkhPrefix, this.hash160());
+    public toP2pkhAddress(): string {
+        return Address.encodeBase58(this.network.p2pkhPrefix, this.hash160());
     }
 
     /**
      * Returns a P2WPKH address for the public key.
      * @returns bech32 encoded segwit address
      */
-    public toSegwitAddress(): string {
-        return Address.encodeSegwit(this.network.p2wpkhPrefix, 0, this.hash160());
+    public toP2wpkhAddress(): string {
+        return Address.encodeBech32(this.network.p2wpkhPrefix, 0, this.hash160());
     }
 }
