@@ -64,7 +64,7 @@ export class PrivateKey {
      */
     public toPubKey(compressed: boolean): PublicKey {
         const result = crypto.getPublicKey(this._buffer, compressed);
-        return new PublicKey(result, this.network, compressed);
+        return new PublicKey(result, this.network);
     }
 
     /**

@@ -9,11 +9,11 @@ describe("PublicKey", () => {
     beforeEach(() => {
         const prvkey = Buffer.alloc(32, 1);
         const pubkey = crypto.getPublicKey(prvkey);
-        sut = new PublicKey(pubkey, Network.mainnet, true);
+        sut = new PublicKey(pubkey, Network.mainnet);
     });
 
     it("throws on invalid public key length", () => {
-        expect(() => new PublicKey(Buffer.alloc(1), Network.mainnet, true)).to.throw(
+        expect(() => new PublicKey(Buffer.alloc(1), Network.mainnet)).to.throw(
             "Invalid public key",
         );
     });
@@ -27,7 +27,6 @@ describe("PublicKey", () => {
                         "hex",
                     ),
                     Network.mainnet,
-                    true,
                 ),
         ).to.throw("Invalid public key");
     });
@@ -41,7 +40,6 @@ describe("PublicKey", () => {
                         "hex",
                     ),
                     Network.mainnet,
-                    true,
                 ),
         ).to.throw("Invalid public key");
     });
@@ -200,7 +198,7 @@ describe("PublicKey", () => {
         let other: PublicKey;
 
         beforeEach(() => {
-            other = new PublicKey(pubkey, Network.mainnet, true);
+            other = new PublicKey(pubkey, Network.mainnet);
         });
 
         it("adds point point correctly", () => {
@@ -222,7 +220,7 @@ describe("PublicKey", () => {
         });
 
         it("throws with invalid network", () => {
-            other = new PublicKey(pubkey, Network.testnet, true);
+            other = new PublicKey(pubkey, Network.testnet);
             expect(() => sut.add(other)).to.throw("Network mismatch");
         });
     });

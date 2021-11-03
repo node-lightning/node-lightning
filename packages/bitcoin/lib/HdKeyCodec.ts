@@ -108,7 +108,7 @@ export class HdKeyCodec {
 
             // construct and validate public key
             if (key instanceof HdPublicKey) {
-                key.publicKey = new PublicKey(rawkey, network, true);
+                key.publicKey = new PublicKey(rawkey, network);
             }
         }
         // unknown key type

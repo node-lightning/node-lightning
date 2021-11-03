@@ -23,6 +23,7 @@ export class PublicKey {
         return pubkey;
     }
 
+    public readonly compressed: boolean;
     private readonly _buffer: Buffer;
 
     /**
@@ -31,11 +32,12 @@ export class PublicKey {
      * @param buffer A valid 33-byte or 65-byte SEC encoded public key
      * @param network The corresponding network where the public key belongs
      */
-    constructor(buffer: Buffer, readonly network: Network, readonly compressed: boolean) {
+    constructor(buffer: Buffer, readonly network: Network) {
         if (!crypto.validPublicKey(buffer)) {
             throw new BitcoinError(BitcoinErrorCode.PubKeyInvalid, { key: buffer });
         }
 
+        this.compressed = buffer.length === 33;
         this._buffer = buffer;
     }
 
@@ -48,7 +50,7 @@ export class PublicKey {
      */
     public tweakAdd(tweak: Buffer) {
         const result = crypto.publicKeyTweakAdd(this._buffer, tweak, this.compressed);
-        return new PublicKey(result, this.network, this.compressed);
+        return new PublicKey(result, this.network);
     }
 
     /**
@@ -60,7 +62,7 @@ export class PublicKey {
      */
     public tweakMul(tweak: Buffer) {
         const result = crypto.publicKeyTweakMul(this._buffer, tweak, true);
-        return new PublicKey(result, this.network, this.compressed);
+        return new PublicKey(result, this.network);
     }
 
     /**
@@ -76,7 +78,7 @@ export class PublicKey {
             [this.toBuffer(), other.toBuffer()],
             this.compressed,
         );
-        return new PublicKey(result, this.network, this.compressed);
+        return new PublicKey(result, this.network);
     }
 
     /**
@@ -93,7 +95,7 @@ export class PublicKey {
      */
     public toPubKey(compressed: boolean): PublicKey {
         const buffer = crypto.convertPublicKey(this._buffer, compressed);
-        return new PublicKey(buffer, this.network, compressed);
+        return new PublicKey(buffer, this.network);
     }
 
     /**
