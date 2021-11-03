@@ -14,3 +14,13 @@ export function pbkdf2(
         });
     });
 }
+
+export function pbkdf2Sync(
+    password: Buffer,
+    salt: Buffer,
+    iterations: number,
+    keylen: number,
+    hmac: string,
+): Buffer {
+    return crypto.pbkdf2Sync(password, salt, iterations, keylen, hmac);
+}
