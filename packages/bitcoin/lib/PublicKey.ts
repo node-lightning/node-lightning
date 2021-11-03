@@ -124,6 +124,17 @@ export class PublicKey {
     }
 
     /**
+     * Returns a nested segwit addrress (P2SH-P2WPKH).
+     * @returns Base58 encoded Bitcoin address
+     */
+    public toP2nwpkhAddress(): string {
+        return Address.encodeBase58(
+            this.network.p2shPrefix,
+            Script.p2wpkhLock(this.hash160()).hash160(),
+        );
+    }
+
+    /**
      * Returns a P2WPKH address for the public key.
      * @returns bech32 encoded segwit address
      */

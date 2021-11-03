@@ -122,6 +122,12 @@ describe("PublicKey", () => {
         });
     });
 
+    describe(".toP2nwpkhAddress()", () => {
+        it("creates address", () => {
+            expect(sut.toP2nwpkhAddress()).to.equal("35LM1A29K95ADiQ8rJ9uEfVZCKffZE4D9i");
+        });
+    });
+
     describe(".toP2wpkhAddress()", () => {
         it("creates address", () => {
             expect(sut.toP2wpkhAddress()).to.equal("bc1q0xcqpzrky6eff2g52qdye53xkk9jxkvrh6yhyw");
