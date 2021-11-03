@@ -5,10 +5,21 @@ export type WifDecodeResult = {
     privateKey: Buffer;
     compressed: boolean;
     prefix: number;
-    network: Network;
 };
 
 export class Wif {
+    /**
+     * Finds the associated network for the given prefix
+     * @param prefix single byte prefix
+     * @returns
+     */
+    public static decodePrefix(prefix: number): Network {
+        for (const network of Network.all) {
+            if (network.wifPrefix === prefix) return network;
+        }
+        throw new BitcoinError(BitcoinErrorCode.UnknownWifPrefix, { prefix });
+    }
+
     /**
      * Encodes a private key using the WIF format. Can encode with compressed
      * or uncompressed format and can be for testnet or mainnet.
@@ -25,21 +36,20 @@ export class Wif {
      * 5. Do hash256 of the result from #4 and get the first 4 bytes
      * 6. Take the combination of #4 and #5 and encode it with Base58
      *
+     * @param prefix a single byte prefix, usually 0x05 for mainnet or 0xef for testnet
      * @param privateKey a 32-byte private key as a big-endian buffer
      * @param compressed default of true
-     * @param testnet default of false
      */
-    public static encode(network: Network, privateKey: Buffer, compressed: boolean = true) {
+    public static encode(prefix: number, privateKey: Buffer, compressed: boolean = true) {
         // 1. prefix
-        const prefix = Buffer.from([network.wifPrefix]);
+        const prefixBuf = Buffer.from([prefix]);
 
         // 2. encode as 32-byte big-endian number
-
         // 3. suffix
         const suffix = compressed ? Buffer.from([0x01]) : Buffer.alloc(0);
 
         // 4. combine 1, 2, and 3
-        return Base58Check.encode(Buffer.concat([prefix, privateKey, suffix]));
+        return Base58Check.encode(Buffer.concat([prefixBuf, privateKey, suffix]));
     }
 
     /**
@@ -62,14 +72,6 @@ export class Wif {
         // prefix is the first byte
         const prefix = raw[0];
 
-        // find the network
-        const network: Network = Network.all.find(p => p.wifPrefix === prefix);
-
-        // throw if not a known network
-        if (!network) {
-            throw new BitcoinError(BitcoinErrorCode.UnknownWifPrefix, { input, prefix });
-        }
-
         // next 32-bytes are the private key
         const privateKey = raw.slice(1, 33);
 
@@ -77,6 +79,6 @@ export class Wif {
         const compressed = raw.length === 34 && raw[33] === 0x01;
 
         // return our result object
-        return { privateKey, compressed, prefix, network };
+        return { privateKey, compressed, prefix };
     }
 }

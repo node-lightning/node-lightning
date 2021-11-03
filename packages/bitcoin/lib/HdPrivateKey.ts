@@ -1,5 +1,4 @@
 import * as crypto from "@node-lightning/crypto";
-import { Wif } from ".";
 import { BufferWriter } from "../../bufio/dist";
 import { BitcoinError } from "./BitcoinError";
 import { BitcoinErrorCode } from "./BitcoinErrorCode";

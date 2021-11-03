@@ -54,7 +54,7 @@ export class PrivateKey {
      * Converts the private key to WIF
      */
     public toWif(compressed: boolean): string {
-        return Wif.encode(this.network, this._buffer, compressed);
+        return Wif.encode(this.network.wifPrefix, this._buffer, compressed);
     }
 
     /**
