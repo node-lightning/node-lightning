@@ -1,4 +1,5 @@
 import * as crypto from "@node-lightning/crypto";
+import { PrivateKey } from ".";
 import { Address } from "./Address";
 import { BitcoinError } from "./BitcoinError";
 import { BitcoinErrorCode } from "./BitcoinErrorCode";
@@ -11,6 +12,16 @@ import { Network } from "./Network";
  * and uncompressed format.
  */
 export class PublicKey {
+    /**
+     * Returns the public key associated with the WIF input
+     * @param input WIF encoded private key
+     * @returns public key assocated with the WIF encoding
+     */
+    public static fromWif(input: string): PublicKey {
+        const [, pubkey] = PrivateKey.fromWif(input);
+        return pubkey;
+    }
+
     private readonly _buffer: Buffer;
 
     /**

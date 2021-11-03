@@ -12,6 +12,23 @@ import { PublicKey } from "./PublicKey";
  * that is a private key for the secp256k1 elliptic curve.
  */
 export class PrivateKey {
+    /**
+     * Decodes a WIF encoded string into the private key as well as the
+     * public key. The inclusion of the public key allows us to capture
+     * if the public key was compressed.
+     * @param input WIF encoded string
+     * @returns A tuple of the private key and public key
+     * @throw {@link BitcoinError} Throws for invalid network prefix or
+     * invalid private or public keys.
+     */
+    public static fromWif(input: string): [PrivateKey, PublicKey] {
+        const decoded = Wif.decode(input);
+        const network = Wif.decodePrefix(decoded.prefix);
+        const prvkey = new PrivateKey(decoded.privateKey, network);
+        const pubkey = prvkey.toPubKey(decoded.compressed);
+        return [prvkey, pubkey];
+    }
+
     private _buffer: Buffer;
 
     /**

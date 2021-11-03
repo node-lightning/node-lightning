@@ -46,6 +46,20 @@ describe("PublicKey", () => {
         ).to.throw("Invalid public key");
     });
 
+    describe(".fromWif()", () => {
+        it("returns private key and compressed public key", () => {
+            const pub = PublicKey.fromWif("cMahea7zqjxrtgAbB7LSGbcQUr1uX1ojuat9jZodMN8rFTv2sfUK"); // prettier-ignore
+            expect(pub.compressed).to.equal(true);
+            expect(pub.toHex()).to.equal("024f9b48f0ae9df11070c4c5ae2b012cd64599063e5bd32b5443548b786a06db2a"); // prettier-ignore
+        });
+
+        it("returns private key and uncompressed public key", () => {
+            const pub = PublicKey.fromWif("91avARGdfge8E4tZfYLoxeJ5sGBdNJQH4kvjpWAxgzczjbCwxic"); // prettier-ignore
+            expect(pub.compressed).to.equal(false);
+            expect(pub.toHex()).to.equal("041d19a0e39a4e089c8473df05f305b6c936f19219a8c708218b143f01a633514771a1eeefb15ab6b1aa4540dd09b11e8f74d80e845765faddd53350270fde33de"); // prettier-ignore
+        });
+    });
+
     describe(".toBuffer()", () => {
         it("compressed", () => {
             expect(sut.toBuffer().toString("hex")).to.equal(
