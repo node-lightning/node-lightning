@@ -58,6 +58,11 @@ function getMessage(code: BitcoinErrorCode) {
             return "Unknown mnemonic word";
         case BitcoinErrorCode.InvalidMnemonicChecksum:
             return "Mnemonic checksum failed";
+
+        case BitcoinErrorCode.InvalidWifEncoding:
+            return "Invalid WIF encoding";
+        case BitcoinErrorCode.UnknownWifPrefix:
+            return "Unknown WIF prefix";
     }
 }
 

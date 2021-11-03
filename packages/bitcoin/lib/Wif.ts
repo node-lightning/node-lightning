@@ -1,9 +1,11 @@
+import { BitcoinError, BitcoinErrorCode, Network } from ".";
 import { Base58Check } from "./Base58Check";
 
 export type WifDecodeResult = {
     privateKey: Buffer;
     compressed: boolean;
     prefix: number;
+    network: Network;
 };
 
 export class Wif {
@@ -27,9 +29,9 @@ export class Wif {
      * @param compressed default of true
      * @param testnet default of false
      */
-    public static encode(privateKey: Buffer, compressed: boolean = true, testnet: boolean = false) {
+    public static encode(network: Network, privateKey: Buffer, compressed: boolean = true) {
         // 1. prefix
-        const prefix = Buffer.from([testnet ? 0xef : 0x80]);
+        const prefix = Buffer.from([network.wifPrefix]);
 
         // 2. encode as 32-byte big-endian number
 
@@ -48,18 +50,25 @@ export class Wif {
      * The first byte is the prefix
      * The next 32-bytes are the private key
      *
-     *
      * @param buf
      */
     public static decode(input: string): WifDecodeResult {
         const raw = Base58Check.decode(input);
 
         if (raw.length !== 33 && raw.length !== 34) {
-            throw new Error("Invalid WIF encoding");
+            throw new BitcoinError(BitcoinErrorCode.InvalidWifEncoding, { input });
         }
 
         // prefix is the first byte
         const prefix = raw[0];
+
+        // find the network
+        const network: Network = Network.all.find(p => p.wifPrefix === prefix);
+
+        // throw if not a known network
+        if (!network) {
+            throw new BitcoinError(BitcoinErrorCode.UnknownWifPrefix, { input, prefix });
+        }
 
         // next 32-bytes are the private key
         const privateKey = raw.slice(1, 33);
@@ -68,6 +77,6 @@ export class Wif {
         const compressed = raw.length === 34 && raw[33] === 0x01;
 
         // return our result object
-        return { privateKey, compressed, prefix };
+        return { privateKey, compressed, prefix, network };
     }
 }

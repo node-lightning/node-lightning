@@ -34,4 +34,8 @@ export enum BitcoinErrorCode {
     InvalidMnemonicEntropy,
     InvalidMnemonicWord,
     InvalidMnemonicChecksum,
+
+    // WIF
+    InvalidWifEncoding,
+    UnknownWifPrefix,
 }
