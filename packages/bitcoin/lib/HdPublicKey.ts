@@ -123,7 +123,7 @@ export class HdPublicKey {
      */
     public get fingerprint(): Buffer {
         if (!this._fingerprint) {
-            this._fingerprint = crypto.hash160(this.publicKey.toBuffer(true));
+            this._fingerprint = crypto.hash160(this.publicKey.toBuffer());
         }
         return this._fingerprint;
     }
@@ -160,7 +160,7 @@ export class HdPublicKey {
         }
 
         const data = new BufferWriter(Buffer.alloc(37));
-        data.writeBytes(this.publicKey.toBuffer(true));
+        data.writeBytes(this.publicKey.toBuffer());
         data.writeUInt32BE(i);
 
         const l = crypto.hmac(this.chainCode, data.toBuffer());
@@ -206,21 +206,20 @@ export class HdPublicKey {
     }
 
     /**
-     *
-     * @returns
+     * Returns the address encoded according to the type of HD key.
+     * For x-type this returns a base58 encoded P2PKH address.
+     * For y-type this returns a base58 encoded P2SH-P2WPKH address.
+     * For z-type this returns a bech32 encoded P2WPKH address.
+     * @returns encoded address
      */
     public toAddress(): string {
-        const pubkeyhash = this.publicKey.hash160(true);
         switch (this.type) {
             case HdKeyType.x:
-                return Address.encodeLegacy(this.network.p2pkhPrefix, pubkeyhash);
+                return this.publicKey.toP2pkhAddress();
             case HdKeyType.y:
-                return Address.encodeLegacy(
-                    this.network.p2shPrefix,
-                    Script.p2wpkhLock(pubkeyhash).hash160(),
-                );
+                return this.publicKey.toP2nwpkhAddress();
             case HdKeyType.z:
-                return Address.encodeSegwit(this.network.p2wpkhPrefix, 0, pubkeyhash);
+                return this.publicKey.toP2wpkhAddress();
         }
     }
 }

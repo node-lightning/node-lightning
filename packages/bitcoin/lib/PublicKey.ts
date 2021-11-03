@@ -1,4 +1,6 @@
 import * as crypto from "@node-lightning/crypto";
+import { PrivateKey } from "./PrivateKey";
+import { Script } from "./Script";
 import { Address } from "./Address";
 import { BitcoinError } from "./BitcoinError";
 import { BitcoinErrorCode } from "./BitcoinErrorCode";
@@ -11,6 +13,16 @@ import { Network } from "./Network";
  * and uncompressed format.
  */
 export class PublicKey {
+    /**
+     * Returns the public key associated with the WIF input
+     * @param input WIF encoded private key
+     * @returns public key assocated with the WIF encoding
+     */
+    public static fromWif(input: string): PublicKey {
+        const [, pubkey] = PrivateKey.fromWif(input);
+        return pubkey;
+    }
+
     private readonly _buffer: Buffer;
 
     /**
@@ -19,7 +31,7 @@ export class PublicKey {
      * @param buffer A valid 33-byte or 65-byte SEC encoded public key
      * @param network The corresponding network where the public key belongs
      */
-    constructor(buffer: Buffer, readonly network: Network) {
+    constructor(buffer: Buffer, readonly network: Network, readonly compressed: boolean) {
         if (!crypto.validPublicKey(buffer)) {
             throw new BitcoinError(BitcoinErrorCode.PubKeyInvalid, { key: buffer });
         }
@@ -35,8 +47,8 @@ export class PublicKey {
      * @returns a new instance of PublicKey containing the tweaked value
      */
     public tweakAdd(tweak: Buffer) {
-        const result = crypto.publicKeyTweakAdd(this._buffer, tweak, true);
-        return new PublicKey(result, this.network);
+        const result = crypto.publicKeyTweakAdd(this._buffer, tweak, this.compressed);
+        return new PublicKey(result, this.network, this.compressed);
     }
 
     /**
@@ -48,7 +60,7 @@ export class PublicKey {
      */
     public tweakMul(tweak: Buffer) {
         const result = crypto.publicKeyTweakMul(this._buffer, tweak, true);
-        return new PublicKey(result, this.network);
+        return new PublicKey(result, this.network, this.compressed);
     }
 
     /**
@@ -60,53 +72,73 @@ export class PublicKey {
         if (this.network !== other.network) {
             throw new BitcoinError(BitcoinErrorCode.NetworkMismatch, { me: this, other });
         }
-        const result = crypto.publicKeyCombine([this.toBuffer(true), other.toBuffer(true)], true);
-        return new PublicKey(result, this.network);
+        const result = crypto.publicKeyCombine(
+            [this.toBuffer(), other.toBuffer()],
+            this.compressed,
+        );
+        return new PublicKey(result, this.network, this.compressed);
     }
 
     /**
      * Returns the hash160 of the public key
-     * @param compressed
      * @returns 20-byte hash160 of the public key
      */
-    public hash160(compressed: boolean): Buffer {
-        return crypto.hash160(this.toBuffer(compressed));
+    public hash160(): Buffer {
+        return crypto.hash160(this.toBuffer());
+    }
+
+    /**
+     * Convert the public key to compressed or uncompressed.
+     * @param compressed
+     */
+    public toPubKey(compressed: boolean): PublicKey {
+        const buffer = crypto.convertPublicKey(this._buffer, compressed);
+        return new PublicKey(buffer, this.network, compressed);
     }
 
     /**
      * Serializes the PublicKey instance into a 33-byte or 65-byte SEC
-     * encoded buffer.
-     * @param compressed
+     * encoded buffer depending on whether the public key is compressed
+     * or uncompressed.
      * @returns 33-byte or 65-byte buffer
      */
-    public toBuffer(compressed: boolean = true): Buffer {
-        return crypto.convertPublicKey(this._buffer, compressed);
+    public toBuffer(): Buffer {
+        return Buffer.from(this._buffer);
     }
 
     /**
      * Serializes the PublicKey instance nito a 33-byte or 65-byte SEC
      * encoded hex value.
-     * @param compressed
      * @returns
      */
-    public toHex(compressed: boolean = true): string {
-        return this.toBuffer(compressed).toString("hex");
+    public toHex(): string {
+        return this.toBuffer().toString("hex");
     }
 
     /**
      * Returns a P2PKH for the public key.
-     * @param compressed
      * @returns Base58 encoded Bitcoin address
      */
-    public toLegacyAddress(compressed: boolean): string {
-        return Address.encodeLegacy(this.network.p2pkhPrefix, this.hash160(compressed));
+    public toP2pkhAddress(): string {
+        return Address.encodeBase58(this.network.p2pkhPrefix, this.hash160());
+    }
+
+    /**
+     * Returns a nested segwit addrress (P2SH-P2WPKH).
+     * @returns Base58 encoded Bitcoin address
+     */
+    public toP2nwpkhAddress(): string {
+        return Address.encodeBase58(
+            this.network.p2shPrefix,
+            Script.p2wpkhLock(this.hash160()).hash160(),
+        );
     }
 
     /**
      * Returns a P2WPKH address for the public key.
      * @returns bech32 encoded segwit address
      */
-    public toSegwitAddress(): string {
-        return Address.encodeSegwit(this.network.p2wpkhPrefix, 0, this.hash160(true));
+    public toP2wpkhAddress(): string {
+        return Address.encodeBech32(this.network.p2wpkhPrefix, 0, this.hash160());
     }
 }

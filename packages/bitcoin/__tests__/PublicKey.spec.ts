@@ -9,11 +9,11 @@ describe("PublicKey", () => {
     beforeEach(() => {
         const prvkey = Buffer.alloc(32, 1);
         const pubkey = crypto.getPublicKey(prvkey);
-        sut = new PublicKey(pubkey, Network.mainnet);
+        sut = new PublicKey(pubkey, Network.mainnet, true);
     });
 
     it("throws on invalid public key length", () => {
-        expect(() => new PublicKey(Buffer.alloc(1), Network.mainnet)).to.throw(
+        expect(() => new PublicKey(Buffer.alloc(1), Network.mainnet, true)).to.throw(
             "Invalid public key",
         );
     });
@@ -27,6 +27,7 @@ describe("PublicKey", () => {
                         "hex",
                     ),
                     Network.mainnet,
+                    true,
                 ),
         ).to.throw("Invalid public key");
     });
@@ -40,19 +41,39 @@ describe("PublicKey", () => {
                         "hex",
                     ),
                     Network.mainnet,
+                    true,
                 ),
         ).to.throw("Invalid public key");
     });
 
+    describe(".fromWif()", () => {
+        it("returns private key and compressed public key", () => {
+            const pub = PublicKey.fromWif("cMahea7zqjxrtgAbB7LSGbcQUr1uX1ojuat9jZodMN8rFTv2sfUK"); // prettier-ignore
+            expect(pub.compressed).to.equal(true);
+            expect(pub.toHex()).to.equal("024f9b48f0ae9df11070c4c5ae2b012cd64599063e5bd32b5443548b786a06db2a"); // prettier-ignore
+        });
+
+        it("returns private key and uncompressed public key", () => {
+            const pub = PublicKey.fromWif("91avARGdfge8E4tZfYLoxeJ5sGBdNJQH4kvjpWAxgzczjbCwxic"); // prettier-ignore
+            expect(pub.compressed).to.equal(false);
+            expect(pub.toHex()).to.equal("041d19a0e39a4e089c8473df05f305b6c936f19219a8c708218b143f01a633514771a1eeefb15ab6b1aa4540dd09b11e8f74d80e845765faddd53350270fde33de"); // prettier-ignore
+        });
+    });
+
     describe(".toBuffer()", () => {
         it("compressed", () => {
-            expect(sut.toBuffer(true).toString("hex")).to.equal(
+            expect(sut.toBuffer().toString("hex")).to.equal(
                 "031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f",
             );
         });
 
         it("uncompressed", () => {
-            expect(sut.toBuffer(false).toString("hex")).to.equal(
+            expect(
+                sut
+                    .toPubKey(false)
+                    .toBuffer()
+                    .toString("hex"),
+            ).to.equal(
                 "041b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f70beaf8f588b541507fed6a642c5ab42dfdf8120a7f639de5122d47a69a8e8d1",
             );
         });
@@ -60,13 +81,13 @@ describe("PublicKey", () => {
 
     describe(".toHex()", () => {
         it("compressed", () => {
-            expect(sut.toHex(true)).to.equal(
+            expect(sut.toHex()).to.equal(
                 "031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f",
             );
         });
 
         it("uncompressed", () => {
-            expect(sut.toHex(false)).to.equal(
+            expect(sut.toPubKey(false).toHex()).to.equal(
                 "041b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f70beaf8f588b541507fed6a642c5ab42dfdf8120a7f639de5122d47a69a8e8d1",
             );
         });
@@ -74,31 +95,42 @@ describe("PublicKey", () => {
 
     describe(".hash160()", () => {
         it("compressed", () => {
-            expect(sut.hash160(true).toString("hex")).to.equal(
+            expect(sut.hash160().toString("hex")).to.equal(
                 "79b000887626b294a914501a4cd226b58b235983",
             );
         });
 
         it("uncompressed", () => {
-            expect(sut.hash160(false).toString("hex")).to.equal(
-                "6ff3443c994fb2c821969dae53bd5b5052d8394f",
+            expect(
+                sut
+                    .toPubKey(false)
+                    .hash160()
+                    .toString("hex"),
+            ).to.equal("6ff3443c994fb2c821969dae53bd5b5052d8394f");
+        });
+    });
+
+    describe(".toP2pkhAddress()", () => {
+        it("compressed", () => {
+            expect(sut.toP2pkhAddress()).to.equal("1C6Rc3w25VHud3dLDamutaqfKWqhrLRTaD");
+        });
+
+        it("uncompressed", () => {
+            expect(sut.toPubKey(false).toP2pkhAddress()).to.equal(
+                "1BCwRkTsYzK5aNK4sdF7Bpti3PhrkPtLc4",
             );
         });
     });
 
-    describe(".toLegacyAddress()", () => {
-        it("compressed", () => {
-            expect(sut.toLegacyAddress(true)).to.equal("1C6Rc3w25VHud3dLDamutaqfKWqhrLRTaD");
-        });
-
-        it("uncompressed", () => {
-            expect(sut.toLegacyAddress(false)).to.equal("1BCwRkTsYzK5aNK4sdF7Bpti3PhrkPtLc4");
+    describe(".toP2nwpkhAddress()", () => {
+        it("creates address", () => {
+            expect(sut.toP2nwpkhAddress()).to.equal("35LM1A29K95ADiQ8rJ9uEfVZCKffZE4D9i");
         });
     });
 
-    describe(".toSegwitAddress()", () => {
+    describe(".toP2wpkhAddress()", () => {
         it("creates address", () => {
-            expect(sut.toSegwitAddress()).to.equal("bc1q0xcqpzrky6eff2g52qdye53xkk9jxkvrh6yhyw");
+            expect(sut.toP2wpkhAddress()).to.equal("bc1q0xcqpzrky6eff2g52qdye53xkk9jxkvrh6yhyw");
         });
     });
 
@@ -168,7 +200,7 @@ describe("PublicKey", () => {
         let other: PublicKey;
 
         beforeEach(() => {
-            other = new PublicKey(pubkey, Network.mainnet);
+            other = new PublicKey(pubkey, Network.mainnet, true);
         });
 
         it("adds point point correctly", () => {
@@ -190,7 +222,7 @@ describe("PublicKey", () => {
         });
 
         it("throws with invalid network", () => {
-            other = new PublicKey(pubkey, Network.testnet);
+            other = new PublicKey(pubkey, Network.testnet, true);
             expect(() => sut.add(other)).to.throw("Network mismatch");
         });
     });
