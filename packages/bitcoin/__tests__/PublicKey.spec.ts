@@ -9,11 +9,11 @@ describe("PublicKey", () => {
     beforeEach(() => {
         const prvkey = Buffer.alloc(32, 1);
         const pubkey = crypto.getPublicKey(prvkey);
-        sut = new PublicKey(pubkey, Network.mainnet);
+        sut = new PublicKey(pubkey, Network.mainnet, true);
     });
 
     it("throws on invalid public key length", () => {
-        expect(() => new PublicKey(Buffer.alloc(1), Network.mainnet)).to.throw(
+        expect(() => new PublicKey(Buffer.alloc(1), Network.mainnet, true)).to.throw(
             "Invalid public key",
         );
     });
@@ -27,6 +27,7 @@ describe("PublicKey", () => {
                         "hex",
                     ),
                     Network.mainnet,
+                    true,
                 ),
         ).to.throw("Invalid public key");
     });
@@ -40,19 +41,25 @@ describe("PublicKey", () => {
                         "hex",
                     ),
                     Network.mainnet,
+                    true,
                 ),
         ).to.throw("Invalid public key");
     });
 
     describe(".toBuffer()", () => {
         it("compressed", () => {
-            expect(sut.toBuffer(true).toString("hex")).to.equal(
+            expect(sut.toBuffer().toString("hex")).to.equal(
                 "031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f",
             );
         });
 
         it("uncompressed", () => {
-            expect(sut.toBuffer(false).toString("hex")).to.equal(
+            expect(
+                sut
+                    .toPubKey(false)
+                    .toBuffer()
+                    .toString("hex"),
+            ).to.equal(
                 "041b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f70beaf8f588b541507fed6a642c5ab42dfdf8120a7f639de5122d47a69a8e8d1",
             );
         });
@@ -60,13 +67,13 @@ describe("PublicKey", () => {
 
     describe(".toHex()", () => {
         it("compressed", () => {
-            expect(sut.toHex(true)).to.equal(
+            expect(sut.toHex()).to.equal(
                 "031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f",
             );
         });
 
         it("uncompressed", () => {
-            expect(sut.toHex(false)).to.equal(
+            expect(sut.toPubKey(false).toHex()).to.equal(
                 "041b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f70beaf8f588b541507fed6a642c5ab42dfdf8120a7f639de5122d47a69a8e8d1",
             );
         });
@@ -74,25 +81,30 @@ describe("PublicKey", () => {
 
     describe(".hash160()", () => {
         it("compressed", () => {
-            expect(sut.hash160(true).toString("hex")).to.equal(
+            expect(sut.hash160().toString("hex")).to.equal(
                 "79b000887626b294a914501a4cd226b58b235983",
             );
         });
 
         it("uncompressed", () => {
-            expect(sut.hash160(false).toString("hex")).to.equal(
-                "6ff3443c994fb2c821969dae53bd5b5052d8394f",
-            );
+            expect(
+                sut
+                    .toPubKey(false)
+                    .hash160()
+                    .toString("hex"),
+            ).to.equal("6ff3443c994fb2c821969dae53bd5b5052d8394f");
         });
     });
 
     describe(".toLegacyAddress()", () => {
         it("compressed", () => {
-            expect(sut.toLegacyAddress(true)).to.equal("1C6Rc3w25VHud3dLDamutaqfKWqhrLRTaD");
+            expect(sut.toLegacyAddress()).to.equal("1C6Rc3w25VHud3dLDamutaqfKWqhrLRTaD");
         });
 
         it("uncompressed", () => {
-            expect(sut.toLegacyAddress(false)).to.equal("1BCwRkTsYzK5aNK4sdF7Bpti3PhrkPtLc4");
+            expect(sut.toPubKey(false).toLegacyAddress()).to.equal(
+                "1BCwRkTsYzK5aNK4sdF7Bpti3PhrkPtLc4",
+            );
         });
     });
 
@@ -168,7 +180,7 @@ describe("PublicKey", () => {
         let other: PublicKey;
 
         beforeEach(() => {
-            other = new PublicKey(pubkey, Network.mainnet);
+            other = new PublicKey(pubkey, Network.mainnet, true);
         });
 
         it("adds point point correctly", () => {
@@ -190,7 +202,7 @@ describe("PublicKey", () => {
         });
 
         it("throws with invalid network", () => {
-            other = new PublicKey(pubkey, Network.testnet);
+            other = new PublicKey(pubkey, Network.testnet, true);
             expect(() => sut.add(other)).to.throw("Network mismatch");
         });
     });

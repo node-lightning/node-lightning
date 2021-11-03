@@ -123,7 +123,7 @@ export class HdPublicKey {
      */
     public get fingerprint(): Buffer {
         if (!this._fingerprint) {
-            this._fingerprint = crypto.hash160(this.publicKey.toBuffer(true));
+            this._fingerprint = crypto.hash160(this.publicKey.toBuffer());
         }
         return this._fingerprint;
     }
@@ -160,7 +160,7 @@ export class HdPublicKey {
         }
 
         const data = new BufferWriter(Buffer.alloc(37));
-        data.writeBytes(this.publicKey.toBuffer(true));
+        data.writeBytes(this.publicKey.toBuffer());
         data.writeUInt32BE(i);
 
         const l = crypto.hmac(this.chainCode, data.toBuffer());
@@ -210,7 +210,7 @@ export class HdPublicKey {
      * @returns
      */
     public toAddress(): string {
-        const pubkeyhash = this.publicKey.hash160(true);
+        const pubkeyhash = this.publicKey.hash160();
         switch (this.type) {
             case HdKeyType.x:
                 return Address.encodeLegacy(this.network.p2pkhPrefix, pubkeyhash);

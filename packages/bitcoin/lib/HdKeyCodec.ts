@@ -108,7 +108,7 @@ export class HdKeyCodec {
 
             // construct and validate public key
             if (key instanceof HdPublicKey) {
-                key.publicKey = new PublicKey(rawkey, network);
+                key.publicKey = new PublicKey(rawkey, network, true);
             }
         }
         // unknown key type
@@ -164,7 +164,7 @@ export class HdKeyCodec {
             w.writeUInt8(0);
             w.writeBytes(key.privateKey.toBuffer());
         } else {
-            w.writeBytes(key.publicKey.toBuffer(true));
+            w.writeBytes(key.publicKey.toBuffer());
         }
 
         const buf = w.toBuffer();

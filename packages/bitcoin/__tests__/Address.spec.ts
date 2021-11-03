@@ -21,7 +21,7 @@ describe("Address", () => {
             );
             const address = Address.encodeLegacy(
                 Network.mainnet.p2pkhPrefix,
-                prvKey.toPubKey().hash160(false),
+                prvKey.toPubKey(false).hash160(),
             );
             expect(address).to.equal("1EHNa6Q4Jz2uvNExL497mE43ikXhwF6kZm");
         });
@@ -36,7 +36,7 @@ describe("Address", () => {
             );
             const address = Address.encodeLegacy(
                 Network.mainnet.p2pkhPrefix,
-                prvKey.toPubKey().hash160(true),
+                prvKey.toPubKey(true).hash160(),
             );
             expect(address).to.equal("1BgGZ9tcN4rm9KBzDn7KprQz87SZ26SAMH");
         });
@@ -82,8 +82,8 @@ describe("Address", () => {
                     ),
                     Network.mainnet,
                 )
-                    .toPubKey()
-                    .hash160(true)
+                    .toPubKey(true)
+                    .hash160()
                     .toString("hex"),
             );
         });
@@ -110,7 +110,7 @@ describe("Address", () => {
                 ),
                 Network.mainnet,
             );
-            const program = prvKey.toPubKey().hash160(true);
+            const program = prvKey.toPubKey(true).hash160();
             const address = Address.encodeSegwit(Network.mainnet.p2wpkhPrefix, 0, program);
             expect(address).to.equal("bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4");
         });

@@ -238,7 +238,7 @@ export class HdPrivateKey {
      */
     public get fingerprint(): Buffer {
         if (!this._fingerprint) {
-            this._fingerprint = crypto.hash160(this.privateKey.toPubKey().toBuffer(true));
+            this._fingerprint = crypto.hash160(this.privateKey.toPubKey(true).toBuffer());
         }
         return this._fingerprint;
     }
@@ -270,7 +270,7 @@ export class HdPrivateKey {
         }
         // normal child
         else {
-            data.writeBytes(this.privateKey.toPubKey().toBuffer(true));
+            data.writeBytes(this.privateKey.toPubKey(true).toBuffer());
             data.writeUInt32BE(i);
         }
 
@@ -311,7 +311,7 @@ export class HdPrivateKey {
         result.number = this.number;
         result.parentFingerprint = Buffer.from(this.parentFingerprint);
         result.chainCode = Buffer.from(this.chainCode);
-        result.publicKey = this.privateKey.toPubKey();
+        result.publicKey = this.privateKey.toPubKey(true);
         return result;
     }
 

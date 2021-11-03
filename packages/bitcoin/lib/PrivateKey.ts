@@ -45,9 +45,9 @@ export class PrivateKey {
     /**
      * Converts the private key into the corresponding public key
      */
-    public toPubKey(): PublicKey {
-        const result = crypto.getPublicKey(this._buffer, true);
-        return new PublicKey(result, this.network);
+    public toPubKey(compressed: boolean): PublicKey {
+        const result = crypto.getPublicKey(this._buffer, compressed);
+        return new PublicKey(result, this.network, compressed);
     }
 
     /**

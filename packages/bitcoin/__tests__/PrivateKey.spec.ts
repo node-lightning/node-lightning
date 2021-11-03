@@ -24,14 +24,14 @@ describe("PrivateKey", () => {
 
     describe(".toPubKey()", () => {
         it("creates a valid pubkey", () => {
-            const result = sut.toPubKey();
-            expect(result.toHex(true)).to.equal(
+            const result = sut.toPubKey(true);
+            expect(result.toHex()).to.equal(
                 "031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f",
             );
         });
 
         it("maintains the network", () => {
-            const result = sut.toPubKey();
+            const result = sut.toPubKey(true);
             expect(result.network).to.equal(sut.network);
         });
     });
