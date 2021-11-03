@@ -13,8 +13,8 @@ describe("Mnemonic", () => {
                     it(`${phrase.substring(0, 32).padEnd(32, " ")}... => ${seedHex.substring(
                         0,
                         32,
-                    )}...`, async () => {
-                        const seed = await Mnemonic.phraseToSeed(phrase, "TREZOR");
+                    )}...`, () => {
+                        const seed = Mnemonic.phraseToSeed(phrase, "TREZOR");
                         const masterkey = HdPrivateKey.fromSeed(seed, Network.mainnet);
                         expect(seed.toString("hex")).to.equal(seedHex);
                         expect(masterkey.encode()).to.equal(xprv);

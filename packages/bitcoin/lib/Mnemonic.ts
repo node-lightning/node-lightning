@@ -1,6 +1,5 @@
-import { sha256, pbkdf2 } from "@node-lightning/crypto";
+import { sha256, pbkdf2Sync } from "@node-lightning/crypto";
 import { EnglishWordList } from "./MnemonicWordLists";
-import { bigFromBufBE } from "../../bufio/dist";
 import { BitcoinError } from "./BitcoinError";
 import { BitcoinErrorCode } from "./BitcoinErrorCode";
 
@@ -33,10 +32,10 @@ export class Mnemonic {
      *
      * @returns
      */
-    public static phraseToSeed(phrase: string, password?: string): Promise<Buffer> {
+    public static phraseToSeed(phrase: string, password?: string): Buffer {
         const key = Buffer.from(phrase.normalize("NFKD"), "utf-8");
         const salt = Buffer.from(("mnemonic" + (password || "")).normalize("NFKD"), "utf-8");
-        return pbkdf2(key, salt, 2048, 64, "sha512");
+        return pbkdf2Sync(key, salt, 2048, 64, "sha512");
     }
 
     /**
