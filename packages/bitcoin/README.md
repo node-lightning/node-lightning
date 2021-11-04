@@ -2,6 +2,97 @@
 
 This package provides common Bitcoin functionality and does not rely on third party libraries.
 
+## Basic Keys
+
+### PrivateKey
+
+The `PrivateKey` type encapsulates a 32-byte buffer that represents a private key
+in the secp256k1 elliptic curve used by Bitcoin. The key corresponds to
+a network which allows for proper encoding/decoding of keys in various
+formats. This class also includes methods for key tweaks, serialization
+to/from WIF, and creation of its public key.
+
+```typescript
+import { PrivateKey } from "@node-lightning/bitcoin";
+
+const buf = Buffer.alloc(32, 0x01);
+const key = new PrivateKey(buf, Network.mainnet);
+
+// converts to a buffer
+// 0101010101010101010101010101010101010101010101010101010101010101
+key.toBuffer();
+
+// converts to a hex string
+// 0101010101010101010101010101010101010101010101010101010101010101
+key.toHex();
+
+// converts to WIF uncompressed
+// 5HpjE2Hs7vjU4SN3YyPQCdhzCu92WoEeuE6PWNuiPyTu3ESGnzn
+key.toWif(false);
+```
+
+A private key supports add and multiply tweaks
+
+```typescript
+import { PrivateKey } from "@node-lightning/bitcoin";
+
+const buf = Buffer.alloc(32, 0x01);
+const key = new PrivateKey(buf, Network.mainnet);
+const tweak2 = Buffer.from(
+    "0000000000000000000000000000000000000000000000000000000000000002",
+    "hex",
+);
+
+// additive tweak generates a new PrivateKey instance
+// 0101010101010101010101010101010101010101010101010101010101010103
+const addkey = key.tweakAdd(tweak2);
+
+// multiplicative tweak generates a new PrivateKey instance
+// 0202020202020202020202020202020202020202020202020202020202020202
+const mulkey = key.tweakMul(tweak2);
+```
+
+A private key can be encoded into WIF:
+
+```typescript
+// encode to WIF
+const buf = Buffer.alloc(32, 0x01);
+const key = new PrivateKey(buf, Network.mainnet);
+
+// Can encode compressed or uncompressed based on the parameter
+// KwFfNUhSDaASSAwtG7ssQM1uVX8RgX5GHWnnLfhfiQDigjioWXHH
+key.toWIF(true);
+
+// converts to WIF uncompressed
+// 5HpjE2Hs7vjU4SN3YyPQCdhzCu92WoEeuE6PWNuiPyTu3ESGnzn
+key.toWif(false);
+```
+
+A private key can be decoded from WIF and it will include the PublicKey
+in either compressed or uncompressed format.
+
+```typescript
+const [privateKey, publicKey] = PrivateKey.fromWif(
+    "KwFfNUhSDaASSAwtG7ssQM1uVX8RgX5GHWnnLfhfiQDigjioWXHH",
+);
+```
+
+A private key can be converted to a public key in either compressed or
+uncompressed format:
+
+```typescript
+const buf = Buffer.alloc(32, 0x01);
+const privateKey = new PrivateKey(buf, Network.mainnet);
+
+// compressed public key
+// 031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f
+const compressed = privateKey.toPubKey(true);
+
+// uncompresed public key
+// 041b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f70beaf8f588b541507fed6a642c5ab42dfdf8120a7f639de5122d47a69a8e8d1
+const uncompressed = privateKey.toPubKey(false);
+```
+
 ## Transaction Building
 
 Transaction building uses the `TxBuilder` class. This class allows modification of the `version` and `locktime`. It also allows addition of inputs and outputs via the `addInput` and `addOutput` methods.
