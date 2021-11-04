@@ -93,6 +93,144 @@ const compressed = privateKey.toPubKey(true);
 const uncompressed = privateKey.toPubKey(false);
 ```
 
+### Public Key
+
+The `PublicKey` type encapsulates the public key point on an secp256k1
+elliptic curve. The type includes both the network it corresponds to.
+
+Constructed from a compressed 33-byte SEC encoded buffer:
+
+```typescript
+import { PublicKey } from "@node-lightning/bitcoin";
+
+const buffer = Buffer.from(
+    "031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f",
+    "hex",
+);
+let publicKey = new PublicKey(buffer, Network.mainnet);
+
+// outputs a 33-byte buffer
+// 031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f
+publicKey.toBuffer();
+
+// outputs the hex string
+// 031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f
+publicKey.toHex();
+
+// hash160 of the compressed public key
+// 79b000887626b294a914501a4cd226b58b235983
+publicKey.hash160();
+
+// convert to an uncompressed public key, which is a 65-byte version
+publicKey = publicKey.toPubKey(false);
+
+// outputs a 65-byte buffer
+// 041b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f70beaf8f588b541507fed6a642c5ab42dfdf8120a7f639de5122d47a69a8e8d1
+publicKey.toBuffer();
+
+// outputs the hex string
+// 041b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f70beaf8f588b541507fed6a642c5ab42dfdf8120a7f639de5122d47a69a8e8d1
+publicKey.toHex();
+
+// hash160 of the uncompressed public key
+// 6ff3443c994fb2c821969dae53bd5b5052d8394f
+publicKey.hash160();
+```
+
+You can output the P2PKH, P2SH-P2WPKH, and P2WPKH addresses of a public
+key:
+
+```typescript
+import { PublicKey } from "@node-lightning/bitcoin";
+
+const buffer = Buffer.from(
+    "031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f",
+    "hex",
+);
+const publicKey = new PublicKey(buffer, Network.mainnet);
+
+// output base58 encoded p2pkh address
+// 1C6Rc3w25VHud3dLDamutaqfKWqhrLRTaD
+publicKey.toP2pkhAddress();
+
+// output base58 encoded p2sh-p2wpkh address
+// 35LM1A29K95ADiQ8rJ9uEfVZCKffZE4D9i
+publickey.toP2nwpkhAddress();
+
+// output bech32 encoded p2wpkh address
+// bc1q0xcqpzrky6eff2g52qdye53xkk9jxkvrh6yhyw
+publickey.toP2wpkhAddress();
+```
+
+A public key can be tweaked by adding the point to a value multiplied by
+the generator point to obtain a new point. The formula is
+`T = P + tweak * G`. This returns a new instance with the same
+compressed/uncompressed value as the original public key.
+
+```typescript
+import { PublicKey } from "@node-lightning/bitcoin";
+
+const buffer = Buffer.from(
+    "031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f",
+    "hex",
+);
+const publicKey = new PublicKey(buffer, Network.mainnet);
+
+const tweak2 = Buffer.from(
+    "0000000000000000000000000000000000000000000000000000000000000002",
+    "hex",
+);
+
+// tweaks the public key by doing `T = point + tweak * G`
+// 03a4fbd2c1822592c0ae8afa0e63a0d4c56a571179e93fd61615627f419fd0be9a
+const newPubKey = publicKey.tweakAdd(tweak2);
+```
+
+A public key can be tweaked by multiplying the point by a scalar value.
+The formula is `T = P * t`. This returns a new instance with the same
+compressed/uncompressed value as the original public key.
+
+```typescript
+import { PublicKey } from "@node-lightning/bitcoin";
+
+const buffer = Buffer.from(
+    "031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f",
+    "hex",
+);
+const publicKey = new PublicKey(buffer, Network.mainnet);
+
+const tweak2 = Buffer.from(
+    "0000000000000000000000000000000000000000000000000000000000000002",
+    "hex",
+);
+
+// tweak by scalar multiplication
+// 024d4b6cd1361032ca9bd2aeb9d900aa4d45d9ead80ac9423374c451a7254d0766
+const newPubKey = publicKey.tweakMul(tweak2);
+```
+
+Two public keys can be added together. They must be part of the same
+network. This returns a new instance with the same
+compressed/uncompressed value as the original public key.
+
+```typescript
+import { PublicKey } from "@node-lightning/bitcoin";
+
+const pubkeyA = new PublicKey(
+    Buffer.from("031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f", "hex"),
+    Network.mainnet,
+);
+
+const pubkeyB = new PublicKey(
+    Buffer.from("024d4b6cd1361032ca9bd2aeb9d900aa4d45d9ead80ac9423374c451a7254d0766", "hex"),
+    Network.mainnet,
+);
+
+// Adds two points together
+// 02531fe6068134503d2723133227c867ac8fa6c83c537e9a44c3c5bdbdcb1fe337
+const newPubKey = pubkeyA.add(pubkeyB);
+```
+
 ## Transaction Building
 
 Transaction building uses the `TxBuilder` class. This class allows modification of the `version` and `locktime`. It also allows addition of inputs and outputs via the `addInput` and `addOutput` methods.
