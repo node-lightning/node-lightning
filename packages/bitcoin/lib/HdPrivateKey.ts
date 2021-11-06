@@ -1,5 +1,5 @@
 import * as crypto from "@node-lightning/crypto";
-import { BufferWriter } from "../../bufio/dist";
+import { BufferWriter } from "@node-lightning/bufio";
 import { BitcoinError } from "./BitcoinError";
 import { BitcoinErrorCode } from "./BitcoinErrorCode";
 import { HdKeyCodec } from "./HdKeyCodec";

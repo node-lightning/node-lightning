@@ -1,6 +1,7 @@
 import * as crypto from "@node-lightning/crypto";
-import { BitcoinError, BitcoinErrorCode } from ".";
-import { BufferWriter } from "../../bufio/dist";
+import { BitcoinError } from "./BitcoinError";
+import { BitcoinErrorCode } from "./BitcoinErrorCode";
+import { BufferWriter } from "@node-lightning/bufio";
 import { HdKeyCodec } from "./HdKeyCodec";
 import { HdKeyType } from "./HdKeyType";
 import { Network } from "./Network";

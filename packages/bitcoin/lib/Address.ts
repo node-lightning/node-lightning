@@ -1,4 +1,4 @@
-import { BufferWriter } from "../../bufio/dist";
+import { BufferWriter } from "@node-lightning/bufio";
 import { Base58Check } from "./Base58Check";
 import { Bech32, Bech32Version } from "./Bech32";
 import { BitcoinError } from "./BitcoinError";
