@@ -8,6 +8,8 @@ import { HdPublicKey } from "./HdPublicKey";
 import { Network } from "./Network";
 import { PrivateKey } from "./PrivateKey";
 
+const MAX_INDEX = 0xffffffff;
+const HARDENED_INDEX = 0x80000000;
 const BIP49_PURPOSE = 0x80000031; // 49'
 const BIP84_PURPOSE = 0x80000054; // 84'
 
@@ -63,7 +65,7 @@ export class HdPrivateKey {
                 : Number(part);
 
             // validate path was correct
-            if (isNaN(num) || num < 0 || num >= 2 ** 32 || (!hardened && num >= 2 ** 31)) {
+            if (isNaN(num) || num < 0 || num > MAX_INDEX || (!hardened && num >= HARDENED_INDEX)) {
                 throw new BitcoinError(BitcoinErrorCode.InvalidHdPath, path);
             }
 
@@ -230,7 +232,7 @@ export class HdPrivateKey {
      * when it has an index between 2^31 and 2^32-1
      */
     public get isHardened(): boolean {
-        return this.number >= 2 ** 31;
+        return this.number >= HARDENED_INDEX;
     }
 
     /**
@@ -263,7 +265,7 @@ export class HdPrivateKey {
         const data = new BufferWriter(Buffer.alloc(37));
 
         // hardened
-        if (i >= 2 ** 31) {
+        if (i >= HARDENED_INDEX) {
             data.writeUInt8(0);
             data.writeBytes(this.privateKey.toBuffer());
             data.writeUInt32BE(i);

@@ -1,12 +1,12 @@
 import * as crypto from "@node-lightning/crypto";
 import { BitcoinError, BitcoinErrorCode } from ".";
 import { BufferWriter } from "../../bufio/dist";
-import { Address } from "./Address";
 import { HdKeyCodec } from "./HdKeyCodec";
 import { HdKeyType } from "./HdKeyType";
 import { Network } from "./Network";
 import { PublicKey } from "./PublicKey";
-import { Script } from "./Script";
+
+const HARDENED_INDEX = 0x80000000;
 
 /**
  * A hierarchical deterministic extended public key as defined in BIP32.
@@ -114,7 +114,7 @@ export class HdPublicKey {
      * is between 2^31 and 2^32-1.
      */
     public get isHardened(): boolean {
-        return this.number >= 2 ** 31;
+        return this.number >= HARDENED_INDEX;
     }
 
     /**
@@ -155,7 +155,7 @@ export class HdPublicKey {
         // From here on we're working with a public key, so we cannot
         // derive hardened public keys since they require the private
         // key as part of the derivation data.
-        if (i >= 2 ** 31) {
+        if (i >= HARDENED_INDEX) {
             throw new BitcoinError(BitcoinErrorCode.InvalidHdDerivation);
         }
 
