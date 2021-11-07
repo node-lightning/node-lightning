@@ -61,7 +61,7 @@ export class HdPrivateKey {
             // extract number
             const hardened = part.endsWith("'");
             const num = hardened
-                ? 2 ** 31 + Number(part.substring(0, part.length - 1))
+                ? HARDENED_INDEX + Number(part.substring(0, part.length - 1))
                 : Number(part);
 
             // validate path was correct
@@ -284,6 +284,20 @@ export class HdPrivateKey {
         result.chainCode = lr;
 
         return result;
+    }
+
+    /**
+     * Derives a hardened child key at the specified index. This method
+     * simplifies derivation of hardened keys be treating the argument
+     * as a hardened index. For example: `.deriveHardened(0)` derives
+     * `0'` at index `0x80000000`.
+     * @param i index of hardened key
+     */
+    public deriveHardened(i: number): HdPrivateKey {
+        if (i < HARDENED_INDEX) {
+            i = i + HARDENED_INDEX;
+        }
+        return this.derive(i);
     }
 
     /**

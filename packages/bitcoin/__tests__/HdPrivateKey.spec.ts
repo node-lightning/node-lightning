@@ -67,11 +67,29 @@ describe("HdPrivateKey", () => {
     });
 
     describe(".toWif()", () => {
-        it("encodes", async () => {
-            const seed = await Mnemonic.phraseToSeed("abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"); // prettier-ignore
+        it("encodes", () => {
+            const seed = Mnemonic.phraseToSeed("abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"); // prettier-ignore
             const path = "m/84'/0'/0'/0/0";
             const sut = HdPrivateKey.fromPath(path, seed, Network.mainnet);
             expect(sut.toWif()).to.equal("KyZpNDKnfs94vbrwhJneDi77V6jF64PWPF8x5cdJb8ifgg2DUc9d");
+        });
+    });
+
+    describe(".deriveHardened()", () => {
+        const seed = Mnemonic.phraseToSeed("abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"); // prettier-ignore
+
+        it("input < 0x80000000", () => {
+            const sut = HdPrivateKey.fromSeed(seed, Network.mainnet);
+            const expected = sut.derive(0x80000001);
+            const actual = sut.deriveHardened(1);
+            expect(expected.encode()).to.equal(actual.encode());
+        });
+
+        it("input > 0x80000000", () => {
+            const sut = HdPrivateKey.fromSeed(seed, Network.mainnet);
+            const expected = sut.derive(0x80000001);
+            const actual = sut.deriveHardened(0x80000001);
+            expect(expected.encode()).to.equal(actual.encode());
         });
     });
 });
