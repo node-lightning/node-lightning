@@ -152,7 +152,7 @@ export class HdPublicKey {
      *
      * @returns child non-hardened {@link HdPublicKey}
      */
-    public derivePublic(i: number): HdPublicKey {
+    public derive(i: number): HdPublicKey {
         // From here on we're working with a public key, so we cannot
         // derive hardened public keys since they require the private
         // key as part of the derivation data.
