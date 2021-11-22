@@ -16,7 +16,7 @@
   "author": "Brian Mancini <bmancini@gmail.com>",
   "homepage": "https://github.com/altangent/node-lightning/tree/master/packages/<NAME>",
   "license": "MIT",
-  "main": "dist/index.js",
+  "main": "./index.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/altangent/node-lightning.git"
@@ -24,7 +24,9 @@
   "publishConfig": {
     "access": "public"
   },
-  "dependencies": {},
+  "dependencies": {
+    "node-addon-api": "^4.2.0"
+  },
   "devDependencies": {
     "node-gyp": "^8.4.0"
   }
