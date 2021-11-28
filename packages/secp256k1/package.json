@@ -18,7 +18,7 @@
   "author": "Brian Mancini <bmancini@gmail.com>",
   "homepage": "https://github.com/altangent/node-lightning/tree/master/packages/<NAME>",
   "license": "MIT",
-  "main": "./index.js",
+  "main": "./dist/index.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/altangent/node-lightning.git"
