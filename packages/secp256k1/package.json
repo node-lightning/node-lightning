@@ -1,7 +1,7 @@
 {
   "name": "@node-lightning/secp256k1",
   "version": "0.26.1",
-  "description": "secp256k1",
+  "description": "Wrapper for Bitcoin libsecp256k1",
   "scripts": {
     "test": "../../node_modules/.bin/nyc --reporter=lcov --reporter=text --extension=.ts ../../node_modules/.bin/mocha --require ts-node/register --recursive \"__tests__/**/*.spec.*\"",
     "lint": "../../node_modules/.bin/eslint lib/**/*",
