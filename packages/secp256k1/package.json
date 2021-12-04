@@ -28,9 +28,7 @@
     "access": "public"
   },
   "dependencies": {
+    "node-gyp": "^8.4.0",
     "node-addon-api": "^4.2.0"
-  },
-  "devDependencies": {
-    "node-gyp": "^8.4.0"
   }
 }
