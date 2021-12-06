@@ -2,10 +2,17 @@
 import { expect } from "chai";
 import secp256k1 from "../lib";
 import crypto from "crypto";
+import { buffer } from "stream/consumers";
 
 describe("Secp256k1", () => {
+    const zero = Buffer.alloc(32);
+    const n = Buffer.from(
+        "fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141",
+        "hex",
+    );
     const prvkeys = [Buffer.alloc(32, 0x01), Buffer.alloc(32, 0x02)];
     const pubkeys = prvkeys.map(p => secp256k1.publicKeyCreate(p, true));
+    const msg = Buffer.alloc(32, 0x01);
 
     describe(".contextRandomize()", () => {
         describe("arg: invalid seed", () => {
@@ -90,12 +97,8 @@ describe("Secp256k1", () => {
             });
 
             it("throws when private key >= N", () => {
-                const prvkey = Buffer.from(
-                    "fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141",
-                    "hex",
-                );
                 const pubkey = pubkeys[0];
-                expect(() => secp256k1.ecdh(pubkey, prvkey)).to.throw(
+                expect(() => secp256k1.ecdh(pubkey, n)).to.throw(
                     "Scalar was invalid (zero or overflow",
                 );
             });
@@ -178,7 +181,7 @@ describe("Secp256k1", () => {
                 );
             });
 
-            it("throws with invalid output type", () => {
+            it("throws with invalid output length", () => {
                 expect(() =>
                     secp256k1.ecdh(pubkeys[0], prvkeys[0], {}, new Uint8Array(42)),
                 ).to.throw("Expected output to be an Uint8Array with length 32");
@@ -242,6 +245,288 @@ describe("Secp256k1", () => {
                 secp256k1.ecdh(pubkeys[0], prvkeys[0], {}, output);
                 expect(Buffer.from(output).toString("hex")).to.equal(
                     "60bff7e2a4e757df5e69ed48632b993b9447ff480784964c6dc587ceef975a27",
+                );
+            });
+        });
+    });
+
+    describe(".ecdsaSign()", () => {
+        describe("arg: invalid message", () => {
+            it("throws with invalid message type", () => {
+                expect(() => secp256k1.ecdsaSign(null, prvkeys[0])).to.throw(
+                    "Expected message to be an Uint8Array",
+                );
+            });
+
+            it("throws with invalid message length", () => {
+                expect(() => secp256k1.ecdsaSign(msg.slice(1), prvkeys[0])).to.throw(
+                    "Expected message to be an Uint8Array with length 32",
+                );
+            });
+        });
+
+        describe("arg: invalid public key", () => {
+            it("throws with invalid private key type", () => {
+                expect(() => secp256k1.ecdsaSign(msg, null)).to.throw(
+                    "Expected private key to be an Uint8Array",
+                );
+            });
+
+            it("throws with invalid private key length", () => {
+                expect(() => secp256k1.ecdsaSign(msg, prvkeys[0].slice(1))).to.throw(
+                    "Expected private key to be an Uint8Array with length 32",
+                );
+            });
+
+            it("throws when private key is zero", () => {
+                expect(() => secp256k1.ecdsaSign(msg, zero)).to.throw(
+                    "The nonce generation function failed, or the private key was invalid",
+                );
+            });
+
+            it("throws when private key is >= N", () => {
+                expect(() => secp256k1.ecdsaSign(msg, n)).to.throw(
+                    "The nonce generation function failed, or the private key was invalid",
+                );
+            });
+        });
+
+        describe("args: invalid output", () => {
+            it("throws with invalid output type", () => {
+                expect(() => secp256k1.ecdsaSign(msg, prvkeys[0], {}, null)).to.throw(
+                    "Expected output to be an Uint8Array",
+                );
+            });
+
+            it("throws with invalid output length", () => {
+                expect(() => secp256k1.ecdsaSign(msg, prvkeys[0], {}, new Uint8Array(42))).to.throw(
+                    "Expected output to be an Uint8Array with length 64",
+                );
+            });
+        });
+
+        describe("noncefn usage", () => {
+            const data = new Uint8Array(42);
+            const nonce = crypto.randomBytes(32);
+
+            function noncefn(
+                msg2: Uint8Array,
+                prvkey: Uint8Array,
+                a: any,
+                data: Uint8Array,
+                b: any,
+            ): Uint8Array {
+                expect(msg2).to.equal(msg);
+                expect(prvkey).to.equal(prvkeys[0]);
+                expect(data).to.equal(data);
+                return nonce;
+            }
+
+            it("returns valid signature", () => {
+                secp256k1.ecdsaSign(msg, prvkeys[0], { data, noncefn });
+            });
+
+            it("throws with invalid noncefn type", () => {
+                expect(() =>
+                    secp256k1.ecdsaSign(msg, prvkeys[0], { noncefn: () => null }),
+                ).to.throw("The nonce generation function failed, or the private key was invalid");
+            });
+
+            it("throws with invalid nonce result length", () => {
+                expect(() =>
+                    secp256k1.ecdsaSign(msg, prvkeys[0], { noncefn: () => new Uint8Array(42) }),
+                ).to.throw("The nonce generation function failed, or the private key was invalid");
+            });
+        });
+
+        describe("valid", () => {
+            it("generates valid signature", () => {
+                const r = secp256k1.ecdsaSign(msg, prvkeys[0]);
+                expect(Buffer.from(r.signature).toString("hex")).to.equal(
+                    "c64b1924157748652733c41294e5f6e395c3626a8e911f3742a4b8ad4fdb922f347ba5cdd629027ef5846eb85c9452f6312e0aea697625d66b202448f3e9618f",
+                );
+            });
+        });
+    });
+
+    describe(".ecdsaVerify()", () => {
+        const sig = Buffer.from(
+            "c64b1924157748652733c41294e5f6e395c3626a8e911f3742a4b8ad4fdb922f347ba5cdd629027ef5846eb85c9452f6312e0aea697625d66b202448f3e9618f",
+            "hex",
+        );
+
+        describe("arg: invalid signature", () => {
+            it("throws with invalid type", () => {
+                expect(() => secp256k1.ecdsaVerify(null, msg, pubkeys[0])).to.throw(
+                    "Expected signature to be an Uint8Array",
+                );
+            });
+
+            it("throws with invalid length", () => {
+                expect(() => secp256k1.ecdsaVerify(new Uint8Array(63), msg, pubkeys[0])).to.throw(
+                    "Expected signature to be an Uint8Array with length 64",
+                );
+            });
+        });
+
+        describe("arg: invalid message", () => {
+            it("throws with invalid type", () => {
+                expect(() => secp256k1.ecdsaVerify(sig, null, pubkeys[0])).to.throw(
+                    "Expected message to be an Uint8Array",
+                );
+            });
+
+            it("throws with invalid length", () => {
+                expect(() => secp256k1.ecdsaVerify(sig, msg.slice(1), pubkeys[0])).to.throw(
+                    "Expected message to be an Uint8Array with length 32",
+                );
+            });
+        });
+
+        describe("arg: invalid public key", () => {
+            it("throws with invalid type", () => {
+                expect(() => secp256k1.ecdsaVerify(sig, msg, null)).to.throw(
+                    "Expected public key to be an Uint8Array",
+                );
+            });
+
+            it("throws with invalid length", () => {
+                expect(() => secp256k1.ecdsaVerify(sig, msg, pubkeys[0].slice(1))).to.throw(
+                    "Expected public key to be an Uint8Array with length [33, 65]",
+                );
+            });
+
+            it("throws with invalid version", () => {
+                const pubkey = Buffer.from(pubkeys[0]);
+                pubkey[0] = 0x01;
+                expect(() => secp256k1.ecdsaVerify(sig, msg, pubkey)).to.throw(
+                    "Public Key could not be parsed",
+                );
+            });
+        });
+
+        describe("returns true/false", () => {
+            it("returns true", () => {
+                expect(secp256k1.ecdsaVerify(sig, msg, pubkeys[0])).to.equal(true);
+            });
+
+            it("returns false for wrong message", () => {
+                expect(secp256k1.ecdsaVerify(sig, Buffer.alloc(32, 0x02), pubkeys[0])).to.equal(
+                    false,
+                );
+            });
+
+            it("returns false for incorrect R", () => {
+                const newSig = Buffer.concat([Buffer.alloc(32), sig.slice(32)]);
+                expect(secp256k1.ecdsaVerify(newSig, msg, pubkeys[0])).to.equal(false);
+            });
+
+            it("returns false for incorrect S", () => {
+                const newSig = Buffer.concat([sig.slice(0, 32), Buffer.alloc(32)]);
+                expect(secp256k1.ecdsaVerify(newSig, msg, pubkeys[0])).to.equal(false);
+            });
+        });
+    });
+
+    describe(".ecdsaRecover()", () => {
+        const sig = Buffer.from(
+            "c64b1924157748652733c41294e5f6e395c3626a8e911f3742a4b8ad4fdb922f347ba5cdd629027ef5846eb85c9452f6312e0aea697625d66b202448f3e9618f",
+            "hex",
+        );
+
+        describe("arg: invalid signature", () => {
+            it("throws with invalid type", () => {
+                expect(() => secp256k1.ecdsaRecover(null, 0, msg)).to.throw(
+                    "Expected signature to be an Uint8Array",
+                );
+            });
+
+            it("throws with invalid length", () => {
+                expect(() => secp256k1.ecdsaRecover(new Uint8Array(63), 0, msg)).to.throw(
+                    "Expected signature to be an Uint8Array with length 64",
+                );
+            });
+        });
+
+        describe("arg: invalid recovery", () => {
+            it("throws with invalid type", () => {
+                expect(() => secp256k1.ecdsaRecover(sig, null, msg)).to.throw(
+                    "Expected recovery id to be a Number within interval [0, 3]",
+                );
+            });
+
+            it("throws with invalid length", () => {
+                expect(() => secp256k1.ecdsaRecover(sig, 4, msg)).to.throw(
+                    "Expected recovery id to be a Number within interval [0, 3]",
+                );
+            });
+        });
+
+        describe("arg: invalid message", () => {
+            it("throws with invalid type", () => {
+                expect(() => secp256k1.ecdsaRecover(sig, 0, null)).to.throw(
+                    "Expected message to be an Uint8Array",
+                );
+            });
+
+            it("throws with invalid length", () => {
+                expect(() => secp256k1.ecdsaRecover(sig, 0, msg.slice(1))).to.throw(
+                    "Expected message to be an Uint8Array with length 32",
+                );
+            });
+        });
+
+        describe("arg: invalid compressed flag", () => {
+            it("throws with invalid type", () => {
+                expect(() => secp256k1.ecdsaRecover(sig, 0, msg, null)).to.throw(
+                    "Expected compressed to be a Boolean",
+                );
+            });
+        });
+
+        describe("arg: invalid output", () => {
+            it("throws with invalid output type", () => {
+                expect(() => secp256k1.ecdsaRecover(sig, 0, msg, true, null)).to.throw(
+                    "Expected output to be an Uint8Array",
+                );
+            });
+
+            it("throws with invalid output length", () => {
+                expect(() =>
+                    secp256k1.ecdsaRecover(sig, 0, msg, true, new Uint8Array(42)),
+                ).to.throw("Expected output to be an Uint8Array with length 33");
+            });
+
+            it("throws with invalid output length", () => {
+                expect(() =>
+                    secp256k1.ecdsaRecover(sig, 0, msg, false, new Uint8Array(42)),
+                ).to.throw("Expected output to be an Uint8Array with length 65");
+            });
+        });
+
+        describe("valid/invalid", () => {
+            it("returns pubkey when valid", () => {
+                const result = secp256k1.ecdsaRecover(sig, 0, msg, true);
+                expect(Buffer.from(result)).to.deep.equal(pubkeys[0]);
+            });
+
+            it("throws with invalid R", () => {
+                const badSig = Buffer.concat([Buffer.alloc(32), sig.slice(32)]);
+                expect(() => secp256k1.ecdsaRecover(badSig, 0, msg)).to.throw(
+                    "Public key could not be recover",
+                );
+            });
+
+            it("throws with invalid S", () => {
+                const badSig = Buffer.concat([sig.slice(0, 32), Buffer.alloc(32)]);
+                expect(() => secp256k1.ecdsaRecover(badSig, 0, msg)).to.throw(
+                    "Public key could not be recover",
+                );
+            });
+
+            it("throws when wrong recid", () => {
+                expect(() => secp256k1.ecdsaRecover(sig, 2, msg, true)).to.throw(
+                    "Public key could not be recover",
                 );
             });
         });
