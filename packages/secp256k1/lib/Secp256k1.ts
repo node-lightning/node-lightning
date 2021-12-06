@@ -5,7 +5,7 @@ import { EcdhOptions } from "./EcdhOptions";
 import { EcdsaOptions } from "./EcdsaOptions";
 import { EcdsaResult } from "./EcdsaResult";
 import { Secp256k1Error } from "./Secp256k1Error";
-import { assert, getAssertedOutput, isCompressed, isUint8Array, toTypeString } from "./Utils";
+import { assert, assertOutput, isCompressed, isUint8Array, toTypeString } from "./Utils";
 
 export class Secp256k1 {
     constructor(readonly binding: any) {}
@@ -77,7 +77,7 @@ export class Secp256k1 {
     ): Uint8Array {
         isUint8Array("private key", seckey, 32);
         isCompressed(compressed);
-        output = getAssertedOutput(output, compressed ? 33 : 65);
+        output = assertOutput(output, compressed ? 33 : 65);
 
         switch (this.binding.publicKeyCreate(output, seckey)) {
             case 0:
@@ -96,7 +96,7 @@ export class Secp256k1 {
     ): Uint8Array {
         isUint8Array("public key", pubkey, [33, 65]);
         isCompressed(compressed);
-        output = getAssertedOutput(output, compressed ? 33 : 65);
+        output = assertOutput(output, compressed ? 33 : 65);
 
         switch (this.binding.publicKeyConvert(output, pubkey)) {
             case 0:
@@ -115,7 +115,7 @@ export class Secp256k1 {
     ): Uint8Array {
         isUint8Array("public key", pubkey, [33, 65]);
         isCompressed(compressed);
-        output = getAssertedOutput(output, compressed ? 33 : 65);
+        output = assertOutput(output, compressed ? 33 : 65);
 
         switch (this.binding.publicKeyNegate(output, pubkey)) {
             case 0:
@@ -140,7 +140,7 @@ export class Secp256k1 {
             isUint8Array("public key", pubkey, [33, 65]);
         }
         isCompressed(compressed);
-        output = getAssertedOutput(output, compressed ? 33 : 65);
+        output = assertOutput(output, compressed ? 33 : 65);
 
         switch (this.binding.publicKeyCombine(output, pubkeys)) {
             case 0:
@@ -163,7 +163,7 @@ export class Secp256k1 {
         isUint8Array("public key", pubkey, [33, 65]);
         isUint8Array("tweak", tweak, 32);
         isCompressed(compressed);
-        output = getAssertedOutput(output, compressed ? 33 : 65);
+        output = assertOutput(output, compressed ? 33 : 65);
 
         switch (this.binding.publicKeyTweakAdd(output, pubkey, tweak)) {
             case 0:
@@ -184,7 +184,7 @@ export class Secp256k1 {
         isUint8Array("public key", pubkey, [33, 65]);
         isUint8Array("tweak", tweak, 32);
         isCompressed(compressed);
-        output = getAssertedOutput(output, compressed ? 33 : 65);
+        output = assertOutput(output, compressed ? 33 : 65);
 
         switch (this.binding.publicKeyTweakMul(output, pubkey, tweak)) {
             case 0:
@@ -209,7 +209,7 @@ export class Secp256k1 {
 
     public signatureExport(sig: Uint8Array, output?: Uint8Array): Uint8Array {
         isUint8Array("signature", sig, 64);
-        output = getAssertedOutput(output, 72);
+        output = assertOutput(output, 72);
 
         const obj = { output, outputlen: 72 };
         switch (this.binding.signatureExport(obj, sig)) {
@@ -224,7 +224,7 @@ export class Secp256k1 {
 
     public signatureImport(sig: Uint8Array, output?: Uint8Array): Uint8Array {
         isUint8Array("signature", sig);
-        output = getAssertedOutput(output, 64);
+        output = assertOutput(output, 64);
 
         switch (this.binding.signatureImport(output, sig)) {
             case 0:
@@ -251,7 +251,7 @@ export class Secp256k1 {
                 toTypeString(options.noncefn) === "Function",
                 "Expected options.noncefn to be a Function",
             );
-        output = getAssertedOutput(output, 64);
+        output = assertOutput(output, 64);
 
         const obj = { signature: output, recid: null };
         switch (this.binding.ecdsaSign(obj, msg32, seckey, options.data, options.noncefn)) {
@@ -295,7 +295,7 @@ export class Secp256k1 {
         );
         isUint8Array("message", msg32, 32);
         isCompressed(compressed);
-        output = getAssertedOutput(output, compressed ? 33 : 65);
+        output = assertOutput(output, compressed ? 33 : 65);
 
         switch (this.binding.ecdsaRecover(output, sig, recid, msg32)) {
             case 0:
@@ -326,10 +326,8 @@ export class Secp256k1 {
             );
             if (options.xbuf !== undefined) isUint8Array("options.xbuf", options.xbuf, 32);
             if (options.ybuf !== undefined) isUint8Array("options.ybuf", options.ybuf, 32);
-            isUint8Array("output", output);
-        } else {
-            output = getAssertedOutput(output, 32);
         }
+        output = assertOutput(output, 32);
 
         switch (
             this.binding.ecdh(
@@ -343,7 +341,7 @@ export class Secp256k1 {
             )
         ) {
             case 0:
-                return output;
+                return output as Uint8Array;
             case 1:
                 throw new Error(Secp256k1Error.PUBKEY_PARSE);
             case 2:

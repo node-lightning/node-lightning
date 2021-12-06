@@ -24,13 +24,12 @@ export function isCompressed(value: boolean) {
     assert(toTypeString(value) === "Boolean", "Expected compressed to be a Boolean");
 }
 
-export function getAssertedOutput(
-    output: Uint8Array | ((len: number) => Uint8Array) = len => new Uint8Array(len),
-    length: number,
-) {
-    if (typeof output === "function") output = output(length);
-    isUint8Array("output", output, length);
-    return output;
+export function assertOutput(output: Uint8Array, length: number): Uint8Array {
+    if (output === undefined) {
+        output = new Uint8Array(length);
+    }
+    isUint8Array("output", output as Uint8Array, length);
+    return output as Uint8Array;
 }
 
 export function toTypeString(value: any): string {
