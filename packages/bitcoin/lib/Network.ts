@@ -26,6 +26,10 @@ export class Network {
         return testnet;
     }
 
+    public static get regtest(): Network {
+        return regtest;
+    }
+
     public static get all(): Network[] {
         return all;
     }
@@ -60,4 +64,20 @@ const testnet = new Network(
     0x045f18bc, // vprv
     0xef,
 );
-const all = [mainnet, testnet];
+
+const regtest = new Network(
+    "regtest",
+    0x6f, // m or n
+    0xc4, // 2
+    "bcrt",
+    "bcrt",
+    0x043587cf, // tpub
+    0x04358394, // tprv
+    0x044a5262, // upub
+    0x044a4e28, // uprv
+    0x045f1cf6, // vpub
+    0x045f18bc, // vprv
+    0xef,
+);
+
+const all = [mainnet, testnet, regtest];
