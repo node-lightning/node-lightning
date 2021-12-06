@@ -347,6 +347,27 @@ describe("Secp256k1", () => {
                 );
             });
         });
+
+        describe("sign/verify/recover", () => {
+            for (let i = 0; i < 10; i++) {
+                it("test " + (i + 1), () => {
+                    const msg = crypto.randomBytes(32);
+                    const prvkey = crypto.randomBytes(32);
+                    const pubkeyc = secp256k1.publicKeyCreate(prvkey, true);
+                    const pubkeyu = secp256k1.publicKeyCreate(prvkey, false);
+
+                    const sig = secp256k1.ecdsaSign(msg, prvkey);
+                    expect(secp256k1.ecdsaVerify(sig.signature, msg, pubkeyu)).to.equal(true);
+                    expect(secp256k1.ecdsaVerify(sig.signature, msg, pubkeyc)).to.equal(true);
+                    expect(
+                        Buffer.from(secp256k1.ecdsaRecover(sig.signature, sig.recid, msg, true)),
+                    ).to.deep.equal(pubkeyc);
+                    expect(
+                        Buffer.from(secp256k1.ecdsaRecover(sig.signature, sig.recid, msg, false)),
+                    ).to.deep.equal(pubkeyu);
+                });
+            }
+        });
     });
 
     describe(".ecdsaVerify()", () => {
