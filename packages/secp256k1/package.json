@@ -5,11 +5,11 @@
   "scripts": {
     "test": "../../node_modules/.bin/nyc --reporter=lcov --reporter=text --extension=.ts ../../node_modules/.bin/mocha --require ts-node/register --recursive \"__tests__/**/*.spec.*\"",
     "lint": "../../node_modules/.bin/eslint lib/**/*",
-    "build": "npm run build:typescript && npm run preinstall && npm run install",
+    "build": "npm run build:typescript",
     "build:typescript": "../../node_modules/.bin/tsc --project ./tsconfig-build.json",
     "prepublish": "npm run build",
-    "preinstall": "node-gyp configure",
-    "install": "node-gyp build"
+    "preinstall": "git submodule update --init",
+    "postinstall": "node-gyp configure && node-gyp build"
   },
   "keywords": [
     "node-lightning",
