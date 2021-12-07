@@ -24,8 +24,12 @@ export class Secp256k1 {
     }
 
     public privateKeyVerify(seckey: Uint8Array): boolean {
-        isUint8Array("private key", seckey, 32);
-
+        if (!(seckey instanceof Uint8Array)) {
+            return false;
+        }
+        if (seckey.length && seckey.length !== 32) {
+            return false;
+        }
         return this.binding.privateKeyVerify(seckey) === 0;
     }
 
@@ -43,10 +47,11 @@ export class Secp256k1 {
     public privateKeyTweakAdd(seckey: Uint8Array, tweak: Uint8Array): Uint8Array {
         isUint8Array("private key", seckey, 32);
         isUint8Array("tweak", tweak, 32);
+        const output = new Uint8Array(seckey);
 
-        switch (this.binding.privateKeyTweakAdd(seckey, tweak)) {
+        switch (this.binding.privateKeyTweakAdd(output, tweak)) {
             case 0:
-                return seckey;
+                return output;
             case 1:
                 throw new Error(Secp256k1Error.TWEAK_ADD);
         }
@@ -55,10 +60,11 @@ export class Secp256k1 {
     public privateKeyTweakMul(seckey: Uint8Array, tweak: Uint8Array): Uint8Array {
         isUint8Array("private key", seckey, 32);
         isUint8Array("tweak", tweak, 32);
+        const output = new Uint8Array(seckey);
 
-        switch (this.binding.privateKeyTweakMul(seckey, tweak)) {
+        switch (this.binding.privateKeyTweakMul(output, tweak)) {
             case 0:
-                return seckey;
+                return output;
             case 1:
                 throw new Error(Secp256k1Error.TWEAK_MUL);
         }

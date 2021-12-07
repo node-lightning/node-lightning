@@ -2,12 +2,15 @@
 import { expect } from "chai";
 import secp256k1 from "../lib";
 import crypto from "crypto";
-import { buffer } from "stream/consumers";
 
 describe("Secp256k1", () => {
     const zero = Buffer.alloc(32);
-    const n = Buffer.from(
+    const N = Buffer.from(
         "fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141",
+        "hex",
+    );
+    const one = Buffer.from(
+        "0000000000000000000000000000000000000000000000000000000000000001",
         "hex",
     );
     const prvkeys = [Buffer.alloc(32, 0x01), Buffer.alloc(32, 0x02)];
@@ -98,7 +101,7 @@ describe("Secp256k1", () => {
 
             it("throws when private key >= N", () => {
                 const pubkey = pubkeys[0];
-                expect(() => secp256k1.ecdh(pubkey, n)).to.throw(
+                expect(() => secp256k1.ecdh(pubkey, N)).to.throw(
                     "Scalar was invalid (zero or overflow",
                 );
             });
@@ -265,14 +268,14 @@ describe("Secp256k1", () => {
             });
         });
 
-        describe("arg: invalid public key", () => {
-            it("throws with invalid private key type", () => {
+        describe("arg: invalid private key", () => {
+            it("throws with invalid type", () => {
                 expect(() => secp256k1.ecdsaSign(msg, null)).to.throw(
                     "Expected private key to be an Uint8Array",
                 );
             });
 
-            it("throws with invalid private key length", () => {
+            it("throws with invalid length", () => {
                 expect(() => secp256k1.ecdsaSign(msg, prvkeys[0].slice(1))).to.throw(
                     "Expected private key to be an Uint8Array with length 32",
                 );
@@ -285,7 +288,7 @@ describe("Secp256k1", () => {
             });
 
             it("throws when private key is >= N", () => {
-                expect(() => secp256k1.ecdsaSign(msg, n)).to.throw(
+                expect(() => secp256k1.ecdsaSign(msg, N)).to.throw(
                     "The nonce generation function failed, or the private key was invalid",
                 );
             });
@@ -550,6 +553,227 @@ describe("Secp256k1", () => {
                     "Public key could not be recover",
                 );
             });
+        });
+    });
+
+    describe(".privateKeyVerify()", () => {
+        describe("arg: invalid private key", () => {
+            it("returns false with null", () => {
+                expect(secp256k1.privateKeyVerify(null)).to.equal(false);
+            });
+
+            it("returns false with incorrect length", () => {
+                expect(secp256k1.privateKeyVerify(new Uint8Array(31))).to.equal(false);
+            });
+        });
+
+        describe("validates private key", () => {
+            it("returns false when zero", () => {
+                expect(secp256k1.privateKeyVerify(zero)).to.equal(false);
+            });
+
+            it("returns false when >= N", () => {
+                expect(secp256k1.privateKeyVerify(N)).to.equal(false);
+            });
+
+            for (let i = 0; i < 10; i++) {
+                it("random test " + (i + 1), () => {
+                    expect(secp256k1.privateKeyVerify(crypto.randomBytes(32))).to.equal(true);
+                });
+            }
+        });
+    });
+
+    describe(".privateKeyNegate()", () => {
+        describe("arg: invalid private key", () => {
+            it("throws with invalid type", () => {
+                expect(() => secp256k1.privateKeyNegate(null)).to.throw(
+                    "Expected private key to be an Uint8Array",
+                );
+            });
+
+            it("throws with invalid length", () => {
+                expect(() => secp256k1.privateKeyNegate(new Uint8Array(31))).to.throw(
+                    "Expected private key to be an Uint8Array with length 32",
+                );
+            });
+
+            it("throws with zero", () => {
+                expect(() => secp256k1.privateKeyNegate(zero)).to.throw(
+                    "Impossible case. Please create issue.",
+                );
+            });
+
+            it("throws when >= N", () => {
+                expect(() => secp256k1.privateKeyNegate(N)).to.throw(
+                    "Impossible case. Please create issue.",
+                );
+            });
+        });
+
+        describe("valid private key", () => {
+            it("negates 1", () => {
+                const n1 = Buffer.from(
+                    "0000000000000000000000000000000000000000000000000000000000000001",
+                    "hex",
+                );
+                const actual = secp256k1.privateKeyNegate(n1);
+                expect(Buffer.from(actual).toString("hex")).to.equal(
+                    "fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364140",
+                );
+            });
+
+            it("negates N-1", () => {
+                const n1 = Buffer.from(
+                    "fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364140",
+                    "hex",
+                );
+                const actual = secp256k1.privateKeyNegate(n1);
+                expect(Buffer.from(actual).toString("hex")).to.equal(
+                    "0000000000000000000000000000000000000000000000000000000000000001",
+                );
+            });
+
+            for (let i = 0; i < 10; i++) {
+                it("random test " + (i + 1), () => {
+                    const sk = crypto.randomBytes(32);
+                    const a = secp256k1.privateKeyNegate(sk);
+                    const b = secp256k1.privateKeyNegate(a);
+                    expect(Buffer.from(b)).to.deep.equal(sk);
+                });
+            }
+        });
+    });
+
+    describe(".privateKeyTweakAdd()", () => {
+        describe("arg: invalid private key", () => {
+            it("throws with invalid type", () => {
+                expect(() => secp256k1.privateKeyTweakAdd(null, prvkeys[1])).to.throw(
+                    "Expected private key to be an Uint8Array",
+                );
+            });
+
+            it("throws with invalid length", () => {
+                expect(() => secp256k1.privateKeyTweakAdd(new Uint8Array(31), prvkeys[1])).to.throw(
+                    "Expected private key to be an Uint8Array with length 32",
+                );
+            });
+
+            it("throws with zero", () => {
+                expect(() => secp256k1.privateKeyTweakAdd(zero, prvkeys[1])).to.throw(
+                    "The tweak was out of range or the resulted private key is invalid",
+                );
+            });
+
+            it("throws when >= N", () => {
+                expect(() => secp256k1.privateKeyTweakAdd(N, prvkeys[1])).to.throw(
+                    "The tweak was out of range or the resulted private key is invalid",
+                );
+            });
+        });
+
+        describe("arg: invalid tweak", () => {
+            it("throws with invalid type", () => {
+                expect(() => secp256k1.privateKeyTweakAdd(prvkeys[0], null)).to.throw(
+                    "Expected tweak to be an Uint8Array",
+                );
+            });
+
+            it("throws with invalid length", () => {
+                expect(() => secp256k1.privateKeyTweakAdd(prvkeys[0], new Uint8Array(31))).to.throw(
+                    "Expected tweak to be an Uint8Array with length 32",
+                );
+            });
+        });
+
+        describe("valid", () => {
+            it("same with zero", () => {
+                const result = secp256k1.privateKeyTweakAdd(prvkeys[0], zero);
+                expect(result).to.deep.equal(prvkeys[0]);
+            });
+
+            it("same with N", () => {
+                const result = secp256k1.privateKeyTweakAdd(prvkeys[0], N);
+                expect(result).to.deep.equal(prvkeys[0]);
+            });
+
+            it("tweaks value", () => {
+                const one = Buffer.from(
+                    "0000000000000000000000000000000000000000000000000000000000000001",
+                    "hex",
+                );
+                const result = secp256k1.privateKeyTweakAdd(prvkeys[0], one);
+                expect(Buffer.from(result).toString("hex")).to.equal(
+                    "0101010101010101010101010101010101010101010101010101010101010102",
+                );
+            });
+
+            for (let i = 0; i < 10; i++) {
+                it("random " + (i + 1), () => {
+                    const sk = crypto.randomBytes(32);
+                    const t = crypto.randomBytes(32);
+                    secp256k1.privateKeyTweakAdd(sk, t);
+                });
+            }
+        });
+    });
+
+    describe(".privateKeyTweakMul()", () => {
+        describe("arg: invalid private key", () => {
+            it("throws with invalid type", () => {
+                expect(() => secp256k1.privateKeyTweakMul(null, prvkeys[1])).to.throw(
+                    "Expected private key to be an Uint8Array",
+                );
+            });
+
+            it("throws with invalid length", () => {
+                expect(() => secp256k1.privateKeyTweakMul(new Uint8Array(31), prvkeys[1])).to.throw(
+                    "Expected private key to be an Uint8Array with length 32",
+                );
+            });
+
+            it("throws with zero", () => {
+                expect(() => secp256k1.privateKeyTweakMul(zero, prvkeys[1])).to.throw(
+                    "The tweak was out of range or equal to zero",
+                );
+            });
+
+            it("throws when >= N", () => {
+                expect(() => secp256k1.privateKeyTweakMul(N, prvkeys[1])).to.throw(
+                    "The tweak was out of range or equal to zero",
+                );
+            });
+        });
+
+        describe("arg: invalid tweak", () => {
+            it("throws with invalid type", () => {
+                expect(() => secp256k1.privateKeyTweakMul(prvkeys[0], null)).to.throw(
+                    "Expected tweak to be an Uint8Array",
+                );
+            });
+
+            it("throws with invalid length", () => {
+                expect(() => secp256k1.privateKeyTweakMul(prvkeys[0], new Uint8Array(31))).to.throw(
+                    "Expected tweak to be an Uint8Array with length 32",
+                );
+            });
+        });
+
+        describe("valid", () => {
+            it("tweaks value", () => {
+                const result = secp256k1.privateKeyTweakMul(prvkeys[0], one);
+                expect(Buffer.from(result).toString("hex")).to.equal(
+                    "0101010101010101010101010101010101010101010101010101010101010101",
+                );
+            });
+
+            for (let i = 0; i < 10; i++) {
+                it("random " + (i + 1), () => {
+                    const sk = crypto.randomBytes(32);
+                    const t = crypto.randomBytes(32);
+                    secp256k1.privateKeyTweakMul(sk, t);
+                });
+            }
         });
     });
 });
