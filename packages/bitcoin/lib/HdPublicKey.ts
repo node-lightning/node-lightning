@@ -223,4 +223,13 @@ export class HdPublicKey {
                 return this.publicKey.toP2wpkhAddress();
         }
     }
+
+    // not sure about these....
+    public toBuffer(): Buffer {
+        return this.publicKey.toBuffer();
+    }
+
+    public toHex(): string {
+        return this.publicKey.toHex();
+    }
 }

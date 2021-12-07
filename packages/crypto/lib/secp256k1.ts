@@ -1,4 +1,4 @@
-import secp256k1 from "secp256k1";
+import secp256k1 from "@node-lightning/secp256k1";
 
 /**
  * Elliptic Curve Diffie-Helman on secp256k1 takes a

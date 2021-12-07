@@ -71,3 +71,5 @@ config.json
 config*.json
 .db*
 graph.json
+
+build

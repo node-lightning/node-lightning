@@ -5,7 +5,7 @@
   "scripts": {
     "start": "cd packages/daemon; npm run start",
     "bootstrap": "lerna bootstrap",
-    "format": "prettier --check \"packages/**\" \"examples/**\"",
+    "format": "prettier --check \"packages/**/*.ts\" \"examples/**/.ts\"",
     "lint": "lerna run lint",
     "test": "lerna run test",
     "build": "lerna run build",
@@ -39,6 +39,8 @@
     "eslint-plugin-prefer-arrow": "^1.2.3",
     "lerna": "^4.0.0",
     "mocha": "^9.1.3",
+    "node-addon-api": "^4.2.0",
+    "node-gyp": "^8.4.1",
     "nodemon": "^2.0.4",
     "nyc": "^15.1.0",
     "prettier": "^1.19.1",

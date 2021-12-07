@@ -20,12 +20,9 @@
     "url": "git+https://github.com/altangent/node-lightning.git"
   },
   "dependencies": {
-    "secp256k1": "^4.0.2"
+    "@node-lightning/secp256k1": "^0.26.1"
   },
   "publishConfig": {
     "access": "public"
-  },
-  "devDependencies": {
-    "@types/secp256k1": "^4.0.1"
   }
 }
