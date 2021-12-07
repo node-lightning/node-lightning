@@ -5,7 +5,7 @@
   "scripts": {
     "start": "cd packages/daemon; npm run start",
     "bootstrap": "lerna bootstrap",
-    "format": "prettier --check \"packages/**\" \"examples/**\"",
+    "format": "prettier --check \"packages/**/*.ts\" \"examples/**/.ts\"",
     "lint": "lerna run lint",
     "test": "lerna run test",
     "build": "lerna run build",
