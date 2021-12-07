@@ -71,8 +71,12 @@ export class Secp256k1 {
     }
 
     public publicKeyVerify(pubkey: Uint8Array) {
-        isUint8Array("public key", pubkey, [33, 65]);
-
+        if (!(pubkey instanceof Uint8Array)) {
+            return false;
+        }
+        if (pubkey.length && pubkey.length !== 33 && pubkey.length !== 65) {
+            return false;
+        }
         return this.binding.publicKeyVerify(pubkey) === 0;
     }
 
