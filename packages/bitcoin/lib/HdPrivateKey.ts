@@ -340,6 +340,16 @@ export class HdPrivateKey {
     }
 
     /**
+     * Returns the address encoded according to the type of HD key.
+     * For x-type this returns a base58 encoded P2PKH address.
+     * For y-type this returns a base58 encoded P2SH-P2WPKH address.
+     * For z-type this returns a bech32 encoded P2WPKH address.
+     */
+    public toAddress(): string {
+        return this.toPubKey().toAddress();
+    }
+
+    /**
      * Encodes the {@link HdPrivateKey} according to BIP32.
      *
      * For example:

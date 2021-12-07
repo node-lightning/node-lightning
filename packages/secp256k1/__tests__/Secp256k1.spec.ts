@@ -17,6 +17,10 @@ describe("Secp256k1", () => {
         "fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141",
         "hex",
     );
+    const Nh = Buffer.from(
+        "7fffffffffffffffffffffffffffffff5d576e7357a4501ddfe92f46681b20a0",
+        "hex",
+    );
     const one = Buffer.from(
         "0000000000000000000000000000000000000000000000000000000000000001",
         "hex",
@@ -1410,6 +1414,128 @@ describe("Secp256k1", () => {
                     secp256k1.publicKeyTweakMul(pk, t, false);
                 });
             }
+        });
+    });
+
+    describe(".signatureNormalize()", () => {
+        describe("arg: invalid signature", () => {
+            it("throws with invalid type", () => {
+                expect(() => secp256k1.signatureNormalize(null)).to.throw(
+                    "Expected signature to be an Uint8Array",
+                );
+            });
+
+            it("throws with invalid length", () => {
+                expect(() => secp256k1.signatureNormalize(new Uint8Array(63))).to.throw(
+                    "Expected signature to be an Uint8Array with length 64",
+                );
+            });
+        });
+
+        describe("valid", () => {
+            it("doesnt change valid signature (s equal to N/2)", () => {
+                const sig = Buffer.from([...one, ...Nh]);
+                const result = secp256k1.signatureNormalize(sig);
+                expect(sig).to.deep.equal(result);
+            });
+
+            it("changes signature (s equal to N/2 + 1)", () => {
+                const sig = Buffer.from([...one, ...Nh]);
+                const sig2 = Buffer.from(sig);
+                sig2[63] += 1;
+                const result = secp256k1.signatureNormalize(sig2);
+                expect(result).to.deep.equal(sig);
+            });
+        });
+    });
+
+    describe(".signatureExport()", () => {
+        describe("arg: invalid signature", () => {
+            it("throws with invalid type", () => {
+                expect(() => secp256k1.signatureExport(null)).to.throw(
+                    "Expected signature to be an Uint8Array",
+                );
+            });
+
+            it("throws with invalid length", () => {
+                expect(() => secp256k1.signatureExport(new Uint8Array(63))).to.throw(
+                    "Expected signature to be an Uint8Array with length 64",
+                );
+            });
+        });
+
+        describe("arg: invalid output", () => {
+            it("throws with invalid output type", () => {
+                expect(() => secp256k1.signatureExport(new Uint8Array(64), null)).to.throw(
+                    "Expected output to be an Uint8Array",
+                );
+            });
+
+            it("throws with invalid output length", () => {
+                expect(() =>
+                    secp256k1.signatureExport(new Uint8Array(64), new Uint8Array(42)),
+                ).to.throw("Expected output to be an Uint8Array with length 72");
+            });
+        });
+
+        describe("valid", () => {
+            it("exports to DER", () => {
+                const sig = secp256k1.ecdsaSign(msg, prvkeys[0]);
+                const result = secp256k1.signatureExport(sig.signature);
+                expect(hex(result)).to.equal(
+                    "3045022100c64b1924157748652733c41294e5f6e395c3626a8e911f3742a4b8ad4fdb922f0220347ba5cdd629027ef5846eb85c9452f6312e0aea697625d66b202448f3e9618f",
+                );
+            });
+        });
+    });
+
+    describe(".signatureImport()", () => {
+        describe("arg: invalid signature", () => {
+            it("throws with invalid type", () => {
+                expect(() => secp256k1.signatureImport(null)).to.throw(
+                    "Expected signature to be an Uint8Array",
+                );
+            });
+
+            it("throws with invalid length", () => {
+                expect(() => secp256k1.signatureImport(new Uint8Array(63))).to.throw(
+                    "Signature could not be parsed",
+                );
+            });
+        });
+
+        describe("arg: invalid output", () => {
+            it("throws with invalid output type", () => {
+                expect(() => secp256k1.signatureImport(new Uint8Array(64), null)).to.throw(
+                    "Expected output to be an Uint8Array",
+                );
+            });
+
+            it("throws with invalid output length", () => {
+                expect(() =>
+                    secp256k1.signatureImport(new Uint8Array(64), new Uint8Array(42)),
+                ).to.throw("Expected output to be an Uint8Array with length 64");
+            });
+        });
+
+        describe("valid", () => {
+            it("imports from DER", () => {
+                const der = Buffer.from(
+                    "3045022100c64b1924157748652733c41294e5f6e395c3626a8e911f3742a4b8ad4fdb922f0220347ba5cdd629027ef5846eb85c9452f6312e0aea697625d66b202448f3e9618f",
+                    "hex",
+                );
+                const sig = secp256k1.signatureImport(der);
+                expect(hex(sig)).to.equal(
+                    "c64b1924157748652733c41294e5f6e395c3626a8e911f3742a4b8ad4fdb922f347ba5cdd629027ef5846eb85c9452f6312e0aea697625d66b202448f3e9618f",
+                );
+            });
+
+            it("import/export", () => {
+                const sig = secp256k1.ecdsaSign(msg, prvkeys[0]);
+                const exp = secp256k1.signatureExport(sig.signature);
+                const imp = secp256k1.signatureImport(exp);
+                expect(imp).to.deep.equal(sig.signature);
+            });
         });
     });
 });
