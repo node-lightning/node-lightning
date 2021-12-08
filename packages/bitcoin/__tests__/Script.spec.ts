@@ -1,6 +1,7 @@
 import { StreamReader } from "@node-lightning/bufio";
 import * as crypto from "@node-lightning/crypto";
 import { expect } from "chai";
+import { Network } from "../lib/Network";
 import { OpCode } from "../lib/OpCodes";
 import { Script } from "../lib/Script";
 import { ScriptCmd } from "../lib/ScriptCmd";
@@ -237,6 +238,24 @@ describe("Script", () => {
             // assert values equailvalence
             expect(b.cmds[0]).to.deep.equal(b.cmds[0]);
             expect(b.cmds[1]).to.deep.equal(b.cmds[1]);
+        });
+    });
+
+    describe(".toP2shAddress()", () => {
+        it("generates base58 address", () => {
+            const script = new Script(Buffer.alloc(20, 0x01), OpCode.OP_EQUAL);
+            expect(script.toP2shAddress(Network.mainnet)).to.equal(
+                "3NSBiLf9nZYqTbaNpZ4x2wUyFE6PzrbjtV",
+            );
+        });
+    });
+
+    describe(".toP2wshAddress()", () => {
+        it("generates bech32 address", () => {
+            const script = new Script(Buffer.alloc(20, 0x01), OpCode.OP_EQUAL);
+            expect(script.toP2wshAddress(Network.mainnet)).to.equal(
+                "bc1qea5g3xce0ht7qdxqpzktwwf826dez4fd6l8h2jnwxkym72sd7rwss23a2u",
+            );
         });
     });
 
