@@ -224,12 +224,22 @@ export class HdPublicKey {
         }
     }
 
-    // not sure about these....
-    public toBuffer(): Buffer {
+    /**
+     * Sugar for `instance.publicKey.toBuffer()` and returns the SEC
+     * encoded public key in compressed or uncompressed format.
+     * @returns
+     */
+    public toSecBuffer(): Buffer {
         return this.publicKey.toBuffer();
     }
 
-    public toHex(): string {
+    /**
+     * Sugar for `instance.publicKey.toHex()` and returns the SEC
+     * encoded public key as a hex string in compressed or uncompressed
+     * format.
+     * @returns
+     */
+    public toSecHex(): string {
         return this.publicKey.toHex();
     }
 }
