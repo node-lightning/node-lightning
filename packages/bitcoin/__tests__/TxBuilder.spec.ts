@@ -275,7 +275,7 @@ describe("TxBuilder", () => {
                 Sequence.zero(),
             );
             original.addOutput(49.9999, Script.p2pkhLock(pubkeyB));
-            original.locktime = LockTime.zero();
+            original.setLockTime(0);
             original.setScriptSig(
                 0,
                 Script.p2pkhUnlock(original.sign(0, Script.p2pkhLock(pubkeyA), privA), pubkeyA),
@@ -355,7 +355,7 @@ describe("TxBuilder", () => {
                 Sequence.locktime(), // required to enable locktime
             );
             tx2.addOutput(49.9998, Script.p2pkhLock(pubkeyB));
-            tx2.locktime = new LockTime(200); // locktime must be >= the input value for CLTV
+            tx2.setLockTime(200); // locktime must be >= the input value for CLTV
             tx2.setScriptSig(0, Script.p2shUnlock(redeem, tx2.sign(0, redeem, privB))); // provide the redeem script and the signature
 
             expect(tx2.serialize().toString("hex")).to.equal(
@@ -602,7 +602,7 @@ describe("TxBuilder", () => {
             tx.addInput(TxIn.fromHex("db6b1b20aa0fd7b23880be2ecbd4a98130974cf4748fb66092ac4d3ceb1a54770100000000feffffff")); // prettier-ignore
             tx.addOutput(TxOut.fromHex("b8b4eb0b000000001976a914a457b684d7f0d539a46a45bbc043f35b59d0d96388ac")); // prettier-ignore
             tx.addOutput(TxOut.fromHex("0008af2f000000001976a914fd270b1ee6abcaea97fea7ad0402e8bd8ad6d77c88ac")); // prettier-ignore
-            tx.locktime = LockTime.parse(StreamReader.fromHex("92040000"));
+            tx.setLockTime(LockTime.parse(StreamReader.fromHex("92040000")));
             tx.setScriptSig(0, Script.p2shUnlock(Script.p2wpkhLock(pubkey)));
             tx.addWitness(0, tx.signSegWitv0(0, Script.p2pkhLock(pubkey), privkey, 10));
             tx.addWitness(0, pubkey);

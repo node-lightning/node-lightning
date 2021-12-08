@@ -104,11 +104,27 @@ export class TxBuilder {
         this.inputs[index].addWitness(witness);
     }
 
+    /**
+     * Sets the scriptSig for a specified input. This is sugar for
+     * `txb.inputs[index] = script;`.
+     * @param index index of the input
+     * @param script scriptSig to set for the input
+     */
     public setScriptSig(index: number, script: Script) {
         if (index < 0 || index >= this._inputs.length) {
             throw new BitcoinError(BitcoinErrorCode.InputIndexOutOfRange, { index });
         }
         this.inputs[index].scriptSig = script;
+    }
+
+    /**
+     * Sets the locktime for the transaction. This is sugar for
+     * `txb.locktime = locktime;` but allows for easy setting via a
+     * number.
+     * @param locktime
+     */
+    public setLockTime(locktime: number | LockTime) {
+        this.locktime = locktime instanceof LockTime ? locktime : new LockTime(locktime);
     }
 
     /**
