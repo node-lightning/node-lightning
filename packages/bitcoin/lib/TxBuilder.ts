@@ -104,6 +104,13 @@ export class TxBuilder {
         this.inputs[index].addWitness(witness);
     }
 
+    public setScriptSig(index: number, script: Script) {
+        if (index < 0 || index >= this._inputs.length) {
+            throw new BitcoinError(BitcoinErrorCode.InputIndexOutOfRange, { index });
+        }
+        this.inputs[index].scriptSig = script;
+    }
+
     /**
      * Creates a signature hash including all inputs and all outputs,
      * which is referred to as SIGHASH_ALL. The scriptSig of all inputs
