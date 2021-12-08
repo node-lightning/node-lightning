@@ -92,4 +92,26 @@ describe("HdPrivateKey", () => {
             expect(expected.encode()).to.equal(actual.encode());
         });
     });
+
+    describe(".toAddress()", () => {
+        const seed = Mnemonic.phraseToSeed("abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"); // prettier-ignore
+
+        it("generates x-type address", () => {
+            const path = "m/0";
+            const sut = HdPrivateKey.fromPath(path, seed, Network.mainnet, HdKeyType.x);
+            expect(sut.toAddress()).to.equal("18mDodGPRAoNV5gVGpuQKaEr85kXBuz23z");
+        });
+
+        it("generates y-type address", () => {
+            const path = "m/0";
+            const sut = HdPrivateKey.fromPath(path, seed, Network.mainnet, HdKeyType.y);
+            expect(sut.toAddress()).to.equal("3EwDCTtQFWwe81Gwpfsf6kxt7AL34kqH5V");
+        });
+
+        it("generates z-type address", () => {
+            const path = "m/0";
+            const sut = HdPrivateKey.fromPath(path, seed, Network.mainnet, HdKeyType.z);
+            expect(sut.toAddress()).to.equal("bc1q25jaaa5xx0m596uz3gltyaqea2vptae4jn9a74");
+        });
+    });
 });
