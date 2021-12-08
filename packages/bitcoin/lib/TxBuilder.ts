@@ -169,9 +169,10 @@ export class TxBuilder {
      *
      * @param index signatory input index
      * @param commitScript the scriptSig used for the signature input
-     * @param value the value of the input
+     * @param value the value of the input. When a number is supplied it
+     * is treated as bitcoin via `Value.fromBitcoin`
      */
-    public hashSegwitv0(index: number, commitScript: Script, value: Value): Buffer {
+    public hashSegwitv0(index: number, commitScript: Script, value: number | Value): Buffer {
         const writer = new BufferWriter();
 
         // Combines the previous outputs for all inputs in the
@@ -214,7 +215,7 @@ export class TxBuilder {
         const vin = this._inputs[index];
         writer.writeBytes(vin.outpoint.serialize());
         writer.writeBytes(commitScript.serialize());
-        writer.writeUInt64LE(value.sats);
+        writer.writeUInt64LE((value instanceof Value ? value : Value.fromBitcoin(value)).sats);
         writer.writeBytes(vin.sequence.serialize());
 
         writer.writeBytes(this._hashOutputs);
@@ -256,13 +257,14 @@ export class TxBuilder {
      * @param input index of input that should be signed
      * @param commitScript Script that is committed during signature
      * @param privateKey 32-byte private key
-     * @param value value of the prior input
+     * @param value the value of the input. When a number is supplied it
+     * is treated as bitcoin via `Value.fromBitcoin`
      */
     public signSegWitv0(
         input: number,
         commitScript: Script,
         privateKey: Buffer,
-        value: Value,
+        value: number | Value,
     ): Buffer {
         // create the hash of the transaction for the input
         const hash = this.hashSegwitv0(input, commitScript, value);

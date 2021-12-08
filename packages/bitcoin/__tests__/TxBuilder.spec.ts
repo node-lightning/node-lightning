@@ -515,12 +515,8 @@ describe("TxBuilder", () => {
             tx.inputs[0].scriptSig = Script.p2pkUnlock(tx.sign(0, Script.p2pkLock(pubkey1), priv1));
 
             // sign p2wpkh input and apply to witness
-            tx.inputs[1].witness.push(
-                new Witness(
-                    tx.signSegWitv0(1, Script.p2pkhLock(pubkey2), priv2, Value.fromBitcoin(6)),
-                ),
-            );
-            tx.inputs[1].witness.push(new Witness(pubkey2));
+            tx.addWitness(1, tx.signSegWitv0(1, Script.p2pkhLock(pubkey2), priv2, 6));
+            tx.addWitness(1, pubkey2);
 
             expect(tx.serialize().toString("hex")).to.equal(
                 "01000000000102fff7f7881a8099afa6940d42d1e7f6362bec38171ea3edf433541db4e4ad969f00000000494830450221008b9d1dc26ba6a9cb62127b02742fa9d754cd3bebf337f7a55d114c8e5cdd30be022040529b194ba3f9281a99f2b1c0a19c0489bc22ede944ccf4ecbab4cc618ef3ed01eeffffffef51e1b804cc89d182d279655c3aa89e815b1b309fe287d9b2b55d57b90ec68a0100000000ffffffff02202cb206000000001976a9148280b37df378db99f66f85c95a783a76ac7a6d5988ac9093510d000000001976a9143bde42dbee7e4dbe6a21b2d50ce2f0167faa815988ac000247304402203609e17b84f6a7d30c80bfa610b5b4542f32a8a0d5447a12fb1366d7f01cc44a0220573a954c4518331561406f90300e8f3358f51928d43c212a8caed02de67eebee0121025476c2e83188368da1ff3e292e7acafcdb3566bb0ad253f62fc70f07aeee635711000000",
@@ -533,17 +529,8 @@ describe("TxBuilder", () => {
             tx.addOutput(49.9998, Script.p2wpkhLock(pubkeyA));
 
             // provide witness data to spend p2wpkh
-            tx.inputs[0].witness.push(
-                new Witness(
-                    tx.signSegWitv0(
-                        0,
-                        Script.p2pkhLock(pubkeyB),
-                        privB,
-                        Value.fromBitcoin(49.9999),
-                    ),
-                ),
-            );
-            tx.inputs[0].witness.push(new Witness(pubkeyB));
+            tx.addWitness(0, tx.signSegWitv0(0, Script.p2pkhLock(pubkeyB), privB, 49.9999));
+            tx.addWitness(0, pubkeyB);
 
             expect(tx.serialize().toString("hex")).to.equal(
                 "0200000000010115e84cb8836aa28b509a74d453e2a1770666a4da618323ddc76bfc2ceb41e4410000000000ffffffff01e0a3052a010000001600149b40f5b05efd99e4b0c4f62ca63eec3e580e95c702483045022100a355feb29d36e89c3693a2d5e33c8143ffba3428db2cc0ace021d955a649d2c5022001298dddb1627e313664dbce0311c453939c6fa88ad3cb8ff6f49287d13b3d9f01210334acee9adf0e3e490a422dfe98bc10a8091b43047b793b8d840657b6b6a46c56ffffffff",
@@ -568,13 +555,13 @@ describe("TxBuilder", () => {
             const tx = new TxBuilder();
             tx.addInput("c53bb09e5cd33bf9f314c8e43f9f5e9b7356433c48dc223740af493ab7069d40:0");
             tx.addOutput(49.9998, Script.p2wpkhLock(pubkeyA));
-            tx.inputs[0].witness.push(new Witness(Buffer.alloc(0)));
+            tx.addWitness(0, Buffer.alloc(0));
 
             const commitScript = Script.p2msLock(2, pubkeyA, pubkeyB);
             const value = Value.fromBitcoin(49.9999);
-            tx.inputs[0].witness.push(new Witness(tx.signSegWitv0(0, commitScript, privA, value)));
-            tx.inputs[0].witness.push(new Witness(tx.signSegWitv0(0, commitScript, privB, value)));
-            tx.inputs[0].witness.push(new Witness(commitScript.serializeCmds()));
+            tx.addWitness(0, tx.signSegWitv0(0, commitScript, privA, value));
+            tx.addWitness(0, tx.signSegWitv0(0, commitScript, privB, value));
+            tx.addWitness(0, commitScript.serializeCmds());
 
             expect(tx.serialize().toString("hex")).to.equal(
                 "02000000000101409d06b73a49af403722dc483c4356739b5e9f3fe4c814f3f93bd35c9eb03bc50000000000ffffffff01e0a3052a010000001600149b40f5b05efd99e4b0c4f62ca63eec3e580e95c7040047304402203045ecb8cd434c3f7e66ced622f454a22541c13e50136ea523b05944ef15b39a02205f784f22c4946c77a03191ec00760c981100e969b9e2283d9c170f72fea3b64101483045022100eb31935352b66f8f02dee387374c7113d19fd0c62dacdace62d20f356e5b2d3602203619e58831acba50a2fb64bc615a03ae565d51e75492b0b5aa59067c1e0b34b90147522102c13bf903d6147a7fec59b450e2e8a6c174c35a11a7675570d10bd05bc3597996210334acee9adf0e3e490a422dfe98bc10a8091b43047b793b8d840657b6b6a46c5652aeffffffff",
@@ -600,17 +587,11 @@ describe("TxBuilder", () => {
             tx.addInput("a21e120c7d256e21a40f82ff24000d6d9823a28c7f573190b11727caa9e0428a:0");
             tx.addOutput(49.9997, Script.p2wpkhLock(pubkeyB));
             tx.inputs[0].scriptSig = Script.p2shUnlock(Script.p2wpkhLock(pubkeyB)); // redeem script for p2sh
-            tx.inputs[0].witness.push(
-                new Witness(
-                    tx.signSegWitv0(
-                        0,
-                        Script.p2pkhLock(pubkeyB),
-                        privB,
-                        Value.fromBitcoin(49.9998),
-                    ),
-                ),
+            tx.addWitness(
+                0,
+                tx.signSegWitv0(0, Script.p2pkhLock(pubkeyB), privB, Value.fromBitcoin(49.9998)),
             );
-            tx.inputs[0].witness.push(new Witness(pubkeyB));
+            tx.addWitness(0, pubkeyB);
 
             expect(tx.serialize().toString("hex")).to.equal(
                 "020000000001018a42e0a9ca2717b19031577f8ca223986d0d0024ff820fa4216e257d0c121ea20000000017160014c538c517797dfefdf30142dc1684bfd947532dbbffffffff01d07c052a01000000160014c538c517797dfefdf30142dc1684bfd947532dbb02483045022100dffb1e407f8b8545fd79d27de887a3152a611cef99952eb56ddf3795b3bdbf25022021904ce657abfa85004a94a8aee1b59997dae5ad4401ba926d476df6f35e890a01210334acee9adf0e3e490a422dfe98bc10a8091b43047b793b8d840657b6b6a46c56ffffffff",
@@ -627,12 +608,8 @@ describe("TxBuilder", () => {
             tx.addOutput(TxOut.fromHex("0008af2f000000001976a914fd270b1ee6abcaea97fea7ad0402e8bd8ad6d77c88ac")); // prettier-ignore
             tx.locktime = LockTime.parse(StreamReader.fromHex("92040000"));
             tx.inputs[0].scriptSig = Script.p2shUnlock(Script.p2wpkhLock(pubkey));
-            tx.inputs[0].witness.push(
-                new Witness(
-                    tx.signSegWitv0(0, Script.p2pkhLock(pubkey), privkey, Value.fromBitcoin(10)),
-                ),
-            );
-            tx.inputs[0].witness.push(new Witness(pubkey));
+            tx.addWitness(0, tx.signSegWitv0(0, Script.p2pkhLock(pubkey), privkey, 10));
+            tx.addWitness(0, pubkey);
 
             expect(tx.serialize().toString("hex")).to.equal(
                 "01000000000101db6b1b20aa0fd7b23880be2ecbd4a98130974cf4748fb66092ac4d3ceb1a5477010000001716001479091972186c449eb1ded22b78e40d009bdf0089feffffff02b8b4eb0b000000001976a914a457b684d7f0d539a46a45bbc043f35b59d0d96388ac0008af2f000000001976a914fd270b1ee6abcaea97fea7ad0402e8bd8ad6d77c88ac02473044022047ac8e878352d3ebbde1c94ce3a10d057c24175747116f8288e5d794d12d482f0220217f36a485cae903c713331d877c1f64677e3622ad4010726870540656fe9dcb012103ad1d8e89212f0b92c74d23bb710c00662ad1470198ac48c43f7d6f93a2a2687392040000",
@@ -675,10 +652,10 @@ describe("TxBuilder", () => {
             const value = Value.fromBitcoin(49.9999);
 
             // push the signatures and witness script onto the witness data
-            tx.inputs[0].witness.push(new Witness(Buffer.alloc(0)));
-            tx.inputs[0].witness.push(new Witness(tx.signSegWitv0(0, witnessScript, privA, value)));
-            tx.inputs[0].witness.push(new Witness(tx.signSegWitv0(0, witnessScript, privB, value)));
-            tx.inputs[0].witness.push(new Witness(witnessScript.serializeCmds()));
+            tx.addWitness(0, Buffer.alloc(0));
+            tx.addWitness(0, tx.signSegWitv0(0, witnessScript, privA, value));
+            tx.addWitness(0, tx.signSegWitv0(0, witnessScript, privB, value));
+            tx.addWitness(0, witnessScript.serializeCmds());
 
             expect(tx.serialize().toString("hex")).to.equal(
                 "020000000001017dae07bf1b3718b29b89dfc2d50db85c72a874581012489ead69bd83588a11b20000000023220020f667d4b67b93ccd86992d8cd6f183210c6c12ddb3f6c78123118211e823e2776ffffffff01e0a3052a01000000160014c538c517797dfefdf30142dc1684bfd947532dbb0400483045022100dfde803231cb986e0d1e1201813b0f0ee221d93d1fa34fc75cc349298c1de880022055dc330df7f296ae28a0f26549eed8d177269818bc1c97e2ee73a6de0d4069bd01473044022040cc31d846e73739218d71803c105e30f32d586f773a8760da228817aee5cd7402204f9030e3b1e53100ef5732b7de1461bc2c16d6709962053e6b1707bce8f679e00147522102c13bf903d6147a7fec59b450e2e8a6c174c35a11a7675570d10bd05bc3597996210334acee9adf0e3e490a422dfe98bc10a8091b43047b793b8d840657b6b6a46c5652aeffffffff",
@@ -730,8 +707,8 @@ describe("TxBuilder", () => {
             // const value = Value.fromBitcoin(49.9999);
 
             // push witness data as bytes and witness script onto the witness stack
-            tx.inputs[0].witness.push(new Witness(Stack.encodeNum(7)));
-            tx.inputs[0].witness.push(new Witness(witnessScript.serializeCmds()));
+            tx.addWitness(0, Stack.encodeNum(7));
+            tx.addWitness(0, witnessScript.serializeCmds());
 
             expect(tx.serialize().toString("hex")).to.equal(
                 "020000000001015110a1662954d8d85450b2599c213f06efbb28aff25ef5cba1b96e12b640a0090000000023220020e37b180c5e060a87ebf395bfdfb766346c71325a059a047a5572f5df5d88e9f6ffffffff01e0a3052a01000000160014c538c517797dfefdf30142dc1684bfd947532dbb0201070453935a87ffffffff",
