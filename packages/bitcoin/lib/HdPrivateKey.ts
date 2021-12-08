@@ -375,4 +375,20 @@ export class HdPrivateKey {
     public encode(): string {
         return HdKeyCodec.encode(this);
     }
+
+    /**
+     * Returns a Buffer of the underlying private key encoded as a big
+     * endian integer. This is sugar for `key.privateKey.toBuffer()`.
+     */
+    public toBuffer(): Buffer {
+        return this.privateKey.toBuffer();
+    }
+
+    /**
+     * Returns a hex string of the underlying private key. This is sugar
+     * for `key.privateKey.toHex()`.
+     */
+    public toHex(): string {
+        return this.privateKey.toHex();
+    }
 }
