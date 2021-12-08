@@ -1,3 +1,4 @@
+export * from "./Address";
 export * from "./Base58";
 export * from "./Base58Check";
 export * from "./Bech32";
