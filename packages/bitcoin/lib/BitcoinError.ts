@@ -22,6 +22,8 @@ function getMessage(code: BitcoinErrorCode) {
             return "Hash256 requires 32-byte Buffer";
         case BitcoinErrorCode.NetworkMismatch:
             return "Network mismatch";
+        case BitcoinErrorCode.InputIndexOutOfRange:
+            return "Input index out of range";
 
         case BitcoinErrorCode.UnkownHdKeyVersion:
             return "Unkown HD key version";

@@ -9,6 +9,7 @@ export enum BitcoinErrorCode {
     Hash160Invalid,
     Hash256Invalid,
     NetworkMismatch,
+    InputIndexOutOfRange,
 
     // HD Key Related
     InvalidHdEncoding,

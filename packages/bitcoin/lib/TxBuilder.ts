@@ -1,5 +1,6 @@
 import { BufferWriter } from "@node-lightning/bufio";
 import { hash256, sign, sigToDER } from "@node-lightning/crypto";
+import { BitcoinError, BitcoinErrorCode, Witness } from ".";
 import { LockTime } from "./LockTime";
 import { OutPoint } from "./OutPoint";
 import { Script } from "./Script";
@@ -89,6 +90,18 @@ export class TxBuilder {
             value = value instanceof Value ? value : Value.fromBitcoin(value);
             this._outputs.push(new TxOut(value, scriptPubKey));
         }
+    }
+
+    /**
+     * Adds witness data to the input at the specified index.
+     * @param index index of the input, zero based
+     * @param witness witness data to add
+     */
+    public addWitness(index: number, witness: Buffer | Witness) {
+        if (index < 0 || index >= this._inputs.length) {
+            throw new BitcoinError(BitcoinErrorCode.InputIndexOutOfRange, { index });
+        }
+        this.inputs[index].addWitness(witness);
     }
 
     /**
