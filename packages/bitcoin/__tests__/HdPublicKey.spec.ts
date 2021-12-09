@@ -32,4 +32,23 @@ describe("HdPublicKey", () => {
             expect(prvkey.toAddress()).to.equal("bc1qhdgyak30llluz36r6lk5ywup5uq0jz0ecsecfv");
         });
     });
+
+    describe(".derive()", () => {
+        const seed = Buffer.alloc(32, 0x01);
+
+        it("matches HdPrivateKey derive", () => {
+            const account = HdPrivateKey.fromPath("m/84'/0'/0'", seed, Network.mainnet);
+            const expected = account
+                .derive(0)
+                .derive(0)
+                .toPubKey()
+                .toSecHex();
+            const actual = account
+                .toPubKey()
+                .derive(0)
+                .derive(0)
+                .toSecHex();
+            expect(actual).to.equal(expected);
+        });
+    });
 });
