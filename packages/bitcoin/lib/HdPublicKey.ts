@@ -164,7 +164,7 @@ export class HdPublicKey {
         data.writeBytes(this.publicKey.toBuffer());
         data.writeUInt32BE(i);
 
-        const l = crypto.hmac(this.chainCode, data.toBuffer());
+        const l = crypto.hmac(this.chainCode, data.toBuffer(), "sha512");
         const ll = l.slice(0, 32);
         const lr = l.slice(32);
 
