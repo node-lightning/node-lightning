@@ -11,10 +11,62 @@ describe("HdPrivateKey", () => {
             const key = master.derive(0).derive(1);
             expect(key.depth).to.equal(2);
         });
+
+        it("throws if given xpub", () => {
+            expect(() =>
+                HdPrivateKey.decode(
+                    "xpub68Gmy5EdvgibQVfPdqkBBCHxA5htiqg55crXYuXoQRKfDBFA1WEjWgP6LHhwBZeNK1VTsfTFUHCdrfp1bgwQ9xv5ski8PX9rL2dZXvgGDnw",
+                ),
+            ).to.throw("Invalid HD private key");
+        });
+    });
+
+    describe(".isHardened", () => {
+        const seed = Buffer.alloc(32, 0x01);
+        it("true when hardened", () => {
+            const account = HdPrivateKey.fromPath("m/84'/0'/0'", seed, Network.mainnet);
+            expect(account.isHardened).to.equal(true);
+        });
+
+        it("false when not-hardened", () => {
+            const account = HdPrivateKey.fromPath("m/84'/0'/0'", seed, Network.mainnet);
+            expect(account.derive(0).isHardened).to.equal(false);
+        });
     });
 
     describe(".fromPath()", () => {
         const seed = Buffer.alloc(32, 0x01);
+
+        it("throws if doesnt start with m", () => {
+            expect(() => HdPrivateKey.fromPath("q/84'/0'/0'", seed, Network.mainnet)).to.throw(
+                "Invalid HD key path",
+            );
+        });
+
+        it("throws if number is negative", () => {
+            expect(() => HdPrivateKey.fromPath("m/84'/0'/0'/-6", seed, Network.mainnet)).to.throw(
+                "Invalid HD key path",
+            );
+        });
+
+        it("throws if number is above max value", () => {
+            expect(() =>
+                HdPrivateKey.fromPath("m/84'/0'/0'/2147483648'", seed, Network.mainnet),
+            ).to.throw("Invalid HD key path");
+        });
+
+        it("throws if number is above max non-hardened value", () => {
+            expect(() =>
+                HdPrivateKey.fromPath("m/84'/0'/0'/2147483649", seed, Network.mainnet),
+            ).to.throw("Invalid HD key path");
+        });
+
+        it("throws if part is not a number", () => {
+            expect(() => HdPrivateKey.fromPath("m/84'/0'/0'/a", seed, Network.mainnet)).to.throw(
+                "Invalid HD key path",
+            );
+        });
+
         it("master defaults to x", () => {
             const master = HdPrivateKey.fromSeed(seed, Network.mainnet);
             expect(master.type).to.equal(HdKeyType.x);
@@ -112,6 +164,26 @@ describe("HdPrivateKey", () => {
             const path = "m/0";
             const sut = HdPrivateKey.fromPath(path, seed, Network.mainnet, HdKeyType.z);
             expect(sut.toAddress()).to.equal("bc1q25jaaa5xx0m596uz3gltyaqea2vptae4jn9a74");
+        });
+    });
+
+    describe(".toBuffer()", () => {
+        const seed = Buffer.alloc(32, 0x01);
+        it("returns underlying buffer", () => {
+            const prvkey = HdPrivateKey.fromPath("m/84'/0'/0'/0/0", seed, Network.mainnet);
+            const actual = prvkey.toBuffer();
+            const expected = prvkey.privateKey.toBuffer();
+            expect(actual).to.deep.equal(expected);
+        });
+    });
+
+    describe(".toHex()", () => {
+        const seed = Buffer.alloc(32, 0x01);
+        it("returns underlying buffer", () => {
+            const prvkey = HdPrivateKey.fromPath("m/84'/0'/0'/0/0", seed, Network.mainnet);
+            const actual = prvkey.toHex();
+            const expected = prvkey.privateKey.toHex();
+            expect(actual).to.deep.equal(expected);
         });
     });
 });
