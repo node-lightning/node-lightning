@@ -1,6 +1,6 @@
 import * as http from "http";
-import { IBitcoindOptions } from "./bitcoind-options";
-import { JsonRpcError } from "./jsonrpc-error";
+import { IBitcoindOptions } from "./BitcoindOptions";
+import { JsonRpcError } from "./JsonRpcError";
 
 export function jsonrpcRequest<T>(
     method: string,

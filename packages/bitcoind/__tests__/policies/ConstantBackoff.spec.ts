@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import sinon from "sinon";
-import { ConstantBackoff } from "../../lib/policies/constant-backoff";
+import { ConstantBackoff } from "../../lib/policies/ConstantBackoff";
 
 describe("ConstantBackoff", () => {
     it("single call", async () => {
