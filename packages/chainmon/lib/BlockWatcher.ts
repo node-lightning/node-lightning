@@ -101,13 +101,13 @@ export class BlockWatcher extends EventEmitter {
 
     protected async _connectBlock(header: BlockHeader) {
         if (this.logger) this.logger.debug("connecting block", header.height, header.hash);
-        const block = await this.client.getBlock(header.hash);
+        const block = await this.client.getBlockSummary(header.hash);
         await this.onConnect(block);
     }
 
     protected async _disconnectBlock(header: BlockHeader) {
         if (this.logger) this.logger.debug("disconnecting block", header.height, header.hash);
-        const block = await this.client.getBlock(header.hash);
+        const block = await this.client.getBlockSummary(header.hash);
         await this.onDisconnect(block);
     }
 }
