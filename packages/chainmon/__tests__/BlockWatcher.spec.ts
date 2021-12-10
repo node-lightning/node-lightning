@@ -18,7 +18,7 @@ describe("BlockWatcher", () => {
         bitcoind = sinon.createStubInstance(BitcoindClient);
         bitcoind.getHeader.callsFake(headerLookup);
         bitcoind.getBestBlockHash.resolves("0000000000bf27f2b81c3091ee3d25b1e48f485b06ae85ac50b7faa86857a60d"); // prettier-ignore
-        bitcoind.getBlock.callsFake(blockLookup);
+        bitcoind.getBlockSummary.callsFake(blockLookup);
     });
 
     describe("._sync()", () => {

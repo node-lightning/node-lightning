@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { wait } from "../../lib/policies/wait";
+import { wait } from "../../lib/policies/Wait";
 
 describe("wait", () => {
     it("waits", async () => {
