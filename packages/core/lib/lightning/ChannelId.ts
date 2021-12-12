@@ -8,17 +8,22 @@ import { HashByteOrder, OutPoint } from "@node-lightning/bitcoin";
  * output_index modifies the last two bytes).
  */
 export class ChannelId {
+    /**
+     * Constructs a `channel_id` from an outpoint by performing an XOR
+     * of the output index against the last-two bytes of the bid-endian
+     * txid.
+     * @param outpoint
+     * @returns
+     */
     public static fromOutPoint(outpoint: OutPoint): ChannelId {
-        const txid = outpoint.txid.serialize(HashByteOrder.RPC);
-
         if (outpoint.outputIndex > 0xffff) {
-            throw new Error("Invalid output index length");
+            throw new Error("Invalid channel_id outpoint");
         }
 
-        txid[30] ^= outpoint.outputIndex >> 8;
-        txid[31] ^= outpoint.outputIndex & 0xff;
-
-        return new ChannelId(txid);
+        const value = outpoint.txid.serialize(HashByteOrder.RPC);
+        value[30] ^= outpoint.outputIndex >> 8;
+        value[31] ^= outpoint.outputIndex & 0xff;
+        return new ChannelId(value);
     }
 
     constructor(readonly value: Buffer) {}
