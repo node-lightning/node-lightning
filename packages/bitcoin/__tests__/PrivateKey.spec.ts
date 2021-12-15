@@ -109,6 +109,21 @@ describe("PrivateKey", () => {
             const result = sut.tweakAdd(tweak);
             expect(result).to.not.equal(sut);
         });
+
+        it("throws with invalid tweak", () => {
+            const sut = new PrivateKey(Buffer.from("fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364140", "hex"), Network.mainnet); // prettier-ignore
+            const tweak = Buffer.from("0000000000000000000000000000000000000000000000000000000000000001", "hex"); // prettier-ignore
+            expect(() => sut.tweakAdd(tweak)).to.throw(
+                "The tweak was out of range or the resulted private key is invalid",
+            );
+        });
+
+        it("throws with out of range tweak", () => {
+            const tweak = Buffer.from("fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141", "hex"); // prettier-ignore
+            expect(() => sut.tweakAdd(tweak)).to.throw(
+                "The tweak was out of range or the resulted private key is invalid",
+            );
+        });
     });
 
     describe(".tweakMul()", () => {
@@ -138,6 +153,22 @@ describe("PrivateKey", () => {
             const tweak = Buffer.from("0000000000000000000000000000000000000000000000000000000000000001", "hex"); // prettier-ignore
             const result = sut.tweakMul(tweak);
             expect(result).to.not.equal(sut);
+        });
+
+        it("tweak wraps invalid private key", () => {
+            const sut = new PrivateKey(Buffer.from("7fffffffffffffffffffffffffffffff5d576e7357a4501ddfe92f46681b20a1", "hex"), Network.mainnet); // prettier-ignore
+            const tweak = Buffer.from("0000000000000000000000000000000000000000000000000000000000000002", "hex"); // prettier-ignore
+            const result = sut.tweakMul(tweak);
+            expect(result.toHex()).to.equal(
+                "0000000000000000000000000000000000000000000000000000000000000001",
+            );
+        });
+
+        it("throws with out of range tweak", () => {
+            const tweak = Buffer.from("fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141", "hex"); // prettier-ignore
+            expect(() => sut.tweakMul(tweak)).to.throw(
+                "The tweak was out of range or equal to zero",
+            );
         });
     });
 });

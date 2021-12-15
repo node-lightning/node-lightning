@@ -1,6 +1,7 @@
 import * as crypto from "@node-lightning/crypto";
 import { expect } from "chai";
 import { Network } from "../lib/Network";
+import { PrivateKey } from "../lib/PrivateKey";
 import { PublicKey } from "../lib/PublicKey";
 
 describe("PublicKey", () => {
@@ -160,6 +161,13 @@ describe("PublicKey", () => {
             const result = sut.tweakAdd(tweak);
             expect(result).to.not.equal(sut);
         });
+
+        it("throws with invalid tweak", () => {
+            const tweak = Buffer.from("fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141", "hex"); // prettier-ignore
+            expect(() => sut.tweakAdd(tweak)).to.throw(
+                "The tweak was out of range or the resulted private key is invalid",
+            );
+        });
     });
 
     describe(".tweakMul()", () => {
@@ -189,6 +197,13 @@ describe("PublicKey", () => {
             const tweak = Buffer.from("0000000000000000000000000000000000000000000000000000000000000001", "hex"); // prettier-ignore
             const result = sut.tweakMul(tweak);
             expect(result).to.not.equal(sut);
+        });
+
+        it("throws with out of range tweak", () => {
+            const tweak = Buffer.from("fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141", "hex"); // prettier-ignore
+            expect(() => sut.tweakMul(tweak)).to.throw(
+                "The tweak was out of range or equal to zero",
+            );
         });
     });
 

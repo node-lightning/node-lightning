@@ -253,7 +253,8 @@ export class HdPrivateKey {
      * @remarks
      *
      * @param i number of key to derive
-     * @returns
+     * @throws if this generates an invalid key either because the tweak
+     * was invalid or the resulting private key is invalid.
      */
     public derive(i: number): HdPrivateKey {
         const result = new HdPrivateKey();
@@ -292,6 +293,8 @@ export class HdPrivateKey {
      * as a hardened index. For example: `.deriveHardened(0)` derives
      * `0'` at index `0x80000000`.
      * @param i index of hardened key
+     * @throws if this generates an invalid key either because the tweak
+     * was invalid or the resulting private key is invalid.
      */
     public deriveHardened(i: number): HdPrivateKey {
         if (i < HARDENED_INDEX) {

@@ -8,7 +8,7 @@ import { PublicKey } from "./PublicKey";
 /**
  * This class encapsulates a 32-byte buffer containing a big-endian
  * encoded number between 0x1 and
- * 0xffffffffffffffffffffffffffffffffbaaedce6af48a03bbfd25e8cd0364140
+ * 0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364140
  * that is a private key for the secp256k1 elliptic curve.
  */
 export class PrivateKey {

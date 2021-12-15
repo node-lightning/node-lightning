@@ -148,7 +148,9 @@ export class HdPublicKey {
      * @param i key number to derive, must be less than 2^31-1
      *
      * @throws {@link BitcoinError} throws an `InvalidHdDerivation` error
-     * code if there is an attempt to derive a hardened child key.
+     * code if there is an attempt to derive a hardened child key. Throws
+     * if the tweak value is invalid.
+     *
      *
      * @returns child non-hardened {@link HdPublicKey}
      */
