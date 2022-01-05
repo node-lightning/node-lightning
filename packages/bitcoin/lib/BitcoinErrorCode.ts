@@ -39,4 +39,7 @@ export enum BitcoinErrorCode {
     // WIF
     InvalidWifEncoding,
     UnknownWifPrefix,
+
+    // Value
+    ValueUnderflow,
 }

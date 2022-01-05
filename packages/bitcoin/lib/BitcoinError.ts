@@ -65,6 +65,9 @@ function getMessage(code: BitcoinErrorCode) {
             return "Invalid WIF encoding";
         case BitcoinErrorCode.UnknownWifPrefix:
             return "Unknown WIF prefix";
+
+        case BitcoinErrorCode.ValueUnderflow:
+            return "Value underflow";
     }
 }
 
