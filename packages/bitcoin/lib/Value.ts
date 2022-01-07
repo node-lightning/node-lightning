@@ -1,3 +1,4 @@
+import { BitcoinError, BitcoinErrorCode, LockTime } from ".";
 import { ICloneable } from "./ICloneable";
 
 /**
@@ -108,5 +109,23 @@ export class Value implements ICloneable<Value> {
      */
     public clone(): Value {
         return new Value(this._picoSats);
+    }
+
+    /**
+     * Returns true if the current value is equal to the other value
+     * @param other
+     * @returns
+     */
+    public eq(other: Value): boolean {
+        return other._picoSats === this._picoSats;
+    }
+
+    /**
+     * Returns true if the current value is not equal to the other value
+     * @param other
+     * @returns
+     */
+    public neq(other: Value): boolean {
+        return other._picoSats !== this._picoSats;
     }
 }
