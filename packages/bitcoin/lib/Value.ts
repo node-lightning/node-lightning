@@ -128,4 +128,41 @@ export class Value implements ICloneable<Value> {
     public neq(other: Value): boolean {
         return other._picoSats !== this._picoSats;
     }
+
+    /**
+     * Returns true if the current value is greater than the other value.
+     * @param other
+     * @returns
+     */
+    public gt(other: Value): boolean {
+        return this._picoSats > other._picoSats;
+    }
+
+    /**
+     * Returns true if the current value is greater than or equal to the
+     * other value.
+     * @param other
+     * @returns
+     */
+    public gte(other: Value): boolean {
+        return this._picoSats >= other._picoSats;
+    }
+
+    /**
+     * Returns true if the current value is less than the other value.
+     * @param other
+     */
+    public lt(other: Value): boolean {
+        return this._picoSats < other._picoSats;
+    }
+
+    /**
+     * Returns true if the current value is less than or equal to the
+     * other value.
+     * @param other
+     * @returns
+     */
+    public lte(other: Value): boolean {
+        return this._picoSats <= other._picoSats;
+    }
 }

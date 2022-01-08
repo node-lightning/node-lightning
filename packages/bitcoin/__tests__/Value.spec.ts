@@ -123,4 +123,84 @@ describe("Value", () => {
             expect(a.eq(b)).to.equal(false);
         });
     });
+
+    describe(".gt()", () => {
+        it("true when greater", () => {
+            const a = Value.fromBitcoin(2);
+            const b = Value.fromBitcoin(1);
+            expect(a.gt(b)).to.equal(true);
+        });
+
+        it("false when equal", () => {
+            const a = Value.fromBitcoin(1);
+            const b = Value.fromBitcoin(1);
+            expect(a.gt(b)).to.equal(false);
+        });
+
+        it("false when less", () => {
+            const a = Value.fromBitcoin(1);
+            const b = Value.fromBitcoin(2);
+            expect(a.gt(b)).to.equal(false);
+        });
+    });
+
+    describe(".gte()", () => {
+        it("true when greater", () => {
+            const a = Value.fromBitcoin(2);
+            const b = Value.fromBitcoin(1);
+            expect(a.gte(b)).to.equal(true);
+        });
+
+        it("true when equal", () => {
+            const a = Value.fromBitcoin(1);
+            const b = Value.fromBitcoin(1);
+            expect(a.gte(b)).to.equal(true);
+        });
+
+        it("false when less", () => {
+            const a = Value.fromBitcoin(1);
+            const b = Value.fromBitcoin(2);
+            expect(a.gte(b)).to.equal(false);
+        });
+    });
+
+    describe(".lt()", () => {
+        it("false when greater", () => {
+            const a = Value.fromBitcoin(2);
+            const b = Value.fromBitcoin(1);
+            expect(a.lt(b)).to.equal(false);
+        });
+
+        it("false when equal", () => {
+            const a = Value.fromBitcoin(1);
+            const b = Value.fromBitcoin(1);
+            expect(a.lt(b)).to.equal(false);
+        });
+
+        it("true when less", () => {
+            const a = Value.fromBitcoin(1);
+            const b = Value.fromBitcoin(2);
+            expect(a.lt(b)).to.equal(true);
+        });
+    });
+
+    describe(".lte()", () => {
+        it("false when greater", () => {
+            const a = Value.fromBitcoin(2);
+            const b = Value.fromBitcoin(1);
+            expect(a.lte(b)).to.equal(false);
+        });
+
+        it("true when equal", () => {
+            const a = Value.fromBitcoin(1);
+            const b = Value.fromBitcoin(1);
+            expect(a.lte(b)).to.equal(true);
+        });
+
+        it("true when less", () => {
+            const a = Value.fromBitcoin(1);
+            const b = Value.fromBitcoin(2);
+            expect(a.lte(b)).to.equal(true);
+        });
+    });
 });
