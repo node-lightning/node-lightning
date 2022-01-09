@@ -165,4 +165,26 @@ export class Value implements ICloneable<Value> {
     public lte(other: Value): boolean {
         return this._picoSats <= other._picoSats;
     }
+
+    /**
+     * Modifies the current instance by adding the other value to the
+     * existing value.
+     * @param other
+     */
+    public add(other: Value) {
+        this._picoSats += other._picoSats;
+    }
+
+    /**
+     * Modifies the current instance by subtracting the other value
+     * from our existing value. Since Value is unsigned, this throws
+     * if subtraction results in a value that is less than zero.
+     * @param other
+     */
+    public sub(other: Value) {
+        if (this._picoSats - other._picoSats < 0) {
+            throw new BitcoinError(BitcoinErrorCode.ValueUnderflow);
+        }
+        this._picoSats -= other._picoSats;
+    }
 }

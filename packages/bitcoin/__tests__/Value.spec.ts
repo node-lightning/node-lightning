@@ -203,4 +203,28 @@ describe("Value", () => {
             expect(a.lte(b)).to.equal(true);
         });
     });
+
+    describe(".add()", () => {
+        it("adds the supplied value", () => {
+            const a = Value.fromBitcoin(1);
+            const b = Value.fromSats(1);
+            a.add(b);
+            expect(a.bitcoin).to.equal(1.00000001);
+        });
+    });
+
+    describe(".sub()", () => {
+        it("subtracts the suplied value", () => {
+            const a = Value.fromBitcoin(1.000000001);
+            const b = Value.fromBitcoin(0.000000001);
+            a.sub(b);
+            expect(a.bitcoin).to.equal(1);
+        });
+
+        it("throws when underflow", () => {
+            const a = Value.fromBitcoin(1);
+            const b = Value.fromBitcoin(1.1);
+            expect(() => a.sub(b)).to.throw("Value underflow");
+        });
+    });
 });
