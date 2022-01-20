@@ -32,7 +32,7 @@ message which requires interactions with several subsystems.
 **Notes:**
 Does not include notes for `option_support_large_channel_`, `_option_upfront_shutdown_script` or `option_channel_type`.
 
-## 2/3 Receive `open_channel`
+## 2. Receive `open_channel`
 
 A node may receive an `open_channel` messsage from a peer indicating the peer wishes to fund and create a new channel. The receiving node (also called the fundee) can evaluate the `open_channel` message. The recipient can fail the channel if the parameters are not acceptable. The recipient must also fail the channel if there are certain protocol violations.
 
@@ -59,7 +59,15 @@ A node may receive an `open_channel` messsage from a peer indicating the peer wi
 1. May fail if it considers `htlc_mimium_msat` too large
 1. May fail if `max_htlc_value_in_flight_msat` is too small
 
-## 2. Receive open_channel [valid]
+## 3. Receive `open_channel` [invalid]
+
+In the event that we receive a `open_channel` message that is either invalid or is not acceptable we will need to fail the channel.
+
+**Action**: Fail the channel
+
+At this stage we can send an error message to the peer to be polite. We can then forget the channel if we wish.
+
+## 4. Receive `open_channel` [valid]
 
 Upon receipt of a valid `open_channel` message we reply to the funder with an `accept_channel` message to indicate that the terms of the channel were agreeable.
 
@@ -79,11 +87,3 @@ Upon receipt of a valid `open_channel` message we reply to the funder with an `a
 1. Must construct unique and unguessable secrets and generate valid public keys for `payment_basepoint`, `delayed_payment_basepoint`, `htlc_basepoint` and `revocation_basepoint`.
 1. Must obtain a unique and unguessable seed
 1. Must generate `first_per_commitment_point` based on [generation algorithm in BOLT 3](https://github.com/lightning/bolts/blob/93909f67f6a48ee3f155a6224c182e612dd5f187/03-transactions.md#per-commitment-secret-requirements).
-
-## 3. Receive open_channel [invalid]
-
-In the event that we receive a `open_channel` message that is either invalid or is not acceptable we will need to fail the channel.
-
-**Action**: Fail the channel
-
-At this stage we can send an error message to the peer to be polite. We can then forget the channel if we wish.
