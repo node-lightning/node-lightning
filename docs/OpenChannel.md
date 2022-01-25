@@ -183,3 +183,121 @@ If we receive a `shutdown` message from the peer we will need to fail the channe
 **Effect**: Fail the channel
 
 At this stage we can send an error message to the peer to be polite. We can mark the channel as failed and ignore subsequent messages about it.
+
+## 21. Disconnect
+
+Because we are a channel funder, we only need to remember the channel after we have broadcast the funding transaction. Prior to this, if we disconnect from the peer for any reason, we can forget the channel.
+
+**Effect**
+
+Abandon the channel creation. We can try again if we wish next time we connect to the peer.
+
+## 22. Receive `funding_signed`
+
+After the opening node sends the `funding_created` message to the acceptor, the opening node waits for the `funding_signed` message. This message contains the signature for the opening node's version of the commitment transaction, which enables them to spend the funding transaction into their version of the commitment transaction.
+
+The `funding_signed` message also is the first time the real `channel_id` is used, replacing the `temporary_channel_id` that was used in prior messages.
+
+**Condition** Validate received `funding_signed` message
+
+We validate the `funding_signed` message according to the rule defined in [BOLT 2](https://github.com/lightning/bolts/blob/master/02-peer-protocol.md#the-funding_signed-message).
+
+1. Must fail if `channel_id` is not the the XOR of `funding_txid` and `funding_output_index` from the `funding_created` message.
+1. Must construct the opener's version of the initial commitment transaction.
+1. Must fail if `signature` is not the signature for the opener's initial commitment transaction using the `funding_pubkey` sent in the `accept_channel` message.
+1. Must fail if `signature` is not the low-S standard rule from BIP146.
+
+## 23. Recieve `funding_signed` [valid]
+
+Upon receipt of a valid `funding_signed` message, the opening node is ready to broadcast the complete funding transaction.
+
+**Effect** Broadcast funding transaction
+
+The opener now broadcasts the funding transaction to the Bitcoin network.
+
+At this point the opener must remember the channel. We don't provide success or failure conditions as must assume that our funding transaction is successfully broadcast since having a well connected Bitcoin node is a basic security assumption about Lightning Network.
+
+## 24. Receive `funding_signed` [invalid]
+
+Upon receipt of an invalid `funding_signed` message, the opening node will fail the channel by sending an error message and forgetting the channel.
+
+## 25. Receive `shutdown`
+
+If the opening node receives a `shutdown` message from the peer it will fail send an error and abandon the channel.
+
+## 31. Receive `shutdown`
+
+If the accepting node receives a `shutdown` message from the peer it will fail send an error and abandon the channel.
+
+## 32. Receive `funding_created`
+
+After the accepting node sends `accept_channel` the opening node will reply with the `funding_created` message. This message contains the funding output outpoint and includes the signature that the accepting node uses for its first commitment transaction.
+
+**Condition: Validate received `funding_created` message**
+
+Accepting node validates `funding_created` based on the rules in [BOLT 2](https://github.com/lightning/bolts/blob/master/02-peer-protocol.md#the-funding_created-message)
+
+1. Using the provided outpoint in the message, the accepting node constructs its version of the first commitment transaction
+1. Fails if the `signature` received is not a valid signature for the acceptor's commitment transaction signed by the `funding_pubkey` sent in `open_channel`.
+1. Fails if the `signature` is not a low-s signature.
+
+## 33. Invalid `funding_created` message
+
+If the message is invalid we fail the channel
+
+**Effect: fail the channel**
+
+Send an `error` message and forget the channel
+
+## 34. Valid `funding_created` message
+
+If the message is valid, the accepting node sends a `funding_signed` message to the opening node containing the siginature for the opening node's commitment transaction.
+
+**Effect: send `funding_signed` message**
+
+The accepting node must construct the `funding_signed` message according to [BOLT 2](https://github.com/lightning/bolts/blob/master/02-peer-protocol.md#the-funding_signed-message).
+
+1. Must set the `channel_id` as the XOR of `funding_txid` and `funding_output_index` from the `funding_created` message.
+1. Construct the opener's version of the initial commitment transaction
+1. Must set the `signature` to the low-s signature of the opener's version of the initial commitment transaction as signed by the `funding_pubkey` sent in the `accept_channel` message.
+
+## 41. Block connected [acceptor & expiry depth reached]
+
+The accepting node should remember the channel after it has sent the `funding_signed` message. The opening node should broadcast the funding transaction with sufficient fees for the transaction to be confirmed in a reasonable period of time. If the funding depth (specified in `accept_channel`) is not reached within 2016 blocks, the accepting node can forget the channel.
+
+**Effect: forget the channel**
+
+Bin it.
+
+## 42. Receive `funding_locked`
+
+A node may receive the `funding_locked` message while it is still awaiting the funding depth. This can occur because of network propagation delays for blocks, meaning your peer may reach the funding depth before you.
+
+**Condition: Validate `funding_locked`**
+
+Validate the message according to [BOLT 2](https://github.com/lightning/bolts/blob/master/02-peer-protocol.md#the-funding_locked-message).
+
+1. Must have a valid secp256k1 point for `next_per_commitment_point`
+
+## 43. Receive `shutdown` message
+
+It is valid to initiate a channel shutdown prior to funding transaction reaching funding depth. Upon receipt of a shutdown we should transition to a mutual close. It is safe to do so because we can agree on how to spend the funding transaction via a closing transaction. The closing transaction is a more efficient version of the commitment transaction (reduced fees and no time locks).
+
+**Effect: Begin shutdown**
+
+Transition to mutual close under the condition that we received a `shutdown` message.
+
+## 44. Block connected [min depth reached]
+
+Our channel must wait for min block depth as specified in the `accept_channel` message. When a block connects matching the min depth, we may proceed. The min depth should consider reorganization and be larger than the max expected reorganization. As such, one the min depth is reached we can transition the channel state even if there is a reorganization.
+
+**Effect: send `funding_locked`**
+
+After the min depth is reached we should send the `funding_locked` message to our peer in accordance with the rules in [BOLT 2](https://github.com/lightning/bolts/blob/master/02-peer-protocol.md#the-funding_locked-message)
+
+1. Must set the `channel_id` correctly
+1. Must generate the `next_per_commitment_point` for offerred commitment #1 using the algorithm defined in [BOLT 3](https://github.com/lightning/bolts/blob/master/03-transactions.md#per-commitment-secret-requirements).
+
+## 45. Disconnect
+
+At this point we must remember the channel, so upon disconnect we transition to a state that allows us to maintain our understanding of the channel.
