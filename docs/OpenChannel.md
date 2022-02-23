@@ -5,32 +5,9 @@
 A node initiates a channel by sending the `open_channel` message. The node must first construct the
 message which requires interactions with several subsystems.
 
-**Action:** Construct `open_channel` message based on rules in [BOLT 2](https://github.com/lightning/bolts/blob/master/02-peer-protocol.md#the-open_channel-message).
-
-1. Must set `the chain_hash` to the appropriate value for the the chain the node wishes to create the channel on. This value is usually the genesis block in internal byte order of the block hash (little-endian).
-1. Must construct a `temporary_channel_id` that is unique to other channel ids with the same peer.
-1. Should set the `feerate_per_kw` to at least a rate that would get the transaction immediately included in a block. This is likely obtained from the wallet.
-1. Must validate the `funding_satoshis` is available in the wallet.
-1. Must validate that `funding_satoshis` is < 2^24 satoshis.
-1. Must validate that the `funding_satoshis` is sufficient for full fee payment of the initial commitment transaction. This should be `724 * feerate_per_kw / 1000`.
-1. Must set `push_msat` <= 1000 \* _funding_satoshi_
-1. Must set `dust_limit_satoshis` \>= 354 satoshis as calculated from [BOLT 3](https://github.com/lightning/bolts/blob/93909f67f6a48ee3f155a6224c182e612dd5f187/03-transactions.md#per-commitment-secret-requirements)
-1. Should set `dust_limit_satoshis` to a value sufficient to propagate transactions.
-1. Must set `channel_reserve_balance` for use by the opposite node.
-1. Must set `channel_reserve_balance` >= our `dust_limit_satoshis` value.
-1. Must ensure that at least one of `to_local` and `to_remote` outputs is > _channel_reserve_balance_.
-1. Should set `to_self_delay` to a value in blocks it wishes to delay the peer's access to its funds in the event it broadcasts its version of the commitment transaction.
-1. Should set `htlc_mimimum_msat` to the minimum value HTLC it is willing to accept from the peer
-1. Should set `max_acccepted_htlcs` to the maximum value of HTLCs it is will to accept from the peer.
-1. Must set `max_accepted_htlcs` <= 483
-1. Should set `max_htlc_value_in_flight_msat` to the maximum millisatoshi value your are willing to allow for all HTLCs that are outstanding (both offerred and accepted).
-1. Must create a `funding_pubkey` that is a valid point
-1. Must construct unique and unguessable secrets and generate valid public keys for `payment_basepoint_`, `_delayed_payment_basepoint_`, `_htlc_basepoint` and `_revocation_basepoint_`.
-1. Must obtain a unique and unguessable seed
-1. Must generate `first_per_commitment_point` based on [generation algorithm in BOLT 3](https://github.com/lightning/bolts/blob/93909f67f6a48ee3f155a6224c182e612dd5f187/03-transactions.md#per-commitment-secret-requirements).
-
-**Notes:**
-Does not include notes for `option_support_large_channel_`, `_option_upfront_shutdown_script` or `option_channel_type`.
+**Action:**
+1. Construct `open_channel` message using `createOpenChannelMessage` subroutine
+1. Send `open_channel` to peer using `sendMessage` subroutine
 
 ## 2. Receive `open_channel`
 
@@ -301,3 +278,71 @@ After the min depth is reached we should send the `funding_locked` message to ou
 ## 45. Disconnect
 
 At this point we must remember the channel, so upon disconnect we transition to a state that allows us to maintain our understanding of the channel.
+
+
+# Subroutines
+
+## createOpenChannelMessage
+
+Construct and return `open_channel` message based on rules in [BOLT 2](https://github.com/lightning/bolts/blob/master/02-peer-protocol.md#the-open_channel-message).
+
+1. Must set `chain_hash` to the appropriate value for the the chain the node wishes to create the channel on. This value is usually the genesis block in internal byte order of the block hash (little-endian).
+1. Must construct a `temporary_channel_id` that is unique to other channel ids with the same peer using the `createTempChannelId` subroutine.
+1. Should set the `feerate_per_kw` to at least a rate that would get the transaction immediately included in a block by calling `obtainDesiredFeeratePerKw`.
+1. Must validate the `funding_satoshis` is available in the wallet by calling `checkWalletHasFunds` subroutine.
+1. Must validate that `funding_satoshis` is is less than 2^24 when `option_channel_support_large_channels` has not been negotiated.
+1. Must validate that the `funding_satoshis` is sufficient for full fee payment of the initial commitment transaction. This should be `724 * feerate_per_kw / 1000`.
+1. Must set `push_msat` <= 1000 \* `funding_satoshi`.
+1. Must set `dust_limit_satoshis` \>= 354 satoshis as calculated from [BOLT 3](https://github.com/lightning/bolts/blob/93909f67f6a48ee3f155a6224c182e612dd5f187/03-transactions.md#per-commitment-secret-requirements).
+1. Should set `dust_limit_satoshis` to a value sufficient to propagate transactions is sufficient to propagate transactions by checking with the Bitcoin node using `obtainNodeDustLimit` subroutine.
+1. Must set `channel_reserve_balance` for use by the opposite node.
+1. Must set `channel_reserve_balance` >= sent `dust_limit_satoshis` value.
+1. Must ensure that at least one of `to_local` and `to_remote` outputs is > `channel_reserve_balance`.
+1. Should set `to_self_delay` to a value in blocks it wishes to delay the peer's access to its funds in the event it broadcasts its version of the commitment transaction.
+1. Should set `htlc_mimimum_msat` to the minimum value HTLC it is willing to accept from the peer
+1. Should set `max_acccepted_htlcs` to the maximum value of HTLCs it is will to accept from the peer.
+1. Must set `max_accepted_htlcs` <= 483
+1. Should set `max_htlc_value_in_flight_msat` to the maximum millisatoshi value your are willing to allow for all HTLCs that are outstanding (both offerred and accepted).
+1. Must create a `funding_pubkey` that is a valid point using the `createFundingSecret` subroutine.
+1. Must construct unique and unguessable secrets and generate valid public keys for `payment_basepoint_`, `_delayed_payment_basepoint_`, `_htlc_basepoint` and `_revocation_basepoint_` by calling the `createBasePointSecrets`.
+1. Must obtain a unique and unguessable seed using `createCommitmentSeed` subroutine.
+1. Must generate `first_per_commitment_point` based on [generation algorithm in BOLT 3](https://github.com/lightning/bolts/blob/93909f67f6a48ee3f155a6224c182e612dd5f187/03-transactions.md#per-commitment-secret-requirements) using the `createPerCommitmentSecret`.
+
+**Notes:**
+Does not include notes for `option_support_large_channel`, `option_upfront_shutdown_script` or `option_channel_type`.
+
+## createTempChannelId
+
+Construct a 32-byte temporary channel identifier that is unique to the channel and peer.
+
+## obtainDesiredFeeRatePerKw
+
+Obtains a `feerate_per_kw` that will ensure a transaction will be immediately included in a block. This method may use an external wallet's knowledge of fee rates to determine the optimal value.
+
+## checkWalletHasFunds
+
+Verify with the wallet that sufficient funds are available for spending.
+
+## createFundingSecret
+
+Calls the wallet to obtain a new secret whose pubkey will be used in the funding transaction.
+
+## createBasePointSecrets
+
+Calls the wallet to obtain new basepoint secrets for `payment_basepoint_`, `_delayed_payment_basepoint_`, `_htlc_basepoint` and `_revocation_basepoint_`.
+
+## createCommitmentSeed
+
+Calls the wallet to obtain an unguessabele seed for use in the per-commitment secret.
+
+## createPerCommitmentSecret
+
+Creates the per-commitment secret from the seed and the commitment number.
+
+## obtainNodeDustLimit
+
+Returns the configured dust limit for the Bitcoin node backing the Lightning instance.
+
+## sendMessage
+
+Sends a message to a peer over the wire.
