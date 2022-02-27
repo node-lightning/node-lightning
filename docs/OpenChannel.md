@@ -49,38 +49,36 @@ With a valid `accept_channel` message the funding node can move forward on creat
 1. Send `funding_created` to peer
 
 
-## 14. Receive `accept_channel` [invalid]
+## 11b. Receive `accept_channel` [invalid]
 
 Upon receipt of an invalid `accept_channel` message or one that we do not agree with, we can fail the channel.
 
-**Effect**: Fail the channel
+**Effect**:
+1. Construct an `error` by providing the `temporary_channel_id` and `data` to `createErrorMessage`
+1. Send `error` message to peer
+1. Transition to `abandonned` channel state
 
-At this stage we can send an error message to the peer to be polite. We can mark the channel as failed and ignore subsequent messages about it.
 
 ## 12. Disconnect
 
-As the channel funder, we only need to remember the channel after we have broadcast the funding transaction. Prior to this, if we disconnect from the peer for any reason, we can forget the channel and try to construct the channel again once we have reconnected.
+Upon disconnect, we only need to remember the channel after we have broadcast the funding transaction when we are the funder or after sending `funding_signed` as the funee.
+
+Prior to this, if we disconnect from the peer for any reason, we can forget the channel and try to construct the channel again once we have reconnected.
 
 **Effect**
 
 1. Transition to `abandoned` channel state
 
 
-## 15. Receive `shutdown`
+## 13. Receive `shutdown`
 
-If we receive a `shutdown` message from the peer we will need to fail the channel.
+If we receive a `shutdown` message from the peer prior to broadcasting the funding transaction (as the funder) or prior to sending `funding_signed` (as the fundee) we will fail the channel.
 
-**Effect**: Fail the channel
+**Effect**:
+1. Construct an `error` by providing the `temporary_channel_id` and `data` to `createErrorMessage`
+1. Send `error` message to peer
+1. Transition to `abandonned` channel state
 
-At this stage we can send an error message to the peer to be polite. We can mark the channel as failed and ignore subsequent messages about it.
-
-## 21. Disconnect
-
-Because we are a channel funder, we only need to remember the channel after we have broadcast the funding transaction. Prior to this, if we disconnect from the peer for any reason, we can forget the channel.
-
-**Effect**
-
-Abandon the channel creation. We can try again if we wish next time we connect to the peer.
 
 ## 22. Receive `funding_signed`
 
