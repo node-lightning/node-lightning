@@ -30,7 +30,7 @@ In the event that we receive a `open_channel` message that is either invalid or 
 **Effect**:
 1. Construct an `error` by providing the `temporary_channel_id` and `data` to `createErrorMessage`
 1. Send `error` message to peer
-1. Transition to `abandonned` channel state
+1. Transition to `abandoned` channel state
 
 
 ## 11. Receive `accept_channel`
@@ -56,7 +56,7 @@ Upon receipt of an invalid `accept_channel` message or one that we do not agree 
 **Effect**:
 1. Construct an `error` by providing the `temporary_channel_id` and `data` to `createErrorMessage`
 1. Send `error` message to peer
-1. Transition to `abandonned` channel state
+1. Transition to `abandoned` channel state
 
 
 ## 12. Disconnect
@@ -77,45 +77,39 @@ If we receive a `shutdown` message from the peer prior to broadcasting the fundi
 **Effect**:
 1. Construct an `error` by providing the `temporary_channel_id` and `data` to `createErrorMessage`
 1. Send `error` message to peer
-1. Transition to `abandonned` channel state
+1. Transition to `abandoned` channel state
 
 
-## 22. Receive `funding_signed`
+## 21. Receive `funding_signed`
 
 After the opening node sends the `funding_created` message to the acceptor, the opening node waits for the `funding_signed` message. This message contains the signature for the opening node's version of the commitment transaction, which enables them to spend the funding transaction into their version of the commitment transaction.
 
 The `funding_signed` message also is the first time the real `channel_id` is used, replacing the `temporary_channel_id` that was used in prior messages.
 
-**Condition** Validate received `funding_signed` message
+**Condition**
 
-We validate the `funding_signed` message according to the rule defined in [BOLT 2](https://github.com/lightning/bolts/blob/master/02-peer-protocol.md#the-funding_signed-message).
+1. Validate received `funding_signed` message using `validateFundingSigned` subroutine.
 
-1. Must fail if `channel_id` is not the the XOR of `funding_txid` and `funding_output_index` from the `funding_created` message.
-1. Must construct the opener's version of the initial commitment transaction.
-1. Must fail if `signature` is not the signature for the opener's initial commitment transaction using the `funding_pubkey` sent in the `accept_channel` message.
-1. Must fail if `signature` is not the low-S standard rule from BIP146.
 
-## 23. Recieve `funding_signed` [valid]
+### 21a. Recieve `funding_signed` [valid]
 
 Upon receipt of a valid `funding_signed` message, the opening node is ready to broadcast the complete funding transaction.
 
-**Effect** Broadcast funding transaction
+Once the transaction is broadcast the funder must remember the channel. We don't provide success or failure conditions as must assume that our funding transaction is successfully broadcast since having a well connected Bitcoin node is a basic security assumption about Lightning Network.
 
-The opener now broadcasts the funding transaction to the Bitcoin network.
+**Effect**
 
-At this point the opener must remember the channel. We don't provide success or failure conditions as must assume that our funding transaction is successfully broadcast since having a well connected Bitcoin node is a basic security assumption about Lightning Network.
+1. Broadcast funding transaction using `broadcastTx` subroutine.
 
-## 24. Receive `funding_signed` [invalid]
+### 22b. Receive `funding_signed` [invalid]
 
 Upon receipt of an invalid `funding_signed` message, the opening node will fail the channel by sending an error message and forgetting the channel.
 
-## 25. Receive `shutdown`
+**Effect**:
+1. Construct an `error` by providing the `temporary_channel_id` and `data` to `createErrorMessage`
+1. Send `error` message to peer
+1. Transition to `abandoned` channel state
 
-If the opening node receives a `shutdown` message from the peer it will fail send an error and abandon the channel.
-
-## 31. Receive `shutdown`
-
-If the accepting node receives a `shutdown` message from the peer it will fail send an error and abandon the channel.
 
 ## 32. Receive `funding_created`
 
@@ -455,9 +449,29 @@ Inputs:
 Obtains a change address from the wallet.
 
 
+## Subroutine `createLocalCommitmentTx`
+
+Constructs commitment transaction the local node by calling the `createCommitmentTx` with values:
+
+* Commitment number
+* Channel funding side (local or remote)
+* Channel `funding_outpoint`
+* Channel `feerate_per_kw`
+* Our `dust_limit_satoshis`
+* Our satoshi balance
+* Counterparty's satoshi balance
+* Our `to_self_delay`
+* Our `per_commitment_point`
+* Our `delayed_payment_basepoint`
+* Counterparty's `payment_basepoint`
+* Counterparty's `revocation_basepoint`
+* Received HTLCs
+* Offerred HTLCs
+
+
 ## Subroutine `createRemoteCommitmentTx`
 
-Constructs a commitment transaction for the counterparty by calling the `createCommitmentTx` with appropriate values
+Constructs a commitment transaction for the counterparty by calling the `createCommitmentTx` with values
 * Commitment number
 * Channel funding side (local or remote)
 * Channel `funding_outpoint`
@@ -503,6 +517,7 @@ Calls:
 * `calcFeesFromWeight`
 * `sortCommitmentTxOutputs`
 
+Transaction should be constructed as follows:
 * Tx version should be 2
 * Obtain the obscurred commitment number using `createObscurredCommitmentNumber`
 * The locktime should have its upper 8 bits set to 0x20 and the lwoer 24 bits set to the lower 24 bits of the obscured commitment number.
@@ -627,3 +642,70 @@ Sorts according to:
 
 Two offerred HTLCs with the same `amount` and `payment_hash` will have identical outputs even when their `cltv_expiry` differs. Ordering matters because of the provided signatures for the `htlc_signatures`.
 
+
+
+## Subroutine `validateFundingSigned`
+
+Inputs:
+* `funding_signed` message
+* `funding_outpoint` from  the `funding_created` message
+* Channel
+
+Calls:
+* `createChannelId`
+* `createLocalCommitmentTx`
+
+We validate the `funding_signed` message according to the rule defined in [BOLT 2](https://github.com/lightning/bolts/blob/master/02-peer-protocol.md#the-funding_signed-message).
+
+1. Create the expected `channel_id` using the `createChannelId` subroutine
+1. Must fail if `channel_id` is not the XOR of `funding_txid` and `funding_output_index` from the `funding_created` message.
+1. Construct the funders version of the first commitment transaction by calling `createLocalCommitmentTx` with values:
+    * Commitment number = 0
+    * Local as the funding node
+    * Channel `funding_outpoint` created in prior step
+    * Channel `feerate_per_kw` we sent in `open_channel`
+    * Our `dust_limit_satoshis` sent in `open_channel`
+    * Our balance which will be `funding_satoshis` less `push_msat` / 1000
+    * Counterparty's balance which will be `push_msat` / 1000 from `open_channel`
+    * Our `to_self_delay` we received in `accept_channel`
+    * Our `per_commitment_point` we sent as `first_per_commitment_point` in `open_channel`
+    * Our `delayed_payment_basepoint` we sent in `open_channel`
+    * Counterparty's `payment_basepoint` we received in `accept_channel`
+    * Coutnerparty's `revocation_basepoint` we received in `accept_channel`
+    * No HTLCs at this point
+1. Must fail if `signature` is not the signature for the opener's initial commitment transaction using the `funding_pubkey` sent in the `accept_channel` message or if not a low-S signature.
+
+
+
+# Subroutine `createChannelId`
+
+Inputs:
+* `funding_outpoint`
+
+Constructs the `channel_id` from the funding UTXO as defined in [BOLT 2](https://github.com/lightning/bolts/blob/master/02-peer-protocol.md#the-funding_signed-message).
+
+`channel_id` is defined as the XOR of `funding_txid` and `funding_output_index` from the outpoint sent in the `funding_created` message.
+
+
+
+## Subroutine `validateCommitmentSignature`
+
+Validates a commitment transaction signature and retruns false if the signature is invalid
+
+Inputs:
+* Commitment transaction
+* Signature
+* Public key
+
+1. Returns false if `signature` is not the valid signature for the transaction
+1. Returns false if `signature` is not the low-S standard rule from BIP146
+
+
+
+
+## Subroutine `broadcastTx`
+
+Broadcasts a transaction to the network through a Bitcoin node.
+
+Inputs:
+* Tx
