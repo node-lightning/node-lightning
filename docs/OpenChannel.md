@@ -107,41 +107,35 @@ Upon receipt of an invalid `funding_signed` message, the opening node will fail 
 
 **Effect**:
 1. Construct an `error` by providing the `temporary_channel_id` and `data` to `createErrorMessage`
-1. Send `error` message to peer
+1. Send `error` message to peer using `sendMessage` subroutine
 1. Transition to `abandoned` channel state
 
 
-## 32. Receive `funding_created`
+## 31. Receive `funding_created`
 
-After the accepting node sends `accept_channel` the opening node will reply with the `funding_created` message. This message contains the funding output outpoint and includes the signature that the accepting node uses for its first commitment transaction.
+After the accepting node sends `accept_channel` the opening node will reply with the `funding_created` message. This message contains the funding outpoint and includes the signature that the accepting node uses for its first commitment transaction.
 
-**Condition: Validate received `funding_created` message**
+**Condition:
 
-Accepting node validates `funding_created` based on the rules in [BOLT 2](https://github.com/lightning/bolts/blob/master/02-peer-protocol.md#the-funding_created-message)
+1. Validate received `funding_created` message using `validateFundingCreated` subroutine.
 
-1. Using the provided outpoint in the message, the accepting node constructs its version of the first commitment transaction
-1. Fails if the `signature` received is not a valid signature for the acceptor's commitment transaction signed by the `funding_pubkey` sent in `open_channel`.
-1. Fails if the `signature` is not a low-s signature.
-
-## 33. Invalid `funding_created` message
-
-If the message is invalid we fail the channel
-
-**Effect: fail the channel**
-
-Send an `error` message and forget the channel
-
-## 34. Valid `funding_created` message
+### 31a. Receive `funding_created` [valid]
 
 If the message is valid, the accepting node sends a `funding_signed` message to the opening node containing the siginature for the opening node's commitment transaction.
 
-**Effect: send `funding_signed` message**
+**Effect**:
+1. Construct `funding_signed` message using the `createFundingSigned` subroutine.
+1. Send `funding_signed` message using the `sendMessage` subroutine.
 
-The accepting node must construct the `funding_signed` message according to [BOLT 2](https://github.com/lightning/bolts/blob/master/02-peer-protocol.md#the-funding_signed-message).
+### 31b. Receive `funding_created` [invalid]
 
-1. Must set the `channel_id` as the XOR of `funding_txid` and `funding_output_index` from the `funding_created` message.
-1. Construct the opener's version of the initial commitment transaction
-1. Must set the `signature` to the low-s signature of the opener's version of the initial commitment transaction as signed by the `funding_pubkey` sent in the `accept_channel` message.
+If the received message fails validation we fail the channel by sending an `error` message and forgeting the channel.
+
+**Effect**:
+1. Construct an `error` by providing the `temporary_channel_id` and `data` to `createErrorMessage`
+1. Send `error` message to peer
+1. Transition to `abandoned` channel state
+
 
 ## 41. Block connected [acceptor & expiry depth reached]
 
@@ -709,3 +703,38 @@ Broadcasts a transaction to the network through a Bitcoin node.
 
 Inputs:
 * Tx
+
+
+
+## Subroutine `validateFundingCreated`
+
+Inputs:
+* `channel_info` object
+* `funding_created` message
+
+Accepting node validates `funding_created` based on the rules in [BOLT 2](https://github.com/lightning/bolts/blob/master/02-peer-protocol.md#the-funding_created-message).
+
+1. Add the `funding_outpoint` to the `channel_info`
+1. Constructs `local_commitment_tx` for `commitment_number=0` using `createLocalCommitmentTx`
+1. Validate the `signature` from `funding_created` using `validateCommitmentSignature` subroutine with the remote `funding_pubkey` and `local_commitment_tx`.
+    * Fails if the `signature` received is not a valid signature for the acceptor's commitment transaction signed by the `funding_pubkey` sent in `open_channel`.
+    * Fails if the `signature` is not a low-s signature.
+
+
+
+## Subroutine `createFundingSigned`
+
+Inputs:
+* `channel_info`
+
+Calls:
+* `createChannelId`
+* `createRemoteCommitmentTx`
+* `signCommitmentTx`
+
+The accepting node must construct the `funding_signed` message according to [BOLT 2](https://github.com/lightning/bolts/blob/master/02-peer-protocol.md#the-funding_signed-message).
+
+1. Create the `channel_id` using the `createChannelId` subroutine using the `funding_outpoint` we received in `funding_created`
+1. Construct the first `remote_commitment_tx` using `createRemoteCommitmentTx` using the `channel_info` and `commitment_number=0`.
+1. Sign the commitment transaction using `signCommitmentTx` using the `local_funding_secret` and `remote_commitment_tx`.
+1. Construct the `funding_signed` message using the `channel_id` and `signature`
