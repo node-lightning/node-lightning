@@ -136,6 +136,18 @@ If the received message fails validation we fail the channel by sending an `erro
 1. Send `error` message to peer
 1. Transition to `abandoned` channel state
 
+## 41. Block connected [funder & approaching expiry depth]
+
+The fundee (accepting node) will forget the node after 2016 blocks. After 2016 blocks, if the funding transaction is confirmed, the funding node will be forced to issue a unilateral close to recover their funds. As a result of this complication, the funding node needs to ensure the function transaction is confirmed within the 2016 blocks period. 
+
+**Condition**:
+1. Funding node
+2. Near expiry depth (2016 blocks)
+
+**Effect**:
+
+1. Perform fee bump via CPFP by calling the `feeBumpTx` subroutine.
+
 
 ## 41. Block connected [acceptor & expiry depth reached]
 
@@ -428,6 +440,7 @@ Constructs a transaction with one or more inputs sufficient to cover the `fundin
 * The pubkeys are the lexicographical ordering of the `funding_pubkey` values from the `open_channel` and `accept_channel` messages. Lexicographical ordering improves privacy by not leaking which of the nodes is the funding node.
 * Once this transaction is created, we can use the outpoint (txid + output index). We will hold off on broadcasting the funding transaction until we have a valid commitment signature from our peer.
 * This transaction should only use segwit BIP141 (SegWit) inputs.
+* If the funding transaction fails to confirm within 2016 blocks, the fundee (accepting node) will forget the channel. As such it is recommended to include a change output that is eligible for fee bumping the funding transaction via CPFP 
 
 
 ## Subroutine `obtainUtxo`
@@ -738,3 +751,12 @@ The accepting node must construct the `funding_signed` message according to [BOL
 1. Construct the first `remote_commitment_tx` using `createRemoteCommitmentTx` using the `channel_info` and `commitment_number=0`.
 1. Sign the commitment transaction using `signCommitmentTx` using the `local_funding_secret` and `remote_commitment_tx`.
 1. Construct the `funding_signed` message using the `channel_id` and `signature`
+
+
+## Subroutine `feeBumpTx`
+
+Inputs:
+* `tx`
+* `outpoint`
+
+This method will fee bump a transaction by performing CPFP on the specified outpoint. 
