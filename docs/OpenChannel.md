@@ -99,6 +99,7 @@ Once the transaction is broadcast the funder must remember the channel. We don't
 
 **Effect**
 
+1. Sign the funding transaction via the `signTx` subroutine.
 1. Broadcast funding transaction using `broadcastTx` subroutine.
 
 ### 22b. Receive `funding_signed` [invalid]
@@ -708,6 +709,13 @@ Inputs:
 1. Returns false if `signature` is not the low-S standard rule from BIP146
 
 
+
+## Subrouting `signTx`
+
+Inputs:
+* `tx` 
+
+Wallet method that signs the specified UTXO in the given transaction and applies the signature to the `script_sig`. 
 
 
 ## Subroutine `broadcastTx`
