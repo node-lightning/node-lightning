@@ -112,6 +112,14 @@ export class Value implements ICloneable<Value> {
     }
 
     /**
+     * Returns the value as a string of Bitcoin. This is a fixed eight
+     * decimal string, as such value below satoshis will be truncated.
+     */
+    public toString(): string {
+        return this.bitcoin.toFixed(8);
+    }
+
+    /**
      * Returns true if the current value is equal to the other value
      * @param other
      * @returns
