@@ -9,6 +9,7 @@ describe("ConsoleTransport", () => {
         after(() => {
             fs.unlinkSync(filePath);
         });
+
         it("should write to the console", () => {
             const sut = new FileTransport(filePath);
             sut.write("hello");

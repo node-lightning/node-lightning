@@ -3,7 +3,7 @@ import { CommitmentSecret } from "../../lib/lightning/CommitmentSecret";
 
 describe("CommitmentSecret", () => {
     describe("#commitmentSecret()", () => {
-        let tests = [
+        const tests = [
             {
                 name: "0 final node",
                 seed: "0000000000000000000000000000000000000000000000000000000000000000",
@@ -36,9 +36,9 @@ describe("CommitmentSecret", () => {
             },
         ];
 
-        for (let test of tests) {
+        for (const test of tests) {
             it(test.name, () => {
-                let actual = CommitmentSecret.derive(Buffer.from(test.seed, "hex"), test.i);
+                const actual = CommitmentSecret.derive(Buffer.from(test.seed, "hex"), test.i);
                 expect(actual).to.deep.equal(Buffer.from(test.expected, "hex"));
             });
         }

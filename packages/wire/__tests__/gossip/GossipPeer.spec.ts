@@ -1,21 +1,14 @@
+/* eslint-disable no-constant-condition */
 // tslint:disable: max-classes-per-file
 // tslint:disable: no-unused-expression
 import { BitField } from "@node-lightning/core";
 import { ILogger } from "@node-lightning/logger";
 import { expect } from "chai";
-import sinon, { stub } from "sinon";
+import sinon from "sinon";
 import { Duplex } from "stream";
-import {
-    GossipFilter,
-    GossipMemoryStore,
-    GossipPeer,
-    MessageFactory,
-    WireError,
-    WireErrorCode,
-} from "../../lib";
+import { GossipFilter, GossipMemoryStore, GossipPeer, WireError, WireErrorCode } from "../../lib";
 import { IWireMessage } from "../../lib";
 import { InitFeatureFlags } from "../../lib/flags/InitFeatureFlags";
-import { GossipError, GossipErrorCode } from "../../lib/gossip/GossipError";
 import { Peer } from "../../lib/Peer";
 import { PeerState } from "../../lib/PeerState";
 import { PingPongState } from "../../lib/PingPongState";
@@ -51,7 +44,8 @@ describe("GossipPeer", () => {
     let chainHashes: Buffer[];
     let peer: Peer;
     let ls: Buffer;
-    let rpk: Buffer;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const rpk: Buffer = Buffer.alloc(32, 1);
     let logger: ILogger;
     let sandbox: sinon.SinonSandbox;
     let socket: FakeSocket;
@@ -67,7 +61,6 @@ describe("GossipPeer", () => {
         remoteFeatures.set(InitFeatureFlags.optionDataLossProtectOptional);
         remoteFeatures.set(InitFeatureFlags.gossipQueriesOptional);
         ls = Buffer.alloc(32, 0);
-        rpk = Buffer.alloc(32, 1);
         logger = createFakeLogger();
         peer = new Peer(ls, localFeatures, chainHashes, logger, 1);
         socket = new FakeSocket();

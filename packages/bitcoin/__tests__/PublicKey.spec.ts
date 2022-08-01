@@ -1,7 +1,6 @@
 import * as crypto from "@node-lightning/crypto";
 import { expect } from "chai";
 import { Network } from "../lib/Network";
-import { PrivateKey } from "../lib/PrivateKey";
 import { PublicKey } from "../lib/PublicKey";
 
 describe("PublicKey", () => {

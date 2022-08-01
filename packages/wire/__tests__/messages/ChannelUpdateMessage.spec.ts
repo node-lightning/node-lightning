@@ -62,7 +62,8 @@ describe("ChannelUpdateMessage", () => {
     describe(".validateSignature", () => {
         let input: Buffer;
         let nodeId: Buffer;
-        beforeEach(() => {
+
+        it("should return true on valid signature", () => {
             input = Buffer.from(
                 "01024e6eac97124742ba6a033612c8009945c0d52568756a885692b4adbf202666503b56ecb6f5758ea450dda940b2a6853b8e1706c3bd4f38a347be91b08c5e5c4743497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea33090000000013a90900000300005cdd9d780002009000000000000003e8000003e800000001",
                 "hex",
@@ -71,9 +72,6 @@ describe("ChannelUpdateMessage", () => {
                 "036b96e4713c5f84dcb8030592e1bd42a2d9a43d91fa2e535b9bfd05f2c5def9b9",
                 "hex",
             );
-        });
-
-        it("should return true on valid signature", () => {
             const instance = ChannelUpdateMessage.deserialize(input);
             const result = ChannelUpdateMessage.validateSignature(instance, nodeId);
             expect(result).to.be.true;

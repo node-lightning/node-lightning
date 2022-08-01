@@ -1,3 +1,4 @@
+/* eslint-disable mocha/no-pending-tests */
 // tslint:disable: no-unused-expression
 // tslint:disable: no-empty
 import { expect } from "chai";
@@ -267,10 +268,9 @@ describe("GossipFilter", () => {
             expect(results[1].error.code).to.equal(WireErrorCode.nodeAnnSigFailed);
         });
 
+        // TODO: GossipFilter tests
         it("should reject outdated ChannelUpdateMessage");
-
         it("should reject outdated NodeAnnouncementMessage");
-
         it("should replace old queued NodeAnnouncementMessage");
 
         it("should replace duplicate chan_ann when ext_chan_ann", async () => {
@@ -420,14 +420,12 @@ describe("GossipFilter", () => {
         const permutations = permute(rawMsgs);
         let refStore: GossipMemoryStore;
 
-        beforeEach(async () => {
-            await replayMessages(filter, rawMsgs);
-            refStore = gossipStore;
-            sandbox.resetHistory();
-        });
-
         for (let i = 0; i < permutations.length; i++) {
             it("graph match on permutation " + (i + 1), async () => {
+                await replayMessages(filter, rawMsgs);
+                sandbox.resetHistory();
+                refStore = gossipStore;
+
                 await replayMessages(filter, permutations[i]);
                 expect(gossipStore.channelAnnouncementCount).to.deep.equal(
                     refStore.channelAnnouncementCount,

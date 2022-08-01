@@ -1,6 +1,8 @@
+/* eslint-disable mocha/no-async-describe */
+/* eslint-disable @typescript-eslint/no-misused-promises */
+/* eslint-disable @typescript-eslint/require-await */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* tslint:disable: no-unused-expression */
-/* tslint:disable: no-floating-promises */
+/* eslint-disable @typescript-eslint/no-floating-promises */
 
 import { ShortChannelId } from "@node-lightning/core";
 import { ILogger } from "@node-lightning/logger";

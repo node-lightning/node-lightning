@@ -1,4 +1,4 @@
-import { BitcoinError, BitcoinErrorCode, LockTime } from ".";
+import { BitcoinError, BitcoinErrorCode } from ".";
 import { ICloneable } from "./ICloneable";
 
 /**

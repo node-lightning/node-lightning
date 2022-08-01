@@ -1,3 +1,5 @@
+/* eslint-disable mocha/no-exports */
+
 import { expect } from "chai";
 
 export type FixtureClass<INPUT, EXPECTED> = {
