@@ -111,7 +111,7 @@ export class NoiseSocket extends Duplex {
      * Half-closes the socket. It is still possible that the opposite
      * side is still sending data.
      */
-    public end(): NoiseSocket {
+    public end(): this {
         this._socket.end();
         return this;
     }
@@ -123,7 +123,7 @@ export class NoiseSocket extends Duplex {
      * argument.
      * @param err optional error to send
      */
-    public destroy(err?: Error): NoiseSocket {
+    public destroy(err?: Error): this {
         this._socket.destroy(err);
         return this;
     }
