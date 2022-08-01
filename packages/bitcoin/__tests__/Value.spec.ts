@@ -227,4 +227,22 @@ describe("Value", () => {
             expect(() => a.sub(b)).to.throw("Value underflow");
         });
     });
+
+    describe(".toString()", () => {
+        it("when zero", () => {
+            expect(Value.fromBitcoin(0).toString()).to.equal("0.00000000");
+        });
+
+        it("when bitcoin", () => {
+            expect(Value.fromBitcoin(1.12345678).toString()).to.equal("1.12345678");
+        });
+
+        it("when satoshis", () => {
+            expect(Value.fromSats(1).toString()).to.equal("0.00000001");
+        });
+
+        it("when millisats", () => {
+            expect(Value.fromMilliSats(1).toString()).to.equal("0.00000000");
+        });
+    });
 });
