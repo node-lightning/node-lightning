@@ -73,3 +73,5 @@ config*.json
 graph.json
 
 build
+
+package-lock.json
