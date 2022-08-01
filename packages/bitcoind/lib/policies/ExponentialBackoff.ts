@@ -1,5 +1,5 @@
-import { IBackoffStrategy } from "./backoff-strategy";
-import { wait } from "./wait";
+import { IBackoffStrategy } from "./BackoffStrategy";
+import { wait } from "./Wait";
 
 /**
  * Exponential backoff strategy that when supplied with a startMs value will

@@ -4,15 +4,16 @@
 
 import { EventEmitter } from "events";
 import * as zmq from "zeromq";
-import { IBitcoindOptions } from "./bitcoind-options";
-import { jsonrpcRequest } from "./jsonrpc-request";
-import { ConstantBackoff } from "./policies/constant-backoff";
-import { RetryPolicy } from "./policies/retry-policy";
-import { BlockChainInfo } from "./types/block-chain-info";
+import { IBitcoindOptions } from "./BitcoindOptions";
+import { jsonrpcRequest } from "./JsonRpcRequest";
+import { ConstantBackoff } from "./policies/ConstantBackoff";
+import { RetryPolicy } from "./policies/RetryPolicy";
+import { BlockChainInfo } from "./types/BlockChainInfo";
+import { Block } from "./types/Block";
 import { BlockHeader } from "./types/BlockHeader";
-import { BlockSummary } from "./types/blocksummary";
-import { Transaction } from "./types/transaction";
-import { Utxo } from "./types/transaction";
+import { BlockSummary } from "./types/BlockSummary";
+import { Transaction } from "./types/Transaction";
+import { Utxo } from "./types/Transaction";
 
 export declare interface IBitcoindClient {
     on(event: "rawtx", listener: (rawtx: Buffer) => void): this;
@@ -87,8 +88,12 @@ export class BitcoindClient extends EventEmitter {
      * using the `getblock` RPC method
      * @param hash
      */
-    public async getBlock(hash: string): Promise<BlockSummary> {
-        return this._jsonrpc<BlockSummary>("getblock", [hash]);
+    public async getBlockSummary(hash: string): Promise<BlockSummary> {
+        return this._jsonrpc<BlockSummary>("getblock", [hash, 1]);
+    }
+
+    public async getBlock(hash: string): Promise<Block> {
+        return this._jsonrpc<Block>("getblock", [hash, 2]);
     }
 
     /**
@@ -133,6 +138,15 @@ export class BitcoindClient extends EventEmitter {
      */
     public async getUtxo(txid: string, n: number): Promise<Utxo> {
         return await this._jsonrpc<Utxo>("gettxout", [txid, n]);
+    }
+
+    /**
+     * Generates the supplied number of blocks to the specified address.
+     * @param blocks
+     * @param address
+     */
+    public async generateToAddress(blocks: number, address: string): Promise<string[]> {
+        return await this._jsonrpc<string[]>("generatetoaddress", [blocks, address]);
     }
 
     /**

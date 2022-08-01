@@ -1,4 +1,4 @@
-import { IPolicy } from "./policies/policy";
+import { IPolicy } from "./policies/Policy";
 
 export interface IBitcoindOptions {
     rpcuser?: string;

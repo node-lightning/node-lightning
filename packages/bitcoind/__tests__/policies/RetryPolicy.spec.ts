@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import sinon from "sinon";
-import { ConstantBackoff } from "../../lib/policies/constant-backoff";
-import { RetryPolicy } from "../../lib/policies/retry-policy";
+import { ConstantBackoff } from "../../lib/policies/ConstantBackoff";
+import { RetryPolicy } from "../../lib/policies/RetryPolicy";
 
 describe("RetryPolicy", () => {
     it("no retries", async () => {

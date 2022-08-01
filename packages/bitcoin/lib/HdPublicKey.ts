@@ -1,11 +1,13 @@
 import * as crypto from "@node-lightning/crypto";
-import { BitcoinError, BitcoinErrorCode } from ".";
-import { BufferWriter } from "../../bufio/dist";
-import { Address } from "./Address";
+import { BitcoinError } from "./BitcoinError";
+import { BitcoinErrorCode } from "./BitcoinErrorCode";
+import { BufferWriter } from "@node-lightning/bufio";
 import { HdKeyCodec } from "./HdKeyCodec";
 import { HdKeyType } from "./HdKeyType";
 import { Network } from "./Network";
 import { PublicKey } from "./PublicKey";
+
+const HARDENED_INDEX = 0x80000000;
 
 /**
  * A hierarchical deterministic extended public key as defined in BIP32.
@@ -94,6 +96,10 @@ export class HdPublicKey {
         switch (this.type) {
             case HdKeyType.x:
                 return this.network.xpubVersion;
+            case HdKeyType.y:
+                return this.network.ypubVersion;
+            case HdKeyType.z:
+                return this.network.zpubVersion;
         }
     }
 
@@ -109,7 +115,7 @@ export class HdPublicKey {
      * is between 2^31 and 2^32-1.
      */
     public get isHardened(): boolean {
-        return this.number >= 2 ** 31;
+        return this.number >= HARDENED_INDEX;
     }
 
     /**
@@ -118,7 +124,7 @@ export class HdPublicKey {
      */
     public get fingerprint(): Buffer {
         if (!this._fingerprint) {
-            this._fingerprint = crypto.hash160(this.publicKey.toBuffer(true));
+            this._fingerprint = crypto.hash160(this.publicKey.toBuffer());
         }
         return this._fingerprint;
     }
@@ -142,23 +148,25 @@ export class HdPublicKey {
      * @param i key number to derive, must be less than 2^31-1
      *
      * @throws {@link BitcoinError} throws an `InvalidHdDerivation` error
-     * code if there is an attempt to derive a hardened child key.
+     * code if there is an attempt to derive a hardened child key. Throws
+     * if the tweak value is invalid.
+     *
      *
      * @returns child non-hardened {@link HdPublicKey}
      */
-    public derivePublic(i: number): HdPublicKey {
+    public derive(i: number): HdPublicKey {
         // From here on we're working with a public key, so we cannot
         // derive hardened public keys since they require the private
         // key as part of the derivation data.
-        if (i >= 2 ** 31) {
+        if (i >= HARDENED_INDEX) {
             throw new BitcoinError(BitcoinErrorCode.InvalidHdDerivation);
         }
 
         const data = new BufferWriter(Buffer.alloc(37));
-        data.writeBytes(this.publicKey.toBuffer(true));
+        data.writeBytes(this.publicKey.toBuffer());
         data.writeUInt32BE(i);
 
-        const l = crypto.hmac(this.chainCode, data.toBuffer());
+        const l = crypto.hmac(this.chainCode, data.toBuffer(), "sha512");
         const ll = l.slice(0, 32);
         const lr = l.slice(32);
 
@@ -201,10 +209,39 @@ export class HdPublicKey {
     }
 
     /**
-     *
-     * @returns
+     * Returns the address encoded according to the type of HD key.
+     * For x-type this returns a base58 encoded P2PKH address.
+     * For y-type this returns a base58 encoded P2SH-P2WPKH address.
+     * For z-type this returns a bech32 encoded P2WPKH address.
+     * @returns encoded address
      */
     public toAddress(): string {
-        return Address.encodeLegacy(this.network.p2pkhPrefix, this.publicKey.hash160(true));
+        switch (this.type) {
+            case HdKeyType.x:
+                return this.publicKey.toP2pkhAddress();
+            case HdKeyType.y:
+                return this.publicKey.toP2nwpkhAddress();
+            case HdKeyType.z:
+                return this.publicKey.toP2wpkhAddress();
+        }
+    }
+
+    /**
+     * Sugar for `instance.publicKey.toBuffer()` and returns the SEC
+     * encoded public key in compressed or uncompressed format.
+     * @returns
+     */
+    public toSecBuffer(): Buffer {
+        return this.publicKey.toBuffer();
+    }
+
+    /**
+     * Sugar for `instance.publicKey.toHex()` and returns the SEC
+     * encoded public key as a hex string in compressed or uncompressed
+     * format.
+     * @returns
+     */
+    public toSecHex(): string {
+        return this.publicKey.toHex();
     }
 }

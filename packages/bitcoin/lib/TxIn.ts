@@ -69,6 +69,14 @@ export class TxIn implements ICloneable<TxIn> {
     }
 
     /**
+     * Adds witness to the input's witness colletion
+     * @param witness
+     */
+    public addWitness(witness: Buffer | Witness) {
+        this.witness.push(Buffer.isBuffer(witness) ? new Witness(witness) : witness);
+    }
+
+    /**
      * Creates a string of the transaction input that includes all of the
      * properties.
      */

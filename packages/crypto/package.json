@@ -1,6 +1,6 @@
 {
   "name": "@node-lightning/crypto",
-  "version": "0.26.1",
+  "version": "0.27.0",
   "description": "Crypto suite for Node-Lightning",
   "author": "Brian Mancini <bmancini@gmail.com>",
   "homepage": "https://github.com/altangent/node-lightning/tree/master/packages/crypto",
@@ -20,12 +20,9 @@
     "url": "git+https://github.com/altangent/node-lightning.git"
   },
   "dependencies": {
-    "secp256k1": "^4.0.2"
+    "@node-lightning/secp256k1": "^0.27.0"
   },
   "publishConfig": {
     "access": "public"
-  },
-  "devDependencies": {
-    "@types/secp256k1": "^4.0.1"
   }
 }

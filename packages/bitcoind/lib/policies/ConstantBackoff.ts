@@ -1,5 +1,5 @@
-import { IBackoffStrategy } from "./backoff-strategy";
-import { wait } from "./wait";
+import { IBackoffStrategy } from "./BackoffStrategy";
+import { wait } from "./Wait";
 
 export class ConstantBackoff implements IBackoffStrategy {
     constructor(

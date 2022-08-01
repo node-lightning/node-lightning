@@ -22,6 +22,8 @@ function getMessage(code: BitcoinErrorCode) {
             return "Hash256 requires 32-byte Buffer";
         case BitcoinErrorCode.NetworkMismatch:
             return "Network mismatch";
+        case BitcoinErrorCode.InputIndexOutOfRange:
+            return "Input index out of range";
 
         case BitcoinErrorCode.UnkownHdKeyVersion:
             return "Unkown HD key version";
@@ -49,6 +51,23 @@ function getMessage(code: BitcoinErrorCode) {
             return "Unknown segwit version";
         case BitcoinErrorCode.InvalidWitnessProgram:
             return "Invalid witness program";
+
+        case BitcoinErrorCode.InvalidMnemonicWordList:
+            return "Invalid mnemonic word list";
+        case BitcoinErrorCode.InvalidMnemonicEntropy:
+            return "Invalid mnemonic entropy";
+        case BitcoinErrorCode.InvalidMnemonicWord:
+            return "Unknown mnemonic word";
+        case BitcoinErrorCode.InvalidMnemonicChecksum:
+            return "Mnemonic checksum failed";
+
+        case BitcoinErrorCode.InvalidWifEncoding:
+            return "Invalid WIF encoding";
+        case BitcoinErrorCode.UnknownWifPrefix:
+            return "Unknown WIF prefix";
+
+        case BitcoinErrorCode.ValueUnderflow:
+            return "Value underflow";
     }
 }
 

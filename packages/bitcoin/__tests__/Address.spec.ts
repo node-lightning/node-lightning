@@ -5,10 +5,10 @@ import { Script } from "../lib/Script";
 import { OpCode, PrivateKey } from "../lib";
 
 describe("Address", () => {
-    describe(".encodeLegacy()", () => {
+    describe(".encodeBase58()", () => {
         it("throws on invalid hash length", () => {
             const input = Buffer.alloc(32);
-            expect(() => Address.encodeLegacy(0, input)).to.throw();
+            expect(() => Address.encodeBase58(0, input)).to.throw();
         });
 
         it("encode P2PKH uncompressed", () => {
@@ -19,9 +19,9 @@ describe("Address", () => {
                 ),
                 Network.mainnet,
             );
-            const address = Address.encodeLegacy(
+            const address = Address.encodeBase58(
                 Network.mainnet.p2pkhPrefix,
-                prvKey.toPubKey().hash160(false),
+                prvKey.toPubKey(false).hash160(),
             );
             expect(address).to.equal("1EHNa6Q4Jz2uvNExL497mE43ikXhwF6kZm");
         });
@@ -34,41 +34,41 @@ describe("Address", () => {
                 ),
                 Network.mainnet,
             );
-            const address = Address.encodeLegacy(
+            const address = Address.encodeBase58(
                 Network.mainnet.p2pkhPrefix,
-                prvKey.toPubKey().hash160(true),
+                prvKey.toPubKey(true).hash160(),
             );
             expect(address).to.equal("1BgGZ9tcN4rm9KBzDn7KprQz87SZ26SAMH");
         });
 
         it("encode P2SH", () => {
             const script = new Script(OpCode.OP_1);
-            const address = Address.encodeLegacy(Network.mainnet.p2shPrefix, script.hash160());
+            const address = Address.encodeBase58(Network.mainnet.p2shPrefix, script.hash160());
             expect(address).to.to.equal("3MaB7QVq3k4pQx3BhsvEADgzQonLSBwMdj");
         });
     });
 
-    describe(".decodeLegacy()", () => {
+    describe(".decodeBase58()", () => {
         it("throws invalid hash length", () => {
-            expect(() => Address.decodeLegacy("11111111111111111111111111111111273Yts")).to.throw(
+            expect(() => Address.decodeBase58("11111111111111111111111111111111273Yts")).to.throw(
                 "Hash160 requires 20-byte Buffer",
             );
         });
 
         it("throws invalid checksum", () => {
-            expect(() => Address.decodeLegacy("1111111111111111111114oLvT3")).to.throw(
+            expect(() => Address.decodeBase58("1111111111111111111114oLvT3")).to.throw(
                 "Base58Check checksum failed",
             );
         });
 
         it("throws invalid network", () => {
-            expect(() => Address.decodeLegacy("thyfTvitmEyfHSE7kDN1zHj4sfZraSC9ES")).to.throw(
+            expect(() => Address.decodeBase58("thyfTvitmEyfHSE7kDN1zHj4sfZraSC9ES")).to.throw(
                 "Unknown address prefix",
             );
         });
 
         it("decode P2PKH", () => {
-            const decoded = Address.decodeLegacy("1BgGZ9tcN4rm9KBzDn7KprQz87SZ26SAMH");
+            const decoded = Address.decodeBase58("1BgGZ9tcN4rm9KBzDn7KprQz87SZ26SAMH");
             expect(decoded.network).to.equal(Network.mainnet);
             expect(decoded.prefix).to.equal(Network.mainnet.p2pkhPrefix);
             expect(decoded.hash.toString("hex")).to.equal(
@@ -82,14 +82,14 @@ describe("Address", () => {
                     ),
                     Network.mainnet,
                 )
-                    .toPubKey()
-                    .hash160(true)
+                    .toPubKey(true)
+                    .hash160()
                     .toString("hex"),
             );
         });
 
         it("decode P2SH", () => {
-            const decoded = Address.decodeLegacy("3MaB7QVq3k4pQx3BhsvEADgzQonLSBwMdj");
+            const decoded = Address.decodeBase58("3MaB7QVq3k4pQx3BhsvEADgzQonLSBwMdj");
             expect(decoded.network).to.equal(Network.mainnet);
             expect(decoded.prefix).to.equal(Network.mainnet.p2shPrefix);
             expect(decoded.hash.toString("hex")).to.equal(
@@ -101,7 +101,7 @@ describe("Address", () => {
         });
     });
 
-    describe(".encodeSegwit()", () => {
+    describe(".encodeBech32()", () => {
         it("encode P2WPKH", () => {
             const prvKey = new PrivateKey(
                 Buffer.from(
@@ -110,48 +110,48 @@ describe("Address", () => {
                 ),
                 Network.mainnet,
             );
-            const program = prvKey.toPubKey().hash160(true);
-            const address = Address.encodeSegwit(Network.mainnet.p2wpkhPrefix, 0, program);
+            const program = prvKey.toPubKey(true).hash160();
+            const address = Address.encodeBech32(Network.mainnet.p2wpkhPrefix, 0, program);
             expect(address).to.equal("bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4");
         });
 
         it("encode P2WSH", () => {
             const script = new Script(OpCode.OP_1);
             const program = script.sha256();
-            const address = Address.encodeSegwit(Network.mainnet.p2wshPrefix, 0, program);
+            const address = Address.encodeBech32(Network.mainnet.p2wshPrefix, 0, program);
             expect(address).to.equal(
                 "bc1qft5p2uhsdcdc3l2ua4ap5qqfg4pjaqlp250x7us7a8qqhrxrxfsq2gp3gp",
             );
         });
     });
 
-    describe(".decodeSegwit()", () => {
+    describe(".decodeBech32()", () => {
         it("throws with invalid version", () => {
             expect(() =>
-                Address.decodeSegwit("bc13qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq6tctp0"),
+                Address.decodeBech32("bc13qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq6tctp0"),
             ).to.throw("Unknown segwit version");
         });
 
         it("throws with invalid version 0 program", () => {
             expect(() =>
-                Address.decodeSegwit("bc1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqquxykp3"),
+                Address.decodeBech32("bc1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqquxykp3"),
             ).to.throw("Invalid witness program");
         });
 
         it("throws with invalid checksum", () => {
             expect(() =>
-                Address.decodeSegwit("bc1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq9e75rr"),
+                Address.decodeBech32("bc1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq9e75rr"),
             ).to.throw("Invalid bech32 checksum");
         });
 
         it("throws with unknown network", () => {
             expect(() =>
-                Address.decodeSegwit("bb1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqtfyrcj"),
+                Address.decodeBech32("bb1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqtfyrcj"),
             ).to.throw("Unknown address prefix");
         });
 
         it("decode P2WPKH", () => {
-            const decoded = Address.decodeSegwit("bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4");
+            const decoded = Address.decodeBech32("bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4");
             expect(decoded.network).to.equal(Network.mainnet);
             expect(decoded.version).to.equal(0);
             expect(decoded.program.toString("hex")).to.equal(
@@ -165,7 +165,7 @@ describe("Address", () => {
         });
 
         it("decode P2WSH", () => {
-            const decoded = Address.decodeSegwit(
+            const decoded = Address.decodeBech32(
                 "bc1qft5p2uhsdcdc3l2ua4ap5qqfg4pjaqlp250x7us7a8qqhrxrxfsq2gp3gp",
             );
             expect(decoded.network).to.equal(Network.mainnet);
@@ -192,7 +192,7 @@ describe("Address", () => {
 
             for (const [encoded, lockScript] of tests) {
                 it(`${encoded} => ${lockScript}`, () => {
-                    const decoded = Address.decodeSegwit(encoded);
+                    const decoded = Address.decodeBech32(encoded);
                     const script = new Script(decoded.version, decoded.program);
                     expect(script.serializeCmds().toString("hex")).to.equal(lockScript);
                 });
@@ -231,7 +231,7 @@ describe("Address", () => {
 
             for (const [address, scriptPubKey] of vectors) {
                 it(`${address} => ${scriptPubKey}`, () => {
-                    const decoded = Address.decodeSegwit(address);
+                    const decoded = Address.decodeBech32(address);
                     const script = new Script(Script.number(decoded.version), decoded.program);
                     expect(script.serializeCmds().toString("hex")).to.equal(scriptPubKey);
                 });
@@ -295,7 +295,7 @@ describe("Address", () => {
 
             for (const [address, error] of vectors) {
                 it(`${address} (${error})`, () => {
-                    expect(() => Address.decodeSegwit(address)).to.throw();
+                    expect(() => Address.decodeBech32(address)).to.throw();
                 });
             }
         });

@@ -1,4 +1,5 @@
 import * as crypto from "@node-lightning/crypto";
+import { Wif } from ".";
 import { BitcoinError } from "./BitcoinError";
 import { BitcoinErrorCode } from "./BitcoinErrorCode";
 import { Network } from "./Network";
@@ -7,10 +8,27 @@ import { PublicKey } from "./PublicKey";
 /**
  * This class encapsulates a 32-byte buffer containing a big-endian
  * encoded number between 0x1 and
- * 0xffffffffffffffffffffffffffffffffbaaedce6af48a03bbfd25e8cd0364140
+ * 0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364140
  * that is a private key for the secp256k1 elliptic curve.
  */
 export class PrivateKey {
+    /**
+     * Decodes a WIF encoded string into the private key as well as the
+     * public key. The inclusion of the public key allows us to capture
+     * if the public key was compressed.
+     * @param input WIF encoded string
+     * @returns A tuple of the private key and public key
+     * @throw {@link BitcoinError} Throws for invalid network prefix or
+     * invalid private or public keys.
+     */
+    public static fromWif(input: string): [PrivateKey, PublicKey] {
+        const decoded = Wif.decode(input);
+        const network = Wif.decodePrefix(decoded.prefix);
+        const prvkey = new PrivateKey(decoded.privateKey, network);
+        const pubkey = prvkey.toPubKey(decoded.compressed);
+        return [prvkey, pubkey];
+    }
+
     private _buffer: Buffer;
 
     /**
@@ -44,9 +62,16 @@ export class PrivateKey {
     /**
      * Converts the private key into the corresponding public key
      */
-    public toPubKey(): PublicKey {
-        const result = crypto.getPublicKey(this._buffer, true);
+    public toPubKey(compressed: boolean): PublicKey {
+        const result = crypto.getPublicKey(this._buffer, compressed);
         return new PublicKey(result, this.network);
+    }
+
+    /**
+     * Converts the private key to WIF
+     */
+    public toWif(compressed: boolean): string {
+        return Wif.encode(this.network.wifPrefix, this._buffer, compressed);
     }
 
     /**

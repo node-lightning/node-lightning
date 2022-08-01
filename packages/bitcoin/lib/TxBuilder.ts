@@ -1,5 +1,6 @@
 import { BufferWriter } from "@node-lightning/bufio";
 import { hash256, sign, sigToDER } from "@node-lightning/crypto";
+import { BitcoinError, BitcoinErrorCode, Witness } from ".";
 import { LockTime } from "./LockTime";
 import { OutPoint } from "./OutPoint";
 import { Script } from "./Script";
@@ -92,6 +93,41 @@ export class TxBuilder {
     }
 
     /**
+     * Adds witness data to the input at the specified index.
+     * @param index index of the input, zero based
+     * @param witness witness data to add
+     */
+    public addWitness(index: number, witness: Buffer | Witness) {
+        if (index < 0 || index >= this._inputs.length) {
+            throw new BitcoinError(BitcoinErrorCode.InputIndexOutOfRange, { index });
+        }
+        this.inputs[index].addWitness(witness);
+    }
+
+    /**
+     * Sets the scriptSig for a specified input. This is sugar for
+     * `txb.inputs[index] = script;`.
+     * @param index index of the input
+     * @param script scriptSig to set for the input
+     */
+    public setScriptSig(index: number, script: Script) {
+        if (index < 0 || index >= this._inputs.length) {
+            throw new BitcoinError(BitcoinErrorCode.InputIndexOutOfRange, { index });
+        }
+        this.inputs[index].scriptSig = script;
+    }
+
+    /**
+     * Sets the locktime for the transaction. This is sugar for
+     * `txb.locktime = locktime;` but allows for easy setting via a
+     * number.
+     * @param locktime
+     */
+    public setLockTime(locktime: number | LockTime) {
+        this.locktime = locktime instanceof LockTime ? locktime : new LockTime(locktime);
+    }
+
+    /**
      * Creates a signature hash including all inputs and all outputs,
      * which is referred to as SIGHASH_ALL. The scriptSig of all inputs
      * is removed (as it is never signed), however we commit to the
@@ -156,9 +192,10 @@ export class TxBuilder {
      *
      * @param index signatory input index
      * @param commitScript the scriptSig used for the signature input
-     * @param value the value of the input
+     * @param value the value of the input. When a number is supplied it
+     * is treated as bitcoin via `Value.fromBitcoin`
      */
-    public hashSegwitv0(index: number, commitScript: Script, value: Value): Buffer {
+    public hashSegwitv0(index: number, commitScript: Script, value: number | Value): Buffer {
         const writer = new BufferWriter();
 
         // Combines the previous outputs for all inputs in the
@@ -201,7 +238,7 @@ export class TxBuilder {
         const vin = this._inputs[index];
         writer.writeBytes(vin.outpoint.serialize());
         writer.writeBytes(commitScript.serialize());
-        writer.writeUInt64LE(value.sats);
+        writer.writeUInt64LE((value instanceof Value ? value : Value.fromBitcoin(value)).sats);
         writer.writeBytes(vin.sequence.serialize());
 
         writer.writeBytes(this._hashOutputs);
@@ -243,13 +280,14 @@ export class TxBuilder {
      * @param input index of input that should be signed
      * @param commitScript Script that is committed during signature
      * @param privateKey 32-byte private key
-     * @param value value of the prior input
+     * @param value the value of the input. When a number is supplied it
+     * is treated as bitcoin via `Value.fromBitcoin`
      */
     public signSegWitv0(
         input: number,
         commitScript: Script,
         privateKey: Buffer,
-        value: Value,
+        value: number | Value,
     ): Buffer {
         // create the hash of the transaction for the input
         const hash = this.hashSegwitv0(input, commitScript, value);

@@ -5,7 +5,7 @@ import { IWireMessage } from "./IWireMessage";
 /**
  * This message is defined in BOLT #1 and is used for telling
  * a peer that something is incorrect. The message can indicate
- * which channel is in error, or if channelId is 0, it refers
+ * which channel is in error, or if channelId is zero, it refers
  * to all channels.
  *
  * These message can indicate protocol violations or internal
@@ -22,7 +22,7 @@ export class ErrorMessage implements IWireMessage {
         reader.readUInt16BE(); // read type
 
         const instance = new ErrorMessage();
-        instance.channelId = reader.readUInt32BE();
+        instance.channelId = reader.readBytes(32);
 
         const len = reader.readUInt16BE();
         instance.data = reader.readBytes(len);
@@ -44,7 +44,7 @@ export class ErrorMessage implements IWireMessage {
      * funding_created messagee should use the temporary_channel_id
      * instead of the channel_id.
      */
-    public channelId: any = 0;
+    public channelId: Buffer;
 
     /**
      * Data field may be empty. May contain the raw, hex-encoded
@@ -61,13 +61,13 @@ export class ErrorMessage implements IWireMessage {
     public serialize(): Buffer {
         const len =
             2 + // type
-            4 + // channel_id
+            32 + // channel_id
             2 + // len
             this.data.length;
 
         const writer = new BufferWriter(Buffer.alloc(len));
         writer.writeUInt16BE(this.type);
-        writer.writeUInt32BE(this.channelId);
+        writer.writeBytes(this.channelId);
         writer.writeUInt16BE(this.data.length);
         writer.writeBytes(this.data);
         return writer.toBuffer();

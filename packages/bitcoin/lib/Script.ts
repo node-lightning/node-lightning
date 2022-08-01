@@ -3,9 +3,11 @@ import { encodeVarInt } from "@node-lightning/bufio";
 import { BufferReader } from "@node-lightning/bufio";
 import { StreamReader } from "@node-lightning/bufio";
 import { hash160, isDERSig, sha256, validPublicKey } from "@node-lightning/crypto";
+import { Address } from "./Address";
 import { BitcoinError } from "./BitcoinError";
 import { BitcoinErrorCode } from "./BitcoinErrorCode";
 import { ICloneable } from "./ICloneable";
+import { Network } from "./Network";
 import { OpCode } from "./OpCodes";
 import { ScriptCmd } from "./ScriptCmd";
 import { isSigHashTypeValid } from "./SigHashType";
@@ -495,5 +497,27 @@ export class Script implements ICloneable<Script> {
      */
     public sha256(): Buffer {
         return sha256(this.serializeCmds());
+    }
+
+    /**
+     * Constructs a P2SH address from the script. The address is base58
+     * encoded and use the network p2sh prefix plus the hash160 of the
+     * script.
+     * @param network
+     * @returns
+     */
+    public toP2shAddress(network: Network): string {
+        return Address.encodeBase58(network.p2shPrefix, this.hash160());
+    }
+
+    /**
+     * Constructs a P2WSH address from the script. The addres is a
+     * bech32 encoded and uses the network p2wsh human readable part
+     * plus the sha256 of the script.
+     * @param network
+     * @returns
+     */
+    public toP2wshAddress(network: Network): string {
+        return Address.encodeBech32(network.p2wshPrefix, 0x00, this.sha256());
     }
 }

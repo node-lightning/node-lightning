@@ -1,5 +1,5 @@
 import * as crypto from "@node-lightning/crypto";
-import { BufferWriter } from "../../bufio/dist";
+import { BufferWriter } from "@node-lightning/bufio";
 import { BitcoinError } from "./BitcoinError";
 import { BitcoinErrorCode } from "./BitcoinErrorCode";
 import { HdKeyCodec } from "./HdKeyCodec";
@@ -7,6 +7,11 @@ import { HdKeyType } from "./HdKeyType";
 import { HdPublicKey } from "./HdPublicKey";
 import { Network } from "./Network";
 import { PrivateKey } from "./PrivateKey";
+
+const MAX_INDEX = 0xffffffff;
+const HARDENED_INDEX = 0x80000000;
+const BIP49_PURPOSE = 0x80000031; // 49'
+const BIP84_PURPOSE = 0x80000054; // 84'
 
 /**
  * Represnts a hierarchical deterministic extended private key as defined
@@ -30,14 +35,15 @@ export class HdPrivateKey {
      * @param path string path
      * @param seed 32-byte seed
      * @param network network that the private key belongs to
-     * @param type type of HD key (x, y, z)
+     * @param type type of HD key (x, y, z) which defaults to x when a
+     * BIP49 or BIP84 path is not detected
      * @returns the extended private key at the defined path
      */
     public static fromPath(
         path: string,
         seed: Buffer,
         network: Network,
-        type = HdKeyType.x,
+        type?: HdKeyType,
     ): HdPrivateKey {
         const parts = path.split("/");
 
@@ -47,22 +53,46 @@ export class HdPrivateKey {
             throw new BitcoinError(BitcoinErrorCode.InvalidHdPath, path);
         }
 
-        // generate the master key
-        let key = HdPrivateKey.fromSeed(seed, network, type);
-
-        // perform derivations
+        // calculate the nums before we do anything else
+        const nums: number[] = [];
         for (let i = 1; i < parts.length; i++) {
             const part = parts[i];
 
+            // extract number
             const hardened = part.endsWith("'");
             const num = hardened
-                ? 2 ** 31 + Number(part.substring(0, part.length - 1))
+                ? HARDENED_INDEX + Number(part.substring(0, part.length - 1))
                 : Number(part);
 
-            if (isNaN(num) || num < 0 || num >= 2 ** 32 || (!hardened && num >= 2 ** 31)) {
+            // validate path was correct
+            if (isNaN(num) || num < 0 || num > MAX_INDEX || (!hardened && num >= HARDENED_INDEX)) {
                 throw new BitcoinError(BitcoinErrorCode.InvalidHdPath, path);
             }
 
+            nums.push(num);
+        }
+
+        // attempt to detect the type if one was not supplied...
+        if (!type) {
+            // purpose is 84', type is z
+            if (nums[0] && nums[0] === BIP84_PURPOSE) {
+                type = HdKeyType.z;
+            }
+            // purpose is 49', type is y
+            else if (nums[0] && nums[0] === BIP49_PURPOSE) {
+                type = HdKeyType.y;
+            }
+            // otherwise it's x
+            else {
+                type = HdKeyType.x;
+            }
+        }
+
+        // generate the master key
+        let key = HdPrivateKey.fromSeed(seed, network, type);
+
+        // perform derivations from the master
+        for (const num of nums) {
             key = key.derive(num);
         }
 
@@ -190,6 +220,10 @@ export class HdPrivateKey {
         switch (this.type) {
             case HdKeyType.x:
                 return this.network.xprvVersion;
+            case HdKeyType.y:
+                return this.network.yprvVersion;
+            case HdKeyType.z:
+                return this.network.zprvVersion;
         }
     }
 
@@ -198,7 +232,7 @@ export class HdPrivateKey {
      * when it has an index between 2^31 and 2^32-1
      */
     public get isHardened(): boolean {
-        return this.number >= 2 ** 31;
+        return this.number >= HARDENED_INDEX;
     }
 
     /**
@@ -206,7 +240,7 @@ export class HdPrivateKey {
      */
     public get fingerprint(): Buffer {
         if (!this._fingerprint) {
-            this._fingerprint = crypto.hash160(this.privateKey.toPubKey().toBuffer(true));
+            this._fingerprint = crypto.hash160(this.privateKey.toPubKey(true).toBuffer());
         }
         return this._fingerprint;
     }
@@ -219,7 +253,8 @@ export class HdPrivateKey {
      * @remarks
      *
      * @param i number of key to derive
-     * @returns
+     * @throws if this generates an invalid key either because the tweak
+     * was invalid or the resulting private key is invalid.
      */
     public derive(i: number): HdPrivateKey {
         const result = new HdPrivateKey();
@@ -231,14 +266,14 @@ export class HdPrivateKey {
         const data = new BufferWriter(Buffer.alloc(37));
 
         // hardened
-        if (i >= 2 ** 31) {
+        if (i >= HARDENED_INDEX) {
             data.writeUInt8(0);
             data.writeBytes(this.privateKey.toBuffer());
             data.writeUInt32BE(i);
         }
         // normal child
         else {
-            data.writeBytes(this.privateKey.toPubKey().toBuffer(true));
+            data.writeBytes(this.privateKey.toPubKey(true).toBuffer());
             data.writeUInt32BE(i);
         }
 
@@ -250,6 +285,22 @@ export class HdPrivateKey {
         result.chainCode = lr;
 
         return result;
+    }
+
+    /**
+     * Derives a hardened child key at the specified index. This method
+     * simplifies derivation of hardened keys be treating the argument
+     * as a hardened index. For example: `.deriveHardened(0)` derives
+     * `0'` at index `0x80000000`.
+     * @param i index of hardened key
+     * @throws if this generates an invalid key either because the tweak
+     * was invalid or the resulting private key is invalid.
+     */
+    public deriveHardened(i: number): HdPrivateKey {
+        if (i < HARDENED_INDEX) {
+            i = i + HARDENED_INDEX;
+        }
+        return this.derive(i);
     }
 
     /**
@@ -279,8 +330,26 @@ export class HdPrivateKey {
         result.number = this.number;
         result.parentFingerprint = Buffer.from(this.parentFingerprint);
         result.chainCode = Buffer.from(this.chainCode);
-        result.publicKey = this.privateKey.toPubKey();
+        result.publicKey = this.privateKey.toPubKey(true);
         return result;
+    }
+
+    /**
+     * Returns the compressed WIF encoding
+     * @returns
+     */
+    public toWif(): string {
+        return this.privateKey.toWif(true);
+    }
+
+    /**
+     * Returns the address encoded according to the type of HD key.
+     * For x-type this returns a base58 encoded P2PKH address.
+     * For y-type this returns a base58 encoded P2SH-P2WPKH address.
+     * For z-type this returns a bech32 encoded P2WPKH address.
+     */
+    public toAddress(): string {
+        return this.toPubKey().toAddress();
     }
 
     /**
@@ -308,5 +377,21 @@ export class HdPrivateKey {
      */
     public encode(): string {
         return HdKeyCodec.encode(this);
+    }
+
+    /**
+     * Returns a Buffer of the underlying private key encoded as a big
+     * endian integer. This is sugar for `key.privateKey.toBuffer()`.
+     */
+    public toBuffer(): Buffer {
+        return this.privateKey.toBuffer();
+    }
+
+    /**
+     * Returns a hex string of the underlying private key. This is sugar
+     * for `key.privateKey.toHex()`.
+     */
+    public toHex(): string {
+        return this.privateKey.toHex();
     }
 }

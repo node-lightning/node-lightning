@@ -1,3 +1,4 @@
+import { BitcoinError, BitcoinErrorCode, LockTime } from ".";
 import { ICloneable } from "./ICloneable";
 
 /**
@@ -108,5 +109,90 @@ export class Value implements ICloneable<Value> {
      */
     public clone(): Value {
         return new Value(this._picoSats);
+    }
+
+    /**
+     * Returns the value as a string of Bitcoin. This is a fixed eight
+     * decimal string, as such value below satoshis will be truncated.
+     */
+    public toString(): string {
+        return this.bitcoin.toFixed(8);
+    }
+
+    /**
+     * Returns true if the current value is equal to the other value
+     * @param other
+     * @returns
+     */
+    public eq(other: Value): boolean {
+        return other._picoSats === this._picoSats;
+    }
+
+    /**
+     * Returns true if the current value is not equal to the other value
+     * @param other
+     * @returns
+     */
+    public neq(other: Value): boolean {
+        return other._picoSats !== this._picoSats;
+    }
+
+    /**
+     * Returns true if the current value is greater than the other value.
+     * @param other
+     * @returns
+     */
+    public gt(other: Value): boolean {
+        return this._picoSats > other._picoSats;
+    }
+
+    /**
+     * Returns true if the current value is greater than or equal to the
+     * other value.
+     * @param other
+     * @returns
+     */
+    public gte(other: Value): boolean {
+        return this._picoSats >= other._picoSats;
+    }
+
+    /**
+     * Returns true if the current value is less than the other value.
+     * @param other
+     */
+    public lt(other: Value): boolean {
+        return this._picoSats < other._picoSats;
+    }
+
+    /**
+     * Returns true if the current value is less than or equal to the
+     * other value.
+     * @param other
+     * @returns
+     */
+    public lte(other: Value): boolean {
+        return this._picoSats <= other._picoSats;
+    }
+
+    /**
+     * Modifies the current instance by adding the other value to the
+     * existing value.
+     * @param other
+     */
+    public add(other: Value) {
+        this._picoSats += other._picoSats;
+    }
+
+    /**
+     * Modifies the current instance by subtracting the other value
+     * from our existing value. Since Value is unsigned, this throws
+     * if subtraction results in a value that is less than zero.
+     * @param other
+     */
+    public sub(other: Value) {
+        if (this._picoSats - other._picoSats < 0) {
+            throw new BitcoinError(BitcoinErrorCode.ValueUnderflow);
+        }
+        this._picoSats -= other._picoSats;
     }
 }

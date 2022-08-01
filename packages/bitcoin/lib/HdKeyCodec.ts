@@ -16,6 +16,14 @@ export class HdKeyCodec {
                 return [network, HdKeyType.x, false];
             } else if (version === network.xprvVersion) {
                 return [network, HdKeyType.x, true];
+            } else if (version === network.ypubVersion) {
+                return [network, HdKeyType.y, false];
+            } else if (version === network.yprvVersion) {
+                return [network, HdKeyType.y, true];
+            } else if (version === network.zpubVersion) {
+                return [network, HdKeyType.z, false];
+            } else if (version === network.zprvVersion) {
+                return [network, HdKeyType.z, true];
             }
         }
         throw new BitcoinError(BitcoinErrorCode.UnkownHdKeyVersion, version.toString());
@@ -156,7 +164,7 @@ export class HdKeyCodec {
             w.writeUInt8(0);
             w.writeBytes(key.privateKey.toBuffer());
         } else {
-            w.writeBytes(key.publicKey.toBuffer(true));
+            w.writeBytes(key.publicKey.toBuffer());
         }
 
         const buf = w.toBuffer();

@@ -9,6 +9,7 @@ export enum BitcoinErrorCode {
     Hash160Invalid,
     Hash256Invalid,
     NetworkMismatch,
+    InputIndexOutOfRange,
 
     // HD Key Related
     InvalidHdEncoding,
@@ -28,4 +29,17 @@ export enum BitcoinErrorCode {
     UnknownAddressPrefix,
     InvalidSegwitVersion,
     InvalidWitnessProgram,
+
+    // mnemonics
+    InvalidMnemonicWordList,
+    InvalidMnemonicEntropy,
+    InvalidMnemonicWord,
+    InvalidMnemonicChecksum,
+
+    // WIF
+    InvalidWifEncoding,
+    UnknownWifPrefix,
+
+    // Value
+    ValueUnderflow,
 }

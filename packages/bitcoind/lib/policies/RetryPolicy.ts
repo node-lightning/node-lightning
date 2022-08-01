@@ -1,5 +1,5 @@
-import { IBackoffStrategy } from "./backoff-strategy";
-import { IPolicy } from "./policy";
+import { IBackoffStrategy } from "./BackoffStrategy";
+import { IPolicy } from "./Policy";
 
 export class RetryPolicy<T> implements IPolicy<T> {
     private numFailures: number;
