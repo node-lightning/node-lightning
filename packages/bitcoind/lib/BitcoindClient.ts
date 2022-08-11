@@ -150,6 +150,16 @@ export class BitcoindClient extends EventEmitter {
     }
 
     /**
+     * Returns the estimated network hashes per second based on the last n blocks.
+     * @param blocks
+     * @param height
+     * @returns
+     */
+    public async getNetworkHashPs(blocks: number, height: number): Promise<number> {
+        return await this._jsonrpc<number>("getnetworkhashps", [blocks, height]);
+    }
+
+    /**
      * This API will block until the bitcoind has been synced.  If the bitcoind
      * has already been synced then it will immediately return.
      *
