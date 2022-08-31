@@ -20,6 +20,7 @@ export type Input = {
     vout: number;
     scriptSig: ScriptSig;
     sequence: number;
+    txinwitness?: string[];
 };
 
 export type Output = {
