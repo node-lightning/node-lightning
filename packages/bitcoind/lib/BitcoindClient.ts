@@ -160,6 +160,15 @@ export class BitcoindClient extends EventEmitter {
     }
 
     /**
+     * Submit a raw transaction (serialized, hex-encoded) to local node and network.
+     * @param hexstring hex-encoded transaction
+     * @returns
+     */
+    public async sendRawTransaction(hexString: string): Promise<string> {
+        return await this._jsonrpc<string>("sendrawtransaction", [hexString]);
+    }
+
+    /**
      * This API will block until the bitcoind has been synced.  If the bitcoind
      * has already been synced then it will immediately return.
      *
