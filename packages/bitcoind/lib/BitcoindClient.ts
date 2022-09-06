@@ -169,6 +169,16 @@ export class BitcoindClient extends EventEmitter {
     }
 
     /**
+     * Send an amount to a given address.
+     * @param address the bitcoin address to send to
+     * @param amountInBtc the amount in BC to send. eg. 0.1
+     * @returns the hex encoded transaction id
+     */
+    public async sendToAddress(address: string, amountInBtc: string | number): Promise<string> {
+        return await this._jsonrpc<string>("sendtoaddress", [address, amountInBtc]);
+    }
+
+    /**
      * This API will block until the bitcoind has been synced.  If the bitcoind
      * has already been synced then it will immediately return.
      *
