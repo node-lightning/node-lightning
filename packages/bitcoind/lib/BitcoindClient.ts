@@ -179,6 +179,18 @@ export class BitcoindClient extends EventEmitter {
     }
 
     /**
+     * Returns a new address for receiving payments.
+     * @param label optional label
+     * @param type legacy, p2sh-segwit, or bech32. Defaults to beceh32
+     */
+    public async getNewAddress(
+        label?: string,
+        type: "legacy" | "p2sh-segwit" | "bech32" = "bech32",
+    ): Promise<string> {
+        return await this._jsonrpc<string>("getnewaddress", [label, type]);
+    }
+
+    /**
      * This API will block until the bitcoind has been synced.  If the bitcoind
      * has already been synced then it will immediately return.
      *
