@@ -93,6 +93,7 @@ export class TxIn implements ICloneable<TxIn> {
             outpoint: this.outpoint.toJSON(),
             scriptSig: this.scriptSig.toJSON(),
             sequence: this.sequence.toJSON(),
+            witness: this.witness.map(witness => witness.toJSON()),
         };
     }
 
