@@ -1,15 +1,16 @@
 import * as http from "http";
 import { IBitcoindOptions } from "./BitcoindOptions";
 import { JsonRpcError } from "./JsonRpcError";
+import { JsonRpcOptions } from "./JsonRpcOptions";
 
 export function jsonrpcRequest<T>(
     method: string,
     params: any = [],
     id: number,
-    opts: IBitcoindOptions,
+    opts: JsonRpcOptions,
 ): Promise<T> {
     return new Promise((resolve, reject) => {
-        const { host, port, rpcuser: rpcUser, rpcpassword: rpcPassword } = opts;
+        const { host, hostname, port, username, password } = opts;
         const body = JSON.stringify({
             id,
             jsonrpc: "1.0",
@@ -18,13 +19,14 @@ export function jsonrpcRequest<T>(
         });
         const req = http.request(
             {
-                auth: `${rpcUser}:${rpcPassword}`,
+                auth: `${username}:${password}`,
                 headers: {
                     "content-length": body.length,
                     "content-type": "text/plain",
                 },
-                host,
                 method: "POST",
+                host,
+                hostname,
                 port,
             },
             res => {

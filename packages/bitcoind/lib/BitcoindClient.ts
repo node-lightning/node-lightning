@@ -14,6 +14,8 @@ import { BlockHeader } from "./types/BlockHeader";
 import { BlockSummary } from "./types/BlockSummary";
 import { Transaction } from "./types/Transaction";
 import { Utxo } from "./types/Transaction";
+import url from "url";
+import { JsonRpcOptions } from "./JsonRpcOptions";
 
 export declare interface IBitcoindClient {
     on(event: "rawtx", listener: (rawtx: Buffer) => void): this;
@@ -25,6 +27,7 @@ export declare interface IBitcoindClient {
  */
 export class BitcoindClient extends EventEmitter {
     public opts: IBitcoindOptions;
+    public jsonRpcOptions: JsonRpcOptions;
     public id: number;
 
     public rawTxSock: zmq.socket;
@@ -33,6 +36,17 @@ export class BitcoindClient extends EventEmitter {
     constructor(opts: IBitcoindOptions) {
         super();
         this.opts = opts;
+
+        this.jsonRpcOptions = {
+            host: opts.host,
+            port: opts.port,
+            username: opts.rpcuser,
+            password: opts.rpcpassword,
+        };
+
+        if (opts.rpcurl) {
+            this.jsonRpcOptions = { ...this.jsonRpcOptions, ...url.parse(opts.rpcurl) };
+        }
         this.id = 0;
     }
 
@@ -223,7 +237,7 @@ export class BitcoindClient extends EventEmitter {
      */
     private _jsonrpc<T>(method: string, args?: any): Promise<T> {
         // constructs a request delegate that will be used for retries
-        const fn = () => jsonrpcRequest<T>(method, args, ++this.id, this.opts);
+        const fn = () => jsonrpcRequest<T>(method, args, ++this.id, this.jsonRpcOptions);
 
         // if we have a retry policy specified in the options, we will build a
         // new policy for this request and use it to execute our function delegate
