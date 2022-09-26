@@ -1,7 +1,10 @@
-import { Readable } from "stream";
+export type PausedReadable<T> = {
+    on(event: "readable", cb: any);
+    read(): T;
+};
 
 export class AsyncStreamAggregator<T> {
-    public streams: Readable[] = [];
+    public streams: PausedReadable<T>[] = [];
     public reading: boolean = false;
 
     public constructor(
@@ -9,7 +12,7 @@ export class AsyncStreamAggregator<T> {
         readonly errorHandler: (e: Error) => PromiseLike<void>,
     ) {}
 
-    public add(stream: Readable) {
+    public add(stream: PausedReadable<T>) {
         this.streams.push(stream);
         stream.on("readable", this.onData.bind(this));
     }
@@ -33,7 +36,7 @@ export class AsyncStreamAggregator<T> {
 
             // round-robin streams based on attachment
             for (const stream of this.streams) {
-                const data = stream.read() as T;
+                const data = stream.read();
 
                 // if we had data
                 if (data) {
