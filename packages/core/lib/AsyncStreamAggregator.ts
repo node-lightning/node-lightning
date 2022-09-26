@@ -7,10 +7,7 @@ export class AsyncStreamAggregator<T> {
     public streams: PausedReadable<T>[] = [];
     public reading: boolean = false;
 
-    public constructor(
-        readonly dataHandler: (t: T) => PromiseLike<void>,
-        readonly errorHandler: (e: Error) => PromiseLike<void>,
-    ) {}
+    public constructor(readonly dataHandler: (t: T) => PromiseLike<void>) {}
 
     public add(stream: PausedReadable<T>) {
         this.streams.push(stream);
@@ -38,17 +35,9 @@ export class AsyncStreamAggregator<T> {
             for (const stream of this.streams) {
                 const data = stream.read();
 
-                // if we had data
+                // Data handler must not throw errors
                 if (data) {
-                    try {
-                        await this.dataHandler(data);
-                    } catch (ex) {
-                        try {
-                            await this.errorHandler(ex);
-                        } catch (ex) {
-                            // TODO figure out what to do here
-                        }
-                    }
+                    await this.dataHandler(data);
                     hadData = true;
                 }
             }

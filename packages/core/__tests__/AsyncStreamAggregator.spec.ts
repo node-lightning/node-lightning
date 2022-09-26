@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 /* eslint-disable @typescript-eslint/require-await */
-import Sinon from "sinon";
 import { expect } from "chai";
 import { Readable } from "stream";
 import { AsyncStreamAggregator } from "../lib/AsyncStreamAggregator";
@@ -30,38 +29,15 @@ describe("AsyncStreamAggregator", () => {
     it("should read from single producers", done => {
         const mock = new MockStream("test");
 
-        const sut = new AsyncStreamAggregator(
-            async (data: any) => {
+        const sut = new AsyncStreamAggregator(async (data: any) => {
+            try {
                 await wait(0);
                 expect(data).to.deep.equal({ name: "test", count: 1 });
                 done();
-            },
-            async (ex: Error) => {
+            } catch (ex) {
                 done(ex);
-            },
-        );
-        sut.add(mock);
-
-        mock.test();
-    });
-
-    it("should calls error handler", done => {
-        const mock = new MockStream("test");
-
-        const sut = new AsyncStreamAggregator(
-            async () => {
-                await wait(0);
-                throw new Error("Boom");
-            },
-            async (ex: Error) => {
-                try {
-                    expect(ex.message).to.equal("Boom");
-                    done();
-                } catch (ex2) {
-                    done(ex2);
-                }
-            },
-        );
+            }
+        });
         sut.add(mock);
 
         mock.test();
@@ -72,8 +48,8 @@ describe("AsyncStreamAggregator", () => {
         const mock2 = new MockStream("2");
 
         const calls = [];
-        const sut = new AsyncStreamAggregator(
-            async (data: any) => {
+        const sut = new AsyncStreamAggregator(async (data: any) => {
+            try {
                 await wait(0);
                 calls.push(data);
                 if (calls.length === 2) {
@@ -81,11 +57,10 @@ describe("AsyncStreamAggregator", () => {
                     expect(calls[1]).to.deep.equal({ name: "2", count: 1 });
                     done();
                 }
-            },
-            async (ex: Error) => {
+            } catch (ex) {
                 done(ex);
-            },
-        );
+            }
+        });
         sut.add(mock1);
         sut.add(mock2);
 
@@ -98,8 +73,8 @@ describe("AsyncStreamAggregator", () => {
         const mock2 = new MockStream("2");
 
         const calls = [];
-        const sut = new AsyncStreamAggregator(
-            async (data: any) => {
+        const sut = new AsyncStreamAggregator(async (data: any) => {
+            try {
                 await wait(0);
                 calls.push(data);
                 if (calls.length === 5) {
@@ -110,11 +85,10 @@ describe("AsyncStreamAggregator", () => {
                     expect(calls[4]).to.deep.equal({ name: "1", count: 3 });
                     done();
                 }
-            },
-            async (ex: Error) => {
+            } catch (ex) {
                 done(ex);
-            },
-        );
+            }
+        });
         sut.add(mock1);
         sut.add(mock2);
 
