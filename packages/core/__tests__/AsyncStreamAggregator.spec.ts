@@ -29,7 +29,7 @@ describe("AsyncStreamAggregator", () => {
     it("should read from single producers", done => {
         const mock = new MockStream("test");
 
-        const sut = new AsyncStreamAggregator(async (data: any) => {
+        const sut = new AsyncStreamAggregator(async (_: MockStream, data: any) => {
             try {
                 await wait(0);
                 expect(data).to.deep.equal({ name: "test", count: 1 });
@@ -48,7 +48,7 @@ describe("AsyncStreamAggregator", () => {
         const mock2 = new MockStream("2");
 
         const calls = [];
-        const sut = new AsyncStreamAggregator(async (data: any) => {
+        const sut = new AsyncStreamAggregator(async (_: MockStream, data: any) => {
             try {
                 await wait(0);
                 calls.push(data);
@@ -73,7 +73,7 @@ describe("AsyncStreamAggregator", () => {
         const mock2 = new MockStream("2");
 
         const calls = [];
-        const sut = new AsyncStreamAggregator(async (data: any) => {
+        const sut = new AsyncStreamAggregator(async (_: MockStream, data: any) => {
             try {
                 await wait(0);
                 calls.push(data);
