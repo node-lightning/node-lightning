@@ -211,6 +211,12 @@ describe("Value", () => {
             a.add(b);
             expect(a.bitcoin).to.equal(1.00000001);
         });
+        it("is fluent", () => {
+            const sut = Value.zero()
+                .add(Value.fromSats(1000))
+                .add(Value.fromSats(400));
+            expect(sut.sats).to.equal(1400n);
+        });
     });
 
     describe(".sub()", () => {
@@ -225,6 +231,11 @@ describe("Value", () => {
             const a = Value.fromBitcoin(1);
             const b = Value.fromBitcoin(1.1);
             expect(() => a.sub(b)).to.throw("Value underflow");
+        });
+
+        it("is fluent", () => {
+            const sut = Value.fromSats(1000).sub(Value.fromSats(400));
+            expect(sut.sats).to.equal(600n);
         });
     });
 
