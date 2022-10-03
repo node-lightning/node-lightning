@@ -179,8 +179,9 @@ export class Value implements ICloneable<Value> {
      * existing value.
      * @param other
      */
-    public add(other: Value) {
+    public add(other: Value): this {
         this._picoSats += other._picoSats;
+        return this;
     }
 
     /**
@@ -189,10 +190,11 @@ export class Value implements ICloneable<Value> {
      * if subtraction results in a value that is less than zero.
      * @param other
      */
-    public sub(other: Value) {
+    public sub(other: Value): this {
         if (this._picoSats - other._picoSats < 0) {
             throw new BitcoinError(BitcoinErrorCode.ValueUnderflow);
         }
         this._picoSats -= other._picoSats;
+        return this;
     }
 }
