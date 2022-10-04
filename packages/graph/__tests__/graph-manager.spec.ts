@@ -1,33 +1,27 @@
 // tslint:disable: no-unused-expression
-import { BitField, Value } from "@node-lightning/core";
+import { BitField } from "@node-lightning/core";
 import { ShortChannelId } from "@node-lightning/core";
 import { OutPoint } from "@node-lightning/core";
 import { AddressIPv4 } from "@node-lightning/wire";
 import { ExtendedChannelAnnouncementMessage } from "@node-lightning/wire";
-import { IGossipEmitter } from "@node-lightning/wire";
 import { ChannelAnnouncementMessage } from "@node-lightning/wire";
 import { ChannelUpdateMessage } from "@node-lightning/wire";
 import { NodeAnnouncementMessage } from "@node-lightning/wire";
 import { expect } from "chai";
-import { EventEmitter } from "events";
 import { Channel } from "../lib/channel";
 import { ChannelSettings } from "../lib/channel-settings";
 import { GraphErrorCode } from "../lib/graph-error";
 import { GraphManager } from "../lib/graph-manager";
 import { Node } from "../lib/node";
 
-class FakeGossipEmitter extends EventEmitter implements IGossipEmitter {}
-
 describe("GraphManager", () => {
     let sut: GraphManager;
-    let gossipEmitter: FakeGossipEmitter;
     const scid = new ShortChannelId(1, 1, 1);
     const node1 = Buffer.alloc(32, 1);
     const node2 = Buffer.alloc(32, 2);
 
     beforeEach(() => {
-        gossipEmitter = new FakeGossipEmitter();
-        sut = new GraphManager(gossipEmitter);
+        sut = new GraphManager();
     });
 
     describe("channel_announcement", () => {
@@ -49,7 +43,7 @@ describe("GraphManager", () => {
                     expect(chan.shortChannelId).to.be.instanceof(ShortChannelId);
                     done();
                 });
-                gossipEmitter.emit("message", msg);
+                sut.onWireMessage(msg);
             });
 
             it("should add node1 and node2 to graph", done => {
@@ -67,7 +61,7 @@ describe("GraphManager", () => {
                     expect(n2.nodeId.toString("hex")).to.equal(node2.toString("hex"));
                     done();
                 });
-                gossipEmitter.emit("message", msg);
+                sut.onWireMessage(msg);
             });
         });
 
@@ -83,8 +77,8 @@ describe("GraphManager", () => {
 
             it("should not emit error", () => {
                 const msg = createMsg();
-                gossipEmitter.emit("message", msg);
-                gossipEmitter.emit("message", msg);
+                sut.onWireMessage(msg);
+                sut.onWireMessage(msg);
             });
         });
     });
@@ -116,8 +110,8 @@ describe("GraphManager", () => {
                 expect(chan.node2Settings).to.be.undefined;
             });
 
-            gossipEmitter.emit("message", createMsg());
-            gossipEmitter.emit("message", createUpdateMsg(0));
+            sut.onWireMessage(createMsg());
+            sut.onWireMessage(createUpdateMsg(0));
         });
 
         it("should emit channel_update for side 2", () => {
@@ -131,8 +125,8 @@ describe("GraphManager", () => {
                 expect(chan.node2Settings).to.equal(u);
             });
 
-            gossipEmitter.emit("message", createMsg());
-            gossipEmitter.emit("message", createUpdateMsg(1));
+            sut.onWireMessage(createMsg());
+            sut.onWireMessage(createUpdateMsg(1));
         });
 
         it("should emit error when channel doesnt exist", done => {
@@ -140,7 +134,7 @@ describe("GraphManager", () => {
                 expect(err.code).to.equal(GraphErrorCode.ChannelNotFound);
                 done();
             });
-            gossipEmitter.emit("message", createUpdateMsg(0));
+            sut.onWireMessage(createUpdateMsg(0));
         });
     });
 
@@ -160,11 +154,11 @@ describe("GraphManager", () => {
                 expect(node).to.equal(n);
                 done();
             });
-            gossipEmitter.emit("message", createMsg());
+            sut.onWireMessage(createMsg());
         });
 
         it("should update existing node", done => {
-            gossipEmitter.emit("message", createMsg());
+            sut.onWireMessage(createMsg());
             sut.on("node", (n: Node) => {
                 expect(n.lastUpdate).to.equal(2);
                 expect(n.rgbColorString).to.equal("#111111");
@@ -180,7 +174,7 @@ describe("GraphManager", () => {
             msg.rgbColor = Buffer.from("111111", "hex");
             msg.features = new BitField(BigInt(2));
             msg.addresses = [new AddressIPv4("1.1.1.1", 9735)];
-            gossipEmitter.emit("message", msg);
+            sut.onWireMessage(msg);
         });
     });
 
@@ -198,8 +192,8 @@ describe("GraphManager", () => {
 
         it("should remove a channel from the graph", () => {
             const outpoint = OutPoint.fromString("1111111111111111111111111111111111111111111111111111111111111111:1"); // prettier-ignore
-            gossipEmitter.emit("message", createMsg(new ShortChannelId(1, 1, 0)));
-            gossipEmitter.emit("message", createMsg(new ShortChannelId(1, 1, 1), outpoint));
+            sut.onWireMessage(createMsg(new ShortChannelId(1, 1, 0)));
+            sut.onWireMessage(createMsg(new ShortChannelId(1, 1, 1), outpoint));
             expect(sut.graph.channels.size).to.equal(2);
             sut.removeChannel(outpoint);
             expect(sut.graph.channels.size).to.equal(1);

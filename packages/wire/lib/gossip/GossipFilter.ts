@@ -5,32 +5,12 @@ import { ExtendedChannelAnnouncementMessage } from "../messages/ExtendedChannelA
 import { IWireMessage } from "../messages/IWireMessage";
 import { NodeAnnouncementMessage } from "../messages/NodeAnnouncementMessage";
 import { MessageType } from "../MessageType";
+import { Result } from "../Result";
 import { fundingScript } from "../ScriptUtils";
 import { WireError, WireErrorCode } from "../WireError";
+import { GossipFilterResult } from "./GossipFilterResult";
 import { IGossipStore } from "./GossipStore";
 import { IGossipFilterChainClient } from "./IGossipFilterChainClient";
-
-export class Result<V, E> {
-    public static err<V, E>(error: E) {
-        return new Result<V, E>(undefined, error);
-    }
-
-    public static ok<V, E>(value: V) {
-        return new Result<V, E>(value);
-    }
-
-    constructor(readonly value?: V, readonly error?: E) {}
-
-    public get isOk(): boolean {
-        return this.value !== undefined;
-    }
-
-    public get isErr(): boolean {
-        return this.error !== undefined;
-    }
-}
-
-export type GossipFilterResult = Result<IWireMessage[], WireError>;
 
 /**
  * GossipFilter recieves messages from peers and performs validation

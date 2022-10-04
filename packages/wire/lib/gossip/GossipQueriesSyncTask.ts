@@ -19,7 +19,7 @@ export enum GossipQueriesSyncState {
     Failed,
 }
 
-export class GossipQueriesSync {
+export class GossipQueriesSyncTask {
     private _state: GossipQueriesSyncState;
     private _error: Error;
     private _rangeQuery: ChannelRangeQuery;
@@ -28,12 +28,12 @@ export class GossipQueriesSync {
 
     constructor(
         readonly chainHash: Buffer,
-        readonly peer: IMessageSender,
+        readonly messageSender: IMessageSender,
         readonly logger: ILogger,
     ) {
         this._state = GossipQueriesSyncState.Idle;
-        this._rangeQuery = new ChannelRangeQuery(this.chainHash, this.peer, this.logger);
-        this._channelsQuery = new ChannelsQuery(this.chainHash, this.peer, this.logger);
+        this._rangeQuery = new ChannelRangeQuery(this.chainHash, messageSender, this.logger);
+        this._channelsQuery = new ChannelsQuery(this.chainHash, messageSender, this.logger);
         this._syncWatcher = new GossipSyncWatcher(this.logger);
     }
 

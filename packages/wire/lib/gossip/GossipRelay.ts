@@ -5,7 +5,7 @@ import { ChannelAnnouncementMessage } from "../messages/ChannelAnnouncementMessa
 import { ChannelUpdateMessage } from "../messages/ChannelUpdateMessage";
 import { IWireMessage } from "../messages/IWireMessage";
 import { NodeAnnouncementMessage } from "../messages/NodeAnnouncementMessage";
-import { IPeer } from "../Peer";
+import { IMessageSender, IPeer } from "../Peer";
 
 /**
  * Interface for the sub-system for handling the gossip message relay,
@@ -76,9 +76,9 @@ export enum GossipRelayState {
  * queue of messages has reached a maximum length, older messages are
  * pruned and the index positions are updated.
  */
-export class GossipRelay {
+export class GossipRelay implements IGossipRelay {
     private _queue: IWireMessage[];
-    private _peers: Map<IPeer, number>;
+    private _peers: Map<IMessageSender, number>;
     private _timer: NodeJS.Timeout;
     private _state: GossipRelayState;
 
@@ -274,7 +274,7 @@ export class GossipRelay {
      * the peer has received.
      * @param peer
      */
-    private _flushToPeer(peer: IPeer) {
+    private _flushToPeer(peer: IMessageSender) {
         for (let i = this._peers.get(peer); i < this._queue.length; i++) {
             const message = this._queue[i];
             peer.sendMessage(message);

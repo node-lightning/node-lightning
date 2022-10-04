@@ -1,5 +1,5 @@
 import { OutPoint } from "@node-lightning/core";
-import { IGossipEmitter, IWireMessage, MessageType } from "@node-lightning/wire";
+import { IWireMessage, MessageType } from "@node-lightning/wire";
 import { ChannelAnnouncementMessage } from "@node-lightning/wire";
 import { ChannelUpdateMessage } from "@node-lightning/wire";
 import { NodeAnnouncementMessage } from "@node-lightning/wire";
@@ -28,13 +28,10 @@ export declare interface GraphManager {
  */
 export class GraphManager extends EventEmitter {
     public graph: Graph;
-    public gossipEmitter: IGossipEmitter;
 
-    constructor(gossipManager: IGossipEmitter, graph = new Graph()) {
+    constructor(graph = new Graph()) {
         super();
         this.graph = graph;
-        this.gossipEmitter = gossipManager;
-        this.gossipEmitter.on("message", this._onMessage.bind(this));
     }
 
     /**
@@ -52,12 +49,12 @@ export class GraphManager extends EventEmitter {
         }
     }
 
-    private _onMessage(msg: IWireMessage) {
+    public onWireMessage(msg: IWireMessage) {
         // channel_announcement messages are processed by:
         // First ensuring that we don't already have a duplicate channel.
         // We then check to see if we need to insert node
         // references. Inserting temporary node's is required because we
-        // may receieve a channel_announcement without ever receiving
+        // may receive a channel_announcement without ever receiving
         // node_announcement messages.
 
         if (isChannelAnnouncment(msg)) {

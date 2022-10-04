@@ -1,9 +1,9 @@
 import { ShortChannelId } from "@node-lightning/core";
 import { ILogger } from "@node-lightning/logger";
-import { QueryShortChannelIdsMessage } from "../messages/QueryShortChannelIdsMessage";
-import { ReplyShortChannelIdsEndMessage } from "../messages/ReplyShortChannelIdsEndMessage";
-import { IMessageSender } from "../Peer";
-import { GossipError, GossipErrorCode } from "./GossipError";
+import { QueryShortChannelIdsMessage } from "../../messages/QueryShortChannelIdsMessage";
+import { ReplyShortChannelIdsEndMessage } from "../../messages/ReplyShortChannelIdsEndMessage";
+import { IMessageSender } from "../../Peer";
+import { GossipError, GossipErrorCode } from "../GossipError";
 
 export enum ChannelsQueryState {
     Idle,

@@ -3,7 +3,8 @@
 // tslint:disable: no-empty
 import { expect } from "chai";
 import sinon from "sinon";
-import { GossipFilter, GossipFilterResult } from "../../lib/gossip/GossipFilter";
+import { GossipFilter } from "../../lib/gossip/GossipFilter";
+
 import { HasScriptPubKey, HasValue } from "../../lib/gossip/IGossipFilterChainClient";
 import { HasTxStrings } from "../../lib/gossip/IGossipFilterChainClient";
 import { IGossipFilterChainClient } from "../../lib/gossip/IGossipFilterChainClient";
@@ -18,6 +19,7 @@ import path from "path";
 import { GossipMemoryStore } from "../../lib/gossip/GossipMemoryStore";
 import { WireErrorCode } from "../../lib/WireError";
 import { MessageFactory } from "../../lib";
+import { GossipFilterResult } from "../../lib/gossip/GossipFilterResult";
 
 class FakeChainClient implements IGossipFilterChainClient {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

@@ -1,13 +1,16 @@
 import { ConsoleTransport, Logger, LogLevel } from "@node-lightning/logger";
-import { ChannelAnnouncementMessage } from "@node-lightning/wire";
+import { ChannelAnnouncementMessage, GossipFilter } from "@node-lightning/wire";
 import { ChannelUpdateMessage } from "@node-lightning/wire";
 import { NodeAnnouncementMessage } from "@node-lightning/wire";
 import { ExtendedChannelAnnouncementMessage } from "@node-lightning/wire";
 import { Peer } from "@node-lightning/wire";
 import { GossipMemoryStore } from "@node-lightning/wire";
-import { GossipManager } from "@node-lightning/wire";
 import { InitFeatureFlags } from "@node-lightning/wire";
 import { BitField } from "@node-lightning/core";
+import { GossipManager } from "@node-lightning/wire";
+import { PeerManager } from "@node-lightning/wire";
+import { WireMessageResult } from "@node-lightning/wire";
+import { isBuffer } from "util";
 
 // tslint:disable-next-line: no-var-requires
 const config = require("../config.json");
@@ -28,14 +31,35 @@ async function connectToPeer(peerInfo: { rpk: string; host: string; port: number
     // controlling gossip requests with the peer.
     const gossipStore = new GossipMemoryStore();
     const pendingStore = new GossipMemoryStore();
-    const gossipManager = new GossipManager(logger, gossipStore, pendingStore);
+    const gossipFilter = new GossipFilter(gossipStore, pendingStore);
+    const gossipManager = new GossipManager(logger, gossipFilter);
 
-    // attach error handling for gossip manager
-    gossipManager.on("error", err => logger.error("gossip failed", err));
+    // start the gossip manager to enable us to add peers to it
+    await gossipManager.start();
 
-    // attach a message handler for completed and validated messages
+    // constructs the supported local features which will be provided to the
+    // remote node during the initialization handshake process
+    const localFeatures = new BitField<InitFeatureFlags>();
+    localFeatures.set(InitFeatureFlags.initialRoutingSyncOptional);
+    localFeatures.set(InitFeatureFlags.optionDataLossProtectOptional);
+    localFeatures.set(InitFeatureFlags.gossipQueriesOptional);
+
+    // constructs the peer and attaches a logger for tthe peer.
+    const peer = new Peer(ls, localFeatures, [chainHash], logger);
+    peer.on("open", () => logger.info("connecting"));
+    peer.on("error", err => logger.error("%s", err.stack));
+    peer.on("ready", () => logger.info("peer is ready"));
+
+    // connect to the remote peer using the local secret provided
+    // in our config file
+    peer.connect(Buffer.from(peerInfo.rpk, "hex"), peerInfo.host, peerInfo.port);
+
+    const peerManager = new PeerManager(gossipManager);
+    peerManager.addPeer(peer);
+
     let counter = 0;
-    gossipManager.on("message", msg => {
+    peerManager.afterPeerMessage = (result: WireMessageResult) => {
+        const msg = result.value;
         let extra = "";
         if (msg instanceof ChannelAnnouncementMessage) {
             extra += msg.shortChannelId.toString();
@@ -53,38 +77,24 @@ async function connectToPeer(peerInfo: { rpk: string; host: string; port: number
             extra += msg.nodeId.toString("hex");
         }
 
-        logger.info("msg: %d, type: %d %s %s", ++counter, msg.type, msg.constructor.name, extra);
-    });
-
-    // start the gossip manager to enable us to add peers to it
-    await gossipManager.start();
-
-    // constructs the supported local features which will be provided to the
-    // remote node during the initialization handshake process
-    const localFeatures = new BitField<InitFeatureFlags>();
-    localFeatures.set(InitFeatureFlags.initialRoutingSyncOptional);
-    localFeatures.set(InitFeatureFlags.optionDataLossProtectOptional);
-    localFeatures.set(InitFeatureFlags.gossipQueriesOptional);
-
-    if (config.bootstrapPeers) {
-        await gossipManager.bootstrapPeers(ls, localFeatures, [chainHash], logger, config.dnsSeed);
-        return;
-    }
-
-    // constructs the peer and attaches a logger for tthe peer.
-    const peer = new Peer(ls, localFeatures, [chainHash], logger);
-    peer.on("open", () => logger.info("connecting"));
-    peer.on("error", err => logger.error("%s", err.stack));
-    peer.on("ready", () => logger.info("peer is ready"));
-
-    // adds the peer to the gossip mananger. Once the peer is
-    // connected the gossip manager will take efforts to
-    // synchronize information with the remote peer.
-    gossipManager.addPeer(peer);
-
-    // connect to the remote peer using the local secret provided
-    // in our config file
-    peer.connect(Buffer.from(peerInfo.rpk, "hex"), peerInfo.host, peerInfo.port);
+        if (result.isOk) {
+            logger.info(
+                "msg: %d, type: %d %s %s",
+                ++counter,
+                msg.type,
+                msg.constructor.name,
+                extra,
+            );
+        } else {
+            logger.info(
+                "ERROR msg: %d, type: %d %s %s",
+                ++counter,
+                msg.type,
+                msg.constructor.name,
+                extra,
+            );
+        }
+    };
 }
 
 connectToPeer(config.peers[0])

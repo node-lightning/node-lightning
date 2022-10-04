@@ -30,9 +30,11 @@ export interface IPeer extends IMessageSenderReceiver {
     disconnect(): void;
 
     read(): IWireMessage;
+    on(event: "ready", listener: () => void): this;
     on(event: "readable", listener: () => void): this;
     on(event: "error", listener: (err: Error) => void): this;
 
+    off(event: "ready", listener: () => void): this;
     off(event: "readable", listener: () => void): this;
     off(event: "error", listener: (err: Error) => void): this;
 }
