@@ -60,6 +60,44 @@ describe("BufferReader", () => {
         });
     }
 
+    describe(BufferReader.prototype.readUIntLE.name, () => {
+        let sut: BufferReader;
+        before(() => {
+            sut = new BufferReader(Buffer.from([1, 0, 0, 2, 0, 0, 3]));
+        });
+
+        it("read from start", () => {
+            expect(sut.readUIntLE(3)).to.equal(1);
+        });
+
+        it("read from middle", () => {
+            expect(sut.readUIntLE(3)).to.equal(2);
+        });
+
+        it("should throw when out of bounds", () => {
+            expect(() => sut.readUIntLE(3)).to.throw("Index out of range");
+        });
+    });
+
+    describe(BufferReader.prototype.readUIntBE.name, () => {
+        let sut: BufferReader;
+        before(() => {
+            sut = new BufferReader(Buffer.from([0, 0, 1, 0, 0, 2, 3]));
+        });
+
+        it("read from start", () => {
+            expect(sut.readUIntBE(3)).to.equal(1);
+        });
+
+        it("read from middle", () => {
+            expect(sut.readUIntBE(3)).to.equal(2);
+        });
+
+        it("should throw when out of bounds", () => {
+            expect(() => sut.readUIntBE(3)).to.throw("Index out of range");
+        });
+    });
+
     describe("lastReadBytes", () => {
         it("should start at 0", () => {
             const sut = new BufferReader(Buffer.from([1]));
