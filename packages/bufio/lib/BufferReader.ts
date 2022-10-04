@@ -119,6 +119,36 @@ export class BufferReader {
     }
 
     /**
+     * Reads a UIntLE value from the buffer for the given length.
+     * @param len
+     * @returns
+     */
+    public readUIntLE(len: number): number {
+        if (this._position + len > this._buffer.length) {
+            throw new RangeError("Index out of range");
+        }
+        const result: number = this._buffer.readUIntLE(this._position, len);
+        this._position += len;
+        this._lastReadBytes = len;
+        return result;
+    }
+
+    /**
+     * Reads a UIntBE value from the buffer for the given length.
+     * @param len
+     * @returns
+     */
+    public readUIntBE(len: number): number {
+        if (this._position + len > this._buffer.length) {
+            throw new RangeError("Index out of range");
+        }
+        const result: number = this._buffer.readUIntBE(this._position, len);
+        this._position += len;
+        this._lastReadBytes = len;
+        return result;
+    }
+
+    /**
      * Reads a variable length unsigned integer as specified in the protocol
      * documentation and aways returns a BN to maintain a consistant call
      * signature.
