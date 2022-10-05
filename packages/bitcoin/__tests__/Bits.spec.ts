@@ -18,6 +18,22 @@ describe(Bits.name, () => {
         });
     });
 
+    describe(Bits.fromTarget.name, () => {
+        it("genesis block", () => {
+            const result = Bits.fromTarget(
+                26959535291011309493156476344723991336010898738574164086137773096960n,
+            );
+            expect(result.coefficient).to.equal(65535);
+            expect(result.exponent).to.equal(29);
+        });
+
+        it("block 757089", () => {
+            const result = Bits.fromTarget(859664032087861081904916640712713969859737457373741056n);
+            expect(result.coefficient).to.equal(588206);
+            expect(result.exponent).to.equal(23);
+        });
+    });
+
     describe(".target", () => {
         it("genesis block", () => {
             const sut = new Bits(65535, 29);
@@ -41,6 +57,18 @@ describe(Bits.name, () => {
         it("block 757089", () => {
             const sut = new Bits(588206, 23);
             expect(sut.difficulty).to.equal(31360548173144n);
+        });
+    });
+
+    describe(Bits.prototype.toBuffer.name, () => {
+        it("genesis block", () => {
+            const sut = new Bits(65535, 29);
+            expect(sut.toBuffer().toString("hex")).to.equal("ffff001d");
+        });
+
+        it("block 757089", () => {
+            const sut = new Bits(588206, 23);
+            expect(sut.toBuffer().toString("hex")).to.equal("aef90817");
         });
     });
 });
