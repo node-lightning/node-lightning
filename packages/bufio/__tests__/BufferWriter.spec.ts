@@ -215,6 +215,58 @@ describe("BufferWriter", () => {
         });
     }
 
+    describe(BufferWriter.prototype.writeUIntLE.name, () => {
+        let br: BufferWriter;
+        before(() => {
+            br = new BufferWriter();
+        });
+
+        it("writes start", () => {
+            br.writeUIntLE(0x01, 3);
+            expect(br.toHex()).to.equal("010000");
+        });
+
+        it("writes more and expands", () => {
+            br.writeUIntLE(0x010203, 3);
+            expect(br.toHex()).to.equal("010000030201");
+        });
+
+        it("throws when number exceeds byte length", () => {
+            expect(() => br.writeUIntLE(0x0100, 1)).to.throw("Value 256 exceeds byte length 1");
+        });
+
+        it("throws out-of-range exception when exceeds fixed buffer size", () => {
+            const br = new BufferWriter(Buffer.alloc(2));
+            expect(() => br.writeUIntLE(0x010203, 3)).to.throw();
+        });
+    });
+
+    describe(BufferWriter.prototype.writeUIntBE.name, () => {
+        let br: BufferWriter;
+        before(() => {
+            br = new BufferWriter();
+        });
+
+        it("writes start", () => {
+            br.writeUIntBE(0x01, 3);
+            expect(br.toHex()).to.equal("000001");
+        });
+
+        it("writes more and expands", () => {
+            br.writeUIntBE(0x010203, 3);
+            expect(br.toHex()).to.equal("000001010203");
+        });
+
+        it("throws when number exceeds byte length", () => {
+            expect(() => br.writeUIntBE(0x0100, 1)).to.throw("Value 256 exceeds byte length 1");
+        });
+
+        it("throws out-of-range exception when exceeds fixed buffer size", () => {
+            const br = new BufferWriter(Buffer.alloc(2));
+            expect(() => br.writeUIntBE(0x010203, 3)).to.throw();
+        });
+    });
+
     describe("writeBytes", () => {
         let br: BufferWriter;
         before(() => {

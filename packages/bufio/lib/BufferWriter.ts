@@ -1,3 +1,5 @@
+import { uintBytes } from "./UintBytes";
+
 /**
  * Utility class for writing arbitrary data into a Buffer. This class will
  * automatically expand the underlying Buffer and return a trimmed view
@@ -38,6 +40,15 @@ export class BufferWriter {
     public toBuffer(): Buffer {
         if (this._fixed) return this._buffer;
         else return this._buffer.slice(0, this._position);
+    }
+
+    /**
+     * Returns the Buffer as a hex encoded string. This is functionally
+     * a call to `toBuffer` followed by `toString("hex")`.
+     * @returns
+     */
+    public toHex(): string {
+        return this.toBuffer().toString("hex");
     }
 
     /**
@@ -108,6 +119,34 @@ export class BufferWriter {
         }
         const buf = Buffer.from(val.toString(16).padStart(16, "0"), "hex");
         this.writeBytes(buf);
+    }
+
+    /**
+     * Writes the number in the specified number of bytes.
+     * @param val
+     * @param bytes
+     */
+    public writeUIntLE(val: number, len: number) {
+        if (uintBytes(val) > len) {
+            throw new RangeError(`Value ${val} exceeds byte length ${len}`);
+        }
+        this._expand(len);
+        this._buffer.writeUIntLE(val, this._position, len);
+        this._position += len;
+    }
+
+    /**
+     * Writes the number in the specified number of bytes.
+     * @param value
+     * @param bytes
+     */
+    public writeUIntBE(val: number, len: number) {
+        if (uintBytes(val) > len) {
+            throw new RangeError(`Value ${val} exceeds byte length ${len}`);
+        }
+        this._expand(len);
+        this._buffer.writeUIntBE(val, this._position, len);
+        this._position += len;
     }
 
     /**

@@ -8,4 +8,5 @@ export * from "./BufferReader";
 export * from "./BufferWriter";
 export * from "./Hex";
 export * from "./StreamReader";
+export * from "./UintBytes";
 export * from "./varIntBytes";
