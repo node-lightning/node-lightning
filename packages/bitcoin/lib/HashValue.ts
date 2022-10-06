@@ -86,4 +86,14 @@ export class HashValue implements ICloneable<HashValue> {
     public clone(): HashValue {
         return new HashValue(Buffer.from(this._value));
     }
+
+    /**
+     * Returns true if there is byte-wise equality
+     * @param other
+     * @returns
+     */
+    public eq(other: HashValue): boolean {
+        if (other === undefined) return false;
+        return this._value.equals(other._value);
+    }
 }
