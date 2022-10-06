@@ -41,4 +41,44 @@ describe("OutPoint", () => {
             expect(a.outputIndex).to.equal(b.outputIndex);
         });
     });
+
+    describe(".eq()", () => {
+        it("returns false when other is undefined", () => {
+            const a = OutPoint.fromString(
+                "0000000000000000000000000000000000000000000000000000000000000001:0",
+            );
+            const b = undefined;
+            expect(a.eq(b)).to.equal(false);
+        });
+
+        it("returns false when txid is different", () => {
+            const a = OutPoint.fromString(
+                "0000000000000000000000000000000000000000000000000000000000000001:0",
+            );
+            const b = OutPoint.fromString(
+                "0000000000000000000000000000000000000000000000000000000000000002:0",
+            );
+            expect(a.eq(b)).to.equal(false);
+        });
+
+        it("returns false when output index is different", () => {
+            const a = OutPoint.fromString(
+                "0000000000000000000000000000000000000000000000000000000000000001:0",
+            );
+            const b = OutPoint.fromString(
+                "0000000000000000000000000000000000000000000000000000000000000001:1",
+            );
+            expect(a.eq(b)).to.equal(false);
+        });
+
+        it("returns true when both are equal", () => {
+            const a = OutPoint.fromString(
+                "0000000000000000000000000000000000000000000000000000000000000001:0",
+            );
+            const b = OutPoint.fromString(
+                "0000000000000000000000000000000000000000000000000000000000000001:0",
+            );
+            expect(a.eq(b)).to.equal(true);
+        });
+    });
 });
