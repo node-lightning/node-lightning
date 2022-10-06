@@ -101,4 +101,29 @@ describe("HashValue", () => {
             expect((a as any)._value).to.not.equal((b as any)._value);
         });
     });
+
+    describe(".eq()", () => {
+        it("false other is undefined", () => {
+            const a = new HashValue(Buffer.from([1, 2, 3]));
+            const b = undefined;
+            expect(a.eq(b)).to.equal(false);
+        });
+        it("false when unequal length", () => {
+            const a = new HashValue(Buffer.from([1, 2, 3]));
+            const b = new HashValue(Buffer.from([1, 2]));
+            expect(a.eq(b)).to.equal(false);
+        });
+
+        it("false when not same value", () => {
+            const a = new HashValue(Buffer.from([1, 2, 3]));
+            const b = new HashValue(Buffer.from([1, 2, 4]));
+            expect(a.eq(b)).to.equal(false);
+        });
+
+        it("true when same value", () => {
+            const a = new HashValue(Buffer.from([1, 2, 3]));
+            const b = new HashValue(Buffer.from([1, 2, 3]));
+            expect(a.eq(b)).to.equal(true);
+        });
+    });
 });
