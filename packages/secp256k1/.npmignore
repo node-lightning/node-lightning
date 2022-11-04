@@ -1,0 +1,8 @@
+.DS_Store
+.eslintrc
+.nyc_output
+__tests__
+build
+coverage
+test.*
+tsconfig-build.json
