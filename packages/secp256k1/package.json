@@ -9,7 +9,9 @@
     "build:typescript": "../../node_modules/.bin/tsc --project ./tsconfig-build.json",
     "build:native": "node-gyp configure && node-gyp build",
     "install": "npm run build:native",
-    "prepublish": "npm run build"
+    "prepublish": "npm run build",
+    "submodule": "git submodule update --init",
+    "prehoist": "npm run submodule"
   },
   "keywords": [
     "node-lightning",
