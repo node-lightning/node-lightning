@@ -7,9 +7,11 @@
     "lint": "../../node_modules/.bin/eslint lib/**/*.ts",
     "build": "npm run build:typescript",
     "build:typescript": "../../node_modules/.bin/tsc --project ./tsconfig-build.json",
+    "build:native": "node-gyp configure && node-gyp build",
+    "install": "npm run build:native",
     "prepublish": "npm run build",
-    "preinstall": "git submodule update --init",
-    "postinstall": "node-gyp configure && node-gyp build"
+    "submodule": "git submodule update --init",
+    "prehoist": "npm run submodule"
   },
   "keywords": [
     "node-lightning",
