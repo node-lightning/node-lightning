@@ -13,6 +13,8 @@
       'target_name': 'libsecp256k1',
       'type': 'static_library',
       'sources': [
+        'lib/libsecp256k1/src/precomputed_ecmult.c',
+        'lib/libsecp256k1/src/precomputed_ecmult_gen.c',
         'lib/libsecp256k1/src/secp256k1.c',
       ],
       'include_dirs': [
