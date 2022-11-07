@@ -32,5 +32,6 @@
   "dependencies": {
     "node-addon-api": "^4.2.0",
     "node-gyp": "^8.4.0"
-  }
+  },
+  "gitHead": "60c2d771f7f7322f5edceab7ec9bd5c68bd39d31"
 }
