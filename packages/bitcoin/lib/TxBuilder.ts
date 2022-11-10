@@ -1,5 +1,5 @@
 import { BufferWriter } from "@node-lightning/bufio";
-import { hash256, sign, sigToDER } from "@node-lightning/crypto";
+import { hash256, sign, sigToDER, validPrivateKey } from "@node-lightning/crypto";
 import { BitcoinError, BitcoinErrorCode, Witness } from ".";
 import { LockTime } from "./LockTime";
 import { OutPoint } from "./OutPoint";
@@ -261,12 +261,14 @@ export class TxBuilder {
      * @param commitScript Script that is committed during signature
      * @param privateKey 32-byte private key
      */
-    public sign(input: number, commitScript: Script, privateKey: PrivateKey): Buffer {
+    public sign(input: number, commitScript: Script, privateKey: PrivateKey | Buffer): Buffer {
+        const privateKeyBuffer = Buffer.isBuffer(privateKey) ? privateKey : privateKey.toBuffer();
+
         // create the hash of the transaction for the input
         const hash = this.hashLegacy(input, commitScript);
 
         // sign DER encode signature
-        const sig = sign(hash, privateKey.toBuffer());
+        const sig = sign(hash, privateKeyBuffer);
         const der = sigToDER(sig);
 
         // return signature with 1-byte sighash type
@@ -287,14 +289,16 @@ export class TxBuilder {
     public signSegWitv0(
         input: number,
         commitScript: Script,
-        privateKey: PrivateKey,
+        privateKey: PrivateKey | Buffer,
         value: number | Value,
     ): Buffer {
+        const privateKeyBuffer = Buffer.isBuffer(privateKey) ? privateKey : privateKey.toBuffer();
+
         // create the hash of the transaction for the input
         const hash = this.hashSegwitv0(input, commitScript, value);
 
         // sign DER encode signature
-        const sig = sign(hash, privateKey.toBuffer());
+        const sig = sign(hash, privateKeyBuffer);
         const der = sigToDER(sig);
 
         // return signature with 1-byte sighash type
