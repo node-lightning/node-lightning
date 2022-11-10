@@ -3,6 +3,7 @@ import { hash256, sign, sigToDER } from "@node-lightning/crypto";
 import { BitcoinError, BitcoinErrorCode, Witness } from ".";
 import { LockTime } from "./LockTime";
 import { OutPoint } from "./OutPoint";
+import { PrivateKey } from "./PrivateKey";
 import { Script } from "./Script";
 import { Sequence } from "./Sequence";
 import { Tx } from "./Tx";
@@ -260,12 +261,12 @@ export class TxBuilder {
      * @param commitScript Script that is committed during signature
      * @param privateKey 32-byte private key
      */
-    public sign(input: number, commitScript: Script, privateKey: Buffer): Buffer {
+    public sign(input: number, commitScript: Script, privateKey: PrivateKey): Buffer {
         // create the hash of the transaction for the input
         const hash = this.hashLegacy(input, commitScript);
 
         // sign DER encode signature
-        const sig = sign(hash, privateKey);
+        const sig = sign(hash, privateKey.toBuffer());
         const der = sigToDER(sig);
 
         // return signature with 1-byte sighash type
@@ -286,14 +287,14 @@ export class TxBuilder {
     public signSegWitv0(
         input: number,
         commitScript: Script,
-        privateKey: Buffer,
+        privateKey: PrivateKey,
         value: number | Value,
     ): Buffer {
         // create the hash of the transaction for the input
         const hash = this.hashSegwitv0(input, commitScript, value);
 
         // sign DER encode signature
-        const sig = sign(hash, privateKey);
+        const sig = sign(hash, privateKey.toBuffer());
         const der = sigToDER(sig);
 
         // return signature with 1-byte sighash type
