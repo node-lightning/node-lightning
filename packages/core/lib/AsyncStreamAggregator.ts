@@ -1,17 +1,30 @@
-export type PausedReadable<T> = {
-    on(event: "readable", cb: any);
-    read(): T;
-};
+import { IPausedReadable } from "./IPausedReadable";
 
+/**
+ * The purpose of this class is to serialize the processing of multiple
+ * read streams and make data processing compatible with async handlers
+ * while retaining the backpressure capabilities of the read streams. In
+ * a nutshell, this class converts event-based code into async compatible
+ * code.
+ *
+ * This class works by merging two or more paused readable streams and
+ * performs round-robin read operations on the streams. Each piece of
+ * read data triggers the async data handler.
+ */
 export class AsyncStreamAggregator<T> {
-    public streams: PausedReadable<T>[] = [];
+    public streams: IPausedReadable<T>[] = [];
     public reading: boolean = false;
 
     public constructor(
-        readonly dataHandler: (source: PausedReadable<T>, data: T) => PromiseLike<void>,
+        readonly dataHandler: (source: IPausedReadable<T>, data: T) => PromiseLike<void>,
     ) {}
 
-    public add(stream: PausedReadable<T>) {
+    /**
+     * Adds a stream to the aggregator which will
+     * be served in round-robin order.
+     * @param stream
+     */
+    public add(stream: IPausedReadable<T>) {
         this.streams.push(stream);
         stream.on("readable", this.onData.bind(this));
     }
