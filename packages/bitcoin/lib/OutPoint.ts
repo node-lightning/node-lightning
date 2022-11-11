@@ -96,4 +96,15 @@ export class OutPoint implements ICloneable<OutPoint> {
     public clone(): OutPoint {
         return new OutPoint(this.txid.clone(), this.outputIndex);
     }
+
+    /**
+     * Returns true when both the transaction identifier and the output
+     * index are equal.
+     * @param other
+     * @returns
+     */
+    public eq(other: OutPoint): boolean {
+        if (other === undefined) return false;
+        return this.txid.eq(other.txid) && this.outputIndex === other.outputIndex;
+    }
 }

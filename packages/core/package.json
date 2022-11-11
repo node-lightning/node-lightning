@@ -1,6 +1,6 @@
 {
   "name": "@node-lightning/core",
-  "version": "0.27.4",
+  "version": "0.28.0",
   "description": "Core types, abstractions, utilities, and cross-cutting concerns",
   "scripts": {
     "test": "../../node_modules/.bin/nyc --reporter=lcov --reporter=text --extension=.ts ../../node_modules/.bin/mocha --require ts-node/register --recursive \"__tests__/**/*.spec.*\"",
@@ -24,8 +24,9 @@
     "access": "public"
   },
   "dependencies": {
-    "@node-lightning/bitcoin": "^0.27.4",
-    "@node-lightning/bufio": "^0.27.4",
-    "@node-lightning/crypto": "^0.27.4"
-  }
+    "@node-lightning/bitcoin": "^0.28.0",
+    "@node-lightning/bufio": "^0.28.0",
+    "@node-lightning/crypto": "^0.28.0"
+  },
+  "gitHead": "60c2d771f7f7322f5edceab7ec9bd5c68bd39d31"
 }

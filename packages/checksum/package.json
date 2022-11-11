@@ -1,6 +1,6 @@
 {
   "name": "@node-lightning/checksum",
-  "version": "0.27.4",
+  "version": "0.28.0",
   "description": "Checksum library with CRC32C",
   "keywords": [
     "checksum",
@@ -22,5 +22,6 @@
   },
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "gitHead": "60c2d771f7f7322f5edceab7ec9bd5c68bd39d31"
 }
