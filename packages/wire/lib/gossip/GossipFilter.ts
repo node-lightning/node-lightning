@@ -124,14 +124,14 @@ export class GossipFilter {
                 return Result.err(new WireError(WireErrorCode.chanBadBlock, [msg, blockHash]));
             }
 
-            // load the txid from the block details
-            const txId = block.tx[msg.shortChannelId.txIdx];
-            if (!txId) {
+            // load the tx from the block details
+            const tx = block.tx[msg.shortChannelId.txIdx];
+            if (!tx) {
                 return Result.err(new WireError(WireErrorCode.chanAnnBadTx, [msg]));
             }
 
             // obtain a UTXO to verify the tx hasn't been spent yet
-            const utxo = await this.chainClient.getUtxo(txId, msg.shortChannelId.voutIdx);
+            const utxo = await this.chainClient.getUtxo(tx, msg.shortChannelId.voutIdx);
             if (!utxo) {
                 return Result.err(new WireError(WireErrorCode.chanUtxoSpent, [msg]));
             }
@@ -146,7 +146,7 @@ export class GossipFilter {
             }
 
             // construct outpoint
-            const outpoint = new OutPoint(HashValue.fromRpc(txId), msg.shortChannelId.voutIdx);
+            const outpoint = new OutPoint(HashValue.fromRpc(tx), msg.shortChannelId.voutIdx);
 
             // calculate capacity in satoshi
             // Not sure about this code. MAX_SAFE_INTEGER is still safe
