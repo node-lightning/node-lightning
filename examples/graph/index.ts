@@ -46,8 +46,8 @@ async function connectToPeer(peerInfo: { rpk: string; host: string; port: number
     // controlling gossip requests with the peer.
     const gossipStore = new RocksdbGossipStore(".db");
     const pendingStore = new GossipMemoryStore();
-    const gossipFilter = new GossipFilter(gossipStore, pendingStore);
-    const gossipManager = new GossipManager(logger, gossipFilter);
+    const gossipFilter = new GossipFilter(gossipStore, pendingStore, chainClient);
+    const gossipManager = new GossipManager(logger, gossipFilter, chainClient);
 
     // constructs a new transaction watcher which is used to watch for
     // spending of tx outpoints. This class us enables to monitor the blockchain
