@@ -6,7 +6,7 @@ import sinon from "sinon";
 import { GossipFilter } from "../../lib/gossip/GossipFilter";
 
 import { HasScriptPubKey, HasValue } from "../../lib/gossip/IGossipFilterChainClient";
-import { HasTxStrings } from "../../lib/gossip/IGossipFilterChainClient";
+import { BlockSummary } from "../../lib/gossip/IGossipFilterChainClient";
 import { IGossipFilterChainClient } from "../../lib/gossip/IGossipFilterChainClient";
 import { ChannelAnnouncementMessage } from "../../lib/messages/ChannelAnnouncementMessage";
 import { ChannelUpdateMessage } from "../../lib/messages/ChannelUpdateMessage";
@@ -28,7 +28,7 @@ class FakeChainClient implements IGossipFilterChainClient {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    public getBlock(hash: string): Promise<HasTxStrings> {
+    public getBlockSummary(hash: string): Promise<BlockSummary> {
         throw new Error("");
     }
 
@@ -45,7 +45,7 @@ class FakeChainClient implements IGossipFilterChainClient {
 
 describe("GossipFilter", () => {
     let sandbox;
-    let chainClient: any;
+    let chainClient: sinon.SinonStubbedInstance<IGossipFilterChainClient>;
     let gossipStore: GossipMemoryStore;
     let pendingStore: GossipMemoryStore;
     let filter: GossipFilter;
@@ -100,7 +100,7 @@ describe("GossipFilter", () => {
         blockHashes.forEach((v, i) => chainClient.getBlockHash.onCall(i).resolves(v));
 
         const blocks = readFixture("block.txt").map(p => JSON.parse(p));
-        blocks.forEach((v, i) => chainClient.getBlock.onCall(i).resolves(v));
+        blocks.forEach((v, i) => chainClient.getBlockSummary.onCall(i).resolves(v));
 
         const utxos = readFixture("utxo.txt").map(p => JSON.parse(p));
         utxos.forEach((v, i) => chainClient.getUtxo.onCall(i).resolves(v));
@@ -325,7 +325,7 @@ describe("GossipFilter", () => {
 
         describe("when block cant be found", () => {
             it("should abort processing and return error", async () => {
-                chainClient.getBlock.reset();
+                chainClient.getBlockSummary.reset();
                 const rawMsgs = [
                     "0100ce1d69dbb62e86ad28157f4c24705e325f069d5158b91b28bdf55e508afcc1b554a498f4bda8a3d34a206ddb617ad0e945ecadc9a61086bac5afae3e19976242d464e8d305772f29021a4d07617c4159e7e0634bd53991c0e0577c0e9c3d3ee61d7311e6773275335c12f17e573e2813391a71050ab58c03c17d06c0d841db2ec6c6514c2156713651dfbee13d491559764c95343386218ab904173742dde6ca3118d303967e073a44e94f16eef4d878d4d74f1ff1f6924109421cf9c41e8e5c961cf1c7e2316e61a952c7caad056fea1d13d2f4bf855bd3f06d019a33814bc70ea99fa79f026c791b87040e781e8493f5165dafbfc23fabe2912c3ed0ab7e0f000043497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea33090000000013a9090000030000036b96e4713c5f84dcb8030592e1bd42a2d9a43d91fa2e535b9bfd05f2c5def9b9039cc950286a8fa99218283d1adc2456e0d5e81be558da77dd6e85ba9a1fff5ad303ca63b9acbadf5b644c11d0a9dd65b82b14e0d26fc5e0bcf071a90879f603d46203a0ee0a716f4a436864fe53bb788a003321aee63150bf63fd5529e4e1da93481d",
                 ];
@@ -337,8 +337,8 @@ describe("GossipFilter", () => {
 
         describe("when tx cant be found in block", () => {
             it("should abort processing and return error", async () => {
-                chainClient.getBlock.reset();
-                chainClient.getBlock.resolves({
+                chainClient.getBlockSummary.reset();
+                chainClient.getBlockSummary.resolves({
                     hash: "00000000368ca807643298b36987833a726eb1e3ce6c3139fd7ff64454f03b10",
                     confirmations: 276288,
                     strippedsize: 13966,

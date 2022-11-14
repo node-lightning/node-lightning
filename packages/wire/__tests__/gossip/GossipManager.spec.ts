@@ -24,7 +24,7 @@ import { WireMessageResult } from "../../lib/WireMessageResult";
 function createFakeChainClient() {
     return {
         getBlockHash: sinon.stub(),
-        getBlock: sinon.stub(),
+        getBlockSummary: sinon.stub(),
         getUtxo: sinon.stub(),
         waitForSync: sinon.stub(),
     };

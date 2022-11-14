@@ -7,23 +7,31 @@
  */
 export interface IGossipFilterChainClient {
     getBlockHash(height: number): Promise<string>;
-    getBlock(hash: string): Promise<HasTx>;
-    getUtxo(txId: string, voutIdx: number): Promise<HasScriptPubKey & HasValue>;
+    getBlockSummary(hash: string): Promise<BlockSummary>;
+    getUtxo(txId: string, voutIdx: number): Promise<Utxo>;
     waitForSync(): Promise<boolean>;
 }
 
-export type HasTx = {
-    tx: any[];
-};
+export interface BlockSummary {
+    tx: string[];
+    [others: string]: any;
+}
 
-export type HasScriptPubKey = {
+export interface HasScriptPubKey {
     scriptPubKey: HasHex;
-};
+    [others: string]: any;
+}
 
-export type HasValue = {
+export interface HasValue {
     value: number;
-};
+    [others: string]: any;
+}
 
-export type HasHex = {
+export interface HasHex {
     hex: string;
-};
+    [others: string]: any;
+}
+
+export interface Utxo extends HasScriptPubKey, HasValue {
+    [others: string]: any;
+}
