@@ -113,13 +113,14 @@ export class Peer extends Readable implements IPeer {
     private _port: number;
 
     private _reconnectHandle: NodeJS.Timeout;
+    private _readingPaused: boolean = false;
 
     constructor(
         readonly ls: Buffer,
         readonly localFeatures: BitField<InitFeatureFlags>,
         readonly localChains: Buffer[],
         logger: ILogger,
-        readonly highWaterMark: number = 2048,
+        readonly highWaterMark: number = 1,
     ) {
         super({ objectMode: true, highWaterMark });
 
@@ -296,10 +297,9 @@ export class Peer extends Readable implements IPeer {
     }
 
     public _onSocketReadable() {
-        this.logger.trace("socket is readable");
+        this.logger.trace("socket readable event");
         try {
-            let cont = true;
-            while (cont) {
+            while (!this._readingPaused) {
                 const raw: Buffer = this.socket.read() as Buffer;
                 if (!raw) return;
 
@@ -307,7 +307,12 @@ export class Peer extends Readable implements IPeer {
                     this._processPeerInitMessage(raw);
                 } else {
                     const m = this._processMessage(raw);
-                    cont = this.push(m);
+                    this.logger.trace("data is pushed");
+                    const pushOk = this.push(m);
+                    if (!pushOk) {
+                        this.logger.trace("peer is now paused");
+                        this._readingPaused = true;
+                    }
                 }
             }
         } catch (err) {
@@ -320,6 +325,10 @@ export class Peer extends Readable implements IPeer {
     }
 
     public _read() {
+        // Since this gets called by a `read` method, we can unblock the
+        // reading from the stream.
+        this._readingPaused = false;
+
         // Trigger a read but wait until the end of the event loop.
         // This is necessary when reading in paused mode where
         // _read was triggered by stream.read() originating inside
