@@ -7,7 +7,12 @@ import { GraphError } from "@node-lightning/graph";
 import { LndSerializer } from "@node-lightning/graph";
 import { ConsoleTransport, Logger, LogLevel } from "@node-lightning/logger";
 import { BitField } from "@node-lightning/core";
-import { ExtendedChannelAnnouncementMessage } from "@node-lightning/wire";
+import {
+    ExtendedChannelAnnouncementMessage,
+    GossipFilter,
+    PeerManager,
+    WireMessageResult,
+} from "@node-lightning/wire";
 import { Peer } from "@node-lightning/wire";
 import { GossipMemoryStore } from "@node-lightning/wire";
 import { GossipManager } from "@node-lightning/wire";
@@ -41,12 +46,10 @@ async function connectToPeer(peerInfo: { rpk: string; host: string; port: number
     // controlling gossip requests with the peer.
     const gossipStore = new RocksdbGossipStore(".db");
     const pendingStore = new GossipMemoryStore();
-    const gossipManager = new GossipManager(logger, gossipStore, pendingStore, chainClient);
+    const gossipFilter = new GossipFilter(gossipStore, pendingStore, chainClient);
+    const gossipManager = new GossipManager(logger, gossipFilter, chainClient);
 
-    // attach error handling for gossip manager
-    gossipManager.on("error", err => logger.error("gossip failed", err));
-
-    // construucts a new transaction watcher which is used to watch for
+    // constructs a new transaction watcher which is used to watch for
     // spending of tx outpoints. This class us enables to monitor the blockchain
     // for spent outpoints and remove them from our routing view.
     const txWatcher = new TxWatcher(chainClient);
@@ -54,14 +57,19 @@ async function connectToPeer(peerInfo: { rpk: string; host: string; port: number
     // start the tx watcher looking for transactions
     txWatcher.start();
 
+    // construct a peer manager
+    const peerManager = new PeerManager(gossipManager);
+
     // listen for new channel announcement messages. when we receive one, we will
     // add it to the chain_mon transaction watcher to see if it gets spent. once it
     // is spent, we will remove it from the routing view
-    gossipManager.on("message", async msg => {
-        if (msg instanceof ExtendedChannelAnnouncementMessage) {
-            txWatcher.watchOutpoint(msg.outpoint);
+    peerManager.afterPeerMessage = (result: WireMessageResult) => {
+        if (result.isOk) {
+            if (result.value instanceof ExtendedChannelAnnouncementMessage) {
+                txWatcher.watchOutpoint(result.value.outpoint);
+            }
         }
-    });
+    };
 
     // The transaction watcher will notify us of transactions that have been spent.
     // We remove the outpoint from the routing table by deleting it from the
@@ -72,9 +80,18 @@ async function connectToPeer(peerInfo: { rpk: string; host: string; port: number
 
     // Construct a new graph manager. The graph manager is used to convert gossip
     // routing messages into a graph data structure. The graph manager needs to
-    // constructed prior to connecting to any peers or startting the gossip
-    // manager to ensure that all message are receieved.
-    const graphManager = new GraphManager(gossipManager);
+    // constructed prior to connecting to any peers or starting the gossip
+    // manager to ensure that all message are received.
+    const graphManager = new GraphManager();
+
+    // Process wire messages after the peer manager has processed it.
+    peerManager.afterPeerMessage = (result: WireMessageResult) => {
+        if (result.isOk) {
+            graphManager.onWireMessage(result.value);
+        } else {
+            logger.info("nope", result);
+        }
+    };
 
     // Create a flag that we will use to periodically persist the graph state to disk
     let dirtyGraph = false;
@@ -123,7 +140,7 @@ async function connectToPeer(peerInfo: { rpk: string; host: string; port: number
     // adds the peer to the gossip mananger. Once the peer is
     // connected the gossip manager will take efforts to
     // synchronize information with the remote peer.
-    gossipManager.addPeer(peer);
+    peerManager.addPeer(peer);
 
     // connect to the remote peer using the local secret provided
     // in our config file

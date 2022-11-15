@@ -5,8 +5,9 @@ import { OutPoint } from "@node-lightning/core";
 import { ShortChannelId } from "@node-lightning/core";
 import { expect } from "chai";
 import sinon from "sinon";
+import { GossipFilter } from "../../lib/gossip/GossipFilter";
 import { InitFeatureFlags } from "../../lib/flags/InitFeatureFlags";
-import { GossipManager, SyncState } from "../../lib/gossip/GossipManager";
+import { GossipManager } from "../../lib/gossip/GossipManager";
 import { GossipMemoryStore } from "../../lib/gossip/GossipMemoryStore";
 import { IGossipFilterChainClient } from "../../lib/gossip/IGossipFilterChainClient";
 import { ChannelAnnouncementMessage } from "../../lib/messages/ChannelAnnouncementMessage";
@@ -16,11 +17,14 @@ import { NodeAnnouncementMessage } from "../../lib/messages/NodeAnnouncementMess
 import { Peer } from "../../lib/Peer";
 import { PeerState } from "../../lib/PeerState";
 import { createFakeLogger, createFakePeer } from "../_test-utils";
+import { SyncState } from "../../lib/gossip/SyncState";
+import { MessageFactory, WireErrorCode } from "../../lib";
+import { WireMessageResult } from "../../lib/WireMessageResult";
 
 function createFakeChainClient() {
     return {
         getBlockHash: sinon.stub(),
-        getBlock: sinon.stub(),
+        getBlockSummary: sinon.stub(),
         getUtxo: sinon.stub(),
         waitForSync: sinon.stub(),
     };
@@ -30,10 +34,12 @@ describe("GossipManager", () => {
     let sut: GossipManager;
     let peer1: Peer;
     let gossipStore: GossipMemoryStore;
+    let gossipFilter: GossipFilter;
     let chainClient: IGossipFilterChainClient;
     beforeEach(() => {
         gossipStore = new GossipMemoryStore();
-        sut = new GossipManager(createFakeLogger(), gossipStore, new GossipMemoryStore());
+        gossipFilter = new GossipFilter(gossipStore, new GossipMemoryStore());
+        sut = new GossipManager(createFakeLogger(), gossipFilter, chainClient);
         peer1 = createFakePeer();
         chainClient = createFakeChainClient();
     });
@@ -70,12 +76,7 @@ describe("GossipManager", () => {
                 // delay sync for 100 s
                 chainClient.waitForSync = () => new Promise(resolve => setTimeout(resolve, 100));
 
-                sut = new GossipManager(
-                    createFakeLogger(),
-                    gossipStore,
-                    new GossipMemoryStore(),
-                    chainClient,
-                );
+                sut = new GossipManager(createFakeLogger(), gossipFilter, chainClient);
 
                 const start = Date.now();
                 await sut.start();
@@ -94,12 +95,7 @@ describe("GossipManager", () => {
                 await gossipStore.saveChannelAnnouncement(msg1);
                 await gossipStore.saveChannelAnnouncement(msg2);
 
-                sut = new GossipManager(
-                    createFakeLogger(),
-                    gossipStore,
-                    new GossipMemoryStore(),
-                    chainClient,
-                );
+                sut = new GossipManager(createFakeLogger(), gossipFilter, chainClient);
             });
 
             it("should restore to highest channel's block", async () => {
@@ -129,12 +125,7 @@ describe("GossipManager", () => {
                 await gossipStore.saveChannelAnnouncement(msg1);
                 await gossipStore.saveChannelAnnouncement(msg2);
 
-                sut = new GossipManager(
-                    createFakeLogger(),
-                    gossipStore,
-                    new GossipMemoryStore(),
-                    chainClient,
-                );
+                sut = new GossipManager(createFakeLogger(), gossipFilter, chainClient);
             });
 
             it("should not check channels", async () => {
@@ -145,130 +136,112 @@ describe("GossipManager", () => {
         });
     });
 
-    describe(".addPeer()", () => {
+    describe(".onPeerReady()", () => {
         beforeEach(async () => {
             await sut.start();
         });
 
-        describe("first peer that is `ready`", () => {
-            it("should start sync process", () => {
-                peer1.state = PeerState.Ready;
-                peer1.remoteFeatures = new BitField<InitFeatureFlags>();
-                peer1.remoteFeatures.set(InitFeatureFlags.gossipQueriesOptional);
-                sut.addPeer(peer1);
-                const msg = (peer1.sendMessage as any).args[0][0];
-                expect(msg.type).to.equal(263);
-                expect(msg.firstBlocknum).to.equal(0);
-                expect(msg.numberOfBlocks).to.equal(4294967295);
-            });
-
-            it("should start gossip_sync process on peer `ready`", () => {
-                sut.addPeer(peer1);
-                peer1.on("ready", () => {
-                    const msg = (peer1.sendMessage as any).args[0][0];
-                    expect(msg.type).to.equal(263);
-                    expect(msg.firstBlocknum).to.equal(0);
-                    expect(msg.numberOfBlocks).to.equal(4294967295);
-                });
-                peer1.state = PeerState.Ready;
-                peer1.remoteFeatures = new BitField<InitFeatureFlags>();
-                peer1.remoteFeatures.set(InitFeatureFlags.gossipQueriesOptional);
-                peer1.emit("ready");
-            });
+        it("when unsynced should start sync process", () => {
+            peer1.state = PeerState.Ready;
+            peer1.remoteFeatures = new BitField<InitFeatureFlags>();
+            peer1.remoteFeatures.set(InitFeatureFlags.gossipQueriesOptional);
+            sut.onPeerReady(peer1);
+            const msg = (peer1.sendMessage as any).args[0][0];
+            expect(msg.type).to.equal(263);
+            expect(msg.firstBlocknum).to.equal(0);
+            expect(msg.numberOfBlocks).to.equal(4294967295);
         });
 
-        describe("first peer that is not `ready`", () => {
-            it("should start gossip_sync process on peer `ready`", () => {
-                sut.addPeer(peer1);
-                peer1.on("ready", () => {
-                    const msg = (peer1.sendMessage as any).args[0][0];
-                    expect(msg.type).to.equal(263);
-                    expect(msg.firstBlocknum).to.equal(0);
-                    expect(msg.numberOfBlocks).to.equal(4294967295);
-                });
-                peer1.state = PeerState.Ready;
-                peer1.remoteFeatures = new BitField<InitFeatureFlags>();
-                peer1.remoteFeatures.set(InitFeatureFlags.gossipQueriesOptional);
-                peer1.emit("ready");
-            });
-        });
-
-        describe("peer that is `ready`", () => {
-            it("send a gossip_timestamp_filter to activate", () => {
-                peer1.state = PeerState.Ready;
-                peer1.remoteFeatures = new BitField<InitFeatureFlags>();
-                peer1.remoteFeatures.set(InitFeatureFlags.gossipQueriesOptional);
-                sut.syncState = SyncState.Synced;
-                sut.addPeer(peer1);
-                const msg = (peer1.sendMessage as any).args[0][0];
-                expect(msg.type).to.equal(265);
-                expect(msg.firstTimestamp).to.be.gte(1580946012);
-                expect(msg.timestampRange).to.equal(4294967295);
-            });
-        });
-
-        describe("peer that is not `ready`", () => {
-            it("should start gossip reciept once peer is `ready`", () => {
-                sut.addPeer(peer1);
-                sut.syncState = SyncState.Synced;
-                peer1.on("ready", () => {
-                    const msg = (peer1.sendMessage as any).args[0][0];
-                    expect(msg.type).to.equal(265);
-                    expect(msg.firstTimestamp).to.be.gte(0);
-                    expect(msg.timestampRange).to.equal(4294967295);
-                });
-                peer1.state = PeerState.Ready;
-                peer1.remoteFeatures = new BitField<InitFeatureFlags>();
-                peer1.remoteFeatures.set(InitFeatureFlags.gossipQueriesOptional);
-                peer1.emit("ready");
-            });
+        it("send a gossip_timestamp_filter to activate", () => {
+            peer1.state = PeerState.Ready;
+            peer1.remoteFeatures = new BitField<InitFeatureFlags>();
+            peer1.remoteFeatures.set(InitFeatureFlags.gossipQueriesOptional);
+            sut.syncState = SyncState.Synced;
+            sut.onPeerReady(peer1);
+            const msg = (peer1.sendMessage as any).args[0][0];
+            expect(msg.type).to.equal(265);
+            expect(msg.firstTimestamp).to.be.gte(1580946012);
+            expect(msg.timestampRange).to.equal(4294967295);
         });
     });
 
-    describe("when peer", () => {
+    describe(".onWireMessage()", () => {
         beforeEach(async () => {
             await sut.start();
             peer1.state = PeerState.Ready;
-            sut.addPeer(peer1);
+            sut.onPeerReady(peer1);
         });
 
-        describe("emits valid message", () => {
-            it("should emit validated message", done => {
+        describe("valid message", () => {
+            it("should emit validated message", async () => {
                 const msg = ChannelAnnouncementMessage.deserialize(Buffer.from("0100ce1d69dbb62e86ad28157f4c24705e325f069d5158b91b28bdf55e508afcc1b554a498f4bda8a3d34a206ddb617ad0e945ecadc9a61086bac5afae3e19976242d464e8d305772f29021a4d07617c4159e7e0634bd53991c0e0577c0e9c3d3ee61d7311e6773275335c12f17e573e2813391a71050ab58c03c17d06c0d841db2ec6c6514c2156713651dfbee13d491559764c95343386218ab904173742dde6ca3118d303967e073a44e94f16eef4d878d4d74f1ff1f6924109421cf9c41e8e5c961cf1c7e2316e61a952c7caad056fea1d13d2f4bf855bd3f06d019a33814bc70ea99fa79f026c791b87040e781e8493f5165dafbfc23fabe2912c3ed0ab7e0f000043497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea33090000000013a9090000030000036b96e4713c5f84dcb8030592e1bd42a2d9a43d91fa2e535b9bfd05f2c5def9b9039cc950286a8fa99218283d1adc2456e0d5e81be558da77dd6e85ba9a1fff5ad303ca63b9acbadf5b644c11d0a9dd65b82b14e0d26fc5e0bcf071a90879f603d46203a0ee0a716f4a436864fe53bb788a003321aee63150bf63fd5529e4e1da93481d", "hex")); // prettier-ignore
-                sut.on("message", msg2 => {
-                    expect(msg2).to.equal(msg);
-                    done();
-                });
-                (peer1 as any).fakeMessage(msg);
+                await sut.onWireMessage(peer1, msg);
+                // TODO chain of responsibility?
             });
 
-            it("should update last seen blockHeight", done => {
+            it("should update last seen blockHeight", async () => {
                 const msg = ChannelAnnouncementMessage.deserialize(Buffer.from("0100ce1d69dbb62e86ad28157f4c24705e325f069d5158b91b28bdf55e508afcc1b554a498f4bda8a3d34a206ddb617ad0e945ecadc9a61086bac5afae3e19976242d464e8d305772f29021a4d07617c4159e7e0634bd53991c0e0577c0e9c3d3ee61d7311e6773275335c12f17e573e2813391a71050ab58c03c17d06c0d841db2ec6c6514c2156713651dfbee13d491559764c95343386218ab904173742dde6ca3118d303967e073a44e94f16eef4d878d4d74f1ff1f6924109421cf9c41e8e5c961cf1c7e2316e61a952c7caad056fea1d13d2f4bf855bd3f06d019a33814bc70ea99fa79f026c791b87040e781e8493f5165dafbfc23fabe2912c3ed0ab7e0f000043497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea33090000000013a9090000030000036b96e4713c5f84dcb8030592e1bd42a2d9a43d91fa2e535b9bfd05f2c5def9b9039cc950286a8fa99218283d1adc2456e0d5e81be558da77dd6e85ba9a1fff5ad303ca63b9acbadf5b644c11d0a9dd65b82b14e0d26fc5e0bcf071a90879f603d46203a0ee0a716f4a436864fe53bb788a003321aee63150bf63fd5529e4e1da93481d", "hex")); // prettier-ignore
-                sut.on("message", () => {
-                    expect(sut.blockHeight).to.equal(1288457);
-                    done();
-                });
-                (peer1 as any).fakeMessage(msg);
+                await sut.onWireMessage(peer1, msg);
+                expect(sut.blockHeight).to.equal(1288457);
             });
 
-            it("should enqueue to gossip relayer", done => {
+            it("should enqueue to gossip relayer", async () => {
                 sut.gossipRelay.enqueue = sinon.spy();
                 const msg = ChannelAnnouncementMessage.deserialize(Buffer.from("0100ce1d69dbb62e86ad28157f4c24705e325f069d5158b91b28bdf55e508afcc1b554a498f4bda8a3d34a206ddb617ad0e945ecadc9a61086bac5afae3e19976242d464e8d305772f29021a4d07617c4159e7e0634bd53991c0e0577c0e9c3d3ee61d7311e6773275335c12f17e573e2813391a71050ab58c03c17d06c0d841db2ec6c6514c2156713651dfbee13d491559764c95343386218ab904173742dde6ca3118d303967e073a44e94f16eef4d878d4d74f1ff1f6924109421cf9c41e8e5c961cf1c7e2316e61a952c7caad056fea1d13d2f4bf855bd3f06d019a33814bc70ea99fa79f026c791b87040e781e8493f5165dafbfc23fabe2912c3ed0ab7e0f000043497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea33090000000013a9090000030000036b96e4713c5f84dcb8030592e1bd42a2d9a43d91fa2e535b9bfd05f2c5def9b9039cc950286a8fa99218283d1adc2456e0d5e81be558da77dd6e85ba9a1fff5ad303ca63b9acbadf5b644c11d0a9dd65b82b14e0d26fc5e0bcf071a90879f603d46203a0ee0a716f4a436864fe53bb788a003321aee63150bf63fd5529e4e1da93481d", "hex")); // prettier-ignore
-                (peer1 as any).fakeMessage(msg);
-                sut.on("message", () => {
-                    expect((sut.gossipRelay.enqueue as any).called).to.be.true;
-                    done();
-                });
+                await sut.onWireMessage(peer1, msg);
+                expect((sut.gossipRelay.enqueue as any).called).to.be.true;
             });
         });
 
         describe("emits invalid message", () => {
-            it("should emit error", done => {
+            it("should emit error", async () => {
                 const msg = ChannelAnnouncementMessage.deserialize(Buffer.from("0100ce1d69dbb62e86ad28157f4c24705e325f069d5158b91b28bdf55e508afcc1b554a498f4bda8a3d34a206ddb617ad0e945ecadc9a61086bac5afae3e19976242d464e8d305772f29021a4d07617c4159e7e0634bd53991c0e0577c0e9c3d3ee61d7311e6773275335c12f17e573e2813391a71050ab58c03c17d06c0d841db2ec6c6514c2156713651dfbee13d491559764c95343386218ab904173742dde6ca3118d303967e073a44e94f16eef4d878d4d74f1ff1f6924109421cf9c41e8e5c961cf1c7e2316e61a952c7caad056fea1d13d2f4bf855bd3f06d019a33814bc70ea99fa79f026c791b87040e781e8493f5165dafbfc23fabe2912c3ed0ab7e0f000043497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea33090000000013a9090000030000036b96e4713c5f84dcb8030592e1bd42a2d9a43d91fa2e535b9bfd05f2c5def9b9039cc950286a8fa99218283d1adc2456e0d5e81be558da77dd6e85ba9a1fff5ad303ca63b9acbadf5b644c11d0a9dd65b82b14e0d26fc5e0bcf071a90879f603d46203a0ee0a716f4a436864fe53bb788a003321aee63150bf63fd5529e4e1da934810", "hex")); // prettier-ignore
-                sut.on("error", () => {
-                    done();
-                });
-                (peer1 as any).fakeMessage(msg);
+                await sut.onWireMessage(peer1, msg);
+                // TODO how to handle this?
+            });
+        });
+
+        describe("integation - wire messages", () => {
+            it("it should process all valid messages", async () => {
+                const hexMsgs = [
+                    "0100ce1d69dbb62e86ad28157f4c24705e325f069d5158b91b28bdf55e508afcc1b554a498f4bda8a3d34a206ddb617ad0e945ecadc9a61086bac5afae3e19976242d464e8d305772f29021a4d07617c4159e7e0634bd53991c0e0577c0e9c3d3ee61d7311e6773275335c12f17e573e2813391a71050ab58c03c17d06c0d841db2ec6c6514c2156713651dfbee13d491559764c95343386218ab904173742dde6ca3118d303967e073a44e94f16eef4d878d4d74f1ff1f6924109421cf9c41e8e5c961cf1c7e2316e61a952c7caad056fea1d13d2f4bf855bd3f06d019a33814bc70ea99fa79f026c791b87040e781e8493f5165dafbfc23fabe2912c3ed0ab7e0f000043497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea33090000000013a9090000030000036b96e4713c5f84dcb8030592e1bd42a2d9a43d91fa2e535b9bfd05f2c5def9b9039cc950286a8fa99218283d1adc2456e0d5e81be558da77dd6e85ba9a1fff5ad303ca63b9acbadf5b644c11d0a9dd65b82b14e0d26fc5e0bcf071a90879f603d46203a0ee0a716f4a436864fe53bb788a003321aee63150bf63fd5529e4e1da93481d",
+                    "01024e6eac97124742ba6a033612c8009945c0d52568756a885692b4adbf202666503b56ecb6f5758ea450dda940b2a6853b8e1706c3bd4f38a347be91b08c5e5c4743497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea33090000000013a90900000300005cdd9d780002009000000000000003e8000003e800000001",
+                    "01015254ffbc21374af9d998355151515933de1d998e9cb124aa4d65a7aa6b473e75201420c58f2414f4fb7461f3f133ab529cbbf9a57365ed6bcf775172826fdc7500005ae86dba039cc950286a8fa99218283d1adc2456e0d5e81be558da77dd6e85ba9a1fff5ad3f8e71c79616c6c732e6f7267000000000000000000000000000000000000000000000000070122c8fc922607",
+                    "0102fcd0d7af22e815879e2ba0c2422bc812d04f8b286fd53e631fe18bb6ed5aecc06a0b96fceb352509656f2b121b76cc808fe02e62ff42edc600bd6e196fe2af9b43497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea33090000000013a90900000300005ae7cc490001009000000000000003e8000003e800000001",
+                    "010105d3b12aacb824409ce8724609fe453fdcd33a498ecca170784985c4a6a2765657c4ef9e1170d3a5795ec86021c3a081c84a9f3a02e2ca66d17b683baacae08000005cddd5e5036b96e4713c5f84dcb8030592e1bd42a2d9a43d91fa2e535b9bfd05f2c5def9b9b6d43364656d6f312e6c6e646578706c6f7265722e636f6d0000000000000000000000000701265736a32611",
+                ];
+
+                const results = [];
+                for (const hexMsg of hexMsgs) {
+                    const msg = MessageFactory.deserialize(Buffer.from(hexMsg, "hex"));
+                    const result = await sut.onWireMessage(peer1, msg);
+                    results.push(result);
+                }
+                expect(results.length).to.equal(hexMsgs.length);
+            });
+
+            it("it should continue processing after errors", async () => {
+                const hexMsgs = [
+                    "0100ce1d69dbb62e86ad28157f4c24705e325f069d5158b91b28bdf55e508afcc1b554a498f4bda8a3d34a206ddb617ad0e945ecadc9a61086bac5afae3e19976242d464e8d305772f29021a4d07617c4159e7e0634bd53991c0e0577c0e9c3d3ee61d7311e6773275335c12f17e573e2813391a71050ab58c03c17d06c0d841db2ec6c6514c2156713651dfbee13d491559764c95343386218ab904173742dde6ca3118d303967e073a44e94f16eef4d878d4d74f1ff1f6924109421cf9c41e8e5c961cf1c7e2316e61a952c7caad056fea1d13d2f4bf855bd3f06d019a33814bc70ea99fa79f026c791b87040e781e8493f5165dafbfc23fabe2912c3ed0ab7e0f000043497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea33090000000013a9090000030000036b96e4713c5f84dcb8030592e1bd42a2d9a43d91fa2e535b9bfd05f2c5def9b9039cc950286a8fa99218283d1adc2456e0d5e81be558da77dd6e85ba9a1fff5ad303ca63b9acbadf5b644c11d0a9dd65b82b14e0d26fc5e0bcf071a90879f603d46203a0ee0a716f4a436864fe53bb788a003321aee63150bf63fd5529e4e1da93481d",
+                    "01024e6eac97124742ba6a033612c8009945c0d52568756a885692b4adbf202666503b56ecb6f5758ea450dda940b2a6853b8e1706c3bd4f38a347be91b08c5e5c4743497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea33090000000013a90900000300005cdd9d780002009000000000000003e8000003e800000001",
+                    "01010254ffbc21374af9d998355151515933de1d998e9cb124aa4d65a7aa6b473e75201420c58f2414f4fb7461f3f133ab529cbbf9a57365ed6bcf775172826fdc7500005ae86dba039cc950286a8fa99218283d1adc2456e0d5e81be558da77dd6e85ba9a1fff5ad3f8e71c79616c6c732e6f7267000000000000000000000000000000000000000000000000070122c8fc922607",
+                    "0102fcd0d7af22e815879e2ba0c2422bc812d04f8b286fd53e631fe18bb6ed5aecc06a0b96fceb352509656f2b121b76cc808fe02e62ff42edc600bd6e196fe2af9b43497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea33090000000013a90900000300005ae7cc490001009000000000000003e8000003e800000001",
+                    "010105d3b12aacb824409ce8724609fe453fdcd33a498ecca170784985c4a6a2765657c4ef9e1170d3a5795ec86021c3a081c84a9f3a02e2ca66d17b683baacae08000005cddd5e5036b96e4713c5f84dcb8030592e1bd42a2d9a43d91fa2e535b9bfd05f2c5def9b9b6d43364656d6f312e6c6e646578706c6f7265722e636f6d0000000000000000000000000701265736a32611",
+                ];
+
+                const results: WireMessageResult[] = [];
+                for (const hexMsg of hexMsgs) {
+                    const msg = MessageFactory.deserialize(Buffer.from(hexMsg, "hex"));
+                    const result = await sut.onWireMessage(peer1, msg);
+                    results.push(result);
+                }
+                expect(results.length).to.equal(hexMsgs.length);
+                expect(results.filter(p => p.isErr).length).to.equal(1);
+                for (const result of results) {
+                    if (result.isErr) {
+                        expect(result.error.code).to.equal(WireErrorCode.nodeAnnSigFailed);
+                    }
+                }
             });
         });
     });

@@ -8,11 +8,14 @@ import { ShortChannelId } from "@node-lightning/core";
 import { ILogger } from "@node-lightning/logger";
 import { expect } from "chai";
 import Sinon from "sinon";
-import { ChannelRangeQuery, ChannelRangeQueryState } from "../../lib/gossip/ChannelRangeQuery";
-import { QueryChannelRangeMessage } from "../../lib/messages/QueryChannelRangeMessage";
-import { ReplyChannelRangeMessage } from "../../lib/messages/ReplyChannelRangeMessage";
-import { IMessageSender } from "../../lib/Peer";
-import { createFakeLogger, createFakePeer } from "../_test-utils";
+import {
+    ChannelRangeQuery,
+    ChannelRangeQueryState,
+} from "../../../lib/gossip/queries/ChannelRangeQuery";
+import { QueryChannelRangeMessage } from "../../../lib/messages/QueryChannelRangeMessage";
+import { ReplyChannelRangeMessage } from "../../../lib/messages/ReplyChannelRangeMessage";
+import { IMessageSender } from "../../../lib/Peer";
+import { createFakeLogger, createFakePeer } from "../../_test-utils";
 
 describe("ChannelRangeQuery", () => {
     let chainHash: Buffer;

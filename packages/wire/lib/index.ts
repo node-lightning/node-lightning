@@ -5,10 +5,12 @@ export const MessageFactory = MF;
 export * from "./Constants";
 export * from "./MessageType";
 export * from "./Peer";
+export * from "./PeerManager";
 export * from "./PeerServer";
 export * from "./PeerState";
 export * from "./PingPongState";
 export * from "./WireError";
+export * from "./WireMessageResult";
 
 export * from "./domain/Address";
 export * from "./domain/AddressIPv4";
@@ -26,9 +28,6 @@ export * from "./flags/NodeFeatureFlags";
 export * from "./flags/QueryChannelRangeFlags";
 export * from "./flags/QueryScidFlags";
 
-export * from "./gossip/ChannelRangeQuery";
-export * from "./gossip/ChannelsQuery";
-export * from "./gossip/GossipEmitter";
 export * from "./gossip/GossipFilter";
 export * from "./gossip/GossipManager";
 export * from "./gossip/GossipMemoryStore";
@@ -39,6 +38,8 @@ export * from "./gossip/GossipRelay";
 export * from "./gossip/GossipStore";
 export * from "./gossip/GossipSyncWatcher";
 export * from "./gossip/IGossipFilterChainClient";
+export * from "./gossip/queries/ChannelRangeQuery";
+export * from "./gossip/queries/ChannelsQuery";
 
 export * from "./messages/AnnouncementSignaturesMessage";
 export * from "./messages/ChannelAnnouncementMessage";

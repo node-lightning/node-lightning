@@ -8,9 +8,11 @@ export * from "./lightning/CommitmentSecret";
 export * from "./lightning/CommitmentSecretStore";
 
 export * from "./AsyncProcessingQueue";
+export * from "./AsyncStreamAggregator";
 export * from "./Base32";
 export * from "./BigIntUtils";
 export * from "./BitField";
+export * from "./IPausedReadable";
 export * from "./LinkedList";
 export * from "./LinkedListNode";
 export * from "./ShortChannelId";

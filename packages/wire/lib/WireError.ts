@@ -8,6 +8,7 @@ export enum WireErrorCode {
     chanUtxoSpent = 7,
     chanBadScript = 8,
     gossipManagerNotStarted = 101,
+    UnknownWireMessageFailure = 102,
 }
 
 const errorCodeStrings = {
@@ -20,6 +21,7 @@ const errorCodeStrings = {
     7: "chan_utxo_spent",
     8: "chan_bad_script",
     101: "gossip_manager_not_started",
+    102: "unknown_wire_message_failure",
 };
 
 /**

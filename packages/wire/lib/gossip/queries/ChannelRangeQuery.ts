@@ -1,9 +1,9 @@
 import { ShortChannelId } from "@node-lightning/core";
 import { ILogger } from "@node-lightning/logger";
-import { QueryChannelRangeMessage } from "../messages/QueryChannelRangeMessage";
-import { ReplyChannelRangeMessage } from "../messages/ReplyChannelRangeMessage";
-import { IMessageSender } from "../Peer";
-import { GossipError, GossipErrorCode } from "./GossipError";
+import { QueryChannelRangeMessage } from "../../messages/QueryChannelRangeMessage";
+import { ReplyChannelRangeMessage } from "../../messages/ReplyChannelRangeMessage";
+import { IMessageSender } from "../../Peer";
+import { GossipError, GossipErrorCode } from "../GossipError";
 
 export enum ChannelRangeQueryState {
     Idle,
