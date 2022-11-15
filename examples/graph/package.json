@@ -16,9 +16,8 @@
     "@node-lightning/core": "file:../../packages/core",
     "@node-lightning/crypto": "file:../../packages/crypto",
     "@node-lightning/gossip-rocksdb": "file:../../packages/gossip-rocksdb",
-    "@node-lightning/graph": "file:../../packages/graph",
     "@node-lightning/logger": "file:../../packages/logger",
     "@node-lightning/noise": "file:../../packages/noise",
-    "@node-lightning/wire": "file:/../../packages/wire"
+    "@node-lightning/lightning": "file:/../../packages/lightning"
   }
 }

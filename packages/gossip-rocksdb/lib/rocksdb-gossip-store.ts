@@ -3,11 +3,11 @@ import { BufferReader } from "@node-lightning/bufio";
 import { ShortChannelId } from "@node-lightning/core";
 import { shortChannelIdFromBuffer } from "@node-lightning/core";
 import { OutPoint } from "@node-lightning/core";
-import { IGossipStore } from "@node-lightning/wire";
-import { NodeAnnouncementMessage } from "@node-lightning/wire";
-import { ChannelAnnouncementMessage } from "@node-lightning/wire";
-import { ExtendedChannelAnnouncementMessage } from "@node-lightning/wire";
-import { ChannelUpdateMessage } from "@node-lightning/wire";
+import { IGossipStore } from "@node-lightning/lightning";
+import { NodeAnnouncementMessage } from "@node-lightning/lightning";
+import { ChannelAnnouncementMessage } from "@node-lightning/lightning";
+import { ExtendedChannelAnnouncementMessage } from "@node-lightning/lightning";
+import { ChannelUpdateMessage } from "@node-lightning/lightning";
 import { RocksdbBase } from "./rocksdb-base";
 
 enum Prefix {

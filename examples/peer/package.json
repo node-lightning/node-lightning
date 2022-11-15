@@ -15,6 +15,6 @@
     "@node-lightning/crypto": "file:../../packages/crypto",
     "@node-lightning/logger": "file:../../packages/logger",
     "@node-lightning/noise": "file:../../packages/noise",
-    "@node-lightning/wire": "file:/../../packages/wire"
+    "@node-lightning/lightning": "file:/../../packages/lightning"
   }
 }
