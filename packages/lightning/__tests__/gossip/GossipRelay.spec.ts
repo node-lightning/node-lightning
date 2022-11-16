@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 // tslint:disable: no-unused-expression
 import { ShortChannelId } from "@node-lightning/core";
 import { expect } from "chai";
