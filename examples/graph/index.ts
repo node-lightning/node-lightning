@@ -2,21 +2,21 @@ import { BitcoindClient } from "@node-lightning/bitcoind";
 import { ConstantBackoff, RetryPolicy } from "@node-lightning/bitcoind";
 import { TxWatcher } from "@node-lightning/chainmon";
 import { RocksdbGossipStore } from "@node-lightning/gossip-rocksdb";
-import { GraphManager } from "@node-lightning/graph";
-import { GraphError } from "@node-lightning/graph";
-import { LndSerializer } from "@node-lightning/graph";
+import { GraphManager } from "@node-lightning/lightning";
+import { GraphError } from "@node-lightning/lightning";
+import { LndSerializer } from "@node-lightning/lightning";
 import { ConsoleTransport, Logger, LogLevel } from "@node-lightning/logger";
-import { BitField } from "@node-lightning/core";
+import { BitField } from "@node-lightning/lightning";
 import {
     ExtendedChannelAnnouncementMessage,
     GossipFilter,
     PeerManager,
     WireMessageResult,
-} from "@node-lightning/wire";
-import { Peer } from "@node-lightning/wire";
-import { GossipMemoryStore } from "@node-lightning/wire";
-import { GossipManager } from "@node-lightning/wire";
-import { InitFeatureFlags } from "@node-lightning/wire";
+} from "@node-lightning/lightning";
+import { Peer } from "@node-lightning/lightning";
+import { GossipMemoryStore } from "@node-lightning/lightning";
+import { GossipManager } from "@node-lightning/lightning";
+import { InitFeatureFlags } from "@node-lightning/lightning";
 import fs from "fs";
 
 // tslint:disable-next-line: no-var-requires

@@ -1,15 +1,15 @@
 import { ConsoleTransport, Logger, LogLevel } from "@node-lightning/logger";
-import { ChannelAnnouncementMessage, GossipFilter } from "@node-lightning/wire";
-import { ChannelUpdateMessage } from "@node-lightning/wire";
-import { NodeAnnouncementMessage } from "@node-lightning/wire";
-import { ExtendedChannelAnnouncementMessage } from "@node-lightning/wire";
-import { Peer } from "@node-lightning/wire";
-import { GossipMemoryStore } from "@node-lightning/wire";
-import { InitFeatureFlags } from "@node-lightning/wire";
-import { BitField } from "@node-lightning/core";
-import { GossipManager } from "@node-lightning/wire";
-import { PeerManager } from "@node-lightning/wire";
-import { WireMessageResult } from "@node-lightning/wire";
+import { ChannelAnnouncementMessage, GossipFilter } from "@node-lightning/lightning";
+import { ChannelUpdateMessage } from "@node-lightning/lightning";
+import { NodeAnnouncementMessage } from "@node-lightning/lightning";
+import { ExtendedChannelAnnouncementMessage } from "@node-lightning/lightning";
+import { Peer } from "@node-lightning/lightning";
+import { GossipMemoryStore } from "@node-lightning/lightning";
+import { InitFeatureFlags } from "@node-lightning/lightning";
+import { BitField } from "@node-lightning/lightning";
+import { GossipManager } from "@node-lightning/lightning";
+import { PeerManager } from "@node-lightning/lightning";
+import { WireMessageResult } from "@node-lightning/lightning";
 import { isBuffer } from "util";
 
 // tslint:disable-next-line: no-var-requires

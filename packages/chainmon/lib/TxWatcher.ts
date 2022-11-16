@@ -27,6 +27,7 @@ export class TxWatcher extends EventEmitter {
      */
     public start() {
         this._client.subscribeRawTx();
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         this._client.on("rawtx", this._onRawTx.bind(this));
     }
 

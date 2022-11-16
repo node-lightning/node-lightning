@@ -19,7 +19,7 @@ This library contains the core packages and several examples. There is currently
 
 The architecture philosophies for packages is:
 
-1. _Minimize external dependencies_ - the Node.js ecosystem is rife with excess dependency usage. This project attempts to minimize the usage of external depedencies as much as possible (there are very few external modules in use at this point).
+1. _Minimize external dependencies_ - the Node.js ecosystem is rife with excess dependency usage. This project attempts to minimize the usage of external dependencies as much as possible (there are very few external modules in use at this point).
 2. _Reduce complexity using semi-formalized state machines_ - the Lightning Network is a complex beast. It is very difficult to reason about code that has high cyclomatic complexity. To reduce cognitive load, allow for isolated testing, and enable composibility and extensibility, code is frequently broken into state machines and combined with concepts from [state charts](https://statecharts.github.io/). This library is not using metaprogramming techniques, though we are using many of the concepts. This enables the last point.
 3. _Engineer for modular composibility_ - The goal is to enable composibility of various state machines which enables swapping out implementations or direct extensibility of complex processes.
 
@@ -29,20 +29,17 @@ The goal of this project is ambitious and there is a still a long road ahead. Re
 
 Node-Lightning is structured as a monorepo with individual packages existing inside of `packages`.
 
+-   [@node-lightning/lightning](packages/lightning) - lightning specific code
 -   [@node-lightning/bitcoin](packages/bitcoin) - tools for building and parsing Bitcoin blocks and transactions
 -   [@node-lightning/bitcoind](packages/bitcoind) - bitcoind RPC and zeromq client
 -   [@node-lightning/bufio](packages/bufio) - utilities for working with Buffers
 -   [@node-lightning/chainmon](packages/chainmon) - transaction and block monitoring tools
 -   [@node-lightning/checksum](packages/checksum) - implements checksums such as CRC32C
--   [@node-lightning/core](packages/core) - implements shared lightning functionality
 -   [@node-lightning/crypto](packages/crypto) - common cryptography utilities
 -   [@node-lightning/gossip-rocksdb](packages/gossip-rocksdb) - stores gossip messages in RocksDB
--   [@node-lightning/graph](packages/graph) - builds and maintains a routing graph
 -   [@node-lightning/invoice](packages/invoice) - encoding/decoding for invoices
 -   [@node-lightning/logger](packages/logger) - logging utility
 -   [@node-lightning/noise](packages/noise) - Noise Protocol socket/server
--   [@node-lightning/wire](packages/wire) - wire protocol and gossip
--   [@node-lightning/onion](packages/onion) - onion routing for payments
 
 Examples of usage can be found inside `examples`
 
@@ -54,13 +51,13 @@ Examples of usage can be found inside `examples`
 
 Current status of [Lightning RFC](https://github.com/lightningnetwork/lightning-rfc) specification implementation:
 
--   [x] BOLT 1 - Base Protocol
+-   [x] BOLT 1 - Base Protocol: [@node-lightning/lightning](packages/core)
 -   [ ] BOLT 2 - Peer Protocol for Channel Management
--   [x] BOLT 3 - Bitcoin Transaction and Script Format: [@node-lightning/bitcoin](packages/bitcoin), [@node-lightning/core](packages/core)
+-   [x] BOLT 3 - Bitcoin Transaction and Script Format: [@node-lightning/bitcoin](packages/bitcoin), [@node-lightning/lightning](packages/core)
 -   [ ] BOLT 4 - Onion Routing Protocol
 -   [ ] BOLT 5 - Recommendations for On-chain Transaction Handling
--   [x] BOLT 7 - P2P Node and Channel Discovery: [@node-lightning/wire](packages/wire), [@node-lightning/graph](packages/graph)
+-   [x] BOLT 7 - P2P Node and Channel Discovery: [@node-lightning/lightning](packages/lightning)
 -   [x] BOLT 8 - Encrypted and Authenticated Transport: [@node-lightning/noise](packages/noise)
--   [x] BOLT 9 - Assigned Feature Flags: [@node-lightning/wire](packages/wire)
--   [x] BOLT 10 - DNS Bootstrap and Assisted Node Location
+-   [x] BOLT 9 - Assigned Feature Flags: [@node-lightning/lightning](packages/lightning)
+-   [x] BOLT 10 - DNS Bootstrap and Assisted Node Location: [@node-lightning/lightning](packages/lightning)
 -   [x] BOLT 11 - Invoice Protocol for Lightning Payments: [@node-lightning/invoice](packages/invoice)

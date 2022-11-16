@@ -3,7 +3,7 @@ import { HdPrivateKey, Network } from "../lib";
 import { Mnemonic } from "../lib/Mnemonic";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const vectors = require("../__fixtures__/mnemonic.json");
+const vectors: { english: string[] } = require("../__fixtures__/mnemonic.json");
 
 describe("Mnemonic", () => {
     describe("BIP39 Vectors", () => {

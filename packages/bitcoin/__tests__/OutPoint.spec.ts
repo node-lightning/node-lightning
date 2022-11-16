@@ -47,7 +47,7 @@ describe("OutPoint", () => {
             const a = OutPoint.fromString(
                 "0000000000000000000000000000000000000000000000000000000000000001:0",
             );
-            const b = undefined;
+            const b: OutPoint = undefined;
             expect(a.eq(b)).to.equal(false);
         });
 

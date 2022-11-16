@@ -397,6 +397,7 @@ describe("NoiseSocket", () => {
         describe("when data", () => {
             beforeEach(() => {
                 socket.read.returns(Buffer.alloc(80));
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                 noiseState.decryptMessage.returns("some message" as any);
             });
 
@@ -443,6 +444,7 @@ describe("NoiseSocket", () => {
         describe("when data and read backpressure", () => {
             beforeEach(() => {
                 socket.read.returns(Buffer.alloc(80));
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                 noiseState.decryptMessage.returns("some message" as any);
             });
 

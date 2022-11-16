@@ -8,6 +8,7 @@ describe("ConsoleTransport", () => {
             const stub = {
                 log: sinon.stub(),
             };
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             const sut = new ConsoleTransport(stub as any);
             sut.write("hello");
             expect(stub.log.args[0]).to.deep.equal(["hello"]);

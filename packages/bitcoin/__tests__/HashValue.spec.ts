@@ -105,7 +105,7 @@ describe("HashValue", () => {
     describe(".eq()", () => {
         it("false other is undefined", () => {
             const a = new HashValue(Buffer.from([1, 2, 3]));
-            const b = undefined;
+            const b: HashValue = undefined;
             expect(a.eq(b)).to.equal(false);
         });
         it("false when unequal length", () => {

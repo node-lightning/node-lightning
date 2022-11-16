@@ -4,6 +4,7 @@ import * as key from "../lib/key";
 
 describe(".validPrivateKey()", () => {
     it("should return false when not a buffer", () => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         expect(key.validPrivateKey(1 as any)).to.be.false;
     });
 

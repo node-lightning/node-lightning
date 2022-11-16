@@ -96,11 +96,13 @@ export class NoiseSocket extends Duplex {
         this._socket = socket;
 
         this._socket.on("close", hadError => this.emit("close", hadError));
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         this._socket.on("connect", this._onConnected.bind(this));
         this._socket.on("drain", () => this.emit("drain"));
         this._socket.on("end", () => this.emit("end"));
         this._socket.on("error", err => this.emit("error", err));
         this._socket.on("lookup", (e, a, f, h) => this.emit("lookup", e, a, f, h));
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         this._socket.on("readable", this._onData.bind(this));
         this._socket.on("timeout", () => this.emit("timeout"));
 
@@ -138,7 +140,7 @@ export class NoiseSocket extends Duplex {
                 this._initiateHandshake();
             }
         } catch (err) {
-            this.destroy(err);
+            this.destroy(err as Error);
         }
     }
 
@@ -196,7 +198,7 @@ export class NoiseSocket extends Duplex {
             // Terminate on failures as we won't be able to recovery
             // since the noise state has rotated nonce and we won't
             // be able to any more data without additional errors.
-            this.destroy(err);
+            this.destroy(err as Error);
         }
     }
 

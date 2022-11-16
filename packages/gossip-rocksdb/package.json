@@ -26,8 +26,8 @@
   },
   "dependencies": {
     "@node-lightning/bufio": "^0.28.0",
-    "@node-lightning/core": "^0.28.0",
-    "@node-lightning/wire": "^0.28.0",
+    "@node-lightning/bitcoin": "^0.28.0",
+    "@node-lightning/lightning": "^0.28.0",
     "levelup": "^5.1.1",
     "rocksdb": "^5.2.1"
   },

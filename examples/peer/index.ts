@@ -1,8 +1,8 @@
 import { ConsoleTransport, Logger, LogLevel } from "@node-lightning/logger";
-import { BitField } from "@node-lightning/core";
-import { IWireMessage, QueryChannelRangeMessage } from "@node-lightning/wire";
-import { Peer } from "@node-lightning/wire";
-import { InitFeatureFlags } from "@node-lightning/wire/dist/flags/InitFeatureFlags";
+import { BitField } from "@node-lightning/lightning";
+import { IWireMessage, QueryChannelRangeMessage } from "@node-lightning/lightning";
+import { Peer } from "@node-lightning/lightning";
+import { InitFeatureFlags } from "@node-lightning/lightning/dist/flags/InitFeatureFlags";
 
 // tslint:disable-next-line: no-var-requires
 const config = require("../config.json");
