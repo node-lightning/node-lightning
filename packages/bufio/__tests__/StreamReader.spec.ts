@@ -12,7 +12,7 @@ function sut(val: number | string) {
     }
 }
 
-const tests = [
+const tests: Array<[string, () => Buffer, Buffer | RangeError]> = [
     [".readBytes() all values", () => sut(4).readBytes(4), Buffer.from([1, 2, 3, 4])],
     [".readBytes() zero", () => sut(4).readBytes(0), Buffer.from([])],
     [".readBytes() RangeError", () => sut(4).readBytes(5), RangeError],
@@ -61,7 +61,7 @@ const tests = [
 
 describe("StreamReader", () => {
     for (const [title, fn, expected] of tests) {
-        if (expected === RangeError) {
+        if (expected instanceof RangeError) {
             it(title, () => {
                 expect(() => fn()).to.throw(expected);
             });

@@ -103,7 +103,7 @@ export class NodeAnnouncementMessage implements IWireMessage {
         const featuresLen = featuresBuffer.length;
 
         // serialize addresses into buffers so we can obtain the length
-        const addressBuffers = [];
+        const addressBuffers: Buffer[] = [];
         for (const address of this.addresses) {
             addressBuffers.push(serializeAddress(address));
         }

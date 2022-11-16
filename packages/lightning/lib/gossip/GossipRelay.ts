@@ -107,7 +107,7 @@ export class GossipRelay implements IGossipRelay {
         if (this._state === GossipRelayState.Active) return;
         this.logger.info("starting gossip relay for all peers");
         this._state = GossipRelayState.Active;
-        // eslint-disable-next-line @typescript-eslint/no-implied-eval
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         this._timer = setInterval(this._onTimer.bind(this), this.relayPeriodMs);
     }
 

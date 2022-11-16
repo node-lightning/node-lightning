@@ -30,7 +30,7 @@ describe("CommitmentSecretStore", () => {
     });
 
     describe("BOLT3 Test Vectors", () => {
-        const vectors = [
+        const vectors: string[] = [
             `name: insert_secret correct sequence
 I: 281474976710655
 secret: 0x7cc854b54e3e0dcdb010d7a3fee464a9687be6e8db3be6854c475621e007a5dc
@@ -213,7 +213,7 @@ output: ERROR`,
         for (const vector of vectors) {
             const parts = vector.split("\n");
             const name = parts.shift();
-            const tests = [];
+            const tests: { i: bigint; secret: Buffer; ok: boolean }[] = [];
             while (parts.length) {
                 const i = BigInt(parts.shift().split(": ")[1]);
                 const secret = Buffer.from(parts.shift().split(": ")[1].substring(2), "hex"); // prettier-ignore

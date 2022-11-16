@@ -19,7 +19,7 @@ export class GossipPeer {
         this.key = peer.id;
         if (this.gossipQueries) {
             this.receiver = new GossipQueriesReceiver(
-                this.peer.localFeatures[0],
+                this.peer.localChains[0],
                 this.peer,
                 this.logger,
             );

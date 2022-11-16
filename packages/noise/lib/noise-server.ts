@@ -51,6 +51,7 @@ export class NoiseServer extends EventEmitter {
 
         // construct and bind the server
         this._server = new Server();
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         this._server.on("connection", this._onConnection.bind(this));
         this._server.on("error", err => this.emit("error", err));
         this._server.on("close", () => this.emit("close"));

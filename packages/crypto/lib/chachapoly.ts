@@ -1,3 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 import crypto from "crypto";
 
 /**
@@ -11,7 +16,9 @@ import crypto from "crypto";
  * @returns encrypted data + tag as a variable length buffer
  */
 export function ccpEncrypt(k: Buffer, n: Buffer, ad: Buffer, plaintext: Buffer): Buffer {
-    const cipher = crypto.createCipheriv("ChaCha20-Poly1305" as any, k, n, { authTagLength: 16 });
+    const cipher: any = crypto.createCipheriv("ChaCha20-Poly1305", k, n, {
+        authTagLength: 16,
+    } as any);
     cipher.setAAD(ad, undefined);
     const pad = cipher.update(plaintext);
     cipher.final();
@@ -30,9 +37,9 @@ export function ccpEncrypt(k: Buffer, n: Buffer, ad: Buffer, plaintext: Buffer):
  * @returns decrypteed data as a variable length Buffer
  */
 export function ccpDecrypt(k: Buffer, n: Buffer, ad: Buffer, ciphertext: Buffer) {
-    const decipher = crypto.createDecipheriv("ChaCha20-Poly1305" as any, k, n, {
+    const decipher: any = crypto.createDecipheriv("ChaCha20-Poly1305", k, n, {
         authTagLength: 16,
-    });
+    } as any);
     decipher.setAAD(ad, undefined);
 
     if (ciphertext.length === 16) {

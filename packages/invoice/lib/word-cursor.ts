@@ -15,7 +15,7 @@ export class WordCursor {
 
     public writeUIntBE(val: number, wordLen: number) {
         if (!wordLen) throw new Error("wordLen must be provided");
-        const words = new Array(wordLen);
+        const words = new Array(wordLen) as number[];
         const maxV = (1 << 5) - 1;
         for (let i = wordLen - 1; i >= 0; i--) {
             words[i] = val & maxV;

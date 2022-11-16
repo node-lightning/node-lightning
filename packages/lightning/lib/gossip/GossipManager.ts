@@ -15,6 +15,7 @@ import { WireError, WireErrorCode } from "../WireError";
 import { PeerHostRecord } from "../PeerHostRecord";
 import { WireMessageResult } from "../WireMessageResult";
 import { Result } from "../Result";
+import { InitFeatureFlags } from "../flags/InitFeatureFlags";
 
 export class PeerGossipState {
     public gossipRelay: boolean;
@@ -111,7 +112,7 @@ export class GossipManager {
      */
     public async bootstrapPeers(
         ls: Buffer,
-        localFeatures: BitField<any>,
+        localFeatures: BitField<InitFeatureFlags>,
         localChains: Buffer[],
         logger: ILogger,
         dnsSeed: string,
@@ -122,6 +123,7 @@ export class GossipManager {
 
         for (const peerRecord of peerRecords) {
             const peer = new Peer(ls, localFeatures, localChains, logger);
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             peer.once("ready", this.onPeerReady.bind(this));
             peer.connect(peerRecord.publicKey, peerRecord.address, peerRecord.port);
         }

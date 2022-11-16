@@ -7,7 +7,7 @@ import Sinon from "sinon";
 import { bech32Decode } from "../_test-utils";
 
 import { AddressType } from "../../lib";
-import { promises as dnsPromises } from "dns";
+import { promises as dnsPromises, SrvRecord } from "dns";
 import * as chai from "chai";
 import chaiAsPromised from "chai-as-promised";
 chai.use(chaiAsPromised);
@@ -29,7 +29,9 @@ describe("DnsPeerQuery", () => {
 
         it("should successfully serialize query options into properly formatted dns seed", async () => {
             const resolver = new dnsPromises.Resolver();
-            const resolveSrvStub = Sinon.stub(resolver, "resolveSrv").returns(Promise.resolve([]));
+            const resolveSrvStub = Sinon.stub(resolver, "resolveSrv").returns(
+                Promise.resolve<SrvRecord[]>([]),
+            );
 
             const dnsPeerQuery = new DnsPeerQuery(resolver);
 

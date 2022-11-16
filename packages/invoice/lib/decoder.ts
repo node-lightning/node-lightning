@@ -130,7 +130,7 @@ export function decode(invoice: string): Invoice {
     // 1: using the payee field value (n)
     // 2: performing signature recovery
     const payeeNodeField = fields.find(p => p.type === FIELD_TYPE.PAYEE_NODE);
-    const pubkey = payeeNodeField
+    const pubkey: Buffer = payeeNodeField
         ? payeeNodeField.value // use payee node provided
         : crypto.ecdsaRecovery(hashData, sigBytes, recoveryFlag); // recovery pubkey from ecdsa sig
 
@@ -170,7 +170,7 @@ function parsePrefix(prefix: string): { network: string; picoBtc: bigint } {
     let network = "";
     let tempValue = "";
     let value;
-    let multiplier;
+    let multiplier: string;
     let hasNetwork = false;
     let hasAmount = false;
 

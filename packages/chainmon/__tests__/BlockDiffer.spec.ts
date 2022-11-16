@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { expect } from "chai";
 import sinon from "sinon";
 import { BitcoindClient } from "@node-lightning/bitcoind";

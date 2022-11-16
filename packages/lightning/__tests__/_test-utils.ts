@@ -27,10 +27,14 @@ export class FakePeer extends Readable {
     public fakeMessage(msg: IWireMessage) {
         this.push(msg);
     }
+
+    public disconnect() {
+        //
+    }
 }
 
-export function createFakePeer() {
-    return new FakePeer() as any;
+export function createFakePeer(): FakePeer {
+    return new FakePeer();
 }
 
 export function createFakeLogger(): ILogger {
@@ -44,6 +48,6 @@ export function wait(ms: number): Promise<void> {
 }
 
 export function bech32Decode(bech32PublicKey: string): Buffer {
-    let { words } = bech32.decode(bech32PublicKey);
+    const { words } = bech32.decode(bech32PublicKey);
     return Buffer.from(bech32.fromWords(words));
 }

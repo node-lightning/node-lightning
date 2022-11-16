@@ -63,7 +63,7 @@ export class Channel {
      * Routable when nodes are known and validated and at least one
      * node has broadcast its relay fees
      */
-    get isRoutable(): boolean {
+    public get isRoutable(): boolean {
         return !!this.nodeId1 && !!this.nodeId2 && !!(this.node1Settings || this.node2Settings);
     }
 

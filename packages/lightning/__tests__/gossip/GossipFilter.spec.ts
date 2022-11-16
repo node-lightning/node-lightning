@@ -5,7 +5,7 @@ import { expect } from "chai";
 import sinon from "sinon";
 import { GossipFilter } from "../../lib/gossip/GossipFilter";
 
-import { HasScriptPubKey, HasValue } from "../../lib/gossip/IGossipFilterChainClient";
+import { HasScriptPubKey, HasValue, Utxo } from "../../lib/gossip/IGossipFilterChainClient";
 import { BlockSummary } from "../../lib/gossip/IGossipFilterChainClient";
 import { IGossipFilterChainClient } from "../../lib/gossip/IGossipFilterChainClient";
 import { ChannelAnnouncementMessage } from "../../lib/messages/ChannelAnnouncementMessage";
@@ -50,7 +50,7 @@ describe("GossipFilter", () => {
     let pendingStore: GossipMemoryStore;
     let filter: GossipFilter;
 
-    function readFixture(file) {
+    function readFixture(file: string) {
         const data = fs.readFileSync(path.join(__dirname, "../../__fixtures__", file), "utf8");
         return data.split("\n").filter(p => p);
     }
@@ -67,7 +67,7 @@ describe("GossipFilter", () => {
         return results;
     }
 
-    function permute(permutation) {
+    function permute(permutation: string[]): string[][] {
         const length = permutation.length;
         const result = [permutation.slice()];
         const c = new Array(length).fill(0);
@@ -100,10 +100,12 @@ describe("GossipFilter", () => {
         blockHashes.forEach((v, i) => chainClient.getBlockHash.onCall(i).resolves(v));
 
         const blocks = readFixture("block.txt").map(p => JSON.parse(p));
-        blocks.forEach((v, i) => chainClient.getBlockSummary.onCall(i).resolves(v));
+        blocks.forEach((v: BlockSummary, i: number) =>
+            chainClient.getBlockSummary.onCall(i).resolves(v),
+        );
 
         const utxos = readFixture("utxo.txt").map(p => JSON.parse(p));
-        utxos.forEach((v, i) => chainClient.getUtxo.onCall(i).resolves(v));
+        utxos.forEach((v: Utxo, i: number) => chainClient.getUtxo.onCall(i).resolves(v));
 
         gossipStore = new GossipMemoryStore();
         pendingStore = new GossipMemoryStore();

@@ -51,7 +51,7 @@ export class BlockWatcher extends EventEmitter {
     protected _scheduleNext() {
         this._clear();
 
-        // eslint-disable-next-line @typescript-eslint/no-implied-eval
+        // eslint-disable-next-line @typescript-eslint/no-implied-eval, @typescript-eslint/no-unsafe-argument
         this._handle = setTimeout(this._onPoll.bind(this), this.pollIntervalMs);
     }
 

@@ -21,14 +21,14 @@ export class Node {
     /**
      * Gets the alias as human readable string
      */
-    get aliasString(): string {
+    public get aliasString(): string {
         return this.alias ? this.alias.toString("utf8").replace(/\0/g, "") : "";
     }
 
     /**
      * Gets the color as a an RGB color string
      */
-    get rgbColorString(): string {
+    public get rgbColorString(): string {
         return this.rgbColor ? "#" + this.rgbColor.toString("hex") : "#000000";
     }
 

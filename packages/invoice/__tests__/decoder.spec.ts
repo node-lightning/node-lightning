@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { expect } from "chai";
 import crypto from "crypto";
 import bs58check from "bs58check";

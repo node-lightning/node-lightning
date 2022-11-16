@@ -5,12 +5,12 @@ import { expect } from "chai";
 import { GossipQueriesReceiver } from "../../lib/gossip/GossipQueriesReceiver";
 import { GossipQueriesReceiverState } from "../../lib/gossip/GossipQueriesReceiver";
 import { GossipTimestampFilterMessage } from "../../lib/messages/GossipTimestampFilterMessage";
-import { createFakeLogger, createFakePeer } from "../_test-utils";
+import { createFakeLogger, createFakePeer, FakePeer } from "../_test-utils";
 
 describe("GossipQueriesReceiver", () => {
     let chainHash: Buffer;
     let sut: GossipQueriesReceiver;
-    let peer: any;
+    let peer: FakePeer;
     let logger: ILogger;
 
     beforeEach(() => {

@@ -1,5 +1,5 @@
 import { BufferWriter } from "@node-lightning/bufio";
-import { hash256, sign, sigToDER, validPrivateKey } from "@node-lightning/crypto";
+import { hash256, sign, sigToDER } from "@node-lightning/crypto";
 import { BitcoinError, BitcoinErrorCode, Witness } from ".";
 import { LockTime } from "./LockTime";
 import { OutPoint } from "./OutPoint";

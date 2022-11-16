@@ -2,7 +2,7 @@ import { expect } from "chai";
 import { varIntBytes } from "../lib/varIntBytes";
 
 describe(".varIntBytes()", () => {
-    const tests: Array<[number | BigInt, number]> = [
+    const tests: Array<[number | bigint, number]> = [
         [0, 1],
         [1, 1],
         [0xfc, 1],

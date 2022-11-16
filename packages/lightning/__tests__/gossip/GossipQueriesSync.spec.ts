@@ -6,12 +6,12 @@ import { GossipError, GossipErrorCode } from "../../lib/gossip/GossipError";
 import { GossipQueriesSync, GossipQueriesSyncState } from "../../lib/gossip/GossipQueriesSync";
 import { ReplyChannelRangeMessage } from "../../lib/messages/ReplyChannelRangeMessage";
 import { ReplyShortChannelIdsEndMessage } from "../../lib/messages/ReplyShortChannelIdsEndMessage";
-import { createFakeLogger, createFakePeer, wait } from "../_test-utils";
+import { createFakeLogger, createFakePeer, FakePeer, wait } from "../_test-utils";
 
 describe("GossipQueriesSync", () => {
     let chainHash: Buffer;
     let sut: GossipQueriesSync;
-    let peer: any;
+    let peer: FakePeer;
     let logger: ILogger;
 
     beforeEach(() => {

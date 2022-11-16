@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { BufferReader } from "@node-lightning/bufio";
 import { ShortChannelId } from "@node-lightning/core";
