@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 // tslint:disable: no-unused-expression
 
 import { BitField } from "@node-lightning/core";
@@ -14,7 +15,6 @@ import { ChannelAnnouncementMessage } from "../../lib/messages/ChannelAnnounceme
 import { ChannelUpdateMessage } from "../../lib/messages/ChannelUpdateMessage";
 import { ExtendedChannelAnnouncementMessage } from "../../lib/messages/ExtendedChannelAnnouncementMessage";
 import { NodeAnnouncementMessage } from "../../lib/messages/NodeAnnouncementMessage";
-import { Peer } from "../../lib/Peer";
 import { PeerState } from "../../lib/PeerState";
 import { createFakeLogger, createFakePeer } from "../_test-utils";
 import { SyncState } from "../../lib/gossip/SyncState";
@@ -32,7 +32,7 @@ function createFakeChainClient() {
 
 describe("GossipManager", () => {
     let sut: GossipManager;
-    let peer1: Peer;
+    let peer1: any;
     let gossipStore: GossipMemoryStore;
     let gossipFilter: GossipFilter;
     let chainClient: IGossipFilterChainClient;

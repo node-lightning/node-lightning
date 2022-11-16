@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable mocha/no-async-describe */
 /* eslint-disable @typescript-eslint/no-misused-promises */
 /* eslint-disable @typescript-eslint/require-await */
@@ -7,20 +8,18 @@
 import { ShortChannelId } from "@node-lightning/core";
 import { ILogger } from "@node-lightning/logger";
 import { expect } from "chai";
-import Sinon from "sinon";
 import {
     ChannelRangeQuery,
     ChannelRangeQueryState,
 } from "../../../lib/gossip/queries/ChannelRangeQuery";
 import { QueryChannelRangeMessage } from "../../../lib/messages/QueryChannelRangeMessage";
 import { ReplyChannelRangeMessage } from "../../../lib/messages/ReplyChannelRangeMessage";
-import { IMessageSender } from "../../../lib/Peer";
 import { createFakeLogger, createFakePeer } from "../../_test-utils";
 
 describe("ChannelRangeQuery", () => {
     let chainHash: Buffer;
     let sut: ChannelRangeQuery;
-    let peer: Sinon.SinonStubbedInstance<IMessageSender>;
+    let peer: any;
     let logger: ILogger;
 
     beforeEach(() => {

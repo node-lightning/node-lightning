@@ -33,7 +33,7 @@ export class FakePeer extends Readable {
     }
 }
 
-export function createFakePeer(): FakePeer {
+export function createFakePeer(): any {
     return new FakePeer();
 }
 

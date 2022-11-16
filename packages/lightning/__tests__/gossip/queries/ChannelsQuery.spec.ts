@@ -1,20 +1,19 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // tslint:disable: no-unused-expression
 
 import { ShortChannelId } from "@node-lightning/core";
 import { ILogger } from "@node-lightning/logger";
 import { expect } from "chai";
-import sinon from "sinon";
 import { ChannelsQuery, ChannelsQueryState } from "../../../lib/gossip/queries/ChannelsQuery";
 import { QueryShortChannelIdsMessage } from "../../../lib/messages/QueryShortChannelIdsMessage";
 import { ReplyShortChannelIdsEndMessage } from "../../../lib/messages/ReplyShortChannelIdsEndMessage";
-import { IMessageSender } from "../../../lib/Peer";
 import { createFakeLogger, createFakePeer } from "../../_test-utils";
 
 describe("ChannelsQuery", () => {
     let chainHash: Buffer;
     let sut: ChannelsQuery;
-    let peer: sinon.SinonStubbedInstance<IMessageSender>;
+    let peer: any;
     let logger: ILogger;
     let promise: Promise<void>;
 
