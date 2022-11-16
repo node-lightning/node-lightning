@@ -1,7 +1,7 @@
 import * as crypto from "@node-lightning/crypto";
 import { expect } from "chai";
 import { AcceptChannelMessage } from "../../lib/messages/AcceptChannelMessage";
-import { Value } from "@node-lightning/core";
+import { Value } from "@node-lightning/bitcoin";
 
 describe("AcceptChannelMessage", () => {
     // abb00e1f13665a56d7b39917a3afa1a9753191e97541334705e39019c0e3d9b4

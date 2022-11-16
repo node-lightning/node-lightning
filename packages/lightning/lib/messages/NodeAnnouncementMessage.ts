@@ -1,5 +1,5 @@
 import { BufferReader, BufferWriter } from "@node-lightning/bufio";
-import { BitField } from "@node-lightning/core";
+import { BitField } from "../BitField";
 import * as crypto from "@node-lightning/crypto";
 import { deserializeAddress } from "../deserialize/address/deserializeAddress";
 import { Address } from "../domain/Address";

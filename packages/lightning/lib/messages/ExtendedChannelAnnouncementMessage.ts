@@ -1,9 +1,10 @@
 import { BufferReader, BufferWriter } from "@node-lightning/bufio";
-import { BitField, HashByteOrder, HashValue } from "@node-lightning/core";
-import { shortChannelIdFromBuffer } from "@node-lightning/core";
-import { OutPoint } from "@node-lightning/core";
+import { HashByteOrder, HashValue } from "@node-lightning/bitcoin";
+import { OutPoint } from "@node-lightning/bitcoin";
 import { readTlvs } from "../serialize/readTlvs";
 import { ChannelAnnouncementMessage } from "./ChannelAnnouncementMessage";
+import { BitField } from "../BitField";
+import { shortChannelIdFromBuffer } from "../domain/ShortChannelIdUtils";
 
 /**
  * Decorator for the channel_announcement that includes the additional

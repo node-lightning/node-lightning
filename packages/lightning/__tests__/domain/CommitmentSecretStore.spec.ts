@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { CommitmentSecretStore } from "../../lib/lightning/CommitmentSecretStore";
+import { CommitmentSecretStore } from "../../lib/domain/CommitmentSecretStore";
 
 describe("CommitmentSecretStore", () => {
     describe("#calcIndex()", () => {

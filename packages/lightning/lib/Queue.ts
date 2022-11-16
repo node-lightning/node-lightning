@@ -16,7 +16,7 @@ export class Queue<T> {
     /**
      * Returns the length of the queue
      */
-    get length(): number {
+    public get length(): number {
         return this._list.length;
     }
 

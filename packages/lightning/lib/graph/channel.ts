@@ -1,6 +1,6 @@
-import { BitField } from "@node-lightning/core";
-import { ShortChannelId } from "@node-lightning/core";
-import { OutPoint } from "@node-lightning/core";
+import { BitField } from "../BitField";
+import { ShortChannelId } from "../domain/ShortChannelId";
+import { OutPoint } from "@node-lightning/bitcoin";
 import { ChannelSettings } from "./channel-settings";
 
 export class Channel {

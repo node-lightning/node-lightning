@@ -2,7 +2,7 @@ import { BufferReader, BufferWriter } from "@node-lightning/bufio";
 import { MessageType } from "../MessageType";
 import { readTlvs } from "../serialize/readTlvs";
 import { IWireMessage } from "./IWireMessage";
-import { Value } from "@node-lightning/core";
+import { Value } from "@node-lightning/bitcoin";
 
 /**
  * AcceptChannelMessage represents the accept_channel message defined in

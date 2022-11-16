@@ -1,6 +1,6 @@
 import { sha256 } from "@node-lightning/crypto";
 import { expect } from "chai";
-import { ScriptFactory } from "../../lib/lightning/ScriptFactory";
+import { ScriptFactory } from "../../lib/domain/ScriptFactory";
 
 describe("ScriptFactory", () => {
     const b = (hex: string) => Buffer.from(hex, "hex");

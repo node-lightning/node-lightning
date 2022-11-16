@@ -6,7 +6,7 @@ import { ExtendedChannelAnnouncementMessage } from "@node-lightning/lightning";
 import { Peer } from "@node-lightning/lightning";
 import { GossipMemoryStore } from "@node-lightning/lightning";
 import { InitFeatureFlags } from "@node-lightning/lightning";
-import { BitField } from "@node-lightning/core";
+import { BitField } from "@node-lightning/lightning";
 import { GossipManager } from "@node-lightning/lightning";
 import { PeerManager } from "@node-lightning/lightning";
 import { WireMessageResult } from "@node-lightning/lightning";

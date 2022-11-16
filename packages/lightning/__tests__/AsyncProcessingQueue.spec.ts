@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/require-await */
 import { expect } from "chai";
 import { AsyncProcessingQueue } from "../lib/AsyncProcessingQueue";
 
-function wait(ms) {
+function wait(ms: number) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
@@ -47,8 +48,9 @@ describe("AsyncProcessingQueue", () => {
         });
 
         it("should emit flushing event when starting to flush", done => {
-            // tslint:disable-next-line: no-empty
-            const sut = new AsyncProcessingQueue<number>(async () => {});
+            const sut = new AsyncProcessingQueue<number>(async () => {
+                //
+            });
             sut.on("flushing", () => {
                 try {
                     expect(sut.size).to.equal(1);
@@ -61,8 +63,9 @@ describe("AsyncProcessingQueue", () => {
         });
 
         it("should emit flushed event when flush complete", done => {
-            // tslint:disable-next-line: no-empty
-            const sut = new AsyncProcessingQueue<number>(async () => {});
+            const sut = new AsyncProcessingQueue<number>(async () => {
+                //
+            });
             sut.on("flushed", () => {
                 try {
                     expect(sut.size).to.equal(0);

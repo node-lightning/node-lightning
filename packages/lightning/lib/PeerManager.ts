@@ -1,5 +1,5 @@
 import { Peer } from "./Peer";
-import { AsyncStreamAggregator } from "@node-lightning/core";
+import { AsyncStreamAggregator } from "./";
 import { IWireMessage } from "./messages/IWireMessage";
 import { GossipManager } from "./gossip/GossipManager";
 import { MessageType } from "./MessageType";

@@ -1,9 +1,9 @@
 // tslint:disable: no-unused-expression
-import { BitField } from "@node-lightning/core";
-import { ShortChannelId } from "@node-lightning/core";
-import { OutPoint } from "@node-lightning/core";
+import { ShortChannelId } from "../../lib/domain/ShortChannelId";
+import { OutPoint } from "@node-lightning/bitcoin";
 import { expect } from "chai";
 import { ExtendedChannelAnnouncementMessage } from "../../lib/messages/ExtendedChannelAnnouncementMessage";
+import { BitField } from "../../lib/BitField";
 
 describe("ExtendedChannelAnnouncementMessage", () => {
     describe(".deserialize", () => {

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { ShortChannelId } from "@node-lightning/core";
+import { ShortChannelId } from "../../lib/domain/ShortChannelId";
 import { ILogger } from "@node-lightning/logger";
 import { expect } from "chai";
 import { GossipError, GossipErrorCode } from "../../lib/gossip/GossipError";

@@ -27,7 +27,6 @@
   "dependencies": {
     "@node-lightning/bufio": "^0.28.0",
     "@node-lightning/checksum": "^0.28.0",
-    "@node-lightning/core": "^0.28.0",
     "@node-lightning/crypto": "^0.28.0",
     "@node-lightning/logger": "^0.28.0",
     "@node-lightning/noise": "^0.28.0",

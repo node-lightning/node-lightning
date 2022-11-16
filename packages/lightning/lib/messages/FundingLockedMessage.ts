@@ -1,5 +1,5 @@
 import { BufferReader, BufferWriter } from "@node-lightning/bufio";
-import { ChannelId } from "@node-lightning/core";
+import { ChannelId } from "../domain/ChannelId";
 import { MessageType } from "../MessageType";
 import { IWireMessage } from "./IWireMessage";
 

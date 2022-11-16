@@ -1,4 +1,4 @@
-import { ShortChannelId } from "@node-lightning/core";
+import { ShortChannelId } from "../../lib/domain/ShortChannelId";
 import { expect } from "chai";
 import { ReplyChannelRangeMessage } from "../../lib/messages/ReplyChannelRangeMessage";
 

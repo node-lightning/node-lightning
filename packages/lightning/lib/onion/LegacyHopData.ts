@@ -1,5 +1,5 @@
-import { ShortChannelId } from "@node-lightning/core";
-import { shortChannelIdFromBuffer } from "@node-lightning/core";
+import { ShortChannelId } from "../domain/ShortChannelId";
+import { shortChannelIdFromBuffer } from "../domain/ShortChannelIdUtils";
 
 /**
  *

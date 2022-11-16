@@ -1,6 +1,6 @@
 import { expect } from "chai";
-import { ShortChannelId } from "../lib/ShortChannelId";
-import * as sut from "../lib/ShortChannelIdUtils";
+import { ShortChannelId } from "../../lib/domain/ShortChannelId";
+import * as sut from "../../lib/domain/ShortChannelIdUtils";
 
 describe("shortChannelIdToBuffer", () => {
     it("should convert the object to a buffer", () => {
@@ -65,6 +65,7 @@ describe("shortChannelIdFromBuffer", () => {
 
     it("should throw when not a buffer", () => {
         const input = "abc";
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         expect(() => sut.shortChannelIdFromBuffer(input as any)).to.throw();
     });
 

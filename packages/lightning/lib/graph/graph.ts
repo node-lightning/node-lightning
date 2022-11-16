@@ -1,4 +1,4 @@
-import { ShortChannelId } from "@node-lightning/core";
+import { ShortChannelId } from "../domain/ShortChannelId";
 import { Channel } from "./channel";
 import { NodeNotFoundError } from "./graph-error";
 import { Node } from "./node";

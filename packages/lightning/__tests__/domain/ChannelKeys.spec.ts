@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
-const { expect } = require("chai");
-const { ChannelKeys } = require("../../lib/lightning/ChannelKeys");
+import { expect } from "chai";
+import { ChannelKeys } from "../../lib/domain/ChannelKeys";
 
 describe("ChannelKeys", () => {
     describe("BOLT3 Test Vectors", () => {

@@ -11,7 +11,6 @@
   "dependencies": {
     "@node-lightning/bufio": "file:../../packages/bufio",
     "@node-lightning/chainmon": "file:../../packages/chainmon",
-    "@node-lightning/core": "file:../../packages/core",
     "@node-lightning/crypto": "file:../../packages/crypto",
     "@node-lightning/logger": "file:../../packages/logger",
     "@node-lightning/noise": "file:../../packages/noise",

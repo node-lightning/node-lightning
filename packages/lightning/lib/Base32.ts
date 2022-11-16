@@ -21,7 +21,7 @@ export class Base32 {
         // example, a value of 00000 is a numeric value of 0 but has 5 bits.
         let valBits: number = 0;
 
-        // Calculate sthe number of data bits for for the buffer. This value is
+        // Calculate the number of data bits for for the buffer. This value is
         // used as input into calculating required number of padding bits.
         const dataBits = buf.length * 8;
 

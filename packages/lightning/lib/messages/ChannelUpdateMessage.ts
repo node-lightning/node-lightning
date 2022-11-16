@@ -1,6 +1,8 @@
 import { BufferReader, BufferWriter } from "@node-lightning/bufio";
-import { BitField, ShortChannelId, Value } from "@node-lightning/core";
-import { shortChannelIdFromBuffer } from "@node-lightning/core";
+import { BitField } from "../BitField";
+import { ShortChannelId } from "../domain/ShortChannelId";
+import { shortChannelIdFromBuffer } from "../domain/ShortChannelIdUtils";
+import { Value } from "@node-lightning/bitcoin";
 import * as crypto from "@node-lightning/crypto";
 import { Checksum } from "../domain/Checksum";
 import { ChannelUpdateMessageFlags } from "../flags/ChannelUpdateMessageFlags";

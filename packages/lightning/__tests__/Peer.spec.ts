@@ -1,6 +1,6 @@
 // tslint:disable: max-classes-per-file
 // tslint:disable: no-unused-expression
-import { BitField } from "@node-lightning/core";
+import { BitField } from "../lib/BitField";
 import { ILogger } from "@node-lightning/logger";
 import * as noise from "@node-lightning/noise";
 import { expect } from "chai";

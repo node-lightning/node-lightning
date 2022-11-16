@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/require-await */
-import { ShortChannelId } from "@node-lightning/core";
-import { shortChannelIdFromNumber } from "@node-lightning/core";
-import { OutPoint } from "@node-lightning/core";
+import { ShortChannelId } from "../domain/ShortChannelId";
+import { shortChannelIdFromNumber } from "../domain/ShortChannelIdUtils";
+import { OutPoint } from "@node-lightning/bitcoin";
 import { ChannelAnnouncementMessage } from "../messages/ChannelAnnouncementMessage";
 import { ChannelUpdateMessage } from "../messages/ChannelUpdateMessage";
 import { ExtendedChannelAnnouncementMessage } from "../messages/ExtendedChannelAnnouncementMessage";

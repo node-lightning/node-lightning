@@ -1,4 +1,4 @@
-import { ChannelId } from "@node-lightning/core";
+import { ChannelId } from "../../lib/domain/ChannelId";
 import { expect } from "chai";
 import { FundingSignedMessage } from "../../lib/messages/FundingSignedMessage";
 

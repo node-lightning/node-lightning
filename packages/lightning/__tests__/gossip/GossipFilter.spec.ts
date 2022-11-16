@@ -13,7 +13,7 @@ import { ChannelUpdateMessage } from "../../lib/messages/ChannelUpdateMessage";
 import { ExtendedChannelAnnouncementMessage } from "../../lib/messages/ExtendedChannelAnnouncementMessage";
 import { NodeAnnouncementMessage } from "../../lib/messages/NodeAnnouncementMessage";
 
-import { ShortChannelId } from "@node-lightning/core";
+import { ShortChannelId } from "../../lib/domain/ShortChannelId";
 import fs from "fs";
 import path from "path";
 import { GossipMemoryStore } from "../../lib/gossip/GossipMemoryStore";

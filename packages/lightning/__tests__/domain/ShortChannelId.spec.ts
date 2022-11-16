@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { ShortChannelId } from "../lib/ShortChannelId";
+import { ShortChannelId } from "../../lib/domain/ShortChannelId";
 
 describe("ShortChannelId", () => {
     describe(".toString", () => {

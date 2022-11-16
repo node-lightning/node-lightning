@@ -1,5 +1,5 @@
 // tslint:disable: max-classes-per-file
-import { ShortChannelId } from "@node-lightning/core";
+import { ShortChannelId } from "../domain/ShortChannelId";
 
 export enum GraphErrorCode {
     ChannelNotFound = 1,

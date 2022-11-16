@@ -1,4 +1,4 @@
-import { OutPoint } from "@node-lightning/core";
+import { OutPoint } from "@node-lightning/bitcoin";
 import { IWireMessage } from "../messages/IWireMessage";
 import { MessageType } from "../MessageType";
 import { ChannelAnnouncementMessage } from "../messages/ChannelAnnouncementMessage";

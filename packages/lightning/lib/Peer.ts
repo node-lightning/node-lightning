@@ -1,4 +1,4 @@
-import { BitField } from "@node-lightning/core";
+import { BitField } from "./BitField";
 import { ILogger } from "@node-lightning/logger";
 import * as noise from "@node-lightning/noise";
 import { NoiseSocket } from "@node-lightning/noise";

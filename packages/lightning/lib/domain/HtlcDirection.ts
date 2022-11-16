@@ -10,7 +10,7 @@ export enum HtlcDirection {
 
     /**
      * We have accepted this HTLC from the counterparty. We may be the
-     * final hop in a chain (and would posssess) the preimage or we may
+     * final hop in a chain (and would possess) the preimage or we may
      * be a processing hop in a sequence of payments.
      */
     Accepted = 1,

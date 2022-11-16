@@ -1,5 +1,5 @@
-import { shortChannelIdFromNumber } from "@node-lightning/core";
-import { OutPoint } from "@node-lightning/core";
+import { shortChannelIdFromNumber } from "../../../lib/domain/ShortChannelIdUtils";
+import { OutPoint } from "@node-lightning/bitcoin";
 import { AddressIPv4 } from "../../../lib/domain/AddressIPv4";
 import { AddressTor2 } from "../../../lib/domain/AddressTor2";
 import { AddressTor3 } from "../../../lib/domain/AddressTor3";

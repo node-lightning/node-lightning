@@ -26,6 +26,7 @@ export class AsyncStreamAggregator<T> {
      */
     public add(stream: IPausedReadable<T>) {
         this.streams.push(stream);
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         stream.on("readable", this.onData.bind(this));
     }
 

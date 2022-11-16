@@ -1,7 +1,7 @@
 // tslint:disable: no-unused-expression
-import { BitField } from "@node-lightning/core";
-import { ShortChannelId } from "@node-lightning/core";
-import { OutPoint } from "@node-lightning/core";
+import { BitField } from "../../lib/BitField";
+import { ShortChannelId } from "../../lib/domain/ShortChannelId";
+import { OutPoint } from "@node-lightning/bitcoin";
 import { AddressIPv4 } from "../../lib/domain/AddressIPv4";
 import { ExtendedChannelAnnouncementMessage } from "../../lib/messages/ExtendedChannelAnnouncementMessage";
 import { ChannelAnnouncementMessage } from "../../lib/messages/ChannelAnnouncementMessage";

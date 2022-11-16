@@ -13,7 +13,6 @@
     "@node-lightning/bitcoind": "file:../../packages/bitcoind",
     "@node-lightning/bufio": "file:../../packages/bufio",
     "@node-lightning/chainmon": "file:../../packages/chainmon",
-    "@node-lightning/core": "file:../../packages/core",
     "@node-lightning/crypto": "file:../../packages/crypto",
     "@node-lightning/gossip-rocksdb": "file:../../packages/gossip-rocksdb",
     "@node-lightning/logger": "file:../../packages/logger",

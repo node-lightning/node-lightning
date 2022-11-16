@@ -5,7 +5,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
-import { ShortChannelId } from "@node-lightning/core";
+import { ShortChannelId } from "../../../lib/domain/ShortChannelId";
 import { ILogger } from "@node-lightning/logger";
 import { expect } from "chai";
 import {

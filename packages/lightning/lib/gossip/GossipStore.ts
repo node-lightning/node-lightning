@@ -1,5 +1,5 @@
-import { ShortChannelId } from "@node-lightning/core";
-import { OutPoint } from "@node-lightning/core";
+import { ShortChannelId } from "../domain/ShortChannelId";
+import { OutPoint } from "@node-lightning/bitcoin";
 import { ChannelAnnouncementMessage } from "../messages/ChannelAnnouncementMessage";
 import { ChannelUpdateMessage } from "../messages/ChannelUpdateMessage";
 import { NodeAnnouncementMessage } from "../messages/NodeAnnouncementMessage";

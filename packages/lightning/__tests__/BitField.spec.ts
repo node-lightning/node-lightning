@@ -2,7 +2,7 @@
 import { expect } from "chai";
 import { BitField } from "../lib/BitField";
 
-export enum TestFlags {
+enum TestFlags {
     feature0 = 0,
     feature1 = 1,
 }

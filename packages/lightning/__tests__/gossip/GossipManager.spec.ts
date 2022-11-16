@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 // tslint:disable: no-unused-expression
 
-import { BitField } from "@node-lightning/core";
-import { OutPoint } from "@node-lightning/core";
-import { ShortChannelId } from "@node-lightning/core";
+import { BitField } from "../../lib/BitField";
+import { OutPoint } from "@node-lightning/bitcoin";
+import { ShortChannelId } from "../../lib/domain/ShortChannelId";
 import { expect } from "chai";
 import sinon from "sinon";
 import { GossipFilter } from "../../lib/gossip/GossipFilter";

@@ -1,5 +1,5 @@
 // tslint:disable: no-unused-expression
-import { ShortChannelId } from "@node-lightning/core";
+import { ShortChannelId } from "../../lib/domain/ShortChannelId";
 import { expect } from "chai";
 import { GossipMemoryStore } from "../../lib/gossip/GossipMemoryStore";
 import { ChannelAnnouncementMessage } from "../../lib/messages/ChannelAnnouncementMessage";

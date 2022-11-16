@@ -1,4 +1,4 @@
-import { BitField } from "@node-lightning/core";
+import { BitField } from "../lib/BitField";
 import { ILogger, Logger } from "@node-lightning/logger";
 import sinon from "sinon";
 import { Readable } from "stream";

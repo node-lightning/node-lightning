@@ -1,4 +1,4 @@
-import { BitField } from "@node-lightning/core";
+import { BitField } from "./BitField";
 import { ILogger } from "@node-lightning/logger";
 import { NoiseSocket } from "@node-lightning/noise";
 import { NoiseServer } from "@node-lightning/noise";
@@ -18,6 +18,7 @@ export class PeerServer extends EventEmitter {
         readonly logger: ILogger,
     ) {
         super();
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         this._server = new NoiseServer({ ls: localSecret }, this._onSocket.bind(this));
         this._server.on("listening", () => this.emit("listening"));
     }

@@ -1,4 +1,5 @@
-import { HashValue, OutPoint } from "@node-lightning/core";
+import { HashValue } from "@node-lightning/bitcoin";
+import { OutPoint } from "@node-lightning/bitcoin";
 import { ChannelAnnouncementMessage } from "../messages/ChannelAnnouncementMessage";
 import { ChannelUpdateMessage } from "../messages/ChannelUpdateMessage";
 import { ExtendedChannelAnnouncementMessage } from "../messages/ExtendedChannelAnnouncementMessage";

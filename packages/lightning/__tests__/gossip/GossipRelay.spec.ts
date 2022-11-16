@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 // tslint:disable: no-unused-expression
-import { ShortChannelId } from "@node-lightning/core";
+import { ShortChannelId } from "../../lib/domain/ShortChannelId";
 import { expect } from "chai";
 import { GossipRelay } from "../../lib/gossip/GossipRelay";
 import { GossipRelayState } from "../../lib/gossip/GossipRelay";

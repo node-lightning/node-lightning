@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { OutPoint } from "@node-lightning/bitcoin";
-import { ChannelId } from "../../lib/lightning/ChannelId";
+import { ChannelId } from "../../lib/domain/ChannelId";
 
 describe("ChannelId", () => {
     describe("#fromOutPoint()", () => {

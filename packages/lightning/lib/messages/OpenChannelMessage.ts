@@ -1,5 +1,6 @@
 import { BufferReader, BufferWriter } from "@node-lightning/bufio";
-import { BitField, Value } from "@node-lightning/core";
+import { BitField } from "../BitField";
+import { Value } from "@node-lightning/bitcoin";
 import { OpenChannelFlags } from "../flags/OpenChannelFlags";
 import { MessageType } from "../MessageType";
 import { readTlvs } from "../serialize/readTlvs";

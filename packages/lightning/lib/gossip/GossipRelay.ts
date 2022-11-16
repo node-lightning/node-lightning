@@ -1,4 +1,4 @@
-import { ShortChannelId } from "@node-lightning/core";
+import { ShortChannelId } from "../domain/ShortChannelId";
 import { ILogger } from "@node-lightning/logger";
 import { ChannelUpdateChannelFlags } from "../flags/ChanneUpdateChannelFlags";
 import { ChannelAnnouncementMessage } from "../messages/ChannelAnnouncementMessage";

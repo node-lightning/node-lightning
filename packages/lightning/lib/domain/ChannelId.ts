@@ -3,7 +3,7 @@ import { HashByteOrder, OutPoint } from "@node-lightning/bitcoin";
 /**
  * ChannelId type that that encapsulates an outpoint as a 32-byte value
  * and is used to identify a channel. This type is defined in BOLT 2
- * under the peer protocol. It is defined as combinging the funding_txid
+ * under the peer protocol. It is defined as combining the funding_txid
  * and the funding_output_index, using big-endian XOR (meaning the
  * output_index modifies the last two bytes).
  */

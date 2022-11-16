@@ -1,6 +1,6 @@
 import { LockTime, Sequence } from "@node-lightning/bitcoin";
 import { expect } from "chai";
-import { CommitmentNumber } from "../../lib/lightning/CommitmentNumber";
+import { CommitmentNumber } from "../../lib/domain/CommitmentNumber";
 
 describe("CommitmentNumber", () => {
     const b = (hex: string) => Buffer.from(hex, "hex");

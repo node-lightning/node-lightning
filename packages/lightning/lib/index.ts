@@ -12,13 +12,30 @@ export * from "./PingPongState";
 export * from "./WireError";
 export * from "./WireMessageResult";
 
+export * from "./AsyncProcessingQueue";
+export * from "./AsyncStreamAggregator";
+export * from "./Base32";
+export * from "./BigIntUtils";
+export * from "./BitField";
+export * from "./IPausedReadable";
+export * from "./LinkedList";
+export * from "./LinkedListNode";
+
 export * from "./domain/Address";
 export * from "./domain/AddressIPv4";
 export * from "./domain/AddressIPv6";
 export * from "./domain/AddressTor2";
 export * from "./domain/AddressTor3";
 export * from "./domain/AddressType";
+export * from "./domain/ChannelId";
+export * from "./domain/ChannelKeys";
+export * from "./domain/CommitmentNumber";
+export * from "./domain/CommitmentSecret";
+export * from "./domain/CommitmentSecret";
+export * from "./domain/CommitmentSecretStore";
 export * from "./domain/NetworkType";
+export * from "./domain/ShortChannelId";
+export * from "./domain/ShortChannelIdUtils";
 
 export * from "./flags/ChanneUpdateChannelFlags";
 export * from "./flags/ChannelFeatureFlags";

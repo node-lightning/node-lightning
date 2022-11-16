@@ -1,4 +1,4 @@
-import { BitField } from "@node-lightning/core";
+import { BitField } from "../BitField";
 import { Address } from "../domain/Address";
 import { Channel } from "./channel";
 

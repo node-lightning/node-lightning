@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // tslint:disable: no-unused-expression
 
-import { ShortChannelId } from "@node-lightning/core";
+import { ShortChannelId } from "../../../lib/domain/ShortChannelId";
 import { ILogger } from "@node-lightning/logger";
 import { expect } from "chai";
 import { ChannelsQuery, ChannelsQueryState } from "../../../lib/gossip/queries/ChannelsQuery";
