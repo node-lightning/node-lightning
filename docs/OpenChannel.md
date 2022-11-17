@@ -52,7 +52,7 @@ With a valid `accept_channel` message the funding node can move forward on creat
 1. Construct `funding_created` message using `createFundingCreatedMessage` subroutine
 1. Send `funding_created` to peer
 
-## 11b. Receive `accept_channel` [invalid]
+### 11b. Receive `accept_channel` [invalid]
 
 Upon receipt of an invalid `accept_channel` message or one that we do not agree with, we can fail the channel.
 
@@ -115,6 +115,27 @@ Upon receipt of an invalid `funding_signed` message, the opening node will fail 
 
 ## 31. Receive `funding_created`
 
+## 41. Block connected [funder & approaching expiry depth]
+
+The fundee (accepting node) will forget the node after 2016 blocks. After 2016 blocks, if the funding transaction is confirmed, the funding node will be forced to issue a unilateral close to recover their funds. As a result of this complication, the funding node needs to ensure the function transaction is confirmed within the 2016 blocks period.
+
+**Condition**:
+
+1. Funding node
+2. Near expiry depth (2016 blocks)
+
+**Effect**:
+
+1. Perform fee bump via CPFP by calling the `feeBumpTx` subroutine.
+
+The accepting node should remember the channel after it has sent the `funding_signed` message. The opening node should broadcast the funding transaction with sufficient fees for the transaction to be confirmed in a reasonable period of time. If the funding depth (specified in `accept_channel`) is not reached within 2016 blocks, the accepting node can forget the channel.
+
+**Effect: forget the channel**
+
+Bin it.
+
+## 42. Block connected [fundee & expiry depth reached]
+
 After the accepting node sends `accept_channel` the opening node will reply with the `funding_created` message. This message contains the funding outpoint and includes the signature that the accepting node uses for its first commitment transaction.
 
 \*\*Condition:
@@ -140,38 +161,17 @@ If the received message fails validation we fail the channel by sending an `erro
 1. Send `error` message to peer
 1. Transition to `abandoned` channel state
 
-## 41. Block connected [funder & approaching expiry depth]
+## 43. Receive `channel_ready`
 
-The fundee (accepting node) will forget the node after 2016 blocks. After 2016 blocks, if the funding transaction is confirmed, the funding node will be forced to issue a unilateral close to recover their funds. As a result of this complication, the funding node needs to ensure the function transaction is confirmed within the 2016 blocks period.
+A node may receive the `channel_ready` message while it is still awaiting the funding depth. This can occur because of network propagation delays for blocks, meaning your peer may reach the funding depth before you.
 
-**Condition**:
+**Condition: Validate `channel_ready`**
 
-1. Funding node
-2. Near expiry depth (2016 blocks)
-
-**Effect**:
-
-1. Perform fee bump via CPFP by calling the `feeBumpTx` subroutine.
-
-## 41. Block connected [acceptor & expiry depth reached]
-
-The accepting node should remember the channel after it has sent the `funding_signed` message. The opening node should broadcast the funding transaction with sufficient fees for the transaction to be confirmed in a reasonable period of time. If the funding depth (specified in `accept_channel`) is not reached within 2016 blocks, the accepting node can forget the channel.
-
-**Effect: forget the channel**
-
-Bin it.
-
-## 42. Receive `funding_locked`
-
-A node may receive the `funding_locked` message while it is still awaiting the funding depth. This can occur because of network propagation delays for blocks, meaning your peer may reach the funding depth before you.
-
-**Condition: Validate `funding_locked`**
-
-Validate the message according to [BOLT 2](https://github.com/lightning/bolts/blob/master/02-peer-protocol.md#the-funding_locked-message).
+Validate the message according to [BOLT 2](https://github.com/lightning/bolts/blob/master/02-peer-protocol.md#the-channel_ready-message).
 
 1. Must have a valid secp256k1 point for `next_per_commitment_point`
 
-## 43. Receive `shutdown` message
+## 44. Receive `shutdown` message
 
 It is valid to initiate a channel shutdown prior to funding transaction reaching funding depth. Upon receipt of a shutdown we should transition to a mutual close. It is safe to do so because we can agree on how to spend the funding transaction via a closing transaction. The closing transaction is a more efficient version of the commitment transaction (reduced fees and no time locks).
 
@@ -179,18 +179,18 @@ It is valid to initiate a channel shutdown prior to funding transaction reaching
 
 Transition to mutual close under the condition that we received a `shutdown` message.
 
-## 44. Block connected [min depth reached]
+## 45. Block connected [min depth reached]
 
 Our channel must wait for min block depth as specified in the `accept_channel` message. When a block connects matching the min depth, we may proceed. The min depth should consider reorganization and be larger than the max expected reorganization. As such, one the min depth is reached we can transition the channel state even if there is a reorganization.
 
-**Effect: send `funding_locked`**
+**Effect: send `channel_ready`**
 
-After the min depth is reached we should send the `funding_locked` message to our peer in accordance with the rules in [BOLT 2](https://github.com/lightning/bolts/blob/master/02-peer-protocol.md#the-funding_locked-message)
+After the min depth is reached we should send the `channel_ready` message to our peer in accordance with the rules in [BOLT 2](https://github.com/lightning/bolts/blob/master/02-peer-protocol.md#the-channel_ready-message)
 
 1. Must set the `channel_id` correctly
 1. Must generate the `next_per_commitment_point` for offerred commitment #1 using the algorithm defined in [BOLT 3](https://github.com/lightning/bolts/blob/master/03-transactions.md#per-commitment-secret-requirements).
 
-## 45. Disconnect
+## 46. Disconnect
 
 At this point we must remember the channel, so upon disconnect we transition to a state that allows us to maintain our understanding of the channel.
 
@@ -210,16 +210,16 @@ Inputs:
 Calls:
 
 -   `createTempChannelId`
--   `obtainDesiredFeeratePerKw`
+-   `obtainDesiredFeeRatePerKw`
 -   `checkWalletHasFunds`
 -   `obtainNodeDustLimit`
--   `createFundingSecret`
+-   `createFundingPubKey`
 -   `createBasePointSecrets`
 -   `createPerCommitmentSecret`
 
 1. Must set `chain_hash` to the appropriate value for the the chain the node wishes to create the channel on. This value is usually the genesis block in internal byte order of the block hash (little-endian).
 1. Must construct a `temporary_channel_id` that is unique to other channel ids with the same peer using the `createTempChannelId` subroutine.
-1. Should set the `feerate_per_kw` to at least a rate that would get the transaction immediately included in a block by calling `obtainDesiredFeeratePerKw`.
+1. Should set the `feerate_per_kw` to at least a rate that would get the transaction immediately included in a block by calling `obtainDesiredFeeRatePerKw`.
 1. Must validate the `funding_satoshis` is available in the wallet by calling `checkWalletHasFunds` subroutine.
 1. Must validate that `funding_satoshis` is is less than 2^24 when `option_channel_support_large_channels` has not been negotiated.
 1. Must validate that the `funding_satoshis` is sufficient for full fee payment of the initial commitment transaction. This should be `724 * feerate_per_kw / 1000`.
@@ -234,10 +234,10 @@ Calls:
 1. Should set `max_acccepted_htlcs` to the maximum value of HTLCs it is will to accept from the peer.
 1. Must set `max_accepted_htlcs` <= 483
 1. Should set `max_htlc_value_in_flight_msat` to the maximum millisatoshi value your are willing to allow for all HTLCs that are outstanding (both offerred and accepted).
-1. Must create a `funding_pubkey` that is a valid point using the `createFundingSecret` subroutine.
+1. Must create a `funding_pubkey` that is a valid point using the `createFundingPubKey` subroutine.
 1. Must construct unique and unguessable secrets and generate valid public keys for `payment_basepoint_`, `_delayed_payment_basepoint_`, `_htlc_basepoint` and `_revocation_basepoint_` by calling the `createBasePointSecrets`.
 1. Must obtain a unique and unguessable seed using `createCommitmentSeed` subroutine.
-1. Must generate `first_per_commitment_point` by caling`createPerCommitmentSecret` subroutine.
+1. Must generate `first_per_commitment_point` by calling`createPerCommitmentSecret` subroutine.
 
 **Notes:**
 Does not include notes for `option_support_large_channel`, `option_upfront_shutdown_script` or `option_channel_type`.
@@ -252,11 +252,15 @@ Obtains a `feerate_per_kw` that will ensure a transaction will be immediately in
 
 ## Subroutine `checkWalletHasFunds`
 
+Inputs:
+
+-   `funding_satoshis`
+
 Verify with the wallet that sufficient funds are available for spending.
 
-## Subroutine `createFundingSecret`
+## Subroutine `createFundingPubKey`
 
-Calls the wallet to obtain a new secret whose pubkey will be used in the funding transaction.
+Calls the wallet to obtain a new pubkey that can will be in the funding transaction. The wallet should have the ability to sign a transaction for this pubkey.
 
 ## Subroutine `createBasePointSecrets`
 
@@ -363,7 +367,7 @@ Inputs:
 -   Node's channel preferences
 
 1. Must fail if `temporary_channel_id` does not match the value sent in `open_channel`
-1. May fail if `minimum_depth` is unreasonably large. This value is set by the fundee and is the number of blocks both parties must wait until `funding_locked` can be sent to transition the channel into an operational state. The fundee sets this value to a block depth that should ensure the funding transaction can't be double-spent. Validating that `minimum_depth` is not excessively large ensures that it is not being used as a denial-of-service to lock funds in the channel with no intention of allowing the channel to function normally.
+1. May fail if `minimum_depth` is unreasonably large. This value is set by the fundee and is the number of blocks both parties must wait until `channel_ready` can be sent to transition the channel into an operational state. The fundee sets this value to a block depth that should ensure the funding transaction can't be double-spent. Validating that `minimum_depth` is not excessively large ensures that it is not being used as a denial-of-service to lock funds in the channel with no intention of allowing the channel to function normally.
 1. Must fail if `channel_reserve_satoshis` is less than `dust_limit_satoshi` sent in `open_channel`. Since the received value for `channel_reserve_satoshi` is the value that the funder must retain in its balance, we need to ensure that it is larger than our `dust_limit_satoshis` value (which we sent in `open_channel`).
 1. May fail if `channel_reserve_balance` is too large
 1. Must fail if `dust_limit_satohis` is greater than `channel_reserve_satoshis` sent in `open_channel`. The funding node provides a `channel_reserve_satoshis` value in `open_channel` that the fundee must maintain. This check ensures that the fundee's `dust_limit_satoshis` value is <= the `channel_reserve_satoshis` it must maintain.
