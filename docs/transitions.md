@@ -50,8 +50,8 @@ With a valid `accept_channel` message the funding node can move forward on creat
 
 #### Actions
 
-1. Construct `funding_created` message using `createFundingCreatedMessage` subroutine
-1. Send `funding_created` to peer using `sendMessage` subroutine
+1. Construct `funding_created` message - [`createFundingCreatedMessage` subroutine]()
+1. Send `funding_created` to peer - [`sendMessage` subroutine]()
 1. Transition to the `Connected Open` state `awaiting funding_signed`
 
 ### 11b. Receive `accept_channel` [invalid]
@@ -60,9 +60,7 @@ Upon receipt of an invalid `accept_channel` message or one that we do not agree 
 
 #### Actions
 
-1. Construct an `error` by providing the `temporary_channel_id` and `data` to `createErrorMessage`
-1. Send `error` message to peer
-1. Transition to `Abandoned` channel state
+1. Transition to `Failure` channel state
 
 ## 12. Disconnect
 
@@ -74,7 +72,7 @@ We will transition to the `Abandoned` state of the `Channel` state machine.
 
 #### Actions
 
-1. Transition to `Abandoned` channel state
+1. Transition to `Failure` channel state
 
 ## 13. Receive `shutdown` message
 
@@ -82,9 +80,7 @@ If we receive a `shutdown` message from the peer prior to broadcasting the fundi
 
 #### Actions:
 
-1. Construct an `error` by providing the `temporary_channel_id` and `data` to `createErrorMessage`
-1. Send `error` message to peer
-1. Transition to `Abandoned` channel state
+1. Transition to `Failure` channel state
 
 ## 21. Receive `funding_signed` message
 
@@ -94,7 +90,7 @@ The `funding_signed` message also is the first time the real `channel_id` is use
 
 #### Condition
 
-1. Validate received `funding_signed` message using `validateFundingSigned` subroutine.
+1. Validate received `funding_signed` message - [`validateFundingSigned` subroutine]()
 
 ### 21a. Receive `funding_signed` [valid]
 
@@ -104,8 +100,8 @@ Once the transaction is broadcast the funder must remember the channel. We don't
 
 #### Actions
 
-1. Sign the funding transaction via the `signTx` subroutine.
-1. Broadcast funding transaction using `broadcastTx` subroutine.
+1. Sign the funding transaction - [`signTx` subroutine]()
+1. Broadcast funding transaction - [`broadcastTx` subroutine]()
 
 ### 21b. Receive `funding_signed` [invalid]
 
@@ -113,9 +109,7 @@ Upon receipt of an invalid `funding_signed` message, the opening node will fail 
 
 #### Actions
 
-1. Construct an `error` by providing the `temporary_channel_id` and `data` to the error function - [`createErrorMessage` subroutine]()
-1. Send `error` message to peer - [`sendMessage` subroutine]()
-1. Transition to `Abandoned` channel state
+1. Transition to `Failure` channel state
 
 ## 31. Receive `funding_created` message
 
@@ -140,9 +134,7 @@ If the received message fails validation we fail the channel by sending an `erro
 
 #### Actions
 
-1. Construct an `error` by providing the `temporary_channel_id` and `data` to the error functions - [`createErrorMessage` subroutine]()
-1. Send `error` message to peer - [`sendMessage` subroutine]
-1. Transition to `Abandoned` channel state
+1. Transition to `Failure` channel state
 
 ## 41. Block connected [approaching expiry depth]
 
@@ -166,9 +158,7 @@ For the channel acceptor (fundee) the channel can be forgotten if the funding tr
 
 #### Actions
 
-1. Construct an `error` by providing the `temporary_channel_id` and `data` to the error functions - [`createErrorMessage` subroutine]()
-1. Send `error` message to peer - [`sendMessage` subroutine]
-1. Forget the channel by transitioning to `Abandoned` channel state
+1. Forget the channel by transitioning to `Failure` channel state
 
 ## 43. Receive `channel_ready` message
 
@@ -259,9 +249,7 @@ If the funding output is invalid, we need to be sure that we do not send `channe
 
 #### Actions
 
-1. Construct an `error` by providing the `temporary_channel_id` and `data` to the error functions - [`createErrorMessage` subroutine]()
-1. Send `error` message to peer - [`sendMessage` subroutine]
-1. Forget the channel by transitioning to `Abandoned` channel state
+1. Forget the channel by transitioning to `Failure` channel state
 
 ## 46. Receive `shutdown` message
 
@@ -274,6 +262,10 @@ A peer can send a `shutdown` message after it has sent `funding_created` (opener
 ## 47. Disconnect
 
 While waiting for the funding depth to be reach we may disconnect from the peer. We then transition to the channel state of `Disconnected Open`
+
+#### Actions
+
+1. Transition to a `Disconnected Open` channel state with return state of `awaiting_funding_depth`
 
 ## 48. Reconnected
 
@@ -329,7 +321,7 @@ If we disconnect while waiting for the peer's `channel_ready` message there can 
 
 #### Actions
 
-1. Transition to a `Disconnected Open` channel state
+1. Transition to a `Disconnected Open` channel state with return state of `awaiting_channel_ready`
 
 ## 54. Reconnected
 
