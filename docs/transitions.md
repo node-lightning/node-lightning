@@ -204,7 +204,7 @@ The funding depth specified in `accept_channel` needs to be waited for prior to 
 
 1. Check if we have received a `channel_ready` message from the peer already
 
-### 44a. Not received `channel_ready` message
+### 44a. Not received `channel_ready` message - Connected
 
 If we haven't yet received a `channel_ready` message from the peer we'll need to transition to a waiting state for it. We first construct and send our `channel_ready` message to the peer.
 
@@ -214,13 +214,30 @@ If we haven't yet received a `channel_ready` message from the peer we'll need to
 1. Send `channel_ready` to peer - [`sendMessage` subroutine]()
 1. Transition to `awaiting_channel_ready` state of the `Connected Open` channel state machine
 
-### 44b. Received `channel_ready` message
+### 44b. Received `channel_ready` message - Connected
 
 If we did receive the `channel_ready` message we just need to construct and send our `channel_ready` message to the peer. We can begin normal channel operations!
 
 1. Construct `channel_ready` message - [`createChannelReady` subroutine]()
 1. Send `channel_ready` to peer - [`sendMessage` subroutine]()
 1. Transition to `Normal` channel state
+
+### 44c. Received `channel_ready` message - Disconnected state
+
+If we haven't yet received a `channel_ready` message from the peer we'll need to transition to a waiting state for it. Since we are disconnected we cannot send our version of `channel_ready` but we will always perform that action upon disconnection.
+
+#### Actions
+
+1. Transition to `Disconnected Normal` channel state
+
+### 44d. Not received `channel_ready` message - Disconnected state
+
+If we haven't yet received a `channel_ready` message from the peer we'll need to transition to a waiting state for it. Since we are disconnected we cannot send our version of `channel_ready` but we will always perform that action upon disconnection.
+
+#### Actions
+
+1. Transition to `awaiting_channel_ready` state of the `Disconnected Open` channel state machine
+1. Set return state to `awaiting_channel_ready`
 
 ## 45. Block connected [contains funding tx]
 
@@ -261,6 +278,15 @@ While waiting for the funding depth to be reach we may disconnect from the peer.
 ## 48. Reconnected
 
 This is an entry point into `Connected Open` that occurs when we have disconnected while waiting for the funding depth to be reached. This state occurs when we have performed a successful reconnection while in the `Disconnected Open` channel state.
+
+## 49. Connected [from `awaiting_funding_depth`]
+
+Upon a peer connection being established we need to initiate the channel reestablish exchange as defined in [BOLT 2](https://github.com/lightning/bolts/blob/master/02-peer-protocol.md#message-retransmission). This protocol requires us to send a `channel_reestablish` message to the peer. We wait for the peer to reply with their `channel_reestablish` before we resume operation.
+
+#### Actions:
+
+1. Construct the `channel_reestablish` message - [`createChannelReestablish` subroutine]()
+1. Send the `channel_reestablish` to the peer - [`sendMessage`]()
 
 ## 51. Receive `channel_ready` message
 
@@ -322,3 +348,56 @@ If we receive a `shutdown` message from the peer we will cease channel operation
 #### Actions
 
 1. Transition to `Mutual Close` channel state
+
+## 59. Connected [from `awaiting_channel_ready`]
+
+Upon a peer connection being established we need to initiate the channel reestablish exchange as defined in [BOLT 2](https://github.com/lightning/bolts/blob/master/02-peer-protocol.md#message-retransmission). This protocol requires us to send a `channel_reestablish` message to the peer. We wait for the peer to reply with their `channel_reestablish` before we resume operation.
+
+#### Actions:
+
+1. Construct the `channel_reestablish` message - [`createChannelReestablish` subroutine]()
+1. Send the `channel_reestablish` to the peer - [`sendMessage`]()
+
+## 61. Receive `channel_reestablish` message
+
+Upon receipt of a `channel_reestablish` message we take several actions according to the evaluation of the [BOLT 2](https://github.com/lightning/bolts/blob/master/02-peer-protocol.md#message-retransmission) message.
+
+#### Condition
+
+We need to evaluate the `channel_reestablish` message from the
+
+1. Evaluate the `channel_reestablish` message - [`evalChannelReestablish` subroutine]
+
+### 61a. `channel_reestablish` [OK]
+
+The `channel_reestablish` is pretty boring at this point in the game. So we should be fine to transition back to the `Connected Open` channel state at the specified reestablishment state.
+
+#### Actions
+
+1. Transition to `Connected Open` channel state at the captured reestablishment entry point (`awaiting_funding_depth` or `awaiting_channel_ready`).
+
+### 61b. `channel_reestablish` [Invalid]
+
+If `channel_reestablish` fails validation or contains unexpected values at this point we will need to fail the channel.
+
+#### Actions
+
+1. Transition to `Failed` channel state
+
+## 62. Disconnect
+
+#### Condition
+
+We transition back to the return state that we were in prior to the reconnection.
+
+### 62a. Return State is `awaiting_funding_depth`
+
+#### Actions
+
+1. Transition to `awaiting funding depth` state of the `Disconnected Channel Open` state machine.
+
+### 62b. Return State is `awaiting_channel_ready`
+
+#### Actions
+
+1. Transition to `awaiting channel_ready` state of the `Disconnected Channel Open` state machine.
