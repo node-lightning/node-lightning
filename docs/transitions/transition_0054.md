@@ -4,6 +4,6 @@ Entry point for when we have disconnected at either `awaiting funding depth` or 
 
 #### Actions
 
-1. Construct `channel_ready` message - [`createChannelReady` subroutine]()
-1. Send `channel_ready` to peer - [`sendMessage` subroutine]()
+1. Construct `channel_ready` message - [`createChannelReady` subroutine](../routines/createChannelReady.md)
+1. Send `channel_ready` to peer - [`sendMessage` subroutine](../routines/sendMessage.md)
 1. Transition to `awaiting_channel_ready` state of the `Connected Open` channel state machine

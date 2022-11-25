@@ -6,7 +6,7 @@ The channel acceptor (fundee) must validate the channel creator constructed the 
 
 We need to validate the funding transaction output, as given in `funding_txid` and `funding_output_index` of `funding_created` message is correct.
 
-1. Validate the fudning output - [`validateFundingOutput` subroutine]()
+1. Validate the funding output - [`validateFundingOutput` subroutine](../routines/validateFundingOutput.md)
 
 ### 45a. Funding output [valid]
 

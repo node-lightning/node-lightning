@@ -4,7 +4,7 @@ After the accepting node sends `accept_channel` the opening node will reply with
 
 #### Condition
 
-1. Validate received `funding_created` message - [`validateFundingCreated` subroutine]()
+1. Validate received `funding_created` message - [`validateFundingCreatedMessage` subroutine](../routines/validatefundingCreatedMessage.md)
 
 ### 31a. Receive `funding_created` [valid]
 
@@ -12,8 +12,8 @@ If the message is valid, the accepting node sends a `funding_signed` message to 
 
 #### Actions
 
-1. Construct `funding_signed` message - [`createFundingSigned` subroutine]()
-1. Send `funding_signed` message - [`sendMessage` subroutine]()
+1. Construct `funding_signed` message - [`createFundingSignedMessage` subroutine](../routines/createFundingSignedMessage.md)
+1. Send `funding_signed` message - [`sendMessage` subroutine](../routines/sendMessage.md)
 
 ### 31b. Receive `funding_created` [invalid]
 

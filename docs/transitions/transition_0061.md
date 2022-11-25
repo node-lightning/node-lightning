@@ -6,7 +6,7 @@ Upon receipt of a `channel_reestablish` message we take several actions accordin
 
 We need to evaluate the `channel_reestablish` message from the
 
-1. Evaluate the `channel_reestablish` message - [`evalChannelReestablish` subroutine]
+1. Evaluate the `channel_reestablish` message - [`evaluateChannelReestablishMessage` subroutine](../routines/evaluateChannelReestablishMessage.md)
 
 ### 61a. `channel_reestablish` [OK]
 

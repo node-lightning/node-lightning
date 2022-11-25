@@ -4,7 +4,7 @@ Entry state for the channel state `Connected Open`. A node initiates a channel b
 
 #### Actions
 
-1. Construct the `channel` - [`createChannel` subroutine]()
-1. Construct the `open_channel` message - [`createOpenChannelMessage` subroutine]()
-1. Send `open_channel` to peer - [`sendMessage` subroutine]()
+1. Construct the `channel` - [`createChannel` subroutine](../routines/createChannel.md)
+1. Construct the `open_channel` message - [`createOpenChannelMessage` subroutine](../routines/createChannelOpenMessage.md)
+1. Send `open_channel` to peer - [`sendMessage` subroutine](../routines/sendMessage.md)
 1. Transition to the `awaiting accept_channel` state of the `Connected Open` state machine

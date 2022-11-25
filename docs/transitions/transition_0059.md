@@ -4,5 +4,5 @@ Upon a peer connection being established we need to initiate the channel reestab
 
 #### Actions:
 
-1. Construct the `channel_reestablish` message - [`createChannelReestablish` subroutine]()
-1. Send the `channel_reestablish` to the peer - [`sendMessage`]()
+1. Construct the `channel_reestablish` message - [`createChannelReestablishMessage` subroutine](../routines/createChannelReestablishMessage.md)
+1. Send the `channel_reestablish` to the peer - [`sendMessage`](../routines/sendMessage.md)

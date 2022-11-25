@@ -6,7 +6,7 @@ The `funding_signed` message also is the first time the real `channel_id` is use
 
 #### Condition
 
-1. Validate received `funding_signed` message - [`validateFundingSigned` subroutine]()
+1. Validate received `funding_signed` message - [`validateFundingSignedMessage` subroutine](../routines/validateFundingSignedMessage.md)
 
 ### 21a. Receive `funding_signed` [valid]
 
@@ -16,8 +16,8 @@ Once the transaction is broadcast the funder must remember the channel. We don't
 
 #### Actions
 
-1. Sign the funding transaction - [`signTx` subroutine]()
-1. Broadcast funding transaction - [`broadcastTx` subroutine]()
+1. Sign the funding transaction - [`signTx` subroutine](../routines/signTx.md)
+1. Broadcast funding transaction - [`broadcastTx` subroutine](../routines/broadcastTx.md)
 
 ### 21b. Receive `funding_signed` [invalid]
 

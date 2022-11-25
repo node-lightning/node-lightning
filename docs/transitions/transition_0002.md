@@ -10,8 +10,8 @@ A node may receive an `open_channel` message from a peer indicating the peer wis
 
 #### Actions
 
-1. Construct `accept_channel` message - [`createAcceptChannelMessage` subroutine]()
-1. Send `accept_channel` to peer - [`sendMessage` subroutine]()
+1. Construct `accept_channel` message - [`createAcceptChannelMessage` subroutine](../routines/createAcceptChannelMessage.md)
+1. Send `accept_channel` to peer - [`sendMessage` subroutine](../routines/sendMessage.md)
 
 ### 2b. Receive `open_channel` [invalid]
 
@@ -19,6 +19,4 @@ In the event that we receive a `open_channel` message that is either invalid or 
 
 #### Actions
 
-1. Construct an `error` by providing the `temporary_channel_id` and `data` to [`createErrorMessage` subroutine]()
-1. Send `error` message to peer
-1. Transition to `Abandoned` channel state
+1. Transition to `Failing` channel state

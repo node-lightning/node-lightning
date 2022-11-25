@@ -8,4 +8,4 @@ The fundee (accepting node) will forget the node after 2016 blocks. After 2016 b
 
 #### Actions
 
-1. Perform fee bump via Child-Pays-For-Parent (CPFP) by calling the `feeBumpTx` subroutine.
+1. Perform fee bump via Child-Pays-For-Parent (CPFP) - [`feeBumpTx` subroutine](../routines/feeBumpTx.md)

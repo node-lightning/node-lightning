@@ -13,7 +13,7 @@ If we haven't yet received a `channel_ready` message from the peer we'll need to
 #### Actions
 
 1. Construct `channel_ready` message - [`createChannelReadyMessage` subroutine](../routines/createChannelReadyMessage.md)
-1. Send `channel_ready` to peer - [`sendMessage` subroutine]()
+1. Send `channel_ready` to peer - [`sendMessage` subroutine](../routines/sendMessage.md)
 1. Transition to `awaiting_channel_ready` state of the `Connected Open` channel state machine
 
 ### 44b. Received `channel_ready` message - Connected
@@ -21,7 +21,7 @@ If we haven't yet received a `channel_ready` message from the peer we'll need to
 If we did receive the `channel_ready` message we just need to construct and send our `channel_ready` message to the peer. We can begin normal channel operations!
 
 1. Construct `channel_ready` message - [`createChannelReadyMessage` subroutine](../routines/createChannelReadyMessage.md)
-1. Send `channel_ready` to peer - [`sendMessage` subroutine]()
+1. Send `channel_ready` to peer - [`sendMessage` subroutine](../routines/sendMessage.md)
 1. Transition to `Normal` channel state
 
 ### 44c. Received `channel_ready` message - Disconnected state

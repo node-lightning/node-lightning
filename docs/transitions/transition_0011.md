@@ -4,7 +4,7 @@ After sending the `open_channel` message, the funding node must wait for the pee
 
 #### Condition
 
-1. Validate the received `accept_channel` message by calling `validateAcceptChannelMessage` routing.
+1. Validate the received `accept_channel` message - [`validateAcceptChannelMessage` routine](../routines/validateAcceptChannelMessage.md)
 
 ### 11a. Receive `accept_channel` [valid]
 
@@ -12,8 +12,8 @@ With a valid `accept_channel` message the funding node can move forward on creat
 
 #### Actions
 
-1. Construct `funding_created` message - [`createFundingCreatedMessage` subroutine]()
-1. Send `funding_created` to peer - [`sendMessage` subroutine]()
+1. Construct `funding_created` message - [`createFundingCreatedMessage` subroutine](../routines/createFundingCreatedMessage.md)
+1. Send `funding_created` to peer - [`sendMessage` subroutine](../routines/sendMessage.md)
 1. Transition to the `Connected Open` state `awaiting funding_signed`
 
 ### 11b. Receive `accept_channel` [invalid]
@@ -22,4 +22,4 @@ Upon receipt of an invalid `accept_channel` message or one that we do not agree 
 
 #### Actions
 
-1. Transition to `Failure` channel state
+1. Transition to `Failing` channel state
