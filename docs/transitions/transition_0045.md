@@ -18,4 +18,4 @@ If the funding output is invalid, we need to be sure that we do not send `channe
 
 #### Actions
 
-1. Forget the channel by transitioning to `Failure` channel state
+1. Forget the channel by transitioning to `Failing` channel state

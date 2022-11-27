@@ -18,8 +18,8 @@ Upon receipt of a valid `channel_ready` message we need to capture the peer's me
 
 ### 43b. Receive `channel_ready` [invalid]
 
-Upon receipt of an invalid `channel_ready` message we transition to the `Failure` channel state.
+Upon receipt of an invalid `channel_ready` message we fail the channel.
 
 #### Actions
 
-1. Transition to the `Failure` channel state
+1. Transition to the `Failing` channel state

@@ -25,4 +25,4 @@ Upon receipt of an invalid `funding_signed` message, the opening node will fail 
 
 #### Actions
 
-1. Transition to `Failure` channel state
+1. Transition to `Failing` channel state

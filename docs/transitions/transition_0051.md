@@ -23,4 +23,4 @@ Upon receipt of an invalid `channel_ready` message we transition to the `Failure
 
 #### Actions
 
-1. Transition to the `Failure` channel state
+1. Transition to the `Failing` channel state

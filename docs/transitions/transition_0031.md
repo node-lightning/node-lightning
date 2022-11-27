@@ -21,4 +21,4 @@ If the received message fails validation we fail the channel by sending an `erro
 
 #### Actions
 
-1. Transition to `Failure` channel state
+1. Transition to `Failing` channel state

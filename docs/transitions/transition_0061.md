@@ -22,4 +22,4 @@ If `channel_reestablish` fails validation or contains unexpected values at this 
 
 #### Actions
 
-1. Transition to `Failed` channel state
+1. Transition to `Failing` channel state

@@ -4,4 +4,4 @@ If we do not receive a `channel_ready` message from the peer within a reasonable
 
 #### Actions
 
-1. Transition to a `Failure` channel state
+1. Transition to a `Failing` channel state
