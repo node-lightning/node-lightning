@@ -8,4 +8,4 @@ For the channel acceptor (fundee) the channel can be forgotten if the funding tr
 
 #### Actions
 
-1. Forget the channel by transitioning to `Failure` channel state
+1. Forget the channel by transitioning to `Failing` channel state
