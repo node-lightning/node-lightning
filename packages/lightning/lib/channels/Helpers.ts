@@ -1,4 +1,4 @@
-import { Value } from "@node-lightning/bitcoin";
+import { PublicKey, Value } from "@node-lightning/bitcoin";
 import { randomBytes } from "crypto";
 import { IChannelWallet } from "./IChannelWallet";
 
@@ -48,5 +48,16 @@ export class Helpers {
     public async calcBestFeeRatePerKw(): Promise<number> {
         const satPerKb = await this.wallet.getFeeRateSatsPerKb();
         return satPerKb / 4;
+    }
+
+    /**
+     * Returns the configured dust limit for the Bitcoin node backing
+     * the Lightning instance. This must conform with
+     * [BOLT 3 Dust Limits](https://github.com/lightning/bolts/blob/93909f67f6a48ee3f155a6224c182e612dd5f187/03-transactions.md#dust-limits). A limit of 354 is specified in [BOLT 2](https://github.com/lightning/bolts/blob/master/02-peer-protocol.md#the-open_channel-message) in order to accommodate
+     * option_any_segwit.
+     */
+    // eslint-disable-next-line @typescript-eslint/require-await
+    public async getDustLimit(): Promise<Value> {
+        return Value.fromSats(354);
     }
 }

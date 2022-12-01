@@ -11,7 +11,7 @@ Calls:
 -   `checkWalletHasFunds`
 -   `createTempChannelId`
 -   `calcBestFeeRatePerKw`
--   `obtainNodeDustLimit`
+-   `getDustLimit`
 -   `createFundingPubKey`
 -   `createBasePointSecrets`
 -   `createPerCommitmentSecret`
@@ -24,7 +24,7 @@ Calls:
 1. Must validate that the `funding_satoshis` is sufficient for full fee payment of the initial commitment transaction. This should be `724 * feerate_per_kw / 1000`.
 1. Must set `push_msat` <= 1000 \* `funding_satoshi`.
 1. Must set `dust_limit_satoshis` \>= 354 satoshis as calculated from [BOLT 3](https://github.com/lightning/bolts/blob/93909f67f6a48ee3f155a6224c182e612dd5f187/03-transactions.md#per-commitment-secret-requirements).
-1. Should set `dust_limit_satoshis` to a value sufficient to propagate transactions is sufficient to propagate transactions by checking with the Bitcoin node using `obtainNodeDustLimit` subroutine.
+1. Should set `dust_limit_satoshis` to a value sufficient to propagate transactions is sufficient to propagate transactions by checking with the Bitcoin node using `getDustLimit` subroutine.
 1. Must set `channel_reserve_balance` for use by the opposite node.
 1. Must set `channel_reserve_balance` >= sent `dust_limit_satoshis` value.
 1. Must ensure that at least one of `to_local` and `to_remote` outputs is > `channel_reserve_balance`.

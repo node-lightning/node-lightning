@@ -46,4 +46,17 @@ describe(Helpers.name, () => {
             expect(result).to.equal(250);
         });
     });
+
+    describe(Helpers.prototype.getDustLimit.name, () => {
+        it("should return 354", async () => {
+            // arrange
+            const helpers = new Helpers(undefined);
+
+            // act
+            const result = await helpers.getDustLimit();
+
+            // assert
+            expect(result.sats).to.equal(354n);
+        });
+    });
 });

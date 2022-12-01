@@ -1,4 +1,4 @@
-## Subroutine `createFundingSigned`
+## Subroutine `createFundingSignedMessage`
 
 Inputs:
 
@@ -25,7 +25,7 @@ Inputs:
 
 Calls:
 
--   `obtainNodeDustLimit`
+-   `getDustLimit`
 -   `obtainUtxo`
 -   `obtainChangeAddress`
 

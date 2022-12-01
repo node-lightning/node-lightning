@@ -18,8 +18,8 @@ Calls:
 
 -   `checkWalletHasFunds`
 -   `createTempChannelId`
--   `obtainDesiredFeeRatePerKw`
--   `obtainNodeDustLimit`
+-   `calcBestFeeRatePerKw`
+-   `getDustLimit`
 -   `createFundingPubKey`
 -   `createBasePointSecrets`
 -   `createPerCommitmentSecret`
@@ -27,12 +27,12 @@ Calls:
 1. Must validate the `funding_satoshis` is available in the wallet by calling `checkWalletHasFunds` subroutine.
 1. Must set `chain_hash` to the appropriate value for the the chain the node wishes to create the channel on. This value is usually the genesis block in internal byte order of the block hash (little-endian).
 1. Must construct a `temporary_channel_id` that is unique to other channel ids with the same peer using the `createTempChannelId` subroutine.
-1. Should set the `feerate_per_kw` to at least a rate that would get the transaction immediately included in a block by calling `obtainDesiredFeeRatePerKw`.
+1. Should set the `feerate_per_kw` to at least a rate that would get the transaction immediately included in a block by calling `calcBestFeeRatePerKw`.
 1. Must validate that `funding_satoshis` is is less than 2^24 when `option_channel_support_large_channels` has not been negotiated with the peer.
 1. Must validate that the `funding_satoshis` is sufficient for full fee payment of the initial commitment transaction. This should be `724 * feerate_per_kw / 1000`.
 1. Must set `push_msat` <= 1000 \* `funding_satoshi`.
 1. Must set `dust_limit_satoshis` \>= 354 satoshis as calculated from [BOLT 3](https://github.com/lightning/bolts/blob/93909f67f6a48ee3f155a6224c182e612dd5f187/03-transactions.md#per-commitment-secret-requirements).
-1. Should set `dust_limit_satoshis` to a value sufficient to propagate transactions is sufficient to propagate transactions by checking with the Bitcoin node using `obtainNodeDustLimit` subroutine.
+1. Should set `dust_limit_satoshis` to a value sufficient to propagate transactions is sufficient to propagate transactions by checking with the Bitcoin node using `getDustLimit` subroutine.
 1. Must set `channel_reserve_balance` for use by the opposite node.
 1. Must set `channel_reserve_balance` >= sent `dust_limit_satoshis` value.
 1. Must ensure that at least one of `to_local` and `to_remote` outputs is > `channel_reserve_balance`.
