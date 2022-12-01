@@ -2,7 +2,8 @@ import { Value, PrivateKey } from "@node-lightning/bitcoin";
 import { CreateBasePointsResult } from "./CreateBasePointsResult";
 
 export interface IChannelWallet {
-    getFeeRateSatsPerKb(): Promise<number>;
+    getFeeRatePerKw(): Promise<Value>;
+    getDustLimit(): Promise<Value>;
     checkWalletHasFunds(fundingAmt: Value): Promise<boolean>;
     createFundingKey(): Promise<PrivateKey>;
     createBasePointSecrets(): Promise<CreateBasePointsResult>;
