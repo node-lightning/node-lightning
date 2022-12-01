@@ -1,15 +1,16 @@
 import { BitField } from "../lib/BitField";
 import { ILogger, Logger } from "@node-lightning/logger";
-import sinon from "sinon";
 import { Readable } from "stream";
 import { IWireMessage } from "../lib";
 import { InitFeatureFlags } from "../lib/flags/InitFeatureFlags";
 import bech32 from "bech32";
+import { IChannelWallet } from "../lib/channels/IChannelWallet";
+import Sinon from "sinon";
 
 export class FakePeer extends Readable {
     public state;
-    public send = sinon.stub();
-    public sendMessage = sinon.stub();
+    public send = Sinon.stub();
+    public sendMessage = Sinon.stub();
     public pubkey = Buffer.alloc(32, 1);
     public localChains: Buffer[] = [];
     public localFeatures = new BitField<InitFeatureFlags>();
@@ -38,7 +39,7 @@ export function createFakePeer(): any {
 }
 
 export function createFakeLogger(): ILogger {
-    const fake = sinon.createStubInstance(Logger);
+    const fake = Sinon.createStubInstance(Logger);
     fake.sub = createFakeLogger as any;
     return fake;
 }
@@ -50,4 +51,13 @@ export function wait(ms: number): Promise<void> {
 export function bech32Decode(bech32PublicKey: string): Buffer {
     const { words } = bech32.decode(bech32PublicKey);
     return Buffer.from(bech32.fromWords(words));
+}
+
+export function createFakeChannelWallet(): Sinon.SinonStubbedInstance<IChannelWallet> {
+    return {
+        getFeeRateSatsPerKb: Sinon.stub(),
+        checkWalletHasFunds: Sinon.stub(),
+        getDustLimitSats: Sinon.stub(),
+        getNewFundingPubKey: Sinon.stub(),
+    };
 }
