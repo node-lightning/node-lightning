@@ -9,7 +9,7 @@ Inputs:
 
 Calls:
 
--   `obtainDesiredFeeRatePerKw`
+-   `calcBestFeeRatePerKw`
 
 1. Must fail if the the `chain_hash` is unknown
 1. Must fail if `funding_satoshis` >= 2^24 and `option_support_large_channel` has not be negotiated
@@ -18,7 +18,7 @@ Calls:
 1. Must fail if `to_self_delay` is unreasonable large. While there is no hard limit, the receiving node should not subject itself to possible denial-of-service attacks. A reasonable value is 1 day to 2 weeks.
 1. Must fail if `max_accepted_htlcs` > 483
 1. May fail if `max_accepted_htlcs` is too small
-1. Must fail if `feerate_per_kw` is too small for timely processing after calling `obtainDesiredFeeRatePerKw` subroutine.
+1. Must fail if `feerate_per_kw` is too small for timely processing after calling `calcBestFeeRatePerKw` subroutine.
 1. Must fail if `feerate_per_kw` is unreasonably large
 1. Must fail if funder's amount for the initial commitment is not sufficient for full fee payment
 1. May fail if `channel_reserve_balance` is too large

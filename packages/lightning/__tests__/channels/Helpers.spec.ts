@@ -31,4 +31,19 @@ describe(Helpers.name, () => {
             expect(result.length).to.equal(32);
         });
     });
+
+    describe(Helpers.prototype.calcBestFeeRatePerKw.name, () => {
+        it("should calculate the fee rate from the fee rate per kb", async () => {
+            // arrange
+            const wallet = createFakeChannelWallet();
+            wallet.getFeeRateSatsPerKb.resolves(1000);
+            const helpers = new Helpers(wallet);
+
+            // act
+            const result = await helpers.calcBestFeeRatePerKw();
+
+            // assert
+            expect(result).to.equal(250);
+        });
+    });
 });
