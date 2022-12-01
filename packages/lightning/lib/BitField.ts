@@ -35,6 +35,13 @@ export class BitField<T = number> {
         return (this.value & (BigInt(1) << BigInt(bit))) > BigInt(0);
     }
 
+    public anySet(...bits: T[]): boolean {
+        for (const bit of bits) {
+            if (this.isSet(bit)) return true;
+        }
+        return false;
+    }
+
     public set(bit: T) {
         this.value |= BigInt(1) << BigInt(bit);
     }

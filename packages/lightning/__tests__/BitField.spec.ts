@@ -205,4 +205,21 @@ describe("BitField", () => {
             expect(a.flags()).to.deep.equal([TestFlags.feature0, TestFlags.feature1]);
         });
     });
+
+    describe(".anySet()", () => {
+        it("returns true when one", () => {
+            const sut = new BitField(3n);
+            expect(sut.anySet(1)).to.be.true;
+        });
+
+        it("returns true when both set", () => {
+            const sut = new BitField(3n);
+            expect(sut.anySet(1, 2)).to.be.true;
+        });
+
+        it("returns false when not set", () => {
+            const sut = new BitField(3n);
+            expect(sut.anySet(0, 4)).to.be.true;
+        });
+    });
 });
