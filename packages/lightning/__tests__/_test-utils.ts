@@ -56,7 +56,8 @@ export function bech32Decode(bech32PublicKey: string): Buffer {
 
 export function createFakeChannelWallet(): Sinon.SinonStubbedInstance<IChannelWallet> {
     return {
-        getFeeRateSatsPerKb: Sinon.stub(),
+        getFeeRatePerKw: Sinon.stub(),
+        getDustLimit: Sinon.stub(),
         checkWalletHasFunds: Sinon.stub(),
         createFundingKey: Sinon.stub(),
         createBasePointSecrets: Sinon.stub(),
