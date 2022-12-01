@@ -6,6 +6,7 @@ import { InitFeatureFlags } from "../lib/flags/InitFeatureFlags";
 import bech32 from "bech32";
 import { IChannelWallet } from "../lib/channels/IChannelWallet";
 import Sinon from "sinon";
+import { Network, PrivateKey } from "@node-lightning/bitcoin";
 
 export class FakePeer extends Readable {
     public state;
@@ -57,6 +58,13 @@ export function createFakeChannelWallet(): Sinon.SinonStubbedInstance<IChannelWa
     return {
         getFeeRateSatsPerKb: Sinon.stub(),
         checkWalletHasFunds: Sinon.stub(),
-        getNewFundingPubKey: Sinon.stub(),
+        createFundingKey: Sinon.stub(),
     };
+}
+
+export function createFakeKey(
+    buffer: Buffer = Buffer.alloc(32, 0x01),
+    network: Network = Network.testnet,
+): PrivateKey {
+    return new PrivateKey(buffer, network);
 }

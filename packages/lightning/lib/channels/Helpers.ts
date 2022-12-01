@@ -1,4 +1,5 @@
-import { PublicKey, Value } from "@node-lightning/bitcoin";
+/* eslint-disable @typescript-eslint/require-await */
+import { Network, PrivateKey, PublicKey, Value } from "@node-lightning/bitcoin";
 import { randomBytes } from "crypto";
 import { IChannelWallet } from "./IChannelWallet";
 
@@ -56,8 +57,17 @@ export class Helpers {
      * [BOLT 3 Dust Limits](https://github.com/lightning/bolts/blob/93909f67f6a48ee3f155a6224c182e612dd5f187/03-transactions.md#dust-limits). A limit of 354 is specified in [BOLT 2](https://github.com/lightning/bolts/blob/master/02-peer-protocol.md#the-open_channel-message) in order to accommodate
      * option_any_segwit.
      */
-    // eslint-disable-next-line @typescript-eslint/require-await
     public async getDustLimit(): Promise<Value> {
         return Value.fromSats(354);
+    }
+
+    /**
+     * Creates a new private key for use in the 2-of-2 multisig output
+     * of the funding transaction. This implementation calls the channel
+     * wallet to obtain the key.
+     * @returns
+     */
+    public async createFundingKey(): Promise<PrivateKey> {
+        return await this.wallet.createFundingKey();
     }
 }

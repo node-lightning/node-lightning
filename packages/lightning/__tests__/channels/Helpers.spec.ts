@@ -1,7 +1,7 @@
 import { Value } from "@node-lightning/bitcoin";
 import { expect } from "chai";
 import { Helpers } from "../../lib/channels/Helpers";
-import { createFakeChannelWallet } from "../_test-utils";
+import { createFakeChannelWallet, createFakeKey } from "../_test-utils";
 
 describe(Helpers.name, () => {
     describe(Helpers.prototype.checkWalletHasFunds.name, () => {
@@ -57,6 +57,23 @@ describe(Helpers.name, () => {
 
             // assert
             expect(result.sats).to.equal(354n);
+        });
+    });
+
+    describe(Helpers.prototype.createFundingKey.name, () => {
+        it("should return a new funding key", async () => {
+            // arrange
+            const wallet = createFakeChannelWallet();
+            wallet.createFundingKey.resolves(createFakeKey());
+            const helpers = new Helpers(wallet);
+
+            // act
+            const result = await helpers.createFundingKey();
+
+            // assert
+            expect(result.toHex()).to.equal(
+                "0101010101010101010101010101010101010101010101010101010101010101",
+            );
         });
     });
 });

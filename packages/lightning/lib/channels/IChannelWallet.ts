@@ -1,7 +1,7 @@
-import { Value, PublicKey } from "@node-lightning/bitcoin";
+import { Value, PrivateKey } from "@node-lightning/bitcoin";
 
 export interface IChannelWallet {
     getFeeRateSatsPerKb(): Promise<number>;
     checkWalletHasFunds(fundingAmt: Value): Promise<boolean>;
-    getNewPubKey(): Promise<PublicKey>;
+    createFundingKey(): Promise<PrivateKey>;
 }
