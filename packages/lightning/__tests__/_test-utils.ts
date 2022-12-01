@@ -59,6 +59,8 @@ export function createFakeChannelWallet(): Sinon.SinonStubbedInstance<IChannelWa
         getFeeRateSatsPerKb: Sinon.stub(),
         checkWalletHasFunds: Sinon.stub(),
         createFundingKey: Sinon.stub(),
+        createBasePointSecrets: Sinon.stub(),
+        createPerCommitmentSeed: Sinon.stub(),
     };
 }
 
