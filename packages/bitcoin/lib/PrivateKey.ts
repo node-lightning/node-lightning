@@ -96,4 +96,15 @@ export class PrivateKey {
         const result = crypto.privateKeyTweakMul(this._buffer, tweak);
         return new PrivateKey(result, this.network);
     }
+
+    /**
+     * Returns true when the private key network and value match.
+     * @param other
+     */
+    public equals(other: PrivateKey): boolean {
+        return (
+            this.network.genesisHash.eq(other.network.genesisHash) &&
+            this._buffer.equals(other._buffer)
+        );
+    }
 }

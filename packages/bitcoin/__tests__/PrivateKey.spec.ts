@@ -171,4 +171,24 @@ describe("PrivateKey", () => {
             );
         });
     });
+
+    describe(".equals()", () => {
+        it("returns false when different networks", () => {
+            const a = new PrivateKey(Buffer.alloc(32, 0x1), Network.mainnet);
+            const b = new PrivateKey(Buffer.alloc(32, 0x1), Network.testnet);
+            expect(a.equals(b)).to.equal(false);
+        });
+
+        it("returns false when different values", () => {
+            const a = new PrivateKey(Buffer.alloc(32, 0x1), Network.mainnet);
+            const b = new PrivateKey(Buffer.alloc(32, 0x2), Network.mainnet);
+            expect(a.equals(b)).to.equal(false);
+        });
+
+        it("returns true when both network and value match", () => {
+            const a = new PrivateKey(Buffer.alloc(32, 0x1), Network.mainnet);
+            const b = new PrivateKey(Buffer.alloc(32, 0x1), Network.mainnet);
+            expect(a.equals(b)).to.equal(true);
+        });
+    });
 });
