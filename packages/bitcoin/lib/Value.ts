@@ -197,4 +197,26 @@ export class Value implements ICloneable<Value> {
         this._picoSats -= other._picoSats;
         return this;
     }
+
+    /**
+     * Adding the other value to the existing value and returns a new
+     * instance of Value.
+     * @param other
+     */
+    public addn(other: Value): Value {
+        return new Value(this._picoSats + other._picoSats);
+    }
+
+    /**
+     * Subtracts supplied value from the current value and returns a new
+     * value instance. Since Value is unsigned, this throws if
+     * subtraction results in a value that is less than zero.
+     * @param other
+     */
+    public subn(other: Value): Value {
+        if (this._picoSats - other._picoSats < 0) {
+            throw new BitcoinError(BitcoinErrorCode.ValueUnderflow);
+        }
+        return new Value(this._picoSats - other._picoSats);
+    }
 }
