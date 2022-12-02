@@ -160,4 +160,44 @@ describe(Helpers.name, () => {
             expect(result).to.equal(false);
         });
     });
+
+    describe(Helpers.prototype.validateDustLimit.name, () => {
+        it("returns true when equal to 354", () => {
+            // arrange
+            const helpers = new Helpers(undefined);
+            const dustLimit = Value.fromSats(354);
+
+            // act
+            const result = helpers.validateDustLimit(dustLimit);
+
+            // assert
+            expect(result).to.equal(true);
+        });
+
+        it("returns true when above 354", () => {
+            // arrange
+            const helpers = new Helpers(undefined);
+            const dustLimit = Value.fromBitcoin(355);
+
+            // act
+            const result = helpers.validateDustLimit(dustLimit);
+
+            // assert
+            expect(result).to.equal(true);
+        });
+
+        it("returns false when below 354", () => {
+            // arrange
+            const helpers = new Helpers(undefined);
+            const dustLimit = Value.fromBitcoin(1);
+
+            // act
+            const result = helpers.validateDustLimit(dustLimit);
+
+            // assert
+            expect(result).to.equal(false);
+        });
+    });
+
+    describe(Helpers.prototype.createChannel.name, () => {});
 });

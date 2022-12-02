@@ -1,9 +1,15 @@
 /* eslint-disable @typescript-eslint/require-await */
-import { Value } from "@node-lightning/bitcoin";
+import { Network, Value } from "@node-lightning/bitcoin";
 import { randomBytes } from "crypto";
 import { BitField } from "../BitField";
 import { InitFeatureFlags } from "../flags/InitFeatureFlags";
+import { Result } from "../Result";
+import { Channel } from "./Channel";
+import { ChannelSide } from "./ChannelSide";
 import { IChannelWallet } from "./IChannelWallet";
+import { OpenChannelRequest } from "./OpenChannelRequest";
+import { OpeningError } from "./states/opening/OpeningError";
+import { OpeningErrorType } from "./states/opening/OpeningErrorType";
 
 export class Helpers {
     constructor(readonly wallet: IChannelWallet) {}
@@ -72,5 +78,20 @@ export class Helpers {
      */
     public validatePushAmount(fundingAmount: Value, pushAmount: Value) {
         return pushAmount.lte(fundingAmount);
+    }
+
+    /**
+     * The dust limit exists to ensure that a transaction will be relayed
+     * by the network. The dust limit is defined as the value of an output
+     * that is less than the cost to spend that output at the dustFeeRate.
+     * The default dustFeeRate is defined as 3000/kvb which is 3x. The
+     * actual dust limit in satoshis depends on the size of the transaction
+     * and several examples are defined in BOLT 3. For Lightning Network
+     * commitment transactions we use the dust limit of 354 satoshis which
+     * supports any segwit version transactions.
+     * @param dustLimit
+     */
+    public validateDustLimit(dustLimit: Value) {
+        return dustLimit.gte(Value.fromSats(354));
     }
 }
