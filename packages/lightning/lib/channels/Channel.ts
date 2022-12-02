@@ -16,7 +16,7 @@ export class Channel {
     public delayedBasePointSecret: PrivateKey;
     public revocationBasePointSecret: PrivateKey;
     public htlcBasePointSecret: PrivateKey;
-    public perCommitmentSeed: PrivateKey;
+    public perCommitmentSeed: Buffer;
 
     public ourSide: ChannelSide;
     public theirSide: ChannelSide;
