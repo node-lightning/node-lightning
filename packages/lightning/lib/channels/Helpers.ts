@@ -39,4 +39,31 @@ export class Helpers {
         const minAmount = (baseCommitmentTxWeight * feeRatePerKw.sats) / 1000n;
         return fundingAmount.sats > minAmount;
     }
+
+    /**
+     * Validates that the funding amount is less than 2^24 if the peers
+     * have not negotiated `option_support_large_channel`. If they have
+     * than any amount is valid.
+     * @param fundingAmount
+     */
+    public validateFundingAmountMax(
+        fundingAmount: Value,
+        local: BitField<InitFeatureFlags>,
+        remote: BitField<InitFeatureFlags>,
+    ): boolean {
+        if (
+            local.anySet(
+                InitFeatureFlags.optionSupportLargeChannelOptional,
+                InitFeatureFlags.optionSupportLargeChannelRequired,
+            ) &&
+            remote.anySet(
+                InitFeatureFlags.optionSupportLargeChannelOptional,
+                InitFeatureFlags.optionSupportLargeChannelRequired,
+            )
+        ) {
+            return true;
+        }
+
+        return fundingAmount.sats < 16777216n;
+    }
 }
