@@ -119,4 +119,45 @@ describe(Helpers.name, () => {
             expect(result).to.equal(true);
         });
     });
+
+    describe(Helpers.prototype.validatePushAmount.name, () => {
+        it("returns true when equal to the funding amount", () => {
+            // arrange
+            const helpers = new Helpers(undefined);
+            const fundingAmount = Value.fromSats(1000);
+            const pushAmount = Value.fromSats(1000);
+
+            // act
+            const result = helpers.validatePushAmount(fundingAmount, pushAmount);
+
+            // assert
+            expect(result).to.equal(true);
+        });
+
+        it("returns true when less than to the funding amount", () => {
+            // arrange
+            const helpers = new Helpers(undefined);
+            const fundingAmount = Value.fromSats(1000);
+            const pushAmount = Value.fromSats(0);
+
+            // act
+            const result = helpers.validatePushAmount(fundingAmount, pushAmount);
+
+            // assert
+            expect(result).to.equal(true);
+        });
+
+        it("returns false when greater than the funding amount", () => {
+            // arrange
+            const helpers = new Helpers(undefined);
+            const fundingAmount = Value.fromSats(1000);
+            const pushAmount = Value.fromSats(1001);
+
+            // act
+            const result = helpers.validatePushAmount(fundingAmount, pushAmount);
+
+            // assert
+            expect(result).to.equal(false);
+        });
+    });
 });

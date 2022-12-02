@@ -1,15 +1,9 @@
 /* eslint-disable @typescript-eslint/require-await */
-import { Network, PrivateKey, Value } from "@node-lightning/bitcoin";
+import { Value } from "@node-lightning/bitcoin";
 import { randomBytes } from "crypto";
 import { BitField } from "../BitField";
 import { InitFeatureFlags } from "../flags/InitFeatureFlags";
-import { Result } from "../Result";
-import { Channel } from "./Channel";
-import { ChannelSide } from "./ChannelSide";
 import { IChannelWallet } from "./IChannelWallet";
-import { OpenChannelRequest } from "./OpenChannelRequest";
-import { OpeningError } from "./states/opening/OpeningError";
-import { OpeningErrorType } from "./states/opening/OpeningErrorType";
 
 export class Helpers {
     constructor(readonly wallet: IChannelWallet) {}
@@ -65,5 +59,18 @@ export class Helpers {
         }
 
         return fundingAmount.sats < 16777216n;
+    }
+
+    /**
+     * The rule as defined in BOLT 2 is that `push_msat` must be less
+     * than or equal to `funding_satoshis * 1000`. Since we are using
+     * the value type (which already considers sats vs msat) we simply
+     * ensure that the pushAmount is lte fundingAmount.
+     * @param fundingAmount
+     * @param pushAmount
+     * @returns
+     */
+    public validatePushAmount(fundingAmount: Value, pushAmount: Value) {
+        return pushAmount.lte(fundingAmount);
     }
 }
