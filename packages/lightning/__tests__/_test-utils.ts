@@ -6,13 +6,16 @@ import { InitFeatureFlags } from "../lib/flags/InitFeatureFlags";
 import bech32 from "bech32";
 import { IChannelWallet } from "../lib/channels/IChannelWallet";
 import Sinon from "sinon";
-import { Network, PrivateKey } from "@node-lightning/bitcoin";
+import { Network, PrivateKey, PublicKey } from "@node-lightning/bitcoin";
+import { bigToBufBE } from "@node-lightning/bufio";
 
 export class FakePeer extends Readable {
     public state;
     public send = Sinon.stub();
     public sendMessage = Sinon.stub();
-    public pubkey = Buffer.alloc(32, 1);
+    public nodePrivateKey: PrivateKey;
+    public nodePublicKey: PublicKey;
+    public id: string;
     public localChains: Buffer[] = [];
     public localFeatures = new BitField<InitFeatureFlags>();
     public remoteChains: Buffer[] = [];
@@ -20,6 +23,9 @@ export class FakePeer extends Readable {
 
     public constructor() {
         super({ objectMode: true });
+        this.nodePrivateKey = new PrivateKey(Buffer.alloc(32, 0x1), Network.testnet);
+        this.nodePublicKey = this.nodePrivateKey.toPubKey(true);
+        this.id = this.nodePublicKey.toHex();
     }
 
     public _read() {
@@ -65,9 +71,6 @@ export function createFakeChannelWallet(): Sinon.SinonStubbedInstance<IChannelWa
     };
 }
 
-export function createFakeKey(
-    buffer: Buffer = Buffer.alloc(32, 0x01),
-    network: Network = Network.testnet,
-): PrivateKey {
-    return new PrivateKey(buffer, network);
+export function createFakeKey(value: bigint, network: Network = Network.testnet): PrivateKey {
+    return new PrivateKey(bigToBufBE(value, 32), network);
 }

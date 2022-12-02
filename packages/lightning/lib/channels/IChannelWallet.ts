@@ -7,5 +7,5 @@ export interface IChannelWallet {
     checkWalletHasFunds(fundingAmt: Value): Promise<boolean>;
     createFundingKey(): Promise<PrivateKey>;
     createBasePointSecrets(): Promise<CreateBasePointsResult>;
-    createPerCommitmentSeed(): Promise<PrivateKey>;
+    createPerCommitmentSeed(): Promise<Buffer>;
 }

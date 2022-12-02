@@ -1,7 +1,9 @@
 /* eslint-disable @typescript-eslint/require-await */
-import { Network, Value } from "@node-lightning/bitcoin";
+import { Network, PrivateKey, Value } from "@node-lightning/bitcoin";
 import { randomBytes } from "crypto";
 import { BitField } from "../BitField";
+import { CommitmentNumber } from "./CommitmentNumber";
+import { CommitmentSecret } from "./CommitmentSecret";
 import { InitFeatureFlags } from "../flags/InitFeatureFlags";
 import { Result } from "../Result";
 import { Channel } from "./Channel";
@@ -144,5 +146,166 @@ export class Helpers {
 
         const fundersBalance = fundingAmount.subn(pushAmount);
         return fundersBalance.sats > fees;
+    }
+
+    /**
+     * Ensures that the max_accepted_htlcs is <= 483. This value ensures
+     * that the `commitment_signed` message fits within the message length
+     * and that a penalty transaction with 2x483 transactions fits within
+     * the max transaction size for Bitcoin Core.
+     * @param maxAcceptedHtlcs
+     * @returns
+     */
+    public validateMaxAcceptedHtlcs(maxAcceptedHtlcs: number) {
+        return maxAcceptedHtlcs <= 483;
+    }
+
+    /**
+     * Constructs a a channel for an opener as described
+     * @param network
+     * @param options
+     * @returns
+     */
+    public async createChannel(
+        network: Network,
+        options: OpenChannelRequest,
+    ): Promise<Result<Channel, OpeningError>> {
+        // Must validate the `funding_satoshis` is available in the wallet
+        const hasFunds = await this.wallet.checkWalletHasFunds(options.fundingAmount);
+        if (!hasFunds) return Result.err(new OpeningError(OpeningErrorType.FundsNotAvailable));
+
+        // Must set `chain_hash` to the appropriate value for the the chain
+        // the node wishes to create the channel on. This value is usually
+        // the genesis block in internal byte order of the block hash
+        // (little-endian).
+        const channel = new Channel(options.peer.id, network, true);
+
+        // Must construct a `temporary_channel_id` that is unique to other
+        //  channel ids with the same peer
+        channel.temporaryId = this.createTempChannelId();
+
+        // Should set the `feerate_per_kw` to at least a rate that would
+        // get the transaction immediately included in a block
+        channel.feeRatePerKw = await this.wallet.getFeeRatePerKw();
+
+        // Must validate that `funding_satoshis` is is less than 2^24
+        // when `option_channel_support_large_channels` has not been
+        // negotiated with the peer
+        if (
+            !this.validateFundingAmountMax(
+                options.fundingAmount,
+                options.ourOptions,
+                options.peer.remoteFeatures,
+            )
+        ) {
+            return Result.err(new OpeningError(OpeningErrorType.FundingAmountTooHigh));
+        }
+        channel.fundingAmount = options.fundingAmount;
+
+        // Must set `push_msat` <= 1000 * `funding_satoshi`
+        if (!this.validatePushAmount(options.fundingAmount, options.pushAmount)) {
+            return Result.err(new OpeningError(OpeningErrorType.PushAmountTooHigh));
+        }
+        channel.pushAmount = options.pushAmount;
+
+        // Must validate that the `funding_satoshis` and `push_amt` is
+        // sufficient for full fee payment of the initial commitment
+        // transaction. This should be `724 * feerate_per_kw / 1000`.
+        if (
+            !this.validateFunderFees(
+                options.fundingAmount,
+                options.pushAmount,
+                channel.feeRatePerKw,
+            )
+        ) {
+            return Result.err(new OpeningError(OpeningErrorType.FundingAmountTooLow));
+        }
+
+        // Should set `dust_limit_satoshis` to a value sufficient to propagate transactions is sufficient to propagate transactions by checking with the Bitcoin node using `getDustLimit` subroutine.
+        channel.ourSide.dustLimit = await this.wallet.getDustLimit();
+
+        // Must set `dust_limit_satoshis` \>= 354 satoshis
+        if (!this.validateDustLimit(channel.ourSide.dustLimit)) {
+            return Result.err(new OpeningError(OpeningErrorType.DustLimitTooLow));
+        }
+
+        // Must set `channel_reserve_balance` for use by the opposite node.
+        channel.theirSide.channelReserve = options.channelReserveValue;
+
+        // Must set `channel_reserve_balance` >= sent `dust_limit_satoshis` value.
+        if (
+            !this.validateChannelReserveDustLimit(
+                channel.theirSide.channelReserve,
+                channel.ourSide.dustLimit,
+            )
+        ) {
+            return Result.err(new OpeningError(OpeningErrorType.ChannelReserveTooLow));
+        }
+
+        // Must ensure that at least one of `to_local` and `to_remote`
+        // outputs is > `channel_reserve_balance`.
+        if (
+            !this.validateChannelReserveReachable(
+                channel.fundingAmount,
+                channel.pushAmount,
+                channel.feeRatePerKw,
+                channel.theirSide.channelReserve,
+            )
+        ) {
+            return Result.err(new OpeningError(OpeningErrorType.ChannelReserveUnreachable));
+        }
+
+        // Should set `to_self_delay` to a value in blocks it wishes to
+        // delay the peer's access to its funds in the event it broadcasts
+        // its version of the commitment transaction.
+        channel.theirSide.toSelfDelayBlocks = options.toSelfBlockDelay;
+
+        // Should set `htlc_mimimum_msat` to the minimum value HTLC it
+        // is willing to accept from the peer
+        channel.ourSide.minHtlcValue = options.minHtlcValue;
+
+        // Should set `max_acccepted_htlcs` to the maximum value of HTLCs
+        // it is will to accept from the peer.
+        channel.ourSide.maxAcceptedHtlc = options.maxAcceptedHtlcs;
+
+        // Must set `max_accepted_htlcs` <= 483
+        if (!this.validateMaxAcceptedHtlcs(channel.ourSide.maxAcceptedHtlc)) {
+            return Result.err(new OpeningError(OpeningErrorType.MaxAcceptedHtlcsTooHigh));
+        }
+
+        //  Should set `max_htlc_value_in_flight_msat` to the maximum millisatoshi value your are willing to allow for all HTLCs that are outstanding (both offerred and accepted).
+        channel.ourSide.maxInFlightHtlcValue = options.maxHtlcInFlightValue;
+
+        // Must create a `funding_pubkey` that is a valid point
+        channel.fundingKey = await this.wallet.createFundingKey();
+        channel.ourSide.fundingPubKey = channel.fundingKey.toPubKey(true);
+
+        // Must construct unique and unguessable secrets and generate
+        // valid public keys for `payment_basepoint_`, `_delayed_payment_basepoint_`,
+        // `_htlc_basepoint` and `_revocation_basepoint_`
+        const basePoints = await this.wallet.createBasePointSecrets();
+        channel.paymentBasePointSecret = basePoints.paymentBasePointSecret;
+        channel.delayedBasePointSecret = basePoints.delayedPaymentBasePointSecret;
+        channel.htlcBasePointSecret = basePoints.htlcBasePointSecret;
+        channel.revocationBasePointSecret = basePoints.revocationBasePointSecret;
+        channel.ourSide.paymentBasePoint = channel.paymentBasePointSecret.toPubKey(true);
+        channel.ourSide.delayedBasePoint = channel.delayedBasePointSecret.toPubKey(true);
+        channel.ourSide.htlcBasePoint = channel.htlcBasePointSecret.toPubKey(true);
+        channel.ourSide.revocationBasePoint = channel.revocationBasePointSecret.toPubKey(true);
+
+        // Must obtain a unique and unguessable seed
+        channel.perCommitmentSeed = await this.wallet.createPerCommitmentSeed();
+
+        // Must generate `first_per_commitment_point` from the seed
+        const perCommitmentSecret = new PrivateKey(
+            CommitmentSecret.derive(
+                channel.perCommitmentSeed,
+                channel.ourSide.commitmentNumber.secretIndex,
+            ),
+            channel.network,
+        );
+        channel.ourSide.commitmentPoint = perCommitmentSecret.toPubKey(true);
+
+        return Result.ok(channel);
     }
 }

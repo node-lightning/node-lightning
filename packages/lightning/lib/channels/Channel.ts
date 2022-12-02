@@ -3,7 +3,6 @@ import { ChannelId } from "../domain/ChannelId";
 import { ChannelSide } from "./ChannelSide";
 
 export class Channel {
-    public peerId: string;
     public temporaryId: Buffer;
     public channelId: ChannelId;
 
@@ -23,7 +22,7 @@ export class Channel {
 
     // public state: StateMachine;
 
-    constructor(readonly network: Network, readonly funder: boolean) {
+    constructor(readonly peerId: string, readonly network: Network, readonly funder: boolean) {
         this.ourSide = new ChannelSide();
         this.theirSide = new ChannelSide();
     }

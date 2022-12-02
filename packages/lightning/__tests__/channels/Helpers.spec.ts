@@ -1,7 +1,10 @@
-import { Value } from "@node-lightning/bitcoin";
+import { Network, PrivateKey, Value } from "@node-lightning/bitcoin";
 import { expect } from "chai";
 import { BitField, InitFeatureFlags } from "../../lib";
 import { Helpers } from "../../lib/channels/Helpers";
+import { OpenChannelRequest } from "../../lib/channels/OpenChannelRequest";
+import { OpeningErrorType } from "../../lib/channels/states/opening/OpeningErrorType";
+import { createFakeChannelWallet, createFakeKey, createFakePeer } from "../_test-utils";
 
 describe(Helpers.name, () => {
     describe(Helpers.prototype.createTempChannelId.name, () => {
@@ -322,6 +325,400 @@ describe(Helpers.name, () => {
 
             // assert
             expect(result).to.equal(true);
+        });
+    });
+
+    describe(Helpers.prototype.validateMaxAcceptedHtlcs.name, () => {
+        it("should return true when equal to 483", () => {
+            // arrange
+            const helpers = new Helpers(undefined);
+            const maxAcceptedHtlc = 483;
+
+            // act
+            const result = helpers.validateMaxAcceptedHtlcs(maxAcceptedHtlc);
+
+            // assert
+            expect(result).to.equal(true);
+        });
+
+        it("should return true when less than 483", () => {
+            // arrange
+            const helpers = new Helpers(undefined);
+            const maxAcceptedHtlc = 482;
+
+            // act
+            const result = helpers.validateMaxAcceptedHtlcs(maxAcceptedHtlc);
+
+            // assert
+            expect(result).to.equal(true);
+        });
+
+        it("should return false when above 483", () => {
+            // arrange
+            const helpers = new Helpers(undefined);
+            const maxAcceptedHtlc = 484;
+
+            // act
+            const result = helpers.validateMaxAcceptedHtlcs(maxAcceptedHtlc);
+
+            // assert
+            expect(result).to.equal(false);
+        });
+    });
+
+    describe(Helpers.prototype.createChannel.name, () => {
+        it("should return error when wallet doesn't have enough funds", async () => {
+            // arrange
+            const wallet = createFakeChannelWallet();
+            wallet.checkWalletHasFunds.resolves(false);
+
+            const helpers = new Helpers(wallet);
+
+            const options: OpenChannelRequest = {
+                peer: createFakePeer(),
+                ourOptions: new BitField<InitFeatureFlags>(),
+                fundingAmount: Value.fromSats(1_000_000),
+                pushAmount: Value.fromSats(1000),
+                maxAcceptedHtlcs: 483,
+                minHtlcValue: Value.fromSats(1000),
+                maxHtlcInFlightValue: Value.fromSats(1_000_000),
+                channelReserveValue: Value.fromSats(10_000),
+                toSelfBlockDelay: 144,
+                publicChannel: true,
+            };
+
+            // act
+            const result = await helpers.createChannel(Network.testnet, options);
+
+            // assert
+            expect(result.isErr).to.equal(true);
+            expect(result.error.type).to.equal(OpeningErrorType.FundsNotAvailable);
+        });
+
+        it("should return error when funding amount is invalid", async () => {
+            // arrange
+            const wallet = createFakeChannelWallet();
+            wallet.checkWalletHasFunds.resolves(true);
+
+            const helpers = new Helpers(wallet);
+
+            const options: OpenChannelRequest = {
+                peer: createFakePeer(),
+                ourOptions: new BitField<InitFeatureFlags>(),
+                fundingAmount: Value.fromSats(2 ** 24),
+                pushAmount: Value.fromSats(1000),
+                maxAcceptedHtlcs: 483,
+                minHtlcValue: Value.fromSats(1000),
+                maxHtlcInFlightValue: Value.fromSats(1_000_000),
+                channelReserveValue: Value.fromSats(10_000),
+                toSelfBlockDelay: 144,
+                publicChannel: true,
+            };
+
+            // act
+            const result = await helpers.createChannel(Network.testnet, options);
+
+            // assert
+            expect(result.isErr).to.equal(true);
+            expect(result.error.type).to.equal(OpeningErrorType.FundingAmountTooHigh);
+        });
+
+        it("should return error when funder fee payment is impossible", async () => {
+            // arrange
+            const wallet = createFakeChannelWallet();
+            wallet.checkWalletHasFunds.resolves(true);
+            wallet.getFeeRatePerKw.resolves(Value.fromSats(15000));
+
+            const helpers = new Helpers(wallet);
+
+            const options: OpenChannelRequest = {
+                peer: createFakePeer(),
+                ourOptions: new BitField<InitFeatureFlags>(),
+                fundingAmount: Value.fromSats(1000),
+                pushAmount: Value.fromSats(0),
+                maxAcceptedHtlcs: 483,
+                minHtlcValue: Value.fromSats(1000),
+                maxHtlcInFlightValue: Value.fromSats(1_000_000),
+                channelReserveValue: Value.fromSats(10_000),
+                toSelfBlockDelay: 144,
+                publicChannel: true,
+            };
+
+            // act
+            const result = await helpers.createChannel(Network.testnet, options);
+
+            // assert
+            expect(result.isErr).to.equal(true);
+            expect(result.error.type).to.equal(OpeningErrorType.FundingAmountTooLow);
+        });
+
+        it("should return error when push amount is invalid", async () => {
+            // arrange
+            const wallet = createFakeChannelWallet();
+            wallet.checkWalletHasFunds.resolves(true);
+            wallet.getFeeRatePerKw.resolves(Value.fromSats(0));
+
+            const helpers = new Helpers(wallet);
+
+            const options: OpenChannelRequest = {
+                peer: createFakePeer(),
+                ourOptions: new BitField<InitFeatureFlags>(),
+                fundingAmount: Value.fromSats(500_000),
+                pushAmount: Value.fromSats(500_001),
+                maxAcceptedHtlcs: 483,
+                minHtlcValue: Value.fromSats(1000),
+                maxHtlcInFlightValue: Value.fromSats(1_000_000),
+                channelReserveValue: Value.fromSats(10_000),
+                toSelfBlockDelay: 144,
+                publicChannel: true,
+            };
+
+            // act
+            const result = await helpers.createChannel(Network.testnet, options);
+
+            // assert
+            expect(result.isErr).to.equal(true);
+            expect(result.error.type).to.equal(OpeningErrorType.PushAmountTooHigh);
+        });
+
+        it("should return error when dust limit is invalid", async () => {
+            // arrange
+            const wallet = createFakeChannelWallet();
+            wallet.checkWalletHasFunds.resolves(true);
+            wallet.getFeeRatePerKw.resolves(Value.fromSats(250));
+            wallet.getDustLimit.resolves(Value.fromSats(353));
+
+            const helpers = new Helpers(wallet);
+
+            const options: OpenChannelRequest = {
+                peer: createFakePeer(),
+                ourOptions: new BitField<InitFeatureFlags>(),
+                fundingAmount: Value.fromSats(1_000_000),
+                pushAmount: Value.fromSats(1000),
+                maxAcceptedHtlcs: 483,
+                minHtlcValue: Value.fromSats(1000),
+                maxHtlcInFlightValue: Value.fromSats(1_000_000),
+                channelReserveValue: Value.fromSats(10_000),
+                toSelfBlockDelay: 144,
+                publicChannel: true,
+            };
+
+            // act
+            const result = await helpers.createChannel(Network.testnet, options);
+
+            // assert
+            expect(result.isErr).to.equal(true);
+            expect(result.error.type).to.equal(OpeningErrorType.DustLimitTooLow);
+        });
+
+        it("should return error when channel_reserve is below dust_limit", async () => {
+            // arrange
+            const wallet = createFakeChannelWallet();
+            wallet.checkWalletHasFunds.resolves(true);
+            wallet.getFeeRatePerKw.resolves(Value.fromSats(250));
+            wallet.getDustLimit.resolves(Value.fromSats(354));
+
+            const helpers = new Helpers(wallet);
+
+            const options: OpenChannelRequest = {
+                peer: createFakePeer(),
+                ourOptions: new BitField<InitFeatureFlags>(),
+                fundingAmount: Value.fromSats(1_000_000),
+                pushAmount: Value.fromSats(1000),
+                maxAcceptedHtlcs: 483,
+                minHtlcValue: Value.fromSats(1000),
+                maxHtlcInFlightValue: Value.fromSats(1_000_000),
+                channelReserveValue: Value.fromSats(353),
+                toSelfBlockDelay: 144,
+                publicChannel: true,
+            };
+
+            // act
+            const result = await helpers.createChannel(Network.testnet, options);
+
+            // assert
+            expect(result.isErr).to.equal(true);
+            expect(result.error.type).to.equal(OpeningErrorType.ChannelReserveTooLow);
+        });
+
+        it("should return error when channel_reserve is unreachable", async () => {
+            // arrange
+            const wallet = createFakeChannelWallet();
+            wallet.checkWalletHasFunds.resolves(true);
+            wallet.getFeeRatePerKw.resolves(Value.fromSats(250));
+            wallet.getDustLimit.resolves(Value.fromSats(354));
+
+            const helpers = new Helpers(wallet);
+
+            const options: OpenChannelRequest = {
+                peer: createFakePeer(),
+                ourOptions: new BitField<InitFeatureFlags>(),
+                fundingAmount: Value.fromSats(1_000_000),
+                pushAmount: Value.fromSats(1000),
+                maxAcceptedHtlcs: 483,
+                minHtlcValue: Value.fromSats(1000),
+                maxHtlcInFlightValue: Value.fromSats(1_000_000),
+                channelReserveValue: Value.fromSats(1_000_000),
+                toSelfBlockDelay: 144,
+                publicChannel: true,
+            };
+
+            // act
+            const result = await helpers.createChannel(Network.testnet, options);
+
+            // assert
+            expect(result.isErr).to.equal(true);
+            expect(result.error.type).to.equal(OpeningErrorType.ChannelReserveUnreachable);
+        });
+
+        it("should return error when max_accepted_htlcs is invalid", async () => {
+            // arrange
+            const wallet = createFakeChannelWallet();
+            wallet.checkWalletHasFunds.resolves(true);
+            wallet.getFeeRatePerKw.resolves(Value.fromSats(250));
+            wallet.getDustLimit.resolves(Value.fromSats(354));
+
+            const helpers = new Helpers(wallet);
+
+            const options: OpenChannelRequest = {
+                peer: createFakePeer(),
+                ourOptions: new BitField<InitFeatureFlags>(),
+                fundingAmount: Value.fromSats(1_000_000),
+                pushAmount: Value.fromSats(1000),
+                maxAcceptedHtlcs: 484,
+                minHtlcValue: Value.fromSats(1000),
+                maxHtlcInFlightValue: Value.fromSats(1_000_000),
+                channelReserveValue: Value.fromSats(10_000),
+                toSelfBlockDelay: 144,
+                publicChannel: true,
+            };
+
+            // act
+            const result = await helpers.createChannel(Network.testnet, options);
+
+            // assert
+            expect(result.isErr).to.equal(true);
+            expect(result.error.type).to.equal(OpeningErrorType.MaxAcceptedHtlcsTooHigh);
+        });
+
+        it("should return a partially constructed channel", async () => {
+            // arrange
+            const fundingKey = createFakeKey(1n);
+            const paymentBasePointSecret = createFakeKey(2n);
+            const delayedPaymentBasePointSecret = createFakeKey(3n);
+            const htlcBasePointSecret = createFakeKey(4n);
+            const revocationBasePointSecret = createFakeKey(5n);
+            const perCommitmentSeed = Buffer.alloc(32);
+
+            const wallet = createFakeChannelWallet();
+            wallet.checkWalletHasFunds.resolves(true);
+            wallet.getFeeRatePerKw.resolves(Value.fromSats(250));
+            wallet.getDustLimit.resolves(Value.fromSats(354));
+            wallet.createFundingKey.resolves(fundingKey);
+            wallet.createBasePointSecrets.resolves({
+                paymentBasePointSecret,
+                delayedPaymentBasePointSecret,
+                htlcBasePointSecret,
+                revocationBasePointSecret,
+            });
+            wallet.createPerCommitmentSeed.resolves(perCommitmentSeed);
+
+            const helpers = new Helpers(wallet);
+
+            const options: OpenChannelRequest = {
+                peer: createFakePeer(),
+                ourOptions: new BitField<InitFeatureFlags>(),
+                fundingAmount: Value.fromSats(1_000_000),
+                pushAmount: Value.fromSats(1000),
+                maxAcceptedHtlcs: 483,
+                minHtlcValue: Value.fromSats(1000),
+                maxHtlcInFlightValue: Value.fromSats(1_000_000),
+                channelReserveValue: Value.fromSats(10_000),
+                toSelfBlockDelay: 144,
+                publicChannel: true,
+            };
+
+            // act
+            const result = await helpers.createChannel(Network.testnet, options);
+
+            // assert
+            expect(result.isOk).to.equal(true);
+
+            const channel = result.value;
+            expect(channel.peerId).to.equal(
+                "031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f",
+            );
+            expect(channel.network).to.equal(Network.testnet);
+            expect(channel.funder).to.equal(true);
+            expect(channel.temporaryId.length).to.equal(32);
+
+            expect(channel.feeRatePerKw.sats).to.equal(250n);
+            expect(channel.fundingAmount.sats).to.equal(1_000_000n);
+            expect(channel.pushAmount.sats).to.equal(1000n);
+            expect(channel.fundingKey.toHex()).to.equal(fundingKey.toHex());
+            expect(channel.paymentBasePointSecret.toHex()).to.equal(paymentBasePointSecret.toHex());
+            expect(channel.delayedBasePointSecret.toHex()).to.equal(
+                delayedPaymentBasePointSecret.toHex(),
+            );
+            expect(channel.htlcBasePointSecret.toHex()).to.equal(htlcBasePointSecret.toHex());
+            expect(channel.revocationBasePointSecret.toHex()).to.equal(
+                revocationBasePointSecret.toHex(),
+            );
+            expect(channel.perCommitmentSeed.toString("hex")).to.equal(
+                perCommitmentSeed.toString("hex"),
+            );
+
+            expect(channel.ourSide.commitmentNumber.value).to.equal(0n);
+            expect(channel.ourSide.htlcCounter).to.equal(undefined);
+            expect(channel.ourSide.channelReserve).to.equal(undefined);
+            expect(channel.ourSide.dustLimit.sats).to.equal(354n);
+            expect(channel.ourSide.maxAcceptedHtlc).to.equal(483);
+            expect(channel.ourSide.maxInFlightHtlcValue.sats).to.equal(1_000_000n);
+            expect(channel.ourSide.minHtlcValue.sats).to.equal(1000n);
+            expect(channel.ourSide.toSelfDelayBlocks).to.equal(undefined);
+            expect(channel.ourSide.fundingPubKey.toHex()).to.equal(
+                fundingKey.toPubKey(true).toHex(),
+            );
+            expect(channel.ourSide.paymentBasePoint.toHex()).to.equal(
+                paymentBasePointSecret.toPubKey(true).toHex(),
+            );
+            expect(channel.ourSide.delayedBasePoint.toHex()).to.equal(
+                delayedPaymentBasePointSecret.toPubKey(true).toHex(),
+            );
+            expect(channel.ourSide.htlcBasePoint.toHex()).to.equal(
+                htlcBasePointSecret.toPubKey(true).toHex(),
+            );
+            expect(channel.ourSide.revocationBasePoint.toHex()).to.equal(
+                revocationBasePointSecret.toPubKey(true).toHex(),
+            );
+            expect(channel.ourSide.commitmentPoint.toHex()).to.equal(
+                new PrivateKey(
+                    Buffer.from(
+                        "02a40c85b6f28da08dfdbe0926c53fab2de6d28c10301f8f7c4073d5e42e3148",
+                        "hex",
+                    ),
+                    Network.testnet,
+                )
+                    .toPubKey(true)
+                    .toHex(),
+            );
+            expect(channel.ourSide.nextCommitmentPoint).to.equal(undefined);
+
+            expect(channel.theirSide.commitmentNumber.value).to.equal(0n);
+            expect(channel.theirSide.htlcCounter).to.equal(undefined);
+            expect(channel.theirSide.channelReserve.sats).to.equal(10_000n);
+            expect(channel.theirSide.dustLimit).to.be.equal(undefined);
+            expect(channel.theirSide.maxAcceptedHtlc).to.equal(undefined);
+            expect(channel.theirSide.maxInFlightHtlcValue).to.equal(undefined);
+            expect(channel.theirSide.minHtlcValue).to.equal(undefined);
+            expect(channel.theirSide.toSelfDelayBlocks).to.equal(144);
+            expect(channel.theirSide.fundingPubKey).to.equal(undefined);
+            expect(channel.theirSide.paymentBasePoint).to.equal(undefined);
+            expect(channel.theirSide.delayedBasePoint).to.equal(undefined);
+            expect(channel.theirSide.htlcBasePoint).to.equal(undefined);
+            expect(channel.theirSide.revocationBasePoint).to.equal(undefined);
+            expect(channel.theirSide.commitmentPoint).to.equal(undefined);
+            expect(channel.theirSide.nextCommitmentPoint).to.equal(undefined);
         });
     });
 });

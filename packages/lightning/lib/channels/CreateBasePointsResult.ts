@@ -5,5 +5,4 @@ export type CreateBasePointsResult = {
     delayedPaymentBasePointSecret: PrivateKey;
     htlcBasePointSecret: PrivateKey;
     revocationBasePointSecret: PrivateKey;
-    perCommitmentSeed: PrivateKey;
 };
