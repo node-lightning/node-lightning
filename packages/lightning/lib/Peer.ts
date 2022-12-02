@@ -25,9 +25,12 @@ export interface IMessageReceiver {
 export type IMessageSenderReceiver = IMessageSender & IMessageReceiver;
 
 export interface IPeer extends IMessageSenderReceiver {
+    id: string;
+    isReady: boolean;
     send(buf: Buffer): void;
     sendMessage(msg: IWireMessage): void;
     disconnect(): void;
+    remoteFeatures: BitField<InitFeatureFlags>;
 
     read(): IWireMessage;
     on(event: "ready", listener: () => void): this;
@@ -138,6 +141,10 @@ export class Peer extends Readable implements IPeer {
 
     public get pubkeyHex(): string {
         return this._rpk ? this._rpk.toString("hex") : undefined;
+    }
+
+    public get isReady(): boolean {
+        return this.state === PeerState.Ready;
     }
 
     /**
