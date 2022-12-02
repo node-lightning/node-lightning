@@ -4,6 +4,12 @@ import { sha256 } from "@node-lightning/crypto";
 
 export class CommitmentNumber {
     /**
+     * The commitment number is used per channel per peer. It is a 48-bit
+     * number so the max value is 2^48-1.
+     */
+    public static MAX_COMMITMENT_NUMBER = 281474976710655n;
+
+    /**
      * Using the obscured commitment number, creates a Sequence with
      * the upper byte set to 0x80 and the lower three bytes set to the
      * upper 3 bytes of the 48-bit commitment number.
@@ -80,5 +86,17 @@ export class CommitmentNumber {
     private static getHash(openBasePoint: Buffer, acceptBasePoint: Buffer): bigint {
         const hash = sha256(Buffer.concat([openBasePoint, acceptBasePoint]));
         return bigFromBufBE(hash.slice(hash.length - 6));
+    }
+
+    constructor(public value: bigint) {}
+
+    /**
+     * Defined in BOLT 3, the per-commitment secret is created for each
+     * commitment number. This value is used as input into the key
+     * derivation function that starts its index at 2^48-1 and works
+     * backwards to zero.
+     */
+    public get secretIndex(): bigint {
+        return CommitmentNumber.MAX_COMMITMENT_NUMBER - this.value;
     }
 }
