@@ -17,47 +17,6 @@ describe(Helpers.name, () => {
         });
     });
 
-    describe(Helpers.prototype.validateFundingAmountMin.name, () => {
-        it("should return false when below the amount", () => {
-            // arrange
-            const helpers = new Helpers(undefined);
-            const fundingAmount = Value.fromSats(500);
-            const feeRatePerKw = Value.fromSats(1000);
-
-            // act
-            const result = helpers.validateFundingAmountMin(fundingAmount, feeRatePerKw);
-
-            // assert
-            expect(result).to.equal(false);
-        });
-
-        it("should return false when equal the amount", () => {
-            // arrange
-            const helpers = new Helpers(undefined);
-            const fundingAmount = Value.fromSats(724);
-            const feeRatePerKw = Value.fromSats(1000);
-
-            // act
-            const result = helpers.validateFundingAmountMin(fundingAmount, feeRatePerKw);
-
-            // assert
-            expect(result).to.equal(false);
-        });
-
-        it("should return true when greater the amount", () => {
-            // arrange
-            const helpers = new Helpers(undefined);
-            const fundingAmount = Value.fromSats(1000);
-            const feeRatePerKw = Value.fromSats(1000);
-
-            // act
-            const result = helpers.validateFundingAmountMin(fundingAmount, feeRatePerKw);
-
-            // assert
-            expect(result).to.equal(true);
-        });
-    });
-
     describe(Helpers.prototype.validateFundingAmountMax.name, () => {
         it("returns true when funding over 2**24 with large channels support", () => {
             // arrange
@@ -189,7 +148,7 @@ describe(Helpers.name, () => {
         it("returns false when below 354", () => {
             // arrange
             const helpers = new Helpers(undefined);
-            const dustLimit = Value.fromBitcoin(1);
+            const dustLimit = Value.fromSats(1);
 
             // act
             const result = helpers.validateDustLimit(dustLimit);
@@ -199,5 +158,170 @@ describe(Helpers.name, () => {
         });
     });
 
-    describe(Helpers.prototype.createChannel.name, () => {});
+    describe(Helpers.prototype.validateChannelReserveDustLimit.name, () => {
+        it("should return true when greater than the dust limit", () => {
+            // arrange
+            const helpers = new Helpers(undefined);
+            const dustLimit = Value.fromSats(354);
+            const channelReserve = Value.fromSats(356);
+
+            // act
+            const result = helpers.validateChannelReserveDustLimit(channelReserve, dustLimit);
+
+            // assert
+            expect(result).to.equal(true);
+        });
+
+        it("should return true when equal to the dust limit", () => {
+            // arrange
+            const helpers = new Helpers(undefined);
+            const dustLimit = Value.fromSats(354);
+            const channelReserve = Value.fromSats(354);
+
+            // act
+            const result = helpers.validateChannelReserveDustLimit(channelReserve, dustLimit);
+
+            // assert
+            expect(result).to.equal(true);
+        });
+
+        it("should return false when less than the dust limit", () => {
+            // arrange
+            const helpers = new Helpers(undefined);
+            const dustLimit = Value.fromSats(354);
+            const channelReserve = Value.fromSats(353);
+
+            // act
+            const result = helpers.validateChannelReserveDustLimit(channelReserve, dustLimit);
+
+            // assert
+            expect(result).to.equal(false);
+        });
+    });
+
+    describe(Helpers.prototype.validateChannelReserveReachable.name, () => {
+        it("should return false if funders balance would be negative", () => {
+            // arrange
+            const helpers = new Helpers(undefined);
+            const fundingAmount = Value.fromSats(1);
+            const pushAmount = Value.fromSats(0);
+            const feeRatePerKw = Value.fromSats(1000);
+            const channelReserve = Value.fromSats(1000);
+
+            // act
+            const result = helpers.validateChannelReserveReachable(
+                fundingAmount,
+                pushAmount,
+                feeRatePerKw,
+                channelReserve,
+            );
+
+            // assert
+            expect(result).to.equal(false);
+        });
+
+        it("should return false when both below channel_reserve", () => {
+            // arrange
+            const helpers = new Helpers(undefined);
+            const fundingAmount = Value.fromSats(1000);
+            const pushAmount = Value.fromSats(0);
+            const feeRatePerKw = Value.fromSats(1000);
+            const channelReserve = Value.fromSats(1000);
+
+            // act
+            const result = helpers.validateChannelReserveReachable(
+                fundingAmount,
+                pushAmount,
+                feeRatePerKw,
+                channelReserve,
+            );
+
+            // assert
+            expect(result).to.equal(false);
+        });
+
+        it("should return true local greater than channel_reserve", () => {
+            // arrange
+            const helpers = new Helpers(undefined);
+            const fundingAmount = Value.fromSats(2000);
+            const pushAmount = Value.fromSats(0);
+            const feeRatePerKw = Value.fromSats(1000);
+            const channelReserve = Value.fromSats(1000);
+
+            // act
+            const result = helpers.validateChannelReserveReachable(
+                fundingAmount,
+                pushAmount,
+                feeRatePerKw,
+                channelReserve,
+            );
+
+            // assert
+            expect(result).to.equal(true);
+        });
+
+        it("should return true remote greater than channel_reserve", () => {
+            // arrange
+            const helpers = new Helpers(undefined);
+            const fundingAmount = Value.fromSats(1475);
+            const pushAmount = Value.fromSats(751);
+            const feeRatePerKw = Value.fromSats(1000);
+            const channelReserve = Value.fromSats(750);
+
+            // act
+            const result = helpers.validateChannelReserveReachable(
+                fundingAmount,
+                pushAmount,
+                feeRatePerKw,
+                channelReserve,
+            );
+
+            // assert
+            expect(result).to.equal(true);
+        });
+    });
+
+    describe(Helpers.prototype.validateFunderFees.name, () => {
+        it("should return false if funders value would be negative", () => {
+            // arrange
+            const helpers = new Helpers(undefined);
+            const fundingAmount = Value.fromSats(1000);
+            const pushAmount = Value.fromSats(1000);
+            const feeRatePerKw = Value.fromSats(1000);
+
+            // act
+            const result = helpers.validateFunderFees(fundingAmount, pushAmount, feeRatePerKw);
+
+            // assert
+            expect(result).to.equal(false);
+        });
+
+        it("should return false when funder can't pay fees", () => {
+            // arrange
+            const helpers = new Helpers(undefined);
+            const fundingAmount = Value.fromSats(1724);
+            const pushAmount = Value.fromSats(1000);
+            const feeRatePerKw = Value.fromSats(1000);
+
+            // act
+            const result = helpers.validateFunderFees(fundingAmount, pushAmount, feeRatePerKw);
+
+            // assert
+            expect(result).to.equal(false);
+        });
+
+        it("should return true when funder can pay fees", () => {
+            // arrange
+            const helpers = new Helpers(undefined);
+            const fundingAmount = Value.fromSats(1725);
+            const pushAmount = Value.fromSats(1000);
+            const feeRatePerKw = Value.fromSats(1000);
+
+            // act
+            const result = helpers.validateFunderFees(fundingAmount, pushAmount, feeRatePerKw);
+
+            // assert
+            expect(result).to.equal(true);
+        });
+    });
 });

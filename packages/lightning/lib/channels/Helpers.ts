@@ -24,23 +24,6 @@ export class Helpers {
     }
 
     /**
-     * Validates that the channel is large enough to pay fees at the
-     * current feerate. This is calculated as
-     *
-     * ```
-     * fees = 724 * fee_rate_per_kw / 100
-     * ```
-     * @param fundingAmount
-     * @param feeRatePerKw
-     * @returns
-     */
-    public validateFundingAmountMin(fundingAmount: Value, feeRatePerKw: Value): boolean {
-        const baseCommitmentTxWeight = 724n;
-        const minAmount = (baseCommitmentTxWeight * feeRatePerKw.sats) / 1000n;
-        return fundingAmount.sats > minAmount;
-    }
-
-    /**
      * Validates that the funding amount is less than 2^24 if the peers
      * have not negotiated `option_support_large_channel`. If they have
      * than any amount is valid.
@@ -76,7 +59,7 @@ export class Helpers {
      * @param pushAmount
      * @returns
      */
-    public validatePushAmount(fundingAmount: Value, pushAmount: Value) {
+    public validatePushAmount(fundingAmount: Value, pushAmount: Value): boolean {
         return pushAmount.lte(fundingAmount);
     }
 
@@ -91,7 +74,75 @@ export class Helpers {
      * supports any segwit version transactions.
      * @param dustLimit
      */
-    public validateDustLimit(dustLimit: Value) {
+    public validateDustLimit(dustLimit: Value): boolean {
         return dustLimit.gte(Value.fromSats(354));
+    }
+
+    /**
+     * As defined in BOLT 2, we must ensure that when a `channel_reserve`
+     * value is sent to the peer, it needs to be gte our nodes
+     * `dust_limit_satoshi`.
+     *
+     * @param channelReserve
+     * @param dustLimit
+     */
+    public validateChannelReserveDustLimit(channelReserve: Value, dustLimit: Value): boolean {
+        return channelReserve.gte(dustLimit);
+    }
+
+    /**
+     * As specified in BOLT 2 an `open_channel` message's `channel_reserve`
+     * value will be failed if both the `to_local` and `to_remote` values
+     * are below the `channel_reserve` value. This rule exists to ensure
+     * that the `channel_reserve`
+     * @param fundingAmount
+     * @param pushAmount
+     * @param channelReserve
+     */
+    public validateChannelReserveReachable(
+        fundingAmount: Value,
+        pushAmount: Value,
+        feeRatePerKw: Value,
+        channelReserve: Value,
+    ) {
+        const baseCommitmentTxWeight = 724n;
+        const fees = Value.fromSats((baseCommitmentTxWeight * feeRatePerKw.sats) / 1000n);
+
+        if (pushAmount.addn(fees).gt(fundingAmount)) {
+            return false;
+        }
+
+        const funderBalance = fundingAmount.subn(pushAmount).subn(fees);
+        const fundeeBalance = pushAmount;
+
+        return funderBalance.gt(channelReserve) || fundeeBalance.gt(channelReserve);
+    }
+
+    /**
+     * Validates that the funder has enough balance to pay fees at the
+     * specified `feerate_per_kw`. The fees are calculated as
+     *
+     * ```
+     * fees = 724 * `feerate_per_kw` / 100
+     * ```
+     *
+     * We calculate the initial funder's balance as the `funding_amount`
+     * less the `push_amount`.
+     * @param fundingAmount
+     * @param feeRatePerKw
+     * @returns
+     */
+    public validateFunderFees(
+        fundingAmount: Value,
+        pushAmount: Value,
+        feeRatePerKw: Value,
+    ): boolean {
+        const baseCommitmentTxWeight = 724n;
+        const fees = (baseCommitmentTxWeight * feeRatePerKw.sats) / 1000n;
+
+        if (pushAmount.gt(fundingAmount)) return false;
+
+        const fundersBalance = fundingAmount.subn(pushAmount);
+        return fundersBalance.sats > fees;
     }
 }
