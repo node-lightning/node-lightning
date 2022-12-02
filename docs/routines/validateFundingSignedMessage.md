@@ -1,4 +1,4 @@
-## Subroutine `validateFundingSigned`
+## Subroutine `validateFundingSignedMessage`
 
 Inputs:
 
