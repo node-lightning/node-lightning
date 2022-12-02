@@ -1,4 +1,5 @@
 import { Value, PublicKey } from "@node-lightning/bitcoin";
+import { CommitmentNumber } from "./CommitmentNumber";
 
 export class ChannelSide {
     public dustLimit: Value;
@@ -16,6 +17,6 @@ export class ChannelSide {
     public commitmentPoint: PublicKey;
     public nextCommitmentPoint: PublicKey;
 
-    public commitmentCounter: number = 0;
+    public commitmentCounter: CommitmentNumber = new CommitmentNumber(0n);
     public htlcCounter: number = undefined;
 }

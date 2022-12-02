@@ -23,5 +23,8 @@ export class Channel {
 
     // public state: StateMachine;
 
-    constructor(readonly network: Network, readonly funder: boolean) {}
+    constructor(readonly network: Network, readonly funder: boolean) {
+        this.ourSide = new ChannelSide();
+        this.theirSide = new ChannelSide();
+    }
 }
