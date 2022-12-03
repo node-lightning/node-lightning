@@ -46,12 +46,12 @@ describe("OpenChannelMessage", () => {
                 "0000000000000000000000000000000000000000000000000000000000000000",
                 "hex",
             );
-            instance.fundingSatoshis = Value.fromSats(200000);
-            instance.pushMsat = Value.fromMilliSats(2000);
-            instance.dustLimitSatoshis = Value.fromSats(330);
-            instance.maxHtlcValueInFlightMsat = Value.fromMilliSats(20000);
-            instance.channelReserveSatoshis = Value.fromSats(2000);
-            instance.htlcMinimumMsat = Value.fromMilliSats(200);
+            instance.fundingAmount = Value.fromSats(200000);
+            instance.pushAmount = Value.fromMilliSats(2000);
+            instance.dustLimit = Value.fromSats(330);
+            instance.maxHtlcValueInFlight = Value.fromMilliSats(20000);
+            instance.channelReserve = Value.fromSats(2000);
+            instance.minHtlcValue = Value.fromMilliSats(200);
             instance.feeRatePerKw = Value.fromSats(1000);
             instance.toSelfDelay = 144;
             instance.maxAcceptedHtlcs = 30;
@@ -96,12 +96,12 @@ describe("OpenChannelMessage", () => {
                 "0000000000000000000000000000000000000000000000000000000000000000",
                 "hex",
             );
-            instance.fundingSatoshis = Value.fromSats(200000);
-            instance.pushMsat = Value.fromMilliSats(2000);
-            instance.dustLimitSatoshis = Value.fromSats(330);
-            instance.maxHtlcValueInFlightMsat = Value.fromMilliSats(20000);
-            instance.channelReserveSatoshis = Value.fromSats(2000);
-            instance.htlcMinimumMsat = Value.fromMilliSats(200);
+            instance.fundingAmount = Value.fromSats(200000);
+            instance.pushAmount = Value.fromMilliSats(2000);
+            instance.dustLimit = Value.fromSats(330);
+            instance.maxHtlcValueInFlight = Value.fromMilliSats(20000);
+            instance.channelReserve = Value.fromSats(2000);
+            instance.minHtlcValue = Value.fromMilliSats(200);
             instance.feeRatePerKw = Value.fromSats(1000);
             instance.toSelfDelay = 144;
             instance.maxAcceptedHtlcs = 30;
@@ -146,12 +146,12 @@ describe("OpenChannelMessage", () => {
                 "0000000000000000000000000000000000000000000000000000000000000000",
                 "hex",
             );
-            instance.fundingSatoshis = Value.fromSats(200000);
-            instance.pushMsat = Value.fromMilliSats(2000);
-            instance.dustLimitSatoshis = Value.fromSats(330);
-            instance.maxHtlcValueInFlightMsat = Value.fromMilliSats(20000);
-            instance.channelReserveSatoshis = Value.fromSats(2000);
-            instance.htlcMinimumMsat = Value.fromMilliSats(200);
+            instance.fundingAmount = Value.fromSats(200000);
+            instance.pushAmount = Value.fromMilliSats(2000);
+            instance.dustLimit = Value.fromSats(330);
+            instance.maxHtlcValueInFlight = Value.fromMilliSats(20000);
+            instance.channelReserve = Value.fromSats(2000);
+            instance.minHtlcValue = Value.fromMilliSats(200);
             instance.feeRatePerKw = Value.fromSats(1000);
             instance.toSelfDelay = 144;
             instance.maxAcceptedHtlcs = 30;
@@ -234,12 +234,12 @@ describe("OpenChannelMessage", () => {
                     "hex",
                 ),
             );
-            expect(instance.fundingSatoshis.sats).to.equal(BigInt(200000));
-            expect(instance.pushMsat.msats).to.equal(BigInt(2000));
-            expect(instance.dustLimitSatoshis.sats).to.equal(BigInt(330));
-            expect(instance.maxHtlcValueInFlightMsat.msats).to.equal(BigInt(20000));
-            expect(instance.channelReserveSatoshis.sats).to.equal(BigInt(2000));
-            expect(instance.htlcMinimumMsat.msats).to.equal(BigInt(200));
+            expect(instance.fundingAmount.sats).to.equal(BigInt(200000));
+            expect(instance.pushAmount.msats).to.equal(BigInt(2000));
+            expect(instance.dustLimit.sats).to.equal(BigInt(330));
+            expect(instance.maxHtlcValueInFlight.msats).to.equal(BigInt(20000));
+            expect(instance.channelReserve.sats).to.equal(BigInt(2000));
+            expect(instance.minHtlcValue.msats).to.equal(BigInt(200));
             expect(Number(instance.feeRatePerKw.sats)).to.equal(1000);
             expect(instance.toSelfDelay).to.equal(144);
             expect(instance.maxAcceptedHtlcs).to.equal(30);
