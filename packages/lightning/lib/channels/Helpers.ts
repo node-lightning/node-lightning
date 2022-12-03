@@ -1,17 +1,16 @@
 /* eslint-disable @typescript-eslint/require-await */
-import { Network, PrivateKey, Value } from "@node-lightning/bitcoin";
+import { HashByteOrder, Network, PrivateKey, Value } from "@node-lightning/bitcoin";
 import { randomBytes } from "crypto";
 import { BitField } from "../BitField";
-import { CommitmentNumber } from "./CommitmentNumber";
 import { CommitmentSecret } from "./CommitmentSecret";
 import { InitFeatureFlags } from "../flags/InitFeatureFlags";
 import { Result } from "../Result";
 import { Channel } from "./Channel";
-import { ChannelSide } from "./ChannelSide";
 import { IChannelWallet } from "./IChannelWallet";
 import { OpenChannelRequest } from "./OpenChannelRequest";
 import { OpeningError } from "./states/opening/OpeningError";
 import { OpeningErrorType } from "./states/opening/OpeningErrorType";
+import { OpenChannelMessage } from "../messages/OpenChannelMessage";
 
 export class Helpers {
     constructor(readonly wallet: IChannelWallet) {}
@@ -307,5 +306,33 @@ export class Helpers {
         channel.ourSide.commitmentPoint = perCommitmentSecret.toPubKey(true);
 
         return Result.ok(channel);
+    }
+
+    public async createOpenChannelMessage(channel: Channel): Promise<OpenChannelMessage> {
+        const msg = new OpenChannelMessage();
+        msg.chainHash = channel.network.genesisHash.serialize(HashByteOrder.Internal);
+        msg.temporaryChannelId = channel.temporaryId;
+
+        msg.fundingAmount = channel.fundingAmount;
+        msg.pushAmount = channel.pushAmount;
+        msg.feeRatePerKw = channel.feeRatePerKw;
+        msg.dustLimit = channel.ourSide.dustLimit;
+        msg.maxAcceptedHtlcs = channel.ourSide.maxAcceptedHtlc;
+        msg.minHtlcValue = channel.ourSide.minHtlcValue;
+        msg.maxHtlcValueInFlight = channel.ourSide.maxInFlightHtlcValue;
+
+        msg.channelReserve = channel.theirSide.channelReserve;
+        msg.toSelfDelay = channel.theirSide.toSelfDelayBlocks;
+
+        msg.fundingPubKey = channel.ourSide.fundingPubKey.toBuffer();
+        msg.paymentBasePoint = channel.ourSide.paymentBasePoint.toBuffer();
+        msg.delayedPaymentBasePoint = channel.ourSide.delayedBasePoint.toBuffer();
+        msg.htlcBasePoint = channel.ourSide.htlcBasePoint.toBuffer();
+        msg.revocationBasePoint = channel.ourSide.htlcBasePoint.toBuffer();
+        msg.firstPerCommitmentPoint = channel.ourSide.commitmentPoint.toBuffer();
+
+        msg.announceChannel = channel.isPublic;
+
+        return msg;
     }
 }

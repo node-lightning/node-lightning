@@ -5,6 +5,7 @@ import { ChannelSide } from "./ChannelSide";
 export class Channel {
     public temporaryId: Buffer;
     public channelId: ChannelId;
+    public isPublic: boolean;
 
     public feeRatePerKw: Value;
     public fundingAmount: Value;
