@@ -1,10 +1,17 @@
 import { Network, PrivateKey, Value } from "@node-lightning/bitcoin";
 import { expect } from "chai";
-import { BitField, InitFeatureFlags } from "../../lib";
+import { BitField, InitFeatureFlags, IPeer, OpenChannelMessage } from "../../lib";
+import { Channel } from "../../lib/channels/Channel";
 import { Helpers } from "../../lib/channels/Helpers";
+import { IChannelWallet } from "../../lib/channels/IChannelWallet";
 import { OpenChannelRequest } from "../../lib/channels/OpenChannelRequest";
 import { OpeningErrorType } from "../../lib/channels/states/opening/OpeningErrorType";
-import { createFakeChannelWallet, createFakeKey, createFakePeer } from "../_test-utils";
+import {
+    createFakeChannel,
+    createFakeChannelWallet,
+    createFakeKey,
+    createFakePeer,
+} from "../_test-utils";
 
 describe(Helpers.name, () => {
     describe(Helpers.prototype.createTempChannelId.name, () => {
@@ -719,6 +726,71 @@ describe(Helpers.name, () => {
             expect(channel.theirSide.revocationBasePoint).to.equal(undefined);
             expect(channel.theirSide.commitmentPoint).to.equal(undefined);
             expect(channel.theirSide.nextCommitmentPoint).to.equal(undefined);
+        });
+    });
+
+    describe(Helpers.prototype.createOpenChannelMessage.name, () => {
+        it("constructs the message from properties", async () => {
+            // arrange
+            const ourFundingSecret = createFakeKey(1n);
+            const ourPaymentSecret = createFakeKey(2n);
+            const ourDelayedPaymentSecret = createFakeKey(3n);
+            const ourHtlcSecret = createFakeKey(4n);
+            const ourRevocationSecret = createFakeKey(5n);
+            const ourPerCommitmentSeed = Buffer.alloc(32);
+
+            const wallet: IChannelWallet = undefined;
+            const helpers = new Helpers(wallet);
+            const channel = createFakeChannel({
+                ourFundingSecret,
+                ourPaymentSecret,
+                ourDelayedPaymentSecret,
+                ourHtlcSecret,
+                ourRevocationSecret,
+                ourPerCommitmentSeed,
+            });
+
+            // act
+            const result = await helpers.createOpenChannelMessage(channel);
+
+            // assert
+            expect(result).to.be.instanceOf(OpenChannelMessage);
+            expect(result.chainHash.toString("hex")).to.equal(
+                "43497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea330900000000",
+            );
+            expect(result.temporaryChannelId.toString("hex")).to.equal(
+                "0000000000000000000000000000000000000000000000000000000000000000",
+            );
+            expect(result.fundingAmount.sats).to.equal(200000n);
+            expect(result.pushAmount.sats).to.equal(2000n);
+            expect(result.feeRatePerKw.sats).to.equal(1000n);
+            expect(result.dustLimit.sats).to.equal(330n);
+            expect(result.maxAcceptedHtlcs).to.equal(30);
+            expect(result.minHtlcValue.sats).to.equal(200n);
+            expect(result.maxHtlcValueInFlight.msats).to.equal(20000n);
+            expect(result.channelReserve.sats).to.equal(2000n);
+            expect(result.toSelfDelay).to.equal(144);
+
+            expect(result.fundingPubKey.toString("hex")).to.equal(
+                ourFundingSecret.toPubKey(true).toHex(),
+            );
+            expect(result.paymentBasePoint.toString("hex")).to.equal(
+                ourPaymentSecret.toPubKey(true).toHex(),
+            );
+            expect(result.delayedPaymentBasePoint.toString("hex")).to.equal(
+                ourDelayedPaymentSecret.toPubKey(true).toHex(),
+            );
+            expect(result.htlcBasePoint.toString("hex")).to.equal(
+                ourHtlcSecret.toPubKey(true).toHex(),
+            );
+            expect(result.revocationBasePoint.toString("hex")).to.equal(
+                ourRevocationSecret.toPubKey(true).toHex(),
+            );
+            expect(result.firstPerCommitmentPoint.toString("hex")).to.equal(
+                channel.ourSide.commitmentPoint.toHex(),
+            );
+
+            expect(result.announceChannel).to.equal(true);
         });
     });
 });

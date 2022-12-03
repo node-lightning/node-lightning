@@ -1,42 +1,26 @@
 ## Subroutine `createOpenChannelMessage`
 
-Construct and return `open_channel` message based on rules in [BOLT 2](https://github.com/lightning/bolts/blob/master/02-peer-protocol.md#the-open_channel-message).
+Construct and return `open_channel` message based on an established channel object.
 
 Inputs:
 
 -   `channel`
 
-Calls:
-
--   `checkWalletHasFunds`
--   `createTempChannelId`
--   `calcBestFeeRatePerKw`
--   `getDustLimit`
--   `createFundingPubKey`
--   `createBasePointSecrets`
--   `createPerCommitmentSecret`
-
-1. Must validate the `funding_satoshis` is available in the wallet by calling `checkWalletHasFunds` subroutine.
-1. Must set `chain_hash` to the appropriate value for the the chain the node wishes to create the channel on. This value is usually the genesis block in internal byte order of the block hash (little-endian).
-1. Must construct a `temporary_channel_id` that is unique to other channel ids with the same peer using the `createTempChannelId` subroutine.
-1. Should set the `feerate_per_kw` to at least a rate that would get the transaction immediately included in a block by calling `calcBestFeeRatePerKw`.
-1. Must validate that `funding_satoshis` is is less than 2^24 when `option_channel_support_large_channels` has not been negotiated.
-1. Must validate that the `funding_satoshis` is sufficient for full fee payment of the initial commitment transaction. This should be `724 * feerate_per_kw / 1000`.
-1. Must set `push_msat` <= 1000 \* `funding_satoshi`.
-1. Must set `dust_limit_satoshis` \>= 354 satoshis as calculated from [BOLT 3](https://github.com/lightning/bolts/blob/93909f67f6a48ee3f155a6224c182e612dd5f187/03-transactions.md#per-commitment-secret-requirements).
-1. Should set `dust_limit_satoshis` to a value sufficient to propagate transactions is sufficient to propagate transactions by checking with the Bitcoin node using `getDustLimit` subroutine.
-1. Must set `channel_reserve_balance` for use by the opposite node.
-1. Must set `channel_reserve_balance` >= sent `dust_limit_satoshis` value.
-1. Must ensure that at least one of `to_local` and `to_remote` outputs is > `channel_reserve_balance`.
-1. Should set `to_self_delay` to a value in blocks it wishes to delay the peer's access to its funds in the event it broadcasts its version of the commitment transaction.
-1. Should set `htlc_mimimum_msat` to the minimum value HTLC it is willing to accept from the peer
-1. Should set `max_acccepted_htlcs` to the maximum value of HTLCs it is will to accept from the peer.
-1. Must set `max_accepted_htlcs` <= 483
-1. Should set `max_htlc_value_in_flight_msat` to the maximum millisatoshi value your are willing to allow for all HTLCs that are outstanding (both offerred and accepted).
-1. Must create a `funding_pubkey` that is a valid point using the `createFundingPubKey` subroutine.
-1. Must construct unique and unguessable secrets and generate valid public keys for `payment_basepoint_`, `_delayed_payment_basepoint_`, `_htlc_basepoint` and `_revocation_basepoint_` by calling the `createBasePointSecrets`.
-1. Must obtain a unique and unguessable seed using `createCommitmentSeed` subroutine.
-1. Must generate `first_per_commitment_point` by calling`createPerCommitmentSecret` subroutine.
-
-**Notes:**
-Does not include notes for `option_support_large_channel`, `option_upfront_shutdown_script` or `option_channel_type`.
+1. Sets `chain_hash` to the appropriate value for the the chain the node wishes to create the channel on. This value is usually the genesis block in internal byte order of the block hash (little-endian).
+1. Sets the `temporary_channel_id` that is unique to other channel ids with the same peer
+1. Sets the `funding_satoshis` value that will be included in the first commitment transaction as the funder's value
+1. Sets the `push_msat` value that will be included in the first commitment transaction as the fundee's value
+1. Sets the `feerate_per_kw` value that will be used for the commitment transaction and HTLC-Success and HTLC-Timeout transactions
+1. Sets the `dust_limit_satoshis` value that is used for the funder's version of the commitment transaction
+1. Sets the `channel_reserve_balance` value that must be maintained by the fundee's side of the channel (once achieved)
+1. Sets the `to_self_delay` value that the fundee must wait before claiming their local outputs in their version of the commitment transaction or secondary HTLC transactions
+1. Sets the `htlc_mimimum_msat` value that the funder is willing to accept
+1. Sets the `max_acccepted_htlcs` value that the funder is willing to accept
+1. Sets the `max_htlc_value_in_flight_msat` value that the funder is willing to allow
+1. Sets the `funding_pubkey` used by the funder
+1. Sets the `payment_basepoint` used by the funder
+1. Sets the `delayed_payment_basepoint` used by the funder
+1. Sets the `htlc_basepoint` used by the funder
+1. Sets the `revocation_basepoint` used by the funder
+1. Sets the `first_per_commitment_point` used by the funder for their first commitment transaction
+1. Sets whether the funder wishes the channel be be public

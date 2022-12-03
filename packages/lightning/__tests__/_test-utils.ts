@@ -1,13 +1,15 @@
 import { BitField } from "../lib/BitField";
 import { ILogger, Logger } from "@node-lightning/logger";
 import { Readable } from "stream";
-import { IWireMessage } from "../lib";
+import { IPeer, IWireMessage } from "../lib";
 import { InitFeatureFlags } from "../lib/flags/InitFeatureFlags";
 import bech32 from "bech32";
 import { IChannelWallet } from "../lib/channels/IChannelWallet";
 import Sinon from "sinon";
-import { Network, PrivateKey, PublicKey } from "@node-lightning/bitcoin";
+import { Network, PrivateKey, PublicKey, Value } from "@node-lightning/bitcoin";
 import { bigToBufBE } from "@node-lightning/bufio";
+import { Channel } from "../lib/channels/Channel";
+import { ChannelSide } from "../lib/channels/ChannelSide";
 
 export class FakePeer extends Readable {
     public state;
@@ -73,4 +75,55 @@ export function createFakeChannelWallet(): Sinon.SinonStubbedInstance<IChannelWa
 
 export function createFakeKey(value: bigint, network: Network = Network.testnet): PrivateKey {
     return new PrivateKey(bigToBufBE(value, 32), network);
+}
+
+export function createFakeChannel(
+    options: Partial<{
+        peerId: string;
+        network: Network;
+        isFunder: boolean;
+        isPublic: boolean;
+        temporaryId: Buffer;
+        fundingAmount: Value;
+        pushAmount: Value;
+        feeRatePerKw: Value;
+        ourSide: Partial<ChannelSide>;
+        theirSide: Partial<ChannelSide>;
+        ourFundingSecret: PrivateKey;
+        ourPaymentSecret: PrivateKey;
+        ourDelayedPaymentSecret: PrivateKey;
+        ourHtlcSecret: PrivateKey;
+        ourRevocationSecret: PrivateKey;
+        ourPerCommitmentSeed: Buffer;
+    }>,
+): Channel {
+    const peer: IPeer = options.peerId ?? createFakePeer().id;
+    const network = options.network ?? Network.testnet;
+    const isFunder = options.isFunder ?? true;
+    const channel = new Channel(peer.id, network, isFunder);
+
+    channel.temporaryId = options.temporaryId ?? Buffer.alloc(32);
+    channel.fundingAmount = options.fundingAmount ?? Value.fromSats(200_000);
+    channel.pushAmount = options.pushAmount ?? Value.fromSats(2_000);
+    channel.feeRatePerKw = options.feeRatePerKw ?? Value.fromSats(1000);
+    channel.isPublic = options.isPublic ?? true;
+    channel.ourSide.dustLimit = options.ourSide?.dustLimit ?? Value.fromSats(330);
+    channel.ourSide.minHtlcValue = options.ourSide?.minHtlcValue ?? Value.fromSats(200);
+    channel.ourSide.maxAcceptedHtlc = options.ourSide?.maxAcceptedHtlc ?? 30;
+    channel.ourSide.maxInFlightHtlcValue = options.ourSide?.maxInFlightHtlcValue ?? Value.fromMilliSats(20_000); // prettier-ignore
+
+    channel.theirSide.channelReserve = options.theirSide?.channelReserve ?? Value.fromSats(2_000);
+    channel.theirSide.toSelfDelayBlocks = options.theirSide?.toSelfDelayBlocks ?? 144;
+
+    channel.fundingKey = options.ourFundingSecret ?? createFakeKey(1n);
+    channel.paymentBasePointSecret = options.ourPaymentSecret ?? createFakeKey(2n);
+    channel.delayedBasePointSecret = options.ourDelayedPaymentSecret ?? createFakeKey(3n);
+    channel.htlcBasePointSecret = options.ourHtlcSecret ?? createFakeKey(4n);
+    channel.revocationBasePointSecret = options.ourRevocationSecret ?? createFakeKey(5n);
+    channel.perCommitmentSeed = options.ourPerCommitmentSeed ?? Buffer.alloc(32);
+    channel.ourSide.commitmentPoint = channel
+        .getPerCommitmentSecret(channel.ourSide.commitmentNumber)
+        .toPubKey(true);
+
+    return channel;
 }

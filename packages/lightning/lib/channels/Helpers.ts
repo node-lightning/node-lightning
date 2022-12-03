@@ -277,7 +277,6 @@ export class Helpers {
 
         // Must create a `funding_pubkey` that is a valid point
         channel.fundingKey = await this.wallet.createFundingKey();
-        channel.ourSide.fundingPubKey = channel.fundingKey.toPubKey(true);
 
         // Must construct unique and unguessable secrets and generate
         // valid public keys for `payment_basepoint_`, `_delayed_payment_basepoint_`,
@@ -287,10 +286,6 @@ export class Helpers {
         channel.delayedBasePointSecret = basePoints.delayedPaymentBasePointSecret;
         channel.htlcBasePointSecret = basePoints.htlcBasePointSecret;
         channel.revocationBasePointSecret = basePoints.revocationBasePointSecret;
-        channel.ourSide.paymentBasePoint = channel.paymentBasePointSecret.toPubKey(true);
-        channel.ourSide.delayedBasePoint = channel.delayedBasePointSecret.toPubKey(true);
-        channel.ourSide.htlcBasePoint = channel.htlcBasePointSecret.toPubKey(true);
-        channel.ourSide.revocationBasePoint = channel.revocationBasePointSecret.toPubKey(true);
 
         // Must obtain a unique and unguessable seed
         channel.perCommitmentSeed = await this.wallet.createPerCommitmentSeed();
@@ -328,7 +323,7 @@ export class Helpers {
         msg.paymentBasePoint = channel.ourSide.paymentBasePoint.toBuffer();
         msg.delayedPaymentBasePoint = channel.ourSide.delayedBasePoint.toBuffer();
         msg.htlcBasePoint = channel.ourSide.htlcBasePoint.toBuffer();
-        msg.revocationBasePoint = channel.ourSide.htlcBasePoint.toBuffer();
+        msg.revocationBasePoint = channel.ourSide.revocationBasePoint.toBuffer();
         msg.firstPerCommitmentPoint = channel.ourSide.commitmentPoint.toBuffer();
 
         msg.announceChannel = channel.isPublic;
