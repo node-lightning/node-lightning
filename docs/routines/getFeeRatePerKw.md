@@ -1,4 +1,4 @@
-## Subroutine `calcBestFeeRatePerKw`
+## Subroutine `getFeeRatePerKw`
 
 Obtains a `feerate_per_kw` that will ensure a transaction will be immediately included in a block. This feerate will be used by the commitment transaction and HTLC-Success and HTLC-Timeout secondary transactions.
 

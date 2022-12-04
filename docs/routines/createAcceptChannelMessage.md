@@ -11,7 +11,7 @@ Calls:
 
 -   `createFundingSecret`
 -   `createBasePointSecrets`
--   `createCommitmentSeed`
+-   `createPerCommitmentSeed`
 -   `createPerCommitmentSecret`
 
 1. Must set `temporary_channel_id` as provided in `open_channel`
@@ -26,5 +26,5 @@ Calls:
 1. Should set `max_htlc_value_in_flight_msat` to the maximum millisatoshi value your are willing to allow for all HTLCs that are outstanding (both offerred and accepted).
 1. Must create a `funding_pubkey` that is a valid point using the `createFundingSecret` subroutine.
 1. Must construct unique and unguessable secrets and generate valid public keys for `payment_basepoint`, `delayed_payment_basepoint`, `htlc_basepoint` and `revocation_basepoint` by calling `createBasePointSecrets` subroutine
-1. Must obtain a unique and unguessable seed by calling `createCommitmentSeed` suboutine.
+1. Must obtain a unique and unguessable seed by calling `createPerCommitmentSeed` suboutine.
 1. Must generate `first_per_commitment_point` by calling `createPerCommitmentSecret` subroutine.
