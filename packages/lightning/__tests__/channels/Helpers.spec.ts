@@ -1,7 +1,6 @@
 import { Network, PrivateKey, Value } from "@node-lightning/bitcoin";
 import { expect } from "chai";
-import { BitField, InitFeatureFlags, IPeer, OpenChannelMessage } from "../../lib";
-import { Channel } from "../../lib/channels/Channel";
+import { BitField, InitFeatureFlags, OpenChannelMessage } from "../../lib";
 import { Helpers } from "../../lib/channels/Helpers";
 import { IChannelWallet } from "../../lib/channels/IChannelWallet";
 import { OpenChannelRequest } from "../../lib/channels/OpenChannelRequest";

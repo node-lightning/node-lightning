@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/require-await */
-import { HashByteOrder, Network, PrivateKey, Value } from "@node-lightning/bitcoin";
+import { HashByteOrder, Network, Value } from "@node-lightning/bitcoin";
 import { randomBytes } from "crypto";
 import { BitField } from "../BitField";
-import { CommitmentSecret } from "./CommitmentSecret";
 import { InitFeatureFlags } from "../flags/InitFeatureFlags";
 import { Result } from "../Result";
 import { Channel } from "./Channel";
@@ -291,14 +290,9 @@ export class Helpers {
         channel.perCommitmentSeed = await this.wallet.createPerCommitmentSeed();
 
         // Must generate `first_per_commitment_point` from the seed
-        const perCommitmentSecret = new PrivateKey(
-            CommitmentSecret.derive(
-                channel.perCommitmentSeed,
-                channel.ourSide.commitmentNumber.secretIndex,
-            ),
-            channel.network,
-        );
-        channel.ourSide.commitmentPoint = perCommitmentSecret.toPubKey(true);
+        channel.ourSide.commitmentPoint = channel
+            .getPerCommitmentSecret(channel.ourSide.commitmentNumber)
+            .toPubKey(true);
 
         return Result.ok(channel);
     }

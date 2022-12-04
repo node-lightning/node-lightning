@@ -1,4 +1,4 @@
-import { Network, PrivateKey, PublicKey, Value } from "@node-lightning/bitcoin";
+import { Network, PrivateKey, Value } from "@node-lightning/bitcoin";
 import { ChannelId } from "../domain/ChannelId";
 import { ChannelSide } from "./ChannelSide";
 import { CommitmentNumber } from "./CommitmentNumber";

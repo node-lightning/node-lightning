@@ -99,4 +99,11 @@ export class CommitmentNumber {
     public get secretIndex(): bigint {
         return CommitmentNumber.MAX_COMMITMENT_NUMBER - this.value;
     }
+
+    /**
+     * Gets the next commitment number
+     */
+    public next(): CommitmentNumber {
+        return new CommitmentNumber(this.value + 1n);
+    }
 }
