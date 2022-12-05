@@ -94,7 +94,21 @@ export class Helpers {
      * As specified in BOLT 2 an `open_channel` message's `channel_reserve`
      * value will be failed if both the `to_local` and `to_remote` values
      * are below the `channel_reserve` value. This rule exists to ensure
-     * that the `channel_reserve`
+     * that the `channel_reserve` cannot be maliciously set to prevent the
+     * fundee from being able to send via the channel. It also guards
+     * against channels that are underfunded and are unable to pay the
+     * at the fee rate.
+     *
+     * The fees are calculated as
+     *
+     * ```
+     * fees = 724 * `feerate_per_kw` / 100
+     * ```
+     *
+     * We calculate the initial funder's balance as the `funding_amount`
+     * less the `push_amount` and `fees`.
+     *
+
      * @param fundingAmount
      * @param pushAmount
      * @param channelReserve
