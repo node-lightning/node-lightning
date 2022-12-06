@@ -8,7 +8,7 @@ import {
     TxOut,
     Value,
 } from "@node-lightning/bitcoin";
-import { CommitmentNumber } from "./CommitmentNumber";
+import { CommitmentNumber } from "../channels/CommitmentNumber";
 import { Htlc } from "./Htlc";
 import { HtlcDirection } from "./HtlcDirection";
 import { ScriptFactory } from "./ScriptFactory";
