@@ -3,6 +3,7 @@ import { ChannelId } from "../domain/ChannelId";
 import { ChannelSide } from "./ChannelSide";
 import { CommitmentNumber } from "./CommitmentNumber";
 import { CommitmentSecret } from "./CommitmentSecret";
+import { StateMachine } from "./StateMachine";
 
 export class Channel {
     public temporaryId: Buffer;
@@ -69,7 +70,7 @@ export class Channel {
     public ourSide: ChannelSide;
     public theirSide: ChannelSide;
 
-    // public state: StateMachine;
+    public state: StateMachine;
 
     constructor(readonly peerId: string, readonly network: Network, readonly funder: boolean) {
         this.ourSide = new ChannelSide();

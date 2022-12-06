@@ -1,7 +1,7 @@
 import { BitField } from "../lib/BitField";
 import { ILogger, Logger } from "@node-lightning/logger";
 import { Readable } from "stream";
-import { IPeer, IWireMessage } from "../lib";
+import { IWireMessage } from "../lib";
 import { InitFeatureFlags } from "../lib/flags/InitFeatureFlags";
 import bech32 from "bech32";
 import { IChannelWallet } from "../lib/channels/IChannelWallet";
@@ -10,6 +10,10 @@ import { Network, PrivateKey, PublicKey, Value } from "@node-lightning/bitcoin";
 import { bigToBufBE } from "@node-lightning/bufio";
 import { Channel } from "../lib/channels/Channel";
 import { ChannelSide } from "../lib/channels/ChannelSide";
+import { IChannelLogic } from "../lib/channels/IChannelLogic";
+import { Helpers } from "../lib/channels/Helpers";
+import { StateMachine } from "../lib/channels/StateMachine";
+import { IChannelStorage } from "../lib/channels/IChannelStorage";
 
 export class FakePeer extends Readable {
     public state;
@@ -23,9 +27,11 @@ export class FakePeer extends Readable {
     public remoteChains: Buffer[] = [];
     public remoteFeatures = new BitField<InitFeatureFlags>();
 
-    public constructor() {
+    public constructor(
+        privateKey: PrivateKey = new PrivateKey(Buffer.alloc(32, 0x1), Network.testnet),
+    ) {
         super({ objectMode: true });
-        this.nodePrivateKey = new PrivateKey(Buffer.alloc(32, 0x1), Network.testnet);
+        this.nodePrivateKey = privateKey;
         this.nodePublicKey = this.nodePrivateKey.toPubKey(true);
         this.id = this.nodePublicKey.toHex();
     }
@@ -43,8 +49,8 @@ export class FakePeer extends Readable {
     }
 }
 
-export function createFakePeer(): any {
-    return new FakePeer();
+export function createFakePeer(privateKey?: PrivateKey): any {
+    return new FakePeer(privateKey);
 }
 
 export function createFakeLogger(): ILogger {
@@ -73,8 +79,11 @@ export function createFakeChannelWallet(): Sinon.SinonStubbedInstance<IChannelWa
     };
 }
 
-export function createFakeKey(value: bigint, network: Network = Network.testnet): PrivateKey {
-    return new PrivateKey(bigToBufBE(value, 32), network);
+export function createFakeKey(
+    value: bigint | number,
+    network: Network = Network.testnet,
+): PrivateKey {
+    return new PrivateKey(bigToBufBE(BigInt(value), 32), network);
 }
 
 export function createFakeChannel(
@@ -97,10 +106,10 @@ export function createFakeChannel(
         ourPerCommitmentSeed: Buffer;
     }>,
 ): Channel {
-    const peer: IPeer = options.peerId ?? createFakePeer().id;
+    const peerId = options.peerId ?? (createFakePeer().id as string);
     const network = options.network ?? Network.testnet;
     const isFunder = options.isFunder ?? true;
-    const channel = new Channel(peer.id, network, isFunder);
+    const channel = new Channel(peerId, network, isFunder);
 
     channel.temporaryId = options.temporaryId ?? Buffer.alloc(32);
     channel.fundingAmount = options.fundingAmount ?? Value.fromSats(200_000);
@@ -126,4 +135,14 @@ export function createFakeChannel(
         .toPubKey(true);
 
     return channel;
+}
+
+export function createFakeChannelLogicFacade(): Sinon.SinonStubbedInstance<IChannelLogic> {
+    return Sinon.createStubInstance(Helpers);
+}
+
+export function createFakeChannelStorage(): Sinon.SinonStubbedInstance<IChannelStorage> {
+    return {
+        save: Sinon.stub(),
+    };
 }
