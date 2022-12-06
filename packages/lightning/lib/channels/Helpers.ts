@@ -10,8 +10,9 @@ import { OpenChannelRequest } from "./OpenChannelRequest";
 import { OpeningError } from "./states/opening/OpeningError";
 import { OpeningErrorType } from "./states/opening/OpeningErrorType";
 import { OpenChannelMessage } from "../messages/OpenChannelMessage";
+import { IChannelLogic } from "./IChannelLogic";
 
-export class Helpers {
+export class Helpers implements IChannelLogic {
     constructor(readonly wallet: IChannelWallet) {}
 
     /**
@@ -118,7 +119,7 @@ export class Helpers {
         pushAmount: Value,
         feeRatePerKw: Value,
         channelReserve: Value,
-    ) {
+    ): boolean {
         const baseCommitmentTxWeight = 724n;
         const fees = Value.fromSats((baseCommitmentTxWeight * feeRatePerKw.sats) / 1000n);
 
@@ -168,7 +169,7 @@ export class Helpers {
      * @param maxAcceptedHtlcs
      * @returns
      */
-    public validateMaxAcceptedHtlcs(maxAcceptedHtlcs: number) {
+    public validateMaxAcceptedHtlcs(maxAcceptedHtlcs: number): boolean {
         return maxAcceptedHtlcs <= 483;
     }
 
