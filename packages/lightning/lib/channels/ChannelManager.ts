@@ -70,7 +70,7 @@ export class ChannelManager {
             const newState = this.findState(newStateName);
 
             // exit for old state
-            await channel.state.onExit(channel, newState);
+            await oldState.onExit(channel, newState);
 
             // set the new state
             channel.state = newState;

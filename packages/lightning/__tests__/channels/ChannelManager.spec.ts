@@ -279,6 +279,7 @@ describe(ChannelManager.name, () => {
                 .addSubState(c);
         });
 
+        describe("initial state", () => {
         it("no change", async () => {
             // arrange
             const channel = createFakeChannel({});
@@ -287,8 +288,7 @@ describe(ChannelManager.name, () => {
             // act
             await sut.transitionState(channel, "A");
 
-            expect((a.onEnter as Sinon.SinonSpy).called).to.equal(false, "shouldn't call onEnter");
-            expect((a.onExit as Sinon.SinonSpy).called).to.equal(false, "shouldn't call onExit");
+                );
             expect(storage.save.called).to.equal(false, "should not call save");
             expect(channel.state).to.equal(a, "state=A");
         });
@@ -321,7 +321,7 @@ describe(ChannelManager.name, () => {
             // act
             await sut.transitionState(channel, "B");
 
-            expect((a.onEnter as Sinon.SinonSpy).called).to.equal(false, "no-call onEnter for A");
+                    "no-call onEnter for A",
             expect((a.onExit as Sinon.SinonSpy).called).to.equal(true, "call onExit for A");
             expect((b.onEnter as Sinon.SinonSpy).called).to.equal(true, "call onEnter for B");
             expect((b.onExit as Sinon.SinonSpy).called).to.equal(true, "call onExit for B");
@@ -329,6 +329,8 @@ describe(ChannelManager.name, () => {
             expect((c.onExit as Sinon.SinonSpy).called).to.equal(false, "no-call onExit for C");
             expect(storage.save.called).to.equal(true, "call save");
             expect(channel.state).to.equal(c, "state=C");
+            });
+    });
         });
     });
 });
