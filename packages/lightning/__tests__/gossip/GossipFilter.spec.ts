@@ -18,7 +18,7 @@ import fs from "fs";
 import path from "path";
 import { GossipMemoryStore } from "../../lib/gossip/GossipMemoryStore";
 import { WireErrorCode } from "../../lib/WireError";
-import { MessageFactory } from "../../lib";
+import { MessageFactory } from "../../lib/MessageFactory";
 import { GossipFilterResult } from "../../lib/gossip/GossipFilterResult";
 
 class FakeChainClient implements IGossipFilterChainClient {

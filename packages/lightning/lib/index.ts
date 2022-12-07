@@ -1,8 +1,7 @@
-import * as MF from "./MessageFactory";
-
 // tslint:disable-next-line: variable-name
-export const MessageFactory = MF;
+
 export * from "./Constants";
+export * from "./MessageFactory";
 export * from "./MessageType";
 export * from "./Peer";
 export * from "./PeerManager";

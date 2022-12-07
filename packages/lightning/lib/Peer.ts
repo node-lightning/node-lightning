@@ -5,7 +5,7 @@ import { NoiseSocket } from "@node-lightning/noise";
 import assert from "assert";
 import { Readable } from "stream";
 import { InitFeatureFlags } from "./flags/InitFeatureFlags";
-import * as MessageFactory from "./MessageFactory";
+import { MessageFactory } from "./MessageFactory";
 import { InitMessage } from "./messages/InitMessage";
 import { IWireMessage } from "./messages/IWireMessage";
 import { PeerState } from "./PeerState";
