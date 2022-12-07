@@ -792,4 +792,39 @@ describe(Helpers.name, () => {
             expect(result.announceChannel).to.equal(true);
         });
     });
+
+    describe(Helpers.prototype.validateFundingDepth.name, () => {
+        it("returns false when above 144", () => {
+            // arrange
+            const helpers = new Helpers(undefined);
+
+            // act
+            const result = helpers.validateFundingDepth(145);
+
+            // assert
+            expect(result).to.equal(false);
+        });
+
+        it("returns true when equal to 144", () => {
+            // arrange
+            const helpers = new Helpers(undefined);
+
+            // act
+            const result = helpers.validateFundingDepth(144);
+
+            // assert
+            expect(result).to.equal(true);
+        });
+
+        it("returns true when below to 144", () => {
+            // arrange
+            const helpers = new Helpers(undefined);
+
+            // act
+            const result = helpers.validateFundingDepth(143);
+
+            // assert
+            expect(result).to.equal(true);
+        });
+    });
 });
