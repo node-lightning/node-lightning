@@ -4,6 +4,13 @@ import { IChannelStorage } from "./IChannelStorage";
 import { ILogger } from "@node-lightning/logger";
 import { StateMachine } from "./StateMachine";
 import { IChannelLogic } from "./IChannelLogic";
+import { IPeer } from "../Peer";
+import { Result } from "../Result";
+import { OpenChannelRequest } from "./OpenChannelRequest";
+import { OpeningError } from "./states/opening/OpeningError";
+import { OpeningErrorType } from "./states/opening/OpeningErrorType";
+import { AwaitingAcceptChannelState } from "./states/opening/AwaitingAcceptChannelState";
+import { PeerState } from "../PeerState";
 
 /**
  *
@@ -85,5 +92,42 @@ export class ChannelManager {
             // to transition
             oldState = newState;
         }
+    }
+
+    /**
+     * Transition #1. Performs the user controlled function of opening a
+     * channel. If channel creation is successful then we transition to
+     * the channel's first state.
+     * @param peer
+     * @param request
+     * @returns
+     */
+    public async openChannel(
+        peer: IPeer,
+        request: OpenChannelRequest,
+    ): Promise<Result<Channel, OpeningError>> {
+        // Ensure peer is connected
+        if (peer.state !== PeerState.Ready) {
+            return Result.err(new OpeningError(OpeningErrorType.PeerNotReady));
+        }
+
+        // Build channel from the data
+        const result = await this.logic.createChannel(this.network, request);
+        if (!result.isOk) return result;
+
+        // We now have a channel we can do stuff with
+        const channel = result.value;
+
+        // Create the open_channel message
+        const message = await this.logic.createOpenChannelMessage(channel);
+
+        // Send open_channel to the peer
+        peer.sendMessage(message);
+
+        // Save the initial state
+        await this.transitionState(channel, AwaitingAcceptChannelState.name);
+
+        // Return true result with the channel
+        return Result.ok(channel);
     }
 }

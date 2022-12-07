@@ -26,7 +26,7 @@ export type IMessageSenderReceiver = IMessageSender & IMessageReceiver;
 
 export interface IPeer extends IMessageSenderReceiver {
     id: string;
-    isReady: boolean;
+    state: PeerState;
     send(buf: Buffer): void;
     sendMessage(msg: IWireMessage): void;
     disconnect(): void;

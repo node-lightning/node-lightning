@@ -2,16 +2,25 @@ import { Network } from "@node-lightning/bitcoin";
 import { ILogger } from "@node-lightning/logger";
 import { expect } from "chai";
 import Sinon from "sinon";
+import { IPeer, OpenChannelMessage, PeerState } from "../../lib";
 import { ChannelManager } from "../../lib/channels/ChannelManager";
 import { IChannelLogic } from "../../lib/channels/IChannelLogic";
 import { IChannelStorage } from "../../lib/channels/IChannelStorage";
+import { OpenChannelRequest } from "../../lib/channels/OpenChannelRequest";
 import { StateMachine } from "../../lib/channels/StateMachine";
+import { StateMachineFactory } from "../../lib/channels/StateMachineFactory";
+import { AwaitingAcceptChannelState } from "../../lib/channels/states/opening/AwaitingAcceptChannelState";
+import { OpeningError } from "../../lib/channels/states/opening/OpeningError";
+import { OpeningErrorType } from "../../lib/channels/states/opening/OpeningErrorType";
+import { Result } from "../../lib/Result";
 import {
     createFakeChannel,
     createFakeChannelLogicFacade,
     createFakeChannelStorage,
     createFakeKey,
     createFakeLogger,
+    createFakePeer,
+    FakePeer,
 } from "../_test-utils";
 
 describe(ChannelManager.name, () => {
@@ -280,57 +289,166 @@ describe(ChannelManager.name, () => {
         });
 
         describe("initial state", () => {
-        it("no change", async () => {
-            // arrange
-            const channel = createFakeChannel({});
-            channel.state = a;
+            it("single change", async () => {
+                // arrange
+                const channel = createFakeChannel({});
 
-            // act
-            await sut.transitionState(channel, "A");
+                // act
+                await sut.transitionState(channel, "B");
 
+                expect((a.onEnter as Sinon.SinonSpy).called).to.equal(
+                    false,
+                    "should not call onEnter for A",
                 );
-            expect(storage.save.called).to.equal(false, "should not call save");
-            expect(channel.state).to.equal(a, "state=A");
-        });
-
-        it("single change", async () => {
-            // arrange
-            const channel = createFakeChannel({});
-            channel.state = a;
-
-            // act
-            await sut.transitionState(channel, "B");
-
-            expect((a.onEnter as Sinon.SinonSpy).called).to.equal(
-                false,
-                "should not call onEnter for A",
-            );
-            expect((a.onExit as Sinon.SinonSpy).called).to.equal(true, "call onExit for A");
-            expect((b.onEnter as Sinon.SinonSpy).called).to.equal(true, "call onEnter for B");
-            expect((b.onExit as Sinon.SinonSpy).called).to.equal(false, "no-call onExit for B");
-            expect(storage.save.called).to.equal(true, "call save");
-            expect(channel.state).to.equal(b, "state=B");
-        });
-
-        it("onExit change", async () => {
-            // arrange
-            const channel = createFakeChannel({});
-            channel.state = a;
-            (b.onEnter as Sinon.SinonStub).resolves("C");
-
-            // act
-            await sut.transitionState(channel, "B");
-
-                    "no-call onEnter for A",
-            expect((a.onExit as Sinon.SinonSpy).called).to.equal(true, "call onExit for A");
-            expect((b.onEnter as Sinon.SinonSpy).called).to.equal(true, "call onEnter for B");
-            expect((b.onExit as Sinon.SinonSpy).called).to.equal(true, "call onExit for B");
-            expect((c.onEnter as Sinon.SinonSpy).called).to.equal(true, "call onEnter for C");
-            expect((c.onExit as Sinon.SinonSpy).called).to.equal(false, "no-call onExit for C");
-            expect(storage.save.called).to.equal(true, "call save");
-            expect(channel.state).to.equal(c, "state=C");
+                expect((b.onEnter as Sinon.SinonSpy).called).to.equal(true, "call onEnter for B");
+                expect((b.onExit as Sinon.SinonSpy).called).to.equal(false, "no-call onExit for B");
+                expect(storage.save.called).to.equal(true, "call save");
+                expect(channel.state).to.equal(b, "state=B");
             });
+        });
+
+        describe("assigned state", () => {
+            it("no change", async () => {
+                // arrange
+                const channel = createFakeChannel({});
+                channel.state = a;
+
+                // act
+                await sut.transitionState(channel, "A");
+
+                expect((a.onEnter as Sinon.SinonSpy).called).to.equal(
+                    false,
+                    "shouldn't call onEnter",
+                );
+                expect((a.onExit as Sinon.SinonSpy).called).to.equal(
+                    false,
+                    "shouldn't call onExit",
+                );
+                expect(storage.save.called).to.equal(false, "should not call save");
+                expect(channel.state).to.equal(a, "state=A");
+            });
+
+            it("single change", async () => {
+                // arrange
+                const channel = createFakeChannel({});
+                channel.state = a;
+
+                // act
+                await sut.transitionState(channel, "B");
+
+                expect((a.onEnter as Sinon.SinonSpy).called).to.equal(
+                    false,
+                    "should not call onEnter for A",
+                );
+                expect((a.onExit as Sinon.SinonSpy).called).to.equal(true, "call onExit for A");
+                expect((b.onEnter as Sinon.SinonSpy).called).to.equal(true, "call onEnter for B");
+                expect((b.onExit as Sinon.SinonSpy).called).to.equal(false, "no-call onExit for B");
+                expect(storage.save.called).to.equal(true, "call save");
+                expect(channel.state).to.equal(b, "state=B");
+            });
+
+            it("onExit change", async () => {
+                // arrange
+                const channel = createFakeChannel({});
+                channel.state = a;
+                (b.onEnter as Sinon.SinonStub).resolves("C");
+
+                // act
+                await sut.transitionState(channel, "B");
+
+                expect((a.onEnter as Sinon.SinonSpy).called).to.equal(
+                    false,
+                    "no-call onEnter for A",
+                );
+                expect((a.onExit as Sinon.SinonSpy).called).to.equal(true, "call onExit for A");
+                expect((b.onEnter as Sinon.SinonSpy).called).to.equal(true, "call onEnter for B");
+                expect((b.onExit as Sinon.SinonSpy).called).to.equal(true, "call onExit for B");
+                expect((c.onEnter as Sinon.SinonSpy).called).to.equal(true, "call onEnter for C");
+                expect((c.onExit as Sinon.SinonSpy).called).to.equal(false, "no-call onExit for C");
+                expect(storage.save.called).to.equal(true, "call save");
+                expect(channel.state).to.equal(c, "state=C");
+            });
+        });
     });
+
+    describe(ChannelManager.prototype.openChannel.name, () => {
+        let logger: ILogger;
+        let logic: Sinon.SinonStubbedInstance<IChannelLogic>;
+        let storage: Sinon.SinonStubbedInstance<IChannelStorage>;
+        let sut: ChannelManager;
+        let peer: FakePeer;
+
+        beforeEach(() => {
+            logger = createFakeLogger();
+            logic = createFakeChannelLogicFacade();
+            storage = createFakeChannelStorage();
+            peer = createFakePeer();
+            sut = new ChannelManager(
+                logger,
+                Network.testnet,
+                logic,
+                storage,
+                new StateMachineFactory(logger, logic).construct(),
+            );
+        });
+
+        it("returns error if peer not ready", async () => {
+            // arrange
+            peer.state = PeerState.Disconnected;
+            const request = new OpenChannelRequest();
+
+            // act
+            const result = await sut.openChannel(peer as IPeer, request);
+
+            // assert
+            expect(result.isErr).to.equal(true);
+            expect(result.error.type).to.equal(OpeningErrorType.PeerNotReady);
+        });
+
+        it("returns error if constructing the channel fails for reasons in createChannel", async () => {
+            // arrange
+            peer.state = PeerState.Ready;
+            const request = new OpenChannelRequest();
+            logic.createChannel.resolves(
+                Result.err(new OpeningError(OpeningErrorType.FundsNotAvailable)),
+            );
+
+            // act
+            const result = await sut.openChannel(peer, request);
+
+            // assert
+            expect(result.isErr).to.equal(true);
+            expect(result.error.type).to.equal(OpeningErrorType.FundsNotAvailable);
+        });
+
+        it("sends the message to the peer", async () => {
+            // arrange
+            peer.state = PeerState.Ready;
+            const request = new OpenChannelRequest();
+            logic.createChannel.resolves(Result.ok(createFakeChannel({})));
+            logic.createOpenChannelMessage.resolves(new OpenChannelMessage());
+
+            // act
+            const result = await sut.openChannel(peer, request);
+
+            // assert
+            expect(result.isOk).to.equal(true);
+            expect(peer.sendMessage.called).to.equal(true);
+            expect(peer.sendMessage.args[0][0]).to.be.instanceOf(OpenChannelMessage);
+        });
+
+        it("transitions to AwaitingAcceptMessage state", async () => {
+            // arrange
+            peer.state = PeerState.Ready;
+            const request = new OpenChannelRequest();
+            logic.createChannel.resolves(Result.ok(createFakeChannel({})));
+
+            // act
+            const result = await sut.openChannel(peer, request);
+
+            // assert
+            expect(result.isOk).to.equal(true);
+            expect(result.value.state).is.instanceOf(AwaitingAcceptChannelState);
         });
     });
 });
