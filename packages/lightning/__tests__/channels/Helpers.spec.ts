@@ -168,43 +168,116 @@ describe(Helpers.name, () => {
     });
 
     describe(Helpers.prototype.validateChannelReserveDustLimit.name, () => {
-        it("should return true when greater than the dust limit", () => {
-            // arrange
-            const helpers = new Helpers(undefined);
-            const dustLimit = Value.fromSats(354);
-            const channelReserve = Value.fromSats(356);
+        describe("open_channel", () => {
+            it("should return true when greater than the dust limit", () => {
+                // arrange
+                const helpers = new Helpers(undefined);
+                const openDustLimit = Value.fromSats(354);
+                const openChannelReserve = Value.fromSats(356);
 
-            // act
-            const result = helpers.validateChannelReserveDustLimit(channelReserve, dustLimit);
+                // act
+                const result = helpers.validateChannelReserveDustLimit(
+                    openChannelReserve,
+                    openDustLimit,
+                );
 
-            // assert
-            expect(result).to.equal(true);
+                // assert
+                expect(result).to.equal(true);
+            });
+
+            it("should return true when equal to the dust limit", () => {
+                // arrange
+                const helpers = new Helpers(undefined);
+                const openDustLimit = Value.fromSats(354);
+                const openChannelReserve = Value.fromSats(354);
+
+                // act
+                const result = helpers.validateChannelReserveDustLimit(
+                    openChannelReserve,
+                    openDustLimit,
+                );
+
+                // assert
+                expect(result).to.equal(true);
+            });
+
+            it("should return false when less than the dust limit", () => {
+                // arrange
+                const helpers = new Helpers(undefined);
+                const openDustLimit = Value.fromSats(354);
+                const openChannelReserve = Value.fromSats(353);
+
+                // act
+                const result = helpers.validateChannelReserveDustLimit(
+                    openChannelReserve,
+                    openDustLimit,
+                );
+
+                // assert
+                expect(result).to.equal(false);
+            });
         });
 
-        it("should return true when equal to the dust limit", () => {
-            // arrange
-            const helpers = new Helpers(undefined);
-            const dustLimit = Value.fromSats(354);
-            const channelReserve = Value.fromSats(354);
+        describe("accept_channel", () => {
+            it("should return true when both dust_limit <= channel_reserve", () => {
+                // arrange
+                const helpers = new Helpers(undefined);
+                const openDustLimit = Value.fromSats(354);
+                const openChannelReserve = Value.fromSats(354);
+                const acceptDustLimit = Value.fromSats(354);
+                const acceptChannelReserve = Value.fromSats(354);
 
-            // act
-            const result = helpers.validateChannelReserveDustLimit(channelReserve, dustLimit);
+                // act
+                const result = helpers.validateChannelReserveDustLimit(
+                    openChannelReserve,
+                    openDustLimit,
+                    acceptChannelReserve,
+                    acceptDustLimit,
+                );
 
-            // assert
-            expect(result).to.equal(true);
-        });
+                // assert
+                expect(result).to.equal(true);
+            });
 
-        it("should return false when less than the dust limit", () => {
-            // arrange
-            const helpers = new Helpers(undefined);
-            const dustLimit = Value.fromSats(354);
-            const channelReserve = Value.fromSats(353);
+            it("should return false when funder channel_reserve too low", () => {
+                // arrange
+                const helpers = new Helpers(undefined);
+                const openDustLimit = Value.fromSats(354);
+                const openChannelReserve = Value.fromSats(354);
+                const acceptDustLimit = Value.fromSats(354);
+                const acceptChannelReserve = Value.fromSats(353);
 
-            // act
-            const result = helpers.validateChannelReserveDustLimit(channelReserve, dustLimit);
+                // act
+                const result = helpers.validateChannelReserveDustLimit(
+                    openChannelReserve,
+                    openDustLimit,
+                    acceptChannelReserve,
+                    acceptDustLimit,
+                );
 
-            // assert
-            expect(result).to.equal(false);
+                // assert
+                expect(result).to.equal(false);
+            });
+
+            it("should return false when fundee dust_limit too high", () => {
+                // arrange
+                const helpers = new Helpers(undefined);
+                const openDustLimit = Value.fromSats(354);
+                const openChannelReserve = Value.fromSats(354);
+                const acceptDustLimit = Value.fromSats(355);
+                const acceptChannelReserve = Value.fromSats(354);
+
+                // act
+                const result = helpers.validateChannelReserveDustLimit(
+                    openChannelReserve,
+                    openDustLimit,
+                    acceptChannelReserve,
+                    acceptDustLimit,
+                );
+
+                // assert
+                expect(result).to.equal(false);
+            });
         });
     });
 
@@ -825,6 +898,40 @@ describe(Helpers.name, () => {
 
             // assert
             expect(result).to.equal(true);
+        });
+    });
+
+    describe(Helpers.prototype.validateToSelfDelay.name, () => {
+        it("should return true when below 2016", () => {
+            // arrange
+            const helpers = new Helpers(undefined);
+
+            // act
+            const result = helpers.validateToSelfDelay(2015);
+
+            // assert
+            expect(result).to.equal(true);
+        });
+
+        it("should return false when equal to 2016", () => {
+            // arrange
+            const helpers = new Helpers(undefined);
+
+            // act
+            const result = helpers.validateToSelfDelay(2016);
+
+            // assert
+            expect(result).to.equal(false);
+        });
+        it("should return false when above 2016", () => {
+            // arrange
+            const helpers = new Helpers(undefined);
+
+            // act
+            const result = helpers.validateToSelfDelay(2017);
+
+            // assert
+            expect(result).to.equal(false);
         });
     });
 });

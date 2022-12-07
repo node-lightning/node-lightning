@@ -81,15 +81,35 @@ export class Helpers implements IChannelLogic {
     }
 
     /**
-     * As defined in BOLT 2, we must ensure that when a `channel_reserve`
-     * value is sent to the peer, it needs to be gte our nodes
-     * `dust_limit_satoshi`.
+     * BOLT 2 specifies that the `dust_limit` must be <= `channel_reserve`.
+     * Recall that the `dust_limit` value in `open_channel` and
+     * `accept_channel` is for the sender and the `channel_reserve`
+     * value is for the recipient.
      *
-     * @param channelReserve
-     * @param dustLimit
+     * Initially this method only validates the `open_channel` message
+     * validating that the funder's `dust_limit` is <= the fundee's
+     * `channel_reserve`.
+     *
+     * When `accept_channel` is received we can perform a cross
+     * comparison to ensure that both the funder and the fundee have
+     * a `dust_limit` <= the their respective `channel_reserve`.
+     * @param openDustLimit
+     * @param openChannelReserve
+     * @param acceptDustLimit
+     * @param acceptChannelReserve
+     * @returns
      */
-    public validateChannelReserveDustLimit(channelReserve: Value, dustLimit: Value): boolean {
-        return channelReserve.gte(dustLimit);
+    public validateChannelReserveDustLimit(
+        openChannelReserve: Value,
+        openDustLimit: Value,
+        acceptChannelReserve?: Value,
+        acceptDustLimit?: Value,
+    ): boolean {
+        const openValid = openDustLimit.lte(openChannelReserve);
+        const acceptValid = acceptDustLimit
+            ? acceptDustLimit.lte(openChannelReserve) && openDustLimit.lte(acceptChannelReserve)
+            : true;
+        return openValid && acceptValid;
     }
 
     /**
@@ -360,7 +380,20 @@ export class Helpers implements IChannelLogic {
      * @param depth
      * @returns
      */
-    public validateFundingDepth(depth: number) {
+    public validateFundingDepth(depth: number): boolean {
         return depth <= 144;
+    }
+
+    /**
+     * BOLT2 specifies that we must validate the `to_self_delay` value
+     * when receiving the `open_channel` or `accept_channel` message.
+     * While there is no hard limit the receiving node should not subject
+     * itself to possible denial-of-service attacks. A reasonable value
+     * is 1 day to 2 weeks or (1008 or 2016 blocks).
+     * @param toSelfDelay
+     * @returns
+     */
+    public validateToSelfDelay(toSelfDelay: number): boolean {
+        return toSelfDelay < 2016;
     }
 }
