@@ -1,7 +1,7 @@
 import { BitField } from "../lib/BitField";
 import { ILogger, Logger } from "@node-lightning/logger";
 import { Readable } from "stream";
-import { IWireMessage } from "../lib";
+import { IPeer, IWireMessage, PeerState } from "../lib";
 import { InitFeatureFlags } from "../lib/flags/InitFeatureFlags";
 import bech32 from "bech32";
 import { IChannelWallet } from "../lib/channels/IChannelWallet";
@@ -12,11 +12,11 @@ import { Channel } from "../lib/channels/Channel";
 import { ChannelSide } from "../lib/channels/ChannelSide";
 import { IChannelLogic } from "../lib/channels/IChannelLogic";
 import { Helpers } from "../lib/channels/Helpers";
-import { StateMachine } from "../lib/channels/StateMachine";
 import { IChannelStorage } from "../lib/channels/IChannelStorage";
+import { OpenChannelRequest } from "../lib/channels/OpenChannelRequest";
 
-export class FakePeer extends Readable {
-    public state;
+export class FakePeer extends Readable implements IPeer {
+    public state: PeerState;
     public send = Sinon.stub();
     public sendMessage = Sinon.stub();
     public nodePrivateKey: PrivateKey;
@@ -49,7 +49,7 @@ export class FakePeer extends Readable {
     }
 }
 
-export function createFakePeer(privateKey?: PrivateKey): any {
+export function createFakePeer(privateKey?: PrivateKey): FakePeer {
     return new FakePeer(privateKey);
 }
 
@@ -84,6 +84,34 @@ export function createFakeKey(
     network: Network = Network.testnet,
 ): PrivateKey {
     return new PrivateKey(bigToBufBE(BigInt(value), 32), network);
+}
+
+export function createFakeOpenChannelRequest(
+    options: Partial<{
+        peer: IPeer;
+        ourOptions: BitField<InitFeatureFlags>;
+        fundingAmount: Value;
+        pushAmount: Value;
+        maxHtlcInFlightValue: Value;
+        minHtlcValue: Value;
+        maxAcceptedHtlcs: number;
+        channelReserveValue: Value;
+        toSelfBlockDelay: number;
+        publicChannel: boolean;
+    }>,
+): OpenChannelRequest {
+    return {
+        peer: options.peer ?? createFakePeer(),
+        fundingAmount: options.fundingAmount ?? Value.fromSats(200_000),
+        pushAmount: options.pushAmount ?? Value.fromSats(2_000),
+        ourOptions: options.ourOptions ?? new BitField<InitFeatureFlags>(),
+        maxHtlcInFlightValue: options.maxHtlcInFlightValue ?? Value.fromMilliSats(20_000),
+        minHtlcValue: options.minHtlcValue ?? Value.fromSats(200),
+        maxAcceptedHtlcs: options.maxAcceptedHtlcs ?? 30,
+        channelReserveValue: options.channelReserveValue ?? Value.fromSats(2_000),
+        toSelfBlockDelay: options.toSelfBlockDelay ?? 144,
+        publicChannel: options.publicChannel ?? true,
+    };
 }
 
 export function createFakeChannel(
