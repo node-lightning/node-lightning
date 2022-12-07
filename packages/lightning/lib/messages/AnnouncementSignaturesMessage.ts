@@ -17,6 +17,8 @@ import { IWireMessage } from "./IWireMessage";
  * bitcoin_key.
  */
 export class AnnouncementSignaturesMessage implements IWireMessage {
+    public static type = MessageType.AnnouncementSignatures;
+
     /**
      * Deserializes a Buffer into an AnnouncementSignaturesMessage.
      */
