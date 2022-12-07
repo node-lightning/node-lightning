@@ -1,7 +1,12 @@
 import { AcceptChannelMessage } from "./messages/AcceptChannelMessage";
+import { AnnouncementSignaturesMessage } from "./messages/AnnouncementSignaturesMessage";
 import { ChannelAnnouncementMessage } from "./messages/ChannelAnnouncementMessage";
 import { ChannelUpdateMessage } from "./messages/ChannelUpdateMessage";
+import { ClosingSignedMessage } from "./messages/ClosingSignedMessage";
 import { ErrorMessage } from "./messages/ErrorMessage";
+import { FundingCreatedMessage } from "./messages/FundingCreatedMessage";
+import { FundingLockedMessage } from "./messages/FundingLockedMessage";
+import { FundingSignedMessage } from "./messages/FundingSignedMessage";
 import { GossipTimestampFilterMessage } from "./messages/GossipTimestampFilterMessage";
 import { InitMessage } from "./messages/InitMessage";
 import { IWireMessage } from "./messages/IWireMessage";
@@ -35,8 +40,18 @@ export function deserialize(buffer: Buffer): IWireMessage {
             return OpenChannelMessage.deserialize(buffer);
         case MessageType.AcceptChannel:
             return AcceptChannelMessage.deserialize(buffer);
+        case MessageType.FundingCreated:
+            return FundingCreatedMessage.deserialize(buffer);
+        case MessageType.FundingSigned:
+            return FundingSignedMessage.deserialize(buffer);
+        case MessageType.FundingLocked:
+            return FundingLockedMessage.deserialize(buffer);
+        case MessageType.AnnouncementSignatures:
+            return AnnouncementSignaturesMessage.deserialize(buffer);
         case MessageType.Shutdown:
             return ShutdownMessage.deserialize(buffer);
+        case MessageType.ClosingSigned:
+            return ClosingSignedMessage.deserialize(buffer);
 
         // gossip messages
         case MessageType.NodeAnnouncement:
@@ -55,5 +70,43 @@ export function deserialize(buffer: Buffer): IWireMessage {
             return ReplyChannelRangeMessage.deserialize(buffer);
         case MessageType.GossipTimestampFilter:
             return GossipTimestampFilterMessage.deserialize(buffer);
+    }
+}
+
+export class MessageFactory {
+    public static isInit(m: IWireMessage): m is InitMessage {
+        return m.type === MessageType.Init;
+    }
+
+    public static isError(m: IWireMessage): m is ErrorMessage {
+        return m.type === MessageType.Error;
+    }
+
+    public static isPing(m: IWireMessage): m is PingMessage {
+        return m.type === MessageType.Ping;
+    }
+
+    public static isOpenChannel(m: IWireMessage): m is OpenChannelMessage {
+        return m.type === MessageType.OpenChannel;
+    }
+
+    public static isAcceptChannel(m: IWireMessage): m is AcceptChannelMessage {
+        return m.type === MessageType.AcceptChannel;
+    }
+
+    public static isFundingCreated(m: IWireMessage): m is FundingCreatedMessage {
+        return m.type === MessageType.FundingCreated;
+    }
+
+    public static isFundingSigned(m: IWireMessage): m is FundingSignedMessage {
+        return m.type === MessageType.FundingSigned;
+    }
+
+    public static isFundingLocked(m: IWireMessage): m is FundingLockedMessage {
+        return m.type === MessageType.FundingLocked;
+    }
+
+    public static isAnnouncementSignatures(m: IWireMessage): m is AnnouncementSignaturesMessage {
+        return m.type === MessageType.AnnouncementSignatures;
     }
 }
