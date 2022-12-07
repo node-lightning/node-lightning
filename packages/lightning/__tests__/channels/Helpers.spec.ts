@@ -443,6 +443,18 @@ describe(Helpers.name, () => {
             // assert
             expect(result).to.equal(false);
         });
+
+        it("should return false when 0", () => {
+            // arrange
+            const helpers = new Helpers(undefined);
+            const maxAcceptedHtlc = 0;
+
+            // act
+            const result = helpers.validateMaxAcceptedHtlcs(maxAcceptedHtlc);
+
+            // assert
+            expect(result).to.equal(false);
+        });
     });
 
     describe(Helpers.prototype.createChannel.name, () => {

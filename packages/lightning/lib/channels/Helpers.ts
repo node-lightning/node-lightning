@@ -187,11 +187,14 @@ export class Helpers implements IChannelLogic {
      * that the `commitment_signed` message fits within the message length
      * and that a penalty transaction with 2x483 transactions fits within
      * the max transaction size for Bitcoin Core.
+     *
+     * It also validates that the value is > 0 since otherwise the channel
+     * becomes unusable.
      * @param maxAcceptedHtlcs
      * @returns
      */
     public validateMaxAcceptedHtlcs(maxAcceptedHtlcs: number): boolean {
-        return maxAcceptedHtlcs <= 483;
+        return maxAcceptedHtlcs > 0 && maxAcceptedHtlcs <= 483;
     }
 
     /**
