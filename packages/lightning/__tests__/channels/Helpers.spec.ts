@@ -895,13 +895,14 @@ describe(Helpers.name, () => {
         });
     });
 
-    describe(Helpers.prototype.validateFundingDepth.name, () => {
+    describe(Helpers.prototype.validateMinimumDepthTooLarge.name, () => {
         it("returns false when above 144", () => {
             // arrange
             const helpers = new Helpers(undefined);
+            const preferences = new ChannelPreferences({ maxMinimumFundingDepth: 144 });
 
             // act
-            const result = helpers.validateFundingDepth(145);
+            const result = helpers.validateMinimumDepthTooLarge(145, preferences);
 
             // assert
             expect(result).to.equal(false);
@@ -910,9 +911,10 @@ describe(Helpers.name, () => {
         it("returns true when equal to 144", () => {
             // arrange
             const helpers = new Helpers(undefined);
+            const preferences = new ChannelPreferences({ maxMinimumFundingDepth: 144 });
 
             // act
-            const result = helpers.validateFundingDepth(144);
+            const result = helpers.validateMinimumDepthTooLarge(144, preferences);
 
             // assert
             expect(result).to.equal(true);
@@ -921,9 +923,10 @@ describe(Helpers.name, () => {
         it("returns true when below to 144", () => {
             // arrange
             const helpers = new Helpers(undefined);
+            const preferences = new ChannelPreferences({ maxMinimumFundingDepth: 144 });
 
             // act
-            const result = helpers.validateFundingDepth(143);
+            const result = helpers.validateMinimumDepthTooLarge(143, preferences);
 
             // assert
             expect(result).to.equal(true);

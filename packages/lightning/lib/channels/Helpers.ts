@@ -398,8 +398,8 @@ export class Helpers implements IChannelLogic {
      * @param depth
      * @returns
      */
-    public validateFundingDepth(depth: number): boolean {
-        return depth <= 144;
+    public validateMinimumDepthTooLarge(depth: number, preferences: ChannelPreferences): boolean {
+        return depth <= preferences.maxMinimumFundingDepth;
     }
 
     /**
@@ -413,8 +413,8 @@ export class Helpers implements IChannelLogic {
      */
     public validateToSelfDelayTooLarge(
         toSelfDelay: number,
-        channelPreferences: ChannelPreferences,
+        preferences: ChannelPreferences,
     ): boolean {
-        return toSelfDelay <= channelPreferences.maxAllowedTooSelfDelay;
+        return toSelfDelay <= preferences.maxAllowedTooSelfDelay;
     }
 }
