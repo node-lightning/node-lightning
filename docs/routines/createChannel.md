@@ -23,10 +23,10 @@ Calls:
 -   `validatePushAmount`
 -   `validateFunderFees`
 -   `getDustLimit`
--   `validateDustLimit`
+-   `validateDustLimitTooSmall`
 -   `validateChannelReserveDustLimit`
 -   `validateChannelReserveReachable`
--   `validateMaxAcceptedHtlcs`
+-   `validateMaxAcceptedHtlcsTooLarge`
 -   `createFundingKey`
 -   `createBasePointSecrets`
 -   `createPerCommitmentSeed`
@@ -40,14 +40,14 @@ Calls:
 1. Must set `push_msat` <= 1000 \* `funding_satoshi` by calling `validatePushAmount`
 1. Must validate that the `funding_satoshis` and `push_amt` is sufficient for full fee payment of the initial commitment transaction. This should be `724 * feerate_per_kw / 1000` by calling `validateFunderFees`.
 1. Should set `dust_limit_satoshis` to a value sufficient to propagate transactions is sufficient to propagate transactions by checking with the Bitcoin node using `getDustLimit` subroutine.
-1. Must set `dust_limit_satoshis` \>= 354 satoshis as calculated from [BOLT 3](https://github.com/lightning/bolts/blob/93909f67f6a48ee3f155a6224c182e612dd5f187/03-transactions.md#per-commitment-secret-requirements) by calling `validateDustLimit`
+1. Must set `dust_limit_satoshis` \>= 354 satoshis as calculated from [BOLT 3](https://github.com/lightning/bolts/blob/93909f67f6a48ee3f155a6224c182e612dd5f187/03-transactions.md#per-commitment-secret-requirements) by calling `validateDustLimitTooSmall`
 1. Must set `channel_reserve_balance` for use by the opposite node.
 1. Must set `channel_reserve_balance` >= sent `dust_limit_satoshis` value by calling `validateChannelReserveDustLimit`
 1. Must ensure that at least one of `to_local` and `to_remote` outputs is > `channel_reserve_balance` by calling `validateChannelReserveReachable`
 1. Should set `to_self_delay` to a value in blocks it wishes to delay the peer's access to its funds in the event it broadcasts its version of the commitment transaction.
 1. Should set `htlc_mimimum_msat` to the minimum value HTLC it is willing to accept from the peer
 1. Should set `max_acccepted_htlcs` to the maximum value of HTLCs it is will to accept from the peer.
-1. Must set `max_accepted_htlcs` <= 483 and validate by calling `validateMaxAcceptedHtlcs`
+1. Must set `max_accepted_htlcs` <= 483 and validate by calling `validateMaxAcceptedHtlcsTooLarge`
 1. Should set `max_htlc_value_in_flight_msat` to the maximum millisatoshi value your are willing to allow for all HTLCs that are outstanding (both offerred and accepted).
 1. Must create a `funding_pubkey` that is a valid point using the `createFundingKey` subroutine.
 1. Must construct unique and unguessable secrets and generate valid public keys for `payment_basepoint_`, `_delayed_payment_basepoint_`, `_htlc_basepoint` and `_revocation_basepoint_` by calling the `createBasePointSecrets`.

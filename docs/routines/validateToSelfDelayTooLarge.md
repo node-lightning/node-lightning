@@ -1,4 +1,4 @@
-## Subroutine `validateToSelfDelay`
+## Subroutine `validateToSelfDelayTooLarge`
 
 Inputs:
 

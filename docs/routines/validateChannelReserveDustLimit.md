@@ -1,4 +1,4 @@
-## Subroutine `validateChannelReserveDustLimitOpen`
+## Subroutine `validateChannelReserveDustLimit`
 
 Inputs:
 

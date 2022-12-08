@@ -1,4 +1,4 @@
-## Subroutine `validateMaxAcceptedHtlcs`
+## Subroutine `validateMaxAcceptedHtlcsTooLarge`
 
 Inputs:
 

@@ -1,4 +1,4 @@
-## Subroutine `validateFundingOutput`
+## Subroutine `validateFundingDepthTooLarge`
 
 Inputs:
 
