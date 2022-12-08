@@ -930,34 +930,38 @@ describe(Helpers.name, () => {
         });
     });
 
-    describe(Helpers.prototype.validateToSelfDelay.name, () => {
-        it("should return true when below 2016", () => {
+    describe(Helpers.prototype.validateToSelfDelayTooLarge.name, () => {
+        it("should return true when at or below 2016", () => {
             // arrange
             const helpers = new Helpers(undefined);
+            const preferences = new ChannelPreferences();
+            preferences.maxAllowedTooSelfDelay = 2016;
 
             // act
-            const result = helpers.validateToSelfDelay(2015);
+            const result = helpers.validateToSelfDelayTooLarge(2015, preferences);
 
             // assert
             expect(result).to.equal(true);
         });
 
-        it("should return false when equal to 2016", () => {
+        it("should return true when equal to 2016", () => {
             // arrange
             const helpers = new Helpers(undefined);
+            const preferences = new ChannelPreferences();
 
             // act
-            const result = helpers.validateToSelfDelay(2016);
+            const result = helpers.validateToSelfDelayTooLarge(2016, preferences);
 
             // assert
-            expect(result).to.equal(false);
+            expect(result).to.equal(true);
         });
         it("should return false when above 2016", () => {
             // arrange
             const helpers = new Helpers(undefined);
+            const preferences = new ChannelPreferences();
 
             // act
-            const result = helpers.validateToSelfDelay(2017);
+            const result = helpers.validateToSelfDelayTooLarge(2017, preferences);
 
             // assert
             expect(result).to.equal(false);

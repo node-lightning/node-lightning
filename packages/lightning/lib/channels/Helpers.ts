@@ -411,7 +411,10 @@ export class Helpers implements IChannelLogic {
      * @param toSelfDelay
      * @returns
      */
-    public validateToSelfDelay(toSelfDelay: number): boolean {
-        return toSelfDelay < 2016;
+    public validateToSelfDelayTooLarge(
+        toSelfDelay: number,
+        channelPreferences: ChannelPreferences,
+    ): boolean {
+        return toSelfDelay <= channelPreferences.maxAllowedTooSelfDelay;
     }
 }
