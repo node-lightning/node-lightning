@@ -975,7 +975,7 @@ describe(Helpers.name, () => {
         it("should return true when below the configured channel percentage", () => {
             // arrange
             const helpers = new Helpers(undefined);
-            const preferences = new ChannelPreferences({ maxHtlcMinimumPercentage: 10 });
+            const preferences = new ChannelPreferences({ maxChanPercHtlcMinimum: 10 });
             const channel = createFakeChannel({ fundingAmount: Value.fromSats(200_000) });
             const htlcMinimum = Value.fromSats(19_000);
 
@@ -989,7 +989,7 @@ describe(Helpers.name, () => {
         it("should return true when at the configured channel percentage", () => {
             // arrange
             const helpers = new Helpers(undefined);
-            const preferences = new ChannelPreferences({ maxHtlcMinimumPercentage: 10 });
+            const preferences = new ChannelPreferences({ maxChanPercHtlcMinimum: 10 });
             const channel = createFakeChannel({ fundingAmount: Value.fromSats(200_000) });
             const htlcMinimum = Value.fromSats(20_000);
 
@@ -1003,12 +1003,66 @@ describe(Helpers.name, () => {
         it("should return false when above the configured channel percentage", () => {
             // arrange
             const helpers = new Helpers(undefined);
-            const preferences = new ChannelPreferences({ maxHtlcMinimumPercentage: 10 });
+            const preferences = new ChannelPreferences({ maxChanPercHtlcMinimum: 10 });
             const channel = createFakeChannel({ fundingAmount: Value.fromSats(200_000) });
             const htlcMinimum = Value.fromSats(21_000);
 
             // act
             const result = helpers.validateHtlcMinimumTooLarge(htlcMinimum, channel, preferences);
+
+            // assert
+            expect(result).to.equal(false);
+        });
+    });
+
+    describe(Helpers.prototype.validateMaxHtlcInFlightTooSmall.name, () => {
+        it("should return true when above the configured channel percentage", () => {
+            // arrange
+            const helpers = new Helpers(undefined);
+            const preferences = new ChannelPreferences({ minChanPercMaxHtlcInFlight: 1 });
+            const channel = createFakeChannel({ fundingAmount: Value.fromSats(100_000) });
+            const maxHtlcInFlight = Value.fromSats(2_000);
+
+            // act
+            const result = helpers.validateMaxHtlcInFlightTooSmall(
+                maxHtlcInFlight,
+                channel,
+                preferences,
+            );
+
+            // assert
+            expect(result).to.equal(true);
+        });
+        it("should return true when at the configured channel percentage", () => {
+            // arrange
+            const helpers = new Helpers(undefined);
+            const preferences = new ChannelPreferences({ minChanPercMaxHtlcInFlight: 1 });
+            const channel = createFakeChannel({ fundingAmount: Value.fromSats(100_000) });
+            const maxHtlcInFlight = Value.fromSats(1_000);
+
+            // act
+            const result = helpers.validateMaxHtlcInFlightTooSmall(
+                maxHtlcInFlight,
+                channel,
+                preferences,
+            );
+
+            // assert
+            expect(result).to.equal(true);
+        });
+        it("should return false when below the configured channel percentage", () => {
+            // arrange
+            const helpers = new Helpers(undefined);
+            const preferences = new ChannelPreferences({ minChanPercMaxHtlcInFlight: 1 });
+            const channel = createFakeChannel({ fundingAmount: Value.fromSats(100_000) });
+            const maxHtlcInFlight = Value.fromSats(999);
+
+            // act
+            const result = helpers.validateMaxHtlcInFlightTooSmall(
+                maxHtlcInFlight,
+                channel,
+                preferences,
+            );
 
             // assert
             expect(result).to.equal(false);

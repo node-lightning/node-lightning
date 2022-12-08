@@ -433,7 +433,26 @@ export class Helpers implements IChannelLogic {
         preferences: ChannelPreferences,
     ): boolean {
         const maxSats =
-            (channel.fundingAmount.sats * BigInt(preferences.maxHtlcMinimumPercentage)) / 100n;
+            (channel.fundingAmount.sats * BigInt(preferences.maxChanPercHtlcMinimum)) / 100n;
         return htlcMinium.lte(Value.fromSats(maxSats));
+    }
+
+    /**
+     * BOLT 2 specifies that the recipient of an `open_channel` or
+     * `accept_channel` may fail the channel if the `max_htlc_in_flight_msat`
+     * value is too small. This rule exists to prevent a counterparty
+     * from setting the value too small making the channel unusable.
+     * @param maxHtlcInFlight
+     * @param channel
+     * @param preferences
+     */
+    public validateMaxHtlcInFlightTooSmall(
+        maxHtlcInFlight: Value,
+        channel: Channel,
+        preferences: ChannelPreferences,
+    ): boolean {
+        const minSats =
+            (channel.fundingAmount.sats * BigInt(preferences.minChanPercMaxHtlcInFlight)) / 100n;
+        return maxHtlcInFlight.gte(Value.fromSats(minSats));
     }
 }
