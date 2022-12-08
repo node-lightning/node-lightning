@@ -206,10 +206,9 @@ export class Helpers implements IChannelLogic {
      */
     public validateMaxAcceptedHtlcsTooSmall(
         maxAcceptedHtlc: number,
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         channelPreferences: ChannelPreferences,
     ): boolean {
-        return maxAcceptedHtlc > 0;
+        return maxAcceptedHtlc >= channelPreferences.minMaxAcceptedHtlcs;
     }
 
     /**

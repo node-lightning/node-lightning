@@ -447,11 +447,11 @@ describe(Helpers.name, () => {
     });
 
     describe(Helpers.prototype.validateMaxAcceptedHtlcsTooSmall.name, () => {
-        it("should return false when 0", () => {
+        it("should return false when less than minMaxAcceptedHtlcs", () => {
             // arrange
             const helpers = new Helpers(undefined);
             const maxAcceptedHtlc = 0;
-            const preferences = new ChannelPreferences();
+            const preferences = new ChannelPreferences({ minMaxAcceptedHtlcs: 1 });
 
             // act
             const result = helpers.validateMaxAcceptedHtlcsTooSmall(maxAcceptedHtlc, preferences);
@@ -460,11 +460,24 @@ describe(Helpers.name, () => {
             expect(result).to.equal(false);
         });
 
-        it("should return true when > 0", () => {
+        it("should return true when equal to minMaxAcceptedHtlcs", () => {
             // arrange
             const helpers = new Helpers(undefined);
             const maxAcceptedHtlc = 1;
-            const preferences = new ChannelPreferences();
+            const preferences = new ChannelPreferences({ minMaxAcceptedHtlcs: 1 });
+
+            // act
+            const result = helpers.validateMaxAcceptedHtlcsTooSmall(maxAcceptedHtlc, preferences);
+
+            // assert
+            expect(result).to.equal(true);
+        });
+
+        it("should return true when greater than to minMaxAcceptedHtlcs", () => {
+            // arrange
+            const helpers = new Helpers(undefined);
+            const maxAcceptedHtlc = 2;
+            const preferences = new ChannelPreferences({ minMaxAcceptedHtlcs: 1 });
 
             // act
             const result = helpers.validateMaxAcceptedHtlcsTooSmall(maxAcceptedHtlc, preferences);
