@@ -1137,4 +1137,45 @@ describe(Helpers.name, () => {
             expect(result).to.equal(false);
         });
     });
+
+    describe(Helpers.prototype.validateDustLimitTooLarge.name, () => {
+        it("return true when dust limit below threshold", () => {
+            // arrange
+            const helpers = new Helpers(undefined);
+            const preferences = new ChannelPreferences({ maxDustLimit: Value.fromSats(1000) });
+            const dustLimit = Value.fromSats(999);
+
+            // act
+            const result = helpers.validateDustLimitTooLarge(dustLimit, preferences);
+
+            // assert
+            expect(result).to.equal(true);
+        });
+
+        it("returns true when dust limit at threshold", () => {
+            // arrange
+            const helpers = new Helpers(undefined);
+            const preferences = new ChannelPreferences({ maxDustLimit: Value.fromSats(1000) });
+            const dustLimit = Value.fromSats(1000);
+
+            // act
+            const result = helpers.validateDustLimitTooLarge(dustLimit, preferences);
+
+            // assert
+            expect(result).to.equal(true);
+        });
+
+        it("returns false when dust limit above threshold", () => {
+            // arrange
+            const helpers = new Helpers(undefined);
+            const preferences = new ChannelPreferences({ maxDustLimit: Value.fromSats(1000) });
+            const dustLimit = Value.fromSats(1001);
+
+            // act
+            const result = helpers.validateDustLimitTooLarge(dustLimit, preferences);
+
+            // assert
+            expect(result).to.equal(false);
+        });
+    });
 });

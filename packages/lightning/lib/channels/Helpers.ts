@@ -475,4 +475,18 @@ export class Helpers implements IChannelLogic {
             (channel.fundingAmount.sats * BigInt(preferences.maxChanPercChannelReserve)) / 100n;
         return channelReserve.lte(Value.fromSats(maxSats));
     }
+
+    /**
+     * BOLT 2 specifies that the recipient of an `open_channel` or
+     * `accept_channel` may fail the channel if the `dust_limit_satoshis`
+     * value is too large. Outputs below the `dust_limit_satoshis` value
+     * are pruned from the commitment transaction. As a result, a value
+     * that is too large is an attack vector for stealing funds through
+     * fee siphoning.
+     * @param dustLimit
+     * @param preferences
+     */
+    public validateDustLimitTooLarge(dustLimit: Value, preferences: ChannelPreferences): boolean {
+        return dustLimit.lte(preferences.maxDustLimit);
+    }
 }
