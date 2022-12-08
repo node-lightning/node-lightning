@@ -455,4 +455,25 @@ export class Helpers implements IChannelLogic {
             (channel.fundingAmount.sats * BigInt(preferences.minChanPercMaxHtlcInFlight)) / 100n;
         return maxHtlcInFlight.gte(Value.fromSats(minSats));
     }
+
+    /**
+     * BOLT 2 specifies that the receipt of a `open_channel` or
+     * `accept_channel` message much validate that the received
+     * `channel_reserve` value is not too large. This value exists to
+     * ensure each participant in the channel has some value to lose in
+     * the event of a breach. A reasonable value is considered 10% of
+     * the funding amount.
+     * @param channelReserve
+     * @param channel
+     * @param preferences
+     */
+    public validateChannelReserveTooLarge(
+        channelReserve: Value,
+        channel: Channel,
+        preferences: ChannelPreferences,
+    ): boolean {
+        const maxSats =
+            (channel.fundingAmount.sats * BigInt(preferences.maxChanPercChannelReserve)) / 100n;
+        return channelReserve.lte(Value.fromSats(maxSats));
+    }
 }

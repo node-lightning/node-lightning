@@ -1068,4 +1068,60 @@ describe(Helpers.name, () => {
             expect(result).to.equal(false);
         });
     });
+
+    describe(Helpers.prototype.validateChannelReserveTooLarge.name, () => {
+        it("should return true when below configured channel percentage", () => {
+            // arrange
+            const helpers = new Helpers(undefined);
+            const preferences = new ChannelPreferences({ maxChanPercChannelReserve: 20 });
+            const channel = createFakeChannel({ fundingAmount: Value.fromSats(100_000) });
+            const maxHtlcInFlight = Value.fromSats(19_999);
+
+            // act
+            const result = helpers.validateChannelReserveTooLarge(
+                maxHtlcInFlight,
+                channel,
+                preferences,
+            );
+
+            // assert
+            expect(result).to.equal(true);
+        });
+
+        it("should return true when at the configured channel percentage", () => {
+            // arrange
+            const helpers = new Helpers(undefined);
+            const preferences = new ChannelPreferences({ maxChanPercChannelReserve: 20 });
+            const channel = createFakeChannel({ fundingAmount: Value.fromSats(100_000) });
+            const maxHtlcInFlight = Value.fromSats(20_000);
+
+            // act
+            const result = helpers.validateChannelReserveTooLarge(
+                maxHtlcInFlight,
+                channel,
+                preferences,
+            );
+
+            // assert
+            expect(result).to.equal(true);
+        });
+
+        it("should return false when above configured channel percentage", () => {
+            // arrange
+            const helpers = new Helpers(undefined);
+            const preferences = new ChannelPreferences({ maxChanPercChannelReserve: 20 });
+            const channel = createFakeChannel({ fundingAmount: Value.fromSats(100_000) });
+            const maxHtlcInFlight = Value.fromSats(20_001);
+
+            // act
+            const result = helpers.validateChannelReserveTooLarge(
+                maxHtlcInFlight,
+                channel,
+                preferences,
+            );
+
+            // assert
+            expect(result).to.equal(false);
+        });
+    });
 });
