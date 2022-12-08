@@ -417,4 +417,23 @@ export class Helpers implements IChannelLogic {
     ): boolean {
         return toSelfDelay <= preferences.maxAllowedTooSelfDelay;
     }
+
+    /**
+     * BOLT 2 specifies that a receiver of either `open_channel` or
+     * `accept_channel` may fail the channel if the `htlc_minimum_msat`
+     * value is too large. This prevents the counterparty from making
+     * the channel unusable by setting the value too high.
+     * @param htlcMinium
+     * @param preferences
+     * @returns
+     */
+    public validateHtlcMinimumTooLarge(
+        htlcMinium: Value,
+        channel: Channel,
+        preferences: ChannelPreferences,
+    ): boolean {
+        const maxSats =
+            (channel.fundingAmount.sats * BigInt(preferences.maxHtlcMinimumPercentage)) / 100n;
+        return htlcMinium.lte(Value.fromSats(maxSats));
+    }
 }

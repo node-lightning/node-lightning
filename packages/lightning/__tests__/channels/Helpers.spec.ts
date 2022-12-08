@@ -970,4 +970,48 @@ describe(Helpers.name, () => {
             expect(result).to.equal(false);
         });
     });
+
+    describe(Helpers.prototype.validateHtlcMinimumTooLarge.name, () => {
+        it("should return true when below the configured channel percentage", () => {
+            // arrange
+            const helpers = new Helpers(undefined);
+            const preferences = new ChannelPreferences({ maxHtlcMinimumPercentage: 10 });
+            const channel = createFakeChannel({ fundingAmount: Value.fromSats(200_000) });
+            const htlcMinimum = Value.fromSats(19_000);
+
+            // act
+            const result = helpers.validateHtlcMinimumTooLarge(htlcMinimum, channel, preferences);
+
+            // assert
+            expect(result).to.equal(true);
+        });
+
+        it("should return true when at the configured channel percentage", () => {
+            // arrange
+            const helpers = new Helpers(undefined);
+            const preferences = new ChannelPreferences({ maxHtlcMinimumPercentage: 10 });
+            const channel = createFakeChannel({ fundingAmount: Value.fromSats(200_000) });
+            const htlcMinimum = Value.fromSats(20_000);
+
+            // act
+            const result = helpers.validateHtlcMinimumTooLarge(htlcMinimum, channel, preferences);
+
+            // assert
+            expect(result).to.equal(true);
+        });
+
+        it("should return false when above the configured channel percentage", () => {
+            // arrange
+            const helpers = new Helpers(undefined);
+            const preferences = new ChannelPreferences({ maxHtlcMinimumPercentage: 10 });
+            const channel = createFakeChannel({ fundingAmount: Value.fromSats(200_000) });
+            const htlcMinimum = Value.fromSats(21_000);
+
+            // act
+            const result = helpers.validateHtlcMinimumTooLarge(htlcMinimum, channel, preferences);
+
+            // assert
+            expect(result).to.equal(false);
+        });
+    });
 });
