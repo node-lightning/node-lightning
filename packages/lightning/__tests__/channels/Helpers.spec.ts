@@ -130,14 +130,14 @@ describe(Helpers.name, () => {
         });
     });
 
-    describe(Helpers.prototype.validateDustLimit.name, () => {
+    describe(Helpers.prototype.validateDustLimitTooSmall.name, () => {
         it("returns true when equal to 354", () => {
             // arrange
             const helpers = new Helpers(undefined);
             const dustLimit = Value.fromSats(354);
 
             // act
-            const result = helpers.validateDustLimit(dustLimit);
+            const result = helpers.validateDustLimitTooSmall(dustLimit);
 
             // assert
             expect(result).to.equal(true);
@@ -149,7 +149,7 @@ describe(Helpers.name, () => {
             const dustLimit = Value.fromBitcoin(355);
 
             // act
-            const result = helpers.validateDustLimit(dustLimit);
+            const result = helpers.validateDustLimitTooSmall(dustLimit);
 
             // assert
             expect(result).to.equal(true);
@@ -161,7 +161,7 @@ describe(Helpers.name, () => {
             const dustLimit = Value.fromSats(1);
 
             // act
-            const result = helpers.validateDustLimit(dustLimit);
+            const result = helpers.validateDustLimitTooSmall(dustLimit);
 
             // assert
             expect(result).to.equal(false);

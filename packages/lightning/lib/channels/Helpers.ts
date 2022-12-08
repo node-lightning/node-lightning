@@ -77,7 +77,7 @@ export class Helpers implements IChannelLogic {
      * supports any segwit version transactions.
      * @param dustLimit
      */
-    public validateDustLimit(dustLimit: Value): boolean {
+    public validateDustLimitTooSmall(dustLimit: Value): boolean {
         return dustLimit.gte(Value.fromSats(354));
     }
 
@@ -277,7 +277,7 @@ export class Helpers implements IChannelLogic {
         channel.ourSide.dustLimit = await this.wallet.getDustLimit();
 
         // Must set `dust_limit_satoshis` \>= 354 satoshis
-        if (!this.validateDustLimit(channel.ourSide.dustLimit)) {
+        if (!this.validateDustLimitTooSmall(channel.ourSide.dustLimit)) {
             return Result.err(new OpeningError(OpeningErrorType.DustLimitTooLow));
         }
 
