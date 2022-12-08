@@ -12,6 +12,7 @@ import { OpeningErrorType } from "./states/opening/OpeningErrorType";
 import { OpenChannelMessage } from "../messages/OpenChannelMessage";
 import { IChannelLogic } from "./IChannelLogic";
 import { AcceptChannelMessage } from "../messages/AcceptChannelMessage";
+import { ChannelPreferences } from "./ChannelPreferences";
 
 export class Helpers implements IChannelLogic {
     constructor(readonly wallet: IChannelWallet) {}
@@ -187,14 +188,28 @@ export class Helpers implements IChannelLogic {
      * that the `commitment_signed` message fits within the message length
      * and that a penalty transaction with 2x483 transactions fits within
      * the max transaction size for Bitcoin Core.
-     *
-     * It also validates that the value is > 0 since otherwise the channel
-     * becomes unusable.
      * @param maxAcceptedHtlcs
      * @returns
      */
-    public validateMaxAcceptedHtlcs(maxAcceptedHtlcs: number): boolean {
-        return maxAcceptedHtlcs > 0 && maxAcceptedHtlcs <= 483;
+    public validateMaxAcceptedHtlcsTooLarge(maxAcceptedHtlcs: number): boolean {
+        return maxAcceptedHtlcs <= 483;
+    }
+
+    /**
+     * BOLT 2 specifies that the receiver of an `open_channel` or
+     * `accept_channel` message must validate that the `max_accepted_htlcs`
+     * value is not too small. This value must be at least greater than 0
+     * or else the channel will be unusable.
+     * @param maxAcceptedHtlc
+     * @param channelPreferences
+     * @returns
+     */
+    public validateMaxAcceptedHtlcsTooSmall(
+        maxAcceptedHtlc: number,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        channelPreferences: ChannelPreferences,
+    ): boolean {
+        return maxAcceptedHtlc > 0;
     }
 
     /**
@@ -306,7 +321,7 @@ export class Helpers implements IChannelLogic {
         channel.ourSide.maxAcceptedHtlc = options.maxAcceptedHtlcs;
 
         // Must set `max_accepted_htlcs` <= 483
-        if (!this.validateMaxAcceptedHtlcs(channel.ourSide.maxAcceptedHtlc)) {
+        if (!this.validateMaxAcceptedHtlcsTooLarge(channel.ourSide.maxAcceptedHtlc)) {
             return Result.err(new OpeningError(OpeningErrorType.MaxAcceptedHtlcsTooHigh));
         }
 

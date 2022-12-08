@@ -1,6 +1,7 @@
 import { Network, PrivateKey, Value } from "@node-lightning/bitcoin";
 import { expect } from "chai";
 import { BitField, InitFeatureFlags, OpenChannelMessage } from "../../lib";
+import { ChannelPreferences } from "../../lib/channels/ChannelPreferences";
 import { Helpers } from "../../lib/channels/Helpers";
 import { IChannelWallet } from "../../lib/channels/IChannelWallet";
 import { OpenChannelRequest } from "../../lib/channels/OpenChannelRequest";
@@ -407,14 +408,14 @@ describe(Helpers.name, () => {
         });
     });
 
-    describe(Helpers.prototype.validateMaxAcceptedHtlcs.name, () => {
+    describe(Helpers.prototype.validateMaxAcceptedHtlcsTooLarge.name, () => {
         it("should return true when equal to 483", () => {
             // arrange
             const helpers = new Helpers(undefined);
             const maxAcceptedHtlc = 483;
 
             // act
-            const result = helpers.validateMaxAcceptedHtlcs(maxAcceptedHtlc);
+            const result = helpers.validateMaxAcceptedHtlcsTooLarge(maxAcceptedHtlc);
 
             // assert
             expect(result).to.equal(true);
@@ -426,7 +427,7 @@ describe(Helpers.name, () => {
             const maxAcceptedHtlc = 482;
 
             // act
-            const result = helpers.validateMaxAcceptedHtlcs(maxAcceptedHtlc);
+            const result = helpers.validateMaxAcceptedHtlcsTooLarge(maxAcceptedHtlc);
 
             // assert
             expect(result).to.equal(true);
@@ -438,22 +439,38 @@ describe(Helpers.name, () => {
             const maxAcceptedHtlc = 484;
 
             // act
-            const result = helpers.validateMaxAcceptedHtlcs(maxAcceptedHtlc);
+            const result = helpers.validateMaxAcceptedHtlcsTooLarge(maxAcceptedHtlc);
+
+            // assert
+            expect(result).to.equal(false);
+        });
+    });
+
+    describe(Helpers.prototype.validateMaxAcceptedHtlcsTooSmall.name, () => {
+        it("should return false when 0", () => {
+            // arrange
+            const helpers = new Helpers(undefined);
+            const maxAcceptedHtlc = 0;
+            const preferences = new ChannelPreferences();
+
+            // act
+            const result = helpers.validateMaxAcceptedHtlcsTooSmall(maxAcceptedHtlc, preferences);
 
             // assert
             expect(result).to.equal(false);
         });
 
-        it("should return false when 0", () => {
+        it("should return true when > 0", () => {
             // arrange
             const helpers = new Helpers(undefined);
-            const maxAcceptedHtlc = 0;
+            const maxAcceptedHtlc = 1;
+            const preferences = new ChannelPreferences();
 
             // act
-            const result = helpers.validateMaxAcceptedHtlcs(maxAcceptedHtlc);
+            const result = helpers.validateMaxAcceptedHtlcsTooSmall(maxAcceptedHtlc, preferences);
 
             // assert
-            expect(result).to.equal(false);
+            expect(result).to.equal(true);
         });
     });
 
