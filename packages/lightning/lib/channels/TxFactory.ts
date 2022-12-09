@@ -2,15 +2,16 @@ import {
     HashValue,
     LockTime,
     OutPoint,
+    PublicKey,
     Script,
     Sequence,
     TxBuilder,
     TxOut,
     Value,
 } from "@node-lightning/bitcoin";
-import { CommitmentNumber } from "../channels/CommitmentNumber";
-import { Htlc } from "./Htlc";
-import { HtlcDirection } from "./HtlcDirection";
+import { CommitmentNumber } from "./CommitmentNumber";
+import { Htlc } from "../domain/Htlc";
+import { HtlcDirection } from "../domain/HtlcDirection";
 import { ScriptFactory } from "./ScriptFactory";
 
 export class TxFactory {

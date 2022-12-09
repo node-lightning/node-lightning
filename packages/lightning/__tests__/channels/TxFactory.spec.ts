@@ -11,8 +11,8 @@ import {
     Tx,
 } from "@node-lightning/bitcoin";
 import { expect } from "chai";
-import { TxFactory } from "../../lib/domain/TxFactory";
-import { ScriptFactory } from "../../lib/domain/ScriptFactory";
+import { TxFactory } from "../../lib/channels/TxFactory";
+import { ScriptFactory } from "../../lib/channels/ScriptFactory";
 import { Htlc } from "../../lib/domain/Htlc";
 import { HtlcDirection } from "../../lib/domain/HtlcDirection";
 import { sha256 } from "@node-lightning/crypto";
