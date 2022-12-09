@@ -23,6 +23,16 @@ export class PublicKey {
         return pubkey;
     }
 
+    /**
+     * Returns true when the Buffer represents a valid SEC encoded public
+     * key stored in a buffer. This expects the prefix and length to be
+     * correct.
+     * @param buf
+     */
+    public static isValid(buf: Buffer): boolean {
+        return crypto.validPublicKey(buf);
+    }
+
     public readonly compressed: boolean;
     private readonly _buffer: Buffer;
 
@@ -33,7 +43,7 @@ export class PublicKey {
      * @param network The corresponding network where the public key belongs
      */
     constructor(buffer: Buffer, readonly network: Network) {
-        if (!crypto.validPublicKey(buffer)) {
+        if (!PublicKey.isValid(buffer)) {
             throw new BitcoinError(BitcoinErrorCode.PubKeyInvalid, { key: buffer });
         }
 

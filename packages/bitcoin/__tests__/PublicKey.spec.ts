@@ -1,5 +1,6 @@
 import * as crypto from "@node-lightning/crypto";
 import { expect } from "chai";
+import { PrivateKey } from "../lib";
 import { Network } from "../lib/Network";
 import { PublicKey } from "../lib/PublicKey";
 
@@ -236,6 +237,38 @@ describe("PublicKey", () => {
         it("throws with invalid network", () => {
             other = new PublicKey(pubkey, Network.testnet);
             expect(() => sut.add(other)).to.throw("Network mismatch");
+        });
+    });
+
+    describe(PublicKey.isValid.name, () => {
+        it("returns true for 2-prefixed compressed key", () => {
+            const privkey = new PrivateKey(Buffer.alloc(32, 0x2), Network.testnet);
+            const pubkey = privkey.toPubKey(true);
+            const pubkeyBuf = pubkey.toBuffer();
+            expect(pubkeyBuf[0]).to.equal(2);
+            expect(PublicKey.isValid(pubkeyBuf)).to.equal(true);
+        });
+
+        it("returns true for 3-prefixed compressed key", () => {
+            const privkey = new PrivateKey(Buffer.alloc(32, 0x1), Network.testnet);
+            const pubkey = privkey.toPubKey(true);
+            const pubkeyBuf = pubkey.toBuffer();
+            expect(pubkeyBuf[0]).to.equal(3);
+            expect(PublicKey.isValid(pubkeyBuf)).to.equal(true);
+        });
+
+        it("returns true for uncompressed key", () => {
+            const privkey = new PrivateKey(Buffer.alloc(32, 0x1), Network.testnet);
+            const pubkey = privkey.toPubKey(false);
+            const pubkeyBuf = pubkey.toBuffer();
+            expect(pubkeyBuf[0]).to.equal(4);
+            expect(PublicKey.isValid(pubkeyBuf));
+        });
+
+        it("returns false when invalid", () => {
+            const pubkeyBuf = Buffer.alloc(33);
+            pubkeyBuf[0] = 0x2;
+            expect(PublicKey.isValid(pubkeyBuf)).to.equal(false);
         });
     });
 });
