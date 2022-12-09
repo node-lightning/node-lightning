@@ -42,10 +42,10 @@ describe("AcceptChannelMessage", () => {
                 "0000000000000000000000000000000000000000000000000000000000000000",
                 "hex",
             );
-            instance.dustLimitSatoshis = Value.fromSats(330);
-            instance.maxHtlcValueInFlightMsat = Value.fromMilliSats(20000);
-            instance.channelReserveSatoshis = Value.fromSats(2000);
-            instance.htlcMinimumMsat = Value.fromMilliSats(200);
+            instance.dustLimitValue = Value.fromSats(330);
+            instance.maxHtlcValueInFlightValue = Value.fromMilliSats(20000);
+            instance.channelReserveValue = Value.fromSats(2000);
+            instance.htlcMinimumValue = Value.fromMilliSats(200);
             instance.minimumDepth = 6;
             instance.toSelfDelay = 144;
             instance.maxAcceptedHtlcs = 30;
@@ -81,10 +81,10 @@ describe("AcceptChannelMessage", () => {
                 "0000000000000000000000000000000000000000000000000000000000000000",
                 "hex",
             );
-            instance.dustLimitSatoshis = Value.fromSats(330);
-            instance.maxHtlcValueInFlightMsat = Value.fromMilliSats(20000);
-            instance.channelReserveSatoshis = Value.fromSats(2000);
-            instance.htlcMinimumMsat = Value.fromMilliSats(200);
+            instance.dustLimitValue = Value.fromSats(330);
+            instance.maxHtlcValueInFlightValue = Value.fromMilliSats(20000);
+            instance.channelReserveValue = Value.fromSats(2000);
+            instance.htlcMinimumValue = Value.fromMilliSats(200);
             instance.minimumDepth = 6;
             instance.toSelfDelay = 144;
             instance.maxAcceptedHtlcs = 30;
@@ -152,10 +152,10 @@ describe("AcceptChannelMessage", () => {
                     "hex",
                 ),
             );
-            expect(instance.dustLimitSatoshis.sats).to.equal(BigInt(330));
-            expect(instance.maxHtlcValueInFlightMsat.msats).to.equal(BigInt(20000));
-            expect(instance.channelReserveSatoshis.sats).to.equal(BigInt(2000));
-            expect(instance.htlcMinimumMsat.msats).to.equal(BigInt(200));
+            expect(instance.dustLimitValue.sats).to.equal(BigInt(330));
+            expect(instance.maxHtlcValueInFlightValue.msats).to.equal(BigInt(20000));
+            expect(instance.channelReserveValue.sats).to.equal(BigInt(2000));
+            expect(instance.htlcMinimumValue.msats).to.equal(BigInt(200));
             expect(instance.minimumDepth).to.equal(6);
             expect(instance.toSelfDelay).to.equal(144);
             expect(instance.maxAcceptedHtlcs).to.equal(30);

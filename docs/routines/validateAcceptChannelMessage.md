@@ -12,7 +12,7 @@ Calls:
 -   `validateToSelfDelayTooLarge`
 -   `validateMaxAcceptedHtlcsTooLarge`
 -   `validateDustLimitTooSmall`
--   `validateFundingDepthTooLarge`
+-   `validateMinimumDepthTooLarge`
 -   `validateHtlcMinimumTooLarge`
 -   `validateMaxHtlcInFlightTooSmall`
 -   `validateChannelReserveTooLarge`
@@ -36,7 +36,7 @@ Hard failures:
 
 Rules based on options:
 
-1. May fail if `minimum_depth` is unreasonably large by calling `validateFundingDepthTooLarge`
+1. May fail if `minimum_depth` is unreasonably large by calling `validateMinimumDepthTooLarge`
 1. May fail if it considers `htlc_minimum_msat` too large by calling `validateHtlcMinimumTooLarge`
 1. May fail if `max_htlc_value_in_flight_msat` is too small by calling `validateMaxHtlcInFlightTooSmall`
 1. May fail if `channel_reserve_balance` is too large by calling `validateChannelReserveTooLarge`.
