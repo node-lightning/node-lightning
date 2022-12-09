@@ -6,7 +6,9 @@ import { Helpers } from "../../lib/channels/Helpers";
 import { IChannelWallet } from "../../lib/channels/IChannelWallet";
 import { OpenChannelRequest } from "../../lib/channels/OpenChannelRequest";
 import { OpeningErrorType } from "../../lib/channels/states/opening/OpeningErrorType";
+import { AcceptChannelMessage } from "../../lib/messages/AcceptChannelMessage";
 import {
+    createFakeAcceptChannel,
     createFakeChannel,
     createFakeChannelWallet,
     createFakeKey,
@@ -1176,6 +1178,262 @@ describe(Helpers.name, () => {
 
             // assert
             expect(result).to.equal(false);
+        });
+    });
+
+    describe(Helpers.prototype.validateAcceptChannel.name, () => {
+        it("returns true when valid", async () => {
+            // arrange
+            const helpers = new Helpers(undefined);
+            const preferences = new ChannelPreferences({});
+            const channel = createFakeChannel({});
+            const msg = createFakeAcceptChannel();
+
+            // act
+            const result = await helpers.validateAcceptChannel(channel, preferences, msg);
+
+            // assert
+            expect(result.isOk).to.equal(true);
+        });
+
+        it("returns false when funder channel_reserve/dust_limit invalid", async () => {
+            // arrange
+            const helpers = new Helpers(undefined);
+            const preferences = new ChannelPreferences({});
+            const channel = createFakeChannel({ ourSide: { dustLimit: Value.fromSats(354) } });
+            const msg = createFakeAcceptChannel({ channelReserveValue: Value.fromSats(353) });
+
+            // act
+            const result = await helpers.validateAcceptChannel(channel, preferences, msg);
+
+            // assert
+            expect(result.isErr).to.equal(true);
+            expect(result.error.type).to.equal(OpeningErrorType.ChannelReserveDustLimitMismatch);
+        });
+
+        it("returns false when to_self_delay too large", async () => {
+            // arrange
+            const helpers = new Helpers(undefined);
+            const preferences = new ChannelPreferences({});
+            const channel = createFakeChannel({});
+            const msg = createFakeAcceptChannel({ toSelfDelay: 10_000 });
+
+            // act
+            const result = await helpers.validateAcceptChannel(channel, preferences, msg);
+
+            // assert
+            expect(result.isErr).to.equal(true);
+            expect(result.error.type).to.equal(OpeningErrorType.ToSelfDelayTooHigh);
+        });
+
+        it("returns false when max_accepted_htlcs too large", async () => {
+            // arrange
+            const helpers = new Helpers(undefined);
+            const preferences = new ChannelPreferences({});
+            const channel = createFakeChannel({});
+            const msg = createFakeAcceptChannel({ maxAcceptedHtlcs: 500 });
+
+            // act
+            const result = await helpers.validateAcceptChannel(channel, preferences, msg);
+
+            // assert
+            expect(result.isErr).to.equal(true);
+            expect(result.error.type).to.equal(OpeningErrorType.MaxAcceptedHtlcsTooHigh);
+        });
+
+        it("returns false when funding_pubkey is invalid", async () => {
+            // arrange
+            const helpers = new Helpers(undefined);
+            const preferences = new ChannelPreferences({});
+            const channel = createFakeChannel({});
+            const msg = createFakeAcceptChannel({ fundingPubKey: Buffer.alloc(33) });
+
+            // act
+            const result = await helpers.validateAcceptChannel(channel, preferences, msg);
+
+            // assert
+            expect(result.isErr).to.equal(true);
+            expect(result.error.type).to.equal(OpeningErrorType.InvalidFundingKey);
+        });
+
+        it("returns false when payment_basepoint is invalid", async () => {
+            // arrange
+            const helpers = new Helpers(undefined);
+            const preferences = new ChannelPreferences({});
+            const channel = createFakeChannel({});
+            const msg = createFakeAcceptChannel({ paymentBasePoint: Buffer.alloc(33) });
+
+            // act
+            const result = await helpers.validateAcceptChannel(channel, preferences, msg);
+
+            // assert
+            expect(result.isErr).to.equal(true);
+            expect(result.error.type).to.equal(OpeningErrorType.InvalidPaymentBasePoint);
+        });
+
+        it("returns false when deplayed_payment_basepoint is invalid", async () => {
+            // arrange
+            const helpers = new Helpers(undefined);
+            const preferences = new ChannelPreferences({});
+            const channel = createFakeChannel({});
+            const msg = createFakeAcceptChannel({ delayedPaymentBasePoint: Buffer.alloc(33) });
+
+            // act
+            const result = await helpers.validateAcceptChannel(channel, preferences, msg);
+
+            // assert
+            expect(result.isErr).to.equal(true);
+            expect(result.error.type).to.equal(OpeningErrorType.InvalidDelayedBasePoint);
+        });
+
+        it("returns false when htlc_basepoint is invalid", async () => {
+            // arrange
+            const helpers = new Helpers(undefined);
+            const preferences = new ChannelPreferences({});
+            const channel = createFakeChannel({});
+            const msg = createFakeAcceptChannel({ htlcBasePoint: Buffer.alloc(33) });
+
+            // act
+            const result = await helpers.validateAcceptChannel(channel, preferences, msg);
+
+            // assert
+            expect(result.isErr).to.equal(true);
+            expect(result.error.type).to.equal(OpeningErrorType.InvalidHtlcBasePoint);
+        });
+
+        it("returns false when revocation_basepoint is invalid", async () => {
+            // arrange
+            const helpers = new Helpers(undefined);
+            const preferences = new ChannelPreferences({});
+            const channel = createFakeChannel({});
+            const msg = createFakeAcceptChannel({ revocationBasePoint: Buffer.alloc(33) });
+
+            // act
+            const result = await helpers.validateAcceptChannel(channel, preferences, msg);
+
+            // assert
+            expect(result.isErr).to.equal(true);
+            expect(result.error.type).to.equal(OpeningErrorType.InvalidRevocationBasePoint);
+        });
+
+        it("returns false when first_per_commitment_point is invalid", async () => {
+            // arrange
+            const helpers = new Helpers(undefined);
+            const preferences = new ChannelPreferences({});
+            const channel = createFakeChannel({});
+            const msg = createFakeAcceptChannel({ firstPerCommitmentPoint: Buffer.alloc(33) });
+
+            // act
+            const result = await helpers.validateAcceptChannel(channel, preferences, msg);
+
+            // assert
+            expect(result.isErr).to.equal(true);
+            expect(result.error.type).to.equal(OpeningErrorType.InvalidPerCommitmentPoint);
+        });
+
+        it("returns false when dust_limit_satoshis < 354", async () => {
+            // arrange
+            const helpers = new Helpers(undefined);
+            const preferences = new ChannelPreferences({});
+            const channel = createFakeChannel({});
+            const msg = createFakeAcceptChannel({ dustLimitValue: Value.fromSats(353) });
+
+            // act
+            const result = await helpers.validateAcceptChannel(channel, preferences, msg);
+
+            // assert
+            expect(result.isErr).to.equal(true);
+            expect(result.error.type).to.equal(OpeningErrorType.DustLimitTooLow);
+        });
+
+        it("returns false when minimum_depth is too large", async () => {
+            // arrange
+            const helpers = new Helpers(undefined);
+            const preferences = new ChannelPreferences({});
+            const channel = createFakeChannel({});
+            const msg = createFakeAcceptChannel({ minimumDepth: 10000 });
+
+            // act
+            const result = await helpers.validateAcceptChannel(channel, preferences, msg);
+
+            // assert
+            expect(result.isErr).to.equal(true);
+            expect(result.error.type).to.equal(OpeningErrorType.MinimumDepthTooHigh);
+        });
+
+        it("returns false when htlc_minimum_msat is too large", async () => {
+            // arrange
+            const helpers = new Helpers(undefined);
+            const preferences = new ChannelPreferences({});
+            const channel = createFakeChannel({});
+            const msg = createFakeAcceptChannel({ htlcMinimumValue: Value.fromSats(100_000) });
+
+            // act
+            const result = await helpers.validateAcceptChannel(channel, preferences, msg);
+
+            // assert
+            expect(result.isErr).to.equal(true);
+            expect(result.error.type).to.equal(OpeningErrorType.HtlcMinimumTooHigh);
+        });
+
+        it("returns false when max_htlc_value_in_flight_msat is too small", async () => {
+            // arrange
+            const helpers = new Helpers(undefined);
+            const preferences = new ChannelPreferences({});
+            const channel = createFakeChannel({});
+            const msg = createFakeAcceptChannel({ maxHtlcValueInFlightValue: Value.fromSats(1) });
+
+            // act
+            const result = await helpers.validateAcceptChannel(channel, preferences, msg);
+
+            // assert
+            expect(result.isErr).to.equal(true);
+            expect(result.error.type).to.equal(OpeningErrorType.MaxHtlcInFlightTooLow);
+        });
+
+        it("returns false when channel_reserve_balance is too large", async () => {
+            // arrange
+            const helpers = new Helpers(undefined);
+            const preferences = new ChannelPreferences({});
+            const channel = createFakeChannel({});
+            const msg = createFakeAcceptChannel({ channelReserveValue: Value.fromSats(100_000) });
+
+            // act
+            const result = await helpers.validateAcceptChannel(channel, preferences, msg);
+
+            // assert
+            expect(result.isErr).to.equal(true);
+            expect(result.error.type).to.equal(OpeningErrorType.ChannelReserveTooHigh);
+        });
+
+        it("returns false when max_accepted_htlcs is too small", async () => {
+            // arrange
+            const helpers = new Helpers(undefined);
+            const preferences = new ChannelPreferences({});
+            const channel = createFakeChannel({});
+            const msg = createFakeAcceptChannel({ maxAcceptedHtlcs: 0 });
+
+            // act
+            const result = await helpers.validateAcceptChannel(channel, preferences, msg);
+
+            // assert
+            expect(result.isErr).to.equal(true);
+            expect(result.error.type).to.equal(OpeningErrorType.MaxAcceptedHtlcsTooLow);
+        });
+
+        it("returns false when dust_limit_satoshis is too large", async () => {
+            // arrange
+            const helpers = new Helpers(undefined);
+            const preferences = new ChannelPreferences({});
+            const channel = createFakeChannel({});
+            const msg = createFakeAcceptChannel({ dustLimitValue: Value.fromSats(1001) });
+
+            // act
+            const result = await helpers.validateAcceptChannel(channel, preferences, msg);
+
+            // assert
+            expect(result.isErr).to.equal(true);
+            expect(result.error.type).to.equal(OpeningErrorType.DustLimitTooHigh);
         });
     });
 });

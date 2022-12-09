@@ -14,6 +14,7 @@ import { IChannelLogic } from "../lib/channels/IChannelLogic";
 import { Helpers } from "../lib/channels/Helpers";
 import { IChannelStorage } from "../lib/channels/IChannelStorage";
 import { OpenChannelRequest } from "../lib/channels/OpenChannelRequest";
+import { AcceptChannelMessage } from "../lib/messages/AcceptChannelMessage";
 
 export class FakePeer extends Readable implements IPeer {
     public state: PeerState;
@@ -173,4 +174,49 @@ export function createFakeChannelStorage(): Sinon.SinonStubbedInstance<IChannelS
     return {
         save: Sinon.stub(),
     };
+}
+
+export function createFakeAcceptChannel(
+    opts: Partial<AcceptChannelMessage> = {},
+): AcceptChannelMessage {
+    const msg = new AcceptChannelMessage();
+    msg.temporaryChannelId = opts.temporaryChannelId ?? Buffer.alloc(32);
+    msg.dustLimitValue = opts.dustLimitValue ?? Value.fromSats(354);
+    msg.channelReserveValue = opts.channelReserveValue ?? Value.fromSats(20_000);
+    msg.minimumDepth = opts.minimumDepth ?? 6;
+    msg.toSelfDelay = opts.toSelfDelay ?? 144;
+    msg.htlcMinimumValue = opts.htlcMinimumValue ?? Value.fromSats(200);
+    msg.maxHtlcValueInFlightValue = opts.maxHtlcValueInFlightValue ?? Value.fromSats(20_000);
+    msg.maxAcceptedHtlcs = opts.maxAcceptedHtlcs ?? 30;
+    msg.fundingPubKey =
+        opts.fundingPubKey ??
+        createFakeKey(11n)
+            .toPubKey(true)
+            .toBuffer();
+    msg.paymentBasePoint =
+        opts.paymentBasePoint ??
+        createFakeKey(12n)
+            .toPubKey(true)
+            .toBuffer();
+    msg.delayedPaymentBasePoint =
+        opts.delayedPaymentBasePoint ??
+        createFakeKey(13n)
+            .toPubKey(true)
+            .toBuffer();
+    msg.htlcBasePoint =
+        opts.htlcBasePoint ??
+        createFakeKey(14n)
+            .toPubKey(true)
+            .toBuffer();
+    msg.revocationBasePoint =
+        opts.revocationBasePoint ??
+        createFakeKey(15n)
+            .toPubKey(true)
+            .toBuffer();
+    msg.firstPerCommitmentPoint =
+        opts.firstPerCommitmentPoint ??
+        createFakeKey(116n)
+            .toPubKey(true)
+            .toBuffer();
+    return msg;
 }

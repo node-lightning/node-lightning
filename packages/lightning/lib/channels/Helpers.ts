@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/require-await */
-import { HashByteOrder, Network, Value } from "@node-lightning/bitcoin";
+import { HashByteOrder, Network, PublicKey, Value } from "@node-lightning/bitcoin";
 import { randomBytes } from "crypto";
 import { BitField } from "../BitField";
 import { InitFeatureFlags } from "../flags/InitFeatureFlags";
@@ -488,5 +488,117 @@ export class Helpers implements IChannelLogic {
      */
     public validateDustLimitTooLarge(dustLimit: Value, preferences: ChannelPreferences): boolean {
         return dustLimit.lte(preferences.maxDustLimit);
+    }
+
+    /**
+     * Used by the funder to validate a received `accept_channel`
+     * according to rules in BOLT 2. There are several hard failures that
+     * are defined at the protocol level and soft failures that are
+     * configurable by the node operator.
+     * @param channel
+     * @param preferences
+     * @param msg
+     */
+    public async validateAcceptChannel(
+        channel: Channel,
+        preferences: ChannelPreferences,
+        msg: AcceptChannelMessage,
+    ): Promise<Result<boolean, OpeningError>> {
+        // Must validate the dust limit is below the channel reserve for
+        // both of the nodes
+        if (
+            !this.validateChannelReserveDustLimit(
+                channel.theirSide.channelReserve,
+                channel.ourSide.dustLimit,
+                msg.channelReserveValue,
+                msg.dustLimitValue,
+            )
+        ) {
+            return OpeningError.toResult(OpeningErrorType.ChannelReserveDustLimitMismatch);
+        }
+
+        // Must validate that the to_self_delay value is not unreasonably
+        // large
+        if (!this.validateToSelfDelayTooLarge(msg.toSelfDelay, preferences)) {
+            return OpeningError.toResult(OpeningErrorType.ToSelfDelayTooHigh);
+        }
+
+        // Must validate that max_accepted_htlcs is <= 483
+        if (!this.validateMaxAcceptedHtlcsTooLarge(msg.maxAcceptedHtlcs)) {
+            return OpeningError.toResult(OpeningErrorType.MaxAcceptedHtlcsTooHigh);
+        }
+
+        // Must validate `funding_pubkey` is a valid public key
+        if (!PublicKey.isValid(msg.fundingPubKey)) {
+            return OpeningError.toResult(OpeningErrorType.InvalidFundingKey);
+        }
+
+        // Must validate `payment_basepoint` is a valid public key
+        if (!PublicKey.isValid(msg.paymentBasePoint)) {
+            return OpeningError.toResult(OpeningErrorType.InvalidPaymentBasePoint);
+        }
+
+        // Must validate `delayed_payment_basepoint` is a valid public key
+        if (!PublicKey.isValid(msg.delayedPaymentBasePoint)) {
+            return OpeningError.toResult(OpeningErrorType.InvalidDelayedBasePoint);
+        }
+
+        // Must validate `revocation_basepoint` is a valid public key
+        if (!PublicKey.isValid(msg.revocationBasePoint)) {
+            return OpeningError.toResult(OpeningErrorType.InvalidRevocationBasePoint);
+        }
+
+        // Must validate `htlc_basepoint` is a valid public key
+        if (!PublicKey.isValid(msg.htlcBasePoint)) {
+            return OpeningError.toResult(OpeningErrorType.InvalidHtlcBasePoint);
+        }
+
+        // Must validate `first_per_commitment_point` is a valid public key
+        if (!PublicKey.isValid(msg.firstPerCommitmentPoint)) {
+            return OpeningError.toResult(OpeningErrorType.InvalidPerCommitmentPoint);
+        }
+
+        // Must validate that dust_limit_satoshis is not too small
+        if (!this.validateDustLimitTooSmall(msg.dustLimitValue)) {
+            return OpeningError.toResult(OpeningErrorType.DustLimitTooLow);
+        }
+
+        // May validate that `minimum_depth` is not too large
+        if (!this.validateMinimumDepthTooLarge(msg.minimumDepth, preferences)) {
+            return OpeningError.toResult(OpeningErrorType.MinimumDepthTooHigh);
+        }
+
+        // May validate that `htlc_minimum_msat` is not too large
+        if (!this.validateHtlcMinimumTooLarge(msg.htlcMinimumValue, channel, preferences)) {
+            return OpeningError.toResult(OpeningErrorType.HtlcMinimumTooHigh);
+        }
+
+        // May validate that `max_htlc_inflight` is not too small
+        if (
+            !this.validateMaxHtlcInFlightTooSmall(
+                msg.maxHtlcValueInFlightValue,
+                channel,
+                preferences,
+            )
+        ) {
+            return OpeningError.toResult(OpeningErrorType.MaxHtlcInFlightTooLow);
+        }
+
+        // May validate that the `channel_reserve` isn't too high
+        if (!this.validateChannelReserveTooLarge(msg.channelReserveValue, channel, preferences)) {
+            return OpeningError.toResult(OpeningErrorType.ChannelReserveTooHigh);
+        }
+
+        // May validate that `max_accepted_htlcs` is not too small
+        if (!this.validateMaxAcceptedHtlcsTooSmall(msg.maxAcceptedHtlcs, preferences)) {
+            return OpeningError.toResult(OpeningErrorType.MaxAcceptedHtlcsTooLow);
+        }
+
+        // May validate that the `dust_limit_satoshi` is not too large
+        if (!this.validateDustLimitTooLarge(msg.dustLimitValue, preferences)) {
+            return OpeningError.toResult(OpeningErrorType.DustLimitTooHigh);
+        }
+
+        return Result.ok(true);
     }
 }
