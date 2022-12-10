@@ -139,20 +139,11 @@ export class Tx {
     }
 
     /**
-     * Get the transaction version. The transaction version corresponds
-     * to features that are enabled for the transaction such as time
-     * locks.
-     */
-    public get version(): number {
-        return this._version;
-    }
-
-    /**
      * Gets the transaction identifier. The `txId` for both legacy and
      * segwit transaction is the hash256 of
      * `hash256(version||inputs||ouputs||locktime)`.
      */
-    public get txId(): HashValue {
+    public get txId(): Readonly<HashValue> {
         if (!this._txId) this._lazyCalc();
         return this._txId;
     }
@@ -166,71 +157,64 @@ export class Tx {
      * This is the same value as the `hash` property in bitcoind RPC
      * results.
      */
-    public get witnessTxId(): HashValue {
+    public get witnessTxId(): Readonly<HashValue> {
         if (!this._wtxid) this._lazyCalc();
         return this._wtxid;
     }
 
-    /**
-     * Gets the transaction inputs.
-     */
-    public get inputs(): TxIn[] {
-        return this._inputs;
+    public get isSegWit(): Readonly<boolean> {
+        return this.inputs.some(p => p.witness.length > 0);
     }
 
-    /**
-     * Gets the transaction outputs
-     */
-    public get outputs(): TxOut[] {
-        return this._outputs;
-    }
-
-    /**
-     * Gets the transaction `nLocktime` value that is used to control
-     * absolute timelocks.
-     */
-    public get locktime(): LockTime {
-        return this._locktime;
-    }
-
-    public get isSegWit(): boolean {
-        return this._inputs.some(p => p.witness.length > 0);
-    }
-
-    public get size(): number {
+    public get size(): Readonly<number> {
         if (!this._sizes) this._lazyCalc();
         return this._sizes.size;
     }
 
-    public get vsize(): number {
+    public get vsize(): Readonly<number> {
         if (!this._sizes) this._lazyCalc();
         return this._sizes.vsize;
     }
 
-    public get weight(): number {
+    public get weight(): Readonly<number> {
         if (!this._sizes) this._lazyCalc();
         return this._sizes.weight;
     }
 
-    private _version: number;
     private _txId: HashValue;
     private _wtxid: HashValue;
-    private _inputs: TxIn[];
-    private _outputs: TxOut[];
-    private _locktime: LockTime;
     private _sizes: SizeResult;
 
     public constructor(
-        version: number = 2,
-        inputs: TxIn[] = [],
-        outputs: TxOut[] = [],
-        locktime: LockTime = new LockTime(),
+        /**
+         * Gets the transaction version. The transaction version corresponds
+         * to features that are enabled for the transaction such as time
+         * locks.
+         */
+        readonly version: number = 2,
+
+        /**
+         * Gets the transaction inputs. The collection is immutable.
+         */
+        readonly inputs: ReadonlyArray<Readonly<TxIn>> = [],
+
+        /**
+         * Gets the transaction outputs. This collection is immutable.
+         */
+        readonly outputs: ReadonlyArray<Readonly<TxOut>> = [],
+
+        /**
+         * Gets the transaction `nLocktime` value that is used to control
+         * absolute timelocks.
+         */
+        readonly locktime: Readonly<LockTime> = new LockTime(),
+
+        /**
+         * Precalulated size information. If this information is not
+         * provided, size data will be lazy calculated when needed.
+         */
         sizes?: SizeResult,
     ) {
-        this._version = version;
-        this._inputs = inputs;
-        this._outputs = outputs;
-        this._locktime = locktime;
         this._sizes = sizes;
     }
 
