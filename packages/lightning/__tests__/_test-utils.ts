@@ -1,12 +1,21 @@
 import { BitField } from "../lib/BitField";
 import { ILogger, Logger } from "@node-lightning/logger";
 import { Readable } from "stream";
-import { IPeer, IWireMessage, PeerState } from "../lib";
+import { CommitmentNumber, CommitmentSecret, IPeer, IWireMessage, PeerState } from "../lib";
 import { InitFeatureFlags } from "../lib/flags/InitFeatureFlags";
 import bech32 from "bech32";
 import { IChannelWallet } from "../lib/channels/IChannelWallet";
 import Sinon from "sinon";
-import { Network, PrivateKey, PublicKey, Value } from "@node-lightning/bitcoin";
+import {
+    Network,
+    OutPoint,
+    PrivateKey,
+    PublicKey,
+    Script,
+    TxIn,
+    TxOut,
+    Value,
+} from "@node-lightning/bitcoin";
 import { bigToBufBE } from "@node-lightning/bufio";
 import { Channel } from "../lib/channels/Channel";
 import { ChannelSide } from "../lib/channels/ChannelSide";
@@ -77,6 +86,8 @@ export function createFakeChannelWallet(): Sinon.SinonStubbedInstance<IChannelWa
         createFundingKey: Sinon.stub(),
         createBasePointSecrets: Sinon.stub(),
         createPerCommitmentSeed: Sinon.stub(),
+        fundTx: Sinon.stub(),
+        signTx: Sinon.stub(),
     };
 }
 
@@ -125,8 +136,8 @@ export function createFakeChannel(
         fundingAmount: Value;
         pushAmount: Value;
         feeRatePerKw: Value;
-        ourSide: Partial<ChannelSide>;
-        theirSide: Partial<ChannelSide>;
+        funder: Partial<ChannelSide>;
+        fundee: Partial<ChannelSide>;
         ourFundingSecret: PrivateKey;
         ourPaymentSecret: PrivateKey;
         ourDelayedPaymentSecret: PrivateKey;
@@ -145,23 +156,66 @@ export function createFakeChannel(
     channel.pushAmount = options.pushAmount ?? Value.fromSats(2_000);
     channel.feeRatePerKw = options.feeRatePerKw ?? Value.fromSats(1000);
     channel.isPublic = options.isPublic ?? true;
-    channel.ourSide.dustLimit = options.ourSide?.dustLimit ?? Value.fromSats(330);
-    channel.ourSide.minHtlcValue = options.ourSide?.minHtlcValue ?? Value.fromSats(200);
-    channel.ourSide.maxAcceptedHtlc = options.ourSide?.maxAcceptedHtlc ?? 30;
-    channel.ourSide.maxInFlightHtlcValue = options.ourSide?.maxInFlightHtlcValue ?? Value.fromMilliSats(20_000); // prettier-ignore
 
-    channel.theirSide.channelReserve = options.theirSide?.channelReserve ?? Value.fromSats(2_000);
-    channel.theirSide.toSelfDelayBlocks = options.theirSide?.toSelfDelayBlocks ?? 144;
+    if (isFunder) {
+        channel.ourSide.dustLimit = options.funder?.dustLimit ?? Value.fromSats(354);
+        channel.ourSide.minHtlcValue = options.funder?.minHtlcValue ?? Value.fromSats(200);
+        channel.ourSide.maxAcceptedHtlc = options.funder?.maxAcceptedHtlc ?? 30;
+        channel.ourSide.maxInFlightHtlcValue = options.funder?.maxInFlightHtlcValue ?? Value.fromMilliSats(20_000); // prettier-ignore
+        channel.theirSide.channelReserve = options.fundee?.channelReserve ?? Value.fromSats(20_000);
+        channel.theirSide.toSelfDelayBlocks = options.fundee?.toSelfDelayBlocks ?? 144;
 
-    channel.fundingKey = options.ourFundingSecret ?? createFakeKey(1n);
-    channel.paymentBasePointSecret = options.ourPaymentSecret ?? createFakeKey(2n);
-    channel.delayedBasePointSecret = options.ourDelayedPaymentSecret ?? createFakeKey(3n);
-    channel.htlcBasePointSecret = options.ourHtlcSecret ?? createFakeKey(4n);
-    channel.revocationBasePointSecret = options.ourRevocationSecret ?? createFakeKey(5n);
-    channel.perCommitmentSeed = options.ourPerCommitmentSeed ?? Buffer.alloc(32);
-    channel.ourSide.commitmentPoint = channel
-        .getPerCommitmentSecret(channel.ourSide.commitmentNumber)
-        .toPubKey(true);
+        // create our secrets & public keys
+        channel.fundingKey = options.ourFundingSecret ?? createFakeKey(1n);
+        channel.paymentBasePointSecret = options.ourPaymentSecret ?? createFakeKey(2n);
+        channel.delayedBasePointSecret = options.ourDelayedPaymentSecret ?? createFakeKey(3n);
+        channel.htlcBasePointSecret = options.ourHtlcSecret ?? createFakeKey(4n);
+        channel.revocationBasePointSecret = options.ourRevocationSecret ?? createFakeKey(5n);
+        channel.perCommitmentSeed = options.ourPerCommitmentSeed ?? Buffer.alloc(32, 0x00);
+
+        // create their public keys
+        channel.theirSide.fundingPubKey = createFakeKey(11n).toPubKey(true);
+        channel.theirSide.paymentBasePoint = createFakeKey(12n).toPubKey(true);
+        channel.theirSide.delayedBasePoint = createFakeKey(13n).toPubKey(true);
+        channel.theirSide.htlcBasePoint = createFakeKey(14n).toPubKey(true);
+        channel.theirSide.revocationBasePoint = createFakeKey(15n).toPubKey(true);
+        channel.theirSide.commitmentPoint = CommitmentSecret.privateKey(
+            Buffer.alloc(32, 0xff),
+            network,
+            channel.theirSide.commitmentNumber,
+        ).toPubKey(true);
+    } else {
+        channel.ourSide.dustLimit = options.funder?.dustLimit ?? Value.fromSats(354);
+        channel.ourSide.minHtlcValue = options.funder?.minHtlcValue ?? Value.fromSats(200);
+        channel.ourSide.maxAcceptedHtlc = options.funder?.maxAcceptedHtlc ?? 30;
+        channel.ourSide.maxInFlightHtlcValue = options.funder?.maxInFlightHtlcValue ?? Value.fromMilliSats(20_000); // prettier-ignore
+        channel.theirSide.channelReserve = options.fundee?.channelReserve ?? Value.fromSats(20_000);
+        channel.theirSide.toSelfDelayBlocks = options.fundee?.toSelfDelayBlocks ?? 144;
+
+        channel.fundingKey = options.ourFundingSecret ?? createFakeKey(11n);
+        channel.paymentBasePointSecret = options.ourPaymentSecret ?? createFakeKey(2n);
+        channel.delayedBasePointSecret = options.ourDelayedPaymentSecret ?? createFakeKey(3n);
+        channel.htlcBasePointSecret = options.ourHtlcSecret ?? createFakeKey(4n);
+        channel.revocationBasePointSecret = options.ourRevocationSecret ?? createFakeKey(5n);
+        channel.perCommitmentSeed = options.ourPerCommitmentSeed ?? Buffer.alloc(32, 0xff);
+
+        channel.theirSide.fundingPubKey = createFakeKey(1n).toPubKey(true);
+        channel.theirSide.paymentBasePoint = createFakeKey(2n).toPubKey(true);
+        channel.theirSide.delayedBasePoint = createFakeKey(3n).toPubKey(true);
+        channel.theirSide.htlcBasePoint = createFakeKey(4n).toPubKey(true);
+        channel.theirSide.revocationBasePoint = createFakeKey(5n).toPubKey(true);
+        channel.theirSide.commitmentPoint = CommitmentSecret.privateKey(
+            Buffer.alloc(32, 0x00),
+            network,
+            channel.theirSide.commitmentNumber,
+        ).toPubKey(true);
+    }
+
+    channel.ourSide.commitmentPoint = CommitmentSecret.privateKey(
+        channel.perCommitmentSeed,
+        channel.network,
+        channel.ourSide.commitmentNumber,
+    ).toPubKey(true);
 
     return channel;
 }
@@ -215,8 +269,32 @@ export function createFakeAcceptChannel(
             .toBuffer();
     msg.firstPerCommitmentPoint =
         opts.firstPerCommitmentPoint ??
-        createFakeKey(116n)
+        CommitmentSecret.privateKey(
+            Buffer.alloc(32, 0xff),
+            Network.testnet,
+            new CommitmentNumber(0n),
+        )
             .toPubKey(true)
             .toBuffer();
     return msg;
+}
+
+export function createFakeTxIn(opts: Partial<TxIn> = {}) {
+    return new TxIn(
+        opts.outpoint ??
+            new OutPoint("0000000000000000000000000000000000000000000000000000000000000001", 0),
+        opts.scriptSig,
+        opts.sequence,
+    );
+}
+
+export function createFakeTxOut(opts: Partial<TxOut> = {}) {
+    return new TxOut(
+        opts.value ?? Value.fromSats(800_000),
+        Script.p2wpkhLock(
+            createFakeKey(1001n)
+                .toPubKey(true)
+                .hash160(),
+        ),
+    );
 }

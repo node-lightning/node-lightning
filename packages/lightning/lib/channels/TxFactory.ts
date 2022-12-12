@@ -2,7 +2,6 @@ import {
     HashValue,
     LockTime,
     OutPoint,
-    PublicKey,
     Script,
     Sequence,
     TxBuilder,

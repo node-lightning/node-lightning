@@ -1,4 +1,6 @@
+import { Network, PrivateKey } from "@node-lightning/bitcoin";
 import { sha256 } from "@node-lightning/crypto";
+import { CommitmentNumber } from "./CommitmentNumber";
 
 export class CommitmentSecret {
     /**
@@ -36,5 +38,17 @@ export class CommitmentSecret {
             }
         }
         return p;
+    }
+
+    /**
+     * Helper that returns a PrivateKey from a seed, network, and
+     * `CommitmentNumber`. The commitment number calculates the secret
+     * index that should be used for the key.
+     * @param seed
+     * @param number
+     * @param network
+     */
+    public static privateKey(seed: Buffer, network: Network, number: CommitmentNumber): PrivateKey {
+        return new PrivateKey(CommitmentSecret.derive(seed, number.secretIndex), network);
     }
 }

@@ -1,8 +1,6 @@
 import { Network, PrivateKey, Value } from "@node-lightning/bitcoin";
 import { ChannelId } from "../domain/ChannelId";
 import { ChannelSide } from "./ChannelSide";
-import { CommitmentNumber } from "./CommitmentNumber";
-import { CommitmentSecret } from "./CommitmentSecret";
 import { StateMachine } from "./StateMachine";
 
 export class Channel {
@@ -75,12 +73,5 @@ export class Channel {
     constructor(readonly peerId: string, readonly network: Network, readonly funder: boolean) {
         this.ourSide = new ChannelSide();
         this.theirSide = new ChannelSide();
-    }
-
-    public getPerCommitmentSecret(commitmentNumber: CommitmentNumber): PrivateKey {
-        return new PrivateKey(
-            CommitmentSecret.derive(this.perCommitmentSeed, commitmentNumber.secretIndex),
-            this.network,
-        );
     }
 }

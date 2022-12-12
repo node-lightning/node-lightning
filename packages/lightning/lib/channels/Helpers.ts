@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/require-await */
-import { HashByteOrder, Network, PublicKey, Value } from "@node-lightning/bitcoin";
+import { HashByteOrder, Network, PublicKey, Tx, TxBuilder, Value } from "@node-lightning/bitcoin";
 import { randomBytes } from "crypto";
 import { BitField } from "../BitField";
 import { InitFeatureFlags } from "../flags/InitFeatureFlags";
@@ -13,6 +13,8 @@ import { OpenChannelMessage } from "../messages/OpenChannelMessage";
 import { IChannelLogic } from "./IChannelLogic";
 import { AcceptChannelMessage } from "../messages/AcceptChannelMessage";
 import { ChannelPreferences } from "./ChannelPreferences";
+import { TxFactory } from "./TxFactory";
+import { CommitmentSecret } from "./CommitmentSecret";
 
 export class Helpers implements IChannelLogic {
     constructor(readonly wallet: IChannelWallet) {}
@@ -343,9 +345,11 @@ export class Helpers implements IChannelLogic {
         channel.perCommitmentSeed = await this.wallet.createPerCommitmentSeed();
 
         // Must generate `first_per_commitment_point` from the seed
-        channel.ourSide.commitmentPoint = channel
-            .getPerCommitmentSecret(channel.ourSide.commitmentNumber)
-            .toPubKey(true);
+        channel.ourSide.commitmentPoint = CommitmentSecret.privateKey(
+            channel.perCommitmentSeed,
+            channel.network,
+            channel.ourSide.commitmentNumber,
+        ).toPubKey(true);
 
         return Result.ok(channel);
     }
@@ -600,5 +604,35 @@ export class Helpers implements IChannelLogic {
         }
 
         return Result.ok(true);
+    }
+
+    /**
+     * Constructs a partial transaction with one or more inputs
+     * sufficient to cover the `funding_satoshis` value. Contains one or
+     * more outputs, one of which must be the funding output. The funding
+     * transaction is defined BOLT 3. This funding output must be a
+     * P2WSH output script matching:
+     *
+     * ```
+     * 2 <pubkey1> <pubkey2> 2 OP_CHECKMULTISIG
+     * ```
+     *
+     * The pubkeys are the lexicographical ordering of the
+     * `funding_pubkey` values. Lexicographical ordering improves privacy
+     * by not leaking which of the nodes is the funding node.
+     * @param channel
+     * @returns
+     */
+    public async createFundingTx(channel: Channel): Promise<Tx> {
+        const tx = new TxBuilder();
+        tx.addOutput(
+            TxFactory.createFundingOutput(
+                channel.fundingAmount,
+                channel.ourSide.fundingPubKey.toBuffer(),
+                channel.theirSide.fundingPubKey.toBuffer(),
+            ),
+        );
+        await this.wallet.fundTx(tx);
+        return tx.toTx();
     }
 }

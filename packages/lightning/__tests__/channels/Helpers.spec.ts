@@ -1,4 +1,4 @@
-import { Network, PrivateKey, Value } from "@node-lightning/bitcoin";
+import { LockTime, Network, OutPoint, PrivateKey, Sequence, Value } from "@node-lightning/bitcoin";
 import { expect } from "chai";
 import { BitField, InitFeatureFlags, OpenChannelMessage } from "../../lib";
 import { ChannelPreferences } from "../../lib/channels/ChannelPreferences";
@@ -13,6 +13,8 @@ import {
     createFakeChannelWallet,
     createFakeKey,
     createFakePeer,
+    createFakeTxIn,
+    createFakeTxOut,
 } from "../_test-utils";
 
 describe(Helpers.name, () => {
@@ -880,11 +882,11 @@ describe(Helpers.name, () => {
             expect(result.fundingAmount.sats).to.equal(200000n);
             expect(result.pushAmount.sats).to.equal(2000n);
             expect(result.feeRatePerKw.sats).to.equal(1000n);
-            expect(result.dustLimit.sats).to.equal(330n);
+            expect(result.dustLimit.sats).to.equal(354n);
             expect(result.maxAcceptedHtlcs).to.equal(30);
             expect(result.minHtlcValue.sats).to.equal(200n);
             expect(result.maxHtlcValueInFlight.msats).to.equal(20000n);
-            expect(result.channelReserve.sats).to.equal(2000n);
+            expect(result.channelReserve.sats).to.equal(20000n);
             expect(result.toSelfDelay).to.equal(144);
 
             expect(result.fundingPubKey.toString("hex")).to.equal(
@@ -1200,7 +1202,7 @@ describe(Helpers.name, () => {
             // arrange
             const helpers = new Helpers(undefined);
             const preferences = new ChannelPreferences({});
-            const channel = createFakeChannel({ ourSide: { dustLimit: Value.fromSats(354) } });
+            const channel = createFakeChannel({ funder: { dustLimit: Value.fromSats(354) } });
             const msg = createFakeAcceptChannel({ channelReserveValue: Value.fromSats(353) });
 
             // act
@@ -1434,6 +1436,46 @@ describe(Helpers.name, () => {
             // assert
             expect(result.isErr).to.equal(true);
             expect(result.error.type).to.equal(OpeningErrorType.DustLimitTooHigh);
+        });
+    });
+
+    describe(Helpers.prototype.createFundingTx.name, () => {
+        it("should construct a valid funding tx", async () => {
+            // arrange
+            const wallet = createFakeChannelWallet();
+            wallet.fundTx.callsFake(async tx => {
+                // attach funding input with rbf enabled
+                tx.inputs.push(
+                    createFakeTxIn({
+                        outpoint: new OutPoint(
+                            "0000000000000000000000000000000000000000000000000000000000000001",
+                            0,
+                        ),
+                        sequence: Sequence.rbf(),
+                    }),
+                );
+
+                // attach change output, 5000 in fees
+                tx.outputs.push(createFakeTxOut({ value: Value.fromSats(795_000) }));
+
+                // enable rbf
+                tx.locktime = LockTime.zero();
+                return tx;
+            });
+            const channel = createFakeChannel({});
+            const helpers = new Helpers(wallet);
+
+            // act
+            const tx = await helpers.createFundingTx(channel);
+
+            // assert
+            expect(tx.inputs.length).to.equal(1);
+            expect(tx.outputs.length).to.equal(2);
+            expect(tx.outputs[0].value.sats).to.equal(200_000n);
+            expect(tx.outputs[0].scriptPubKey.serialize().toString("hex")).to.equal(
+                "2200201b192fa496a3c4b46eacd154ffb24292ee78775ee5985570fb2c60205430b67a",
+            );
+            expect(tx.locktime.value).to.equal(0);
         });
     });
 });
