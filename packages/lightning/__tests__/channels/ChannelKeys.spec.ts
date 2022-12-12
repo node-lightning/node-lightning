@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 import { expect } from "chai";
-import { ChannelKeys } from "../../lib/domain/ChannelKeys";
+import { ChannelKeys } from "../../lib/channels/ChannelKeys";
 
 describe("ChannelKeys", () => {
     describe("BOLT3 Test Vectors", () => {

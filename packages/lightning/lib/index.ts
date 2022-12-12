@@ -27,7 +27,7 @@ export * from "./domain/AddressTor2";
 export * from "./domain/AddressTor3";
 export * from "./domain/AddressType";
 export * from "./domain/ChannelId";
-export * from "./domain/ChannelKeys";
+export * from "./channels/ChannelKeys";
 export * from "./channels/CommitmentNumber";
 export * from "./channels/CommitmentSecret";
 export * from "./channels/CommitmentSecret";
