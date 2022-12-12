@@ -1,9 +1,12 @@
-import { Network, Value } from "@node-lightning/bitcoin";
+import { Network, Tx, Value } from "@node-lightning/bitcoin";
 import { BitField } from "../BitField";
 import { InitFeatureFlags } from "../flags/InitFeatureFlags";
+import { AcceptChannelMessage } from "../messages/AcceptChannelMessage";
+import { FundingCreatedMessage } from "../messages/FundingCreatedMessage";
 import { OpenChannelMessage } from "../messages/OpenChannelMessage";
 import { Result } from "../Result";
 import { Channel } from "./Channel";
+import { ChannelPreferences } from "./ChannelPreferences";
 import { OpenChannelRequest } from "./OpenChannelRequest";
 import { OpeningError } from "./states/opening/OpeningError";
 
@@ -19,15 +22,25 @@ export interface IChannelLogic {
         network: Network,
         options: OpenChannelRequest,
     ): Promise<Result<Channel, OpeningError>>;
+    createFundingTx(channel: Channel): Promise<Tx>;
+    createFundingCreatedMessage(
+        channel: Channel,
+        signature: Buffer,
+    ): Promise<FundingCreatedMessage>;
     createOpenChannelMessage(channel: Channel): Promise<OpenChannelMessage>;
     createTempChannelId(): Buffer;
+    validateAcceptChannel(
+        channel: Channel,
+        msg: AcceptChannelMessage,
+    ): Promise<Result<boolean, OpeningError>>;
     validateFundingAmountMax(
         fundingAmount: Value,
         local: BitField<InitFeatureFlags>,
         remote: BitField<InitFeatureFlags>,
     ): boolean;
+    validateMinimumDepthTooLarge(depth: number);
     validatePushAmount(fundingAmount: Value, pushAmount: Value): boolean;
-    validateDustLimit(dustLimit: Value): boolean;
+    validateDustLimitTooSmall(dustLimit: Value): boolean;
     validateChannelReserveDustLimit(channelReserve: Value, dustLimit: Value): boolean;
     validateChannelReserveReachable(
         fundingAmount: Value,
@@ -36,5 +49,5 @@ export interface IChannelLogic {
         channelReserve: Value,
     ): boolean;
     validateFunderFees(fundingAmount: Value, pushAmount: Value, feeRatePerKw: Value): boolean;
-    validateMaxAcceptedHtlcs(maxAcceptedHtlcs: number): boolean;
+    validateMaxAcceptedHtlcsTooLarge(maxAcceptedHtlcs: number): boolean;
 }

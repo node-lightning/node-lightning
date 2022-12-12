@@ -17,6 +17,7 @@ export class ChannelSide {
     public commitmentPoint: PublicKey;
     public nextCommitmentPoint: PublicKey;
 
+    public balance: Value;
     public commitmentNumber: CommitmentNumber = new CommitmentNumber(0n);
     public htlcCounter: number = undefined;
 }

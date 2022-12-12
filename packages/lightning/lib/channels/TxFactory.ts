@@ -205,7 +205,7 @@ export class TxFactory {
             return b[1].cltvExpiry - a[1].cltvExpiry;
         });
 
-        // add hte outputs in sorted order
+        // add the outputs in sorted order
         const sortedHtlcs: Htlc[] = [];
         for (const [txout, htlc] of txouts) {
             tx.addOutput(txout);

@@ -1,12 +1,18 @@
-import { Network, PrivateKey, Value } from "@node-lightning/bitcoin";
+import { Network, OutPoint, PrivateKey, Tx, TxBuilder, Value } from "@node-lightning/bitcoin";
 import { ChannelId } from "../domain/ChannelId";
+import { ChannelKeys } from "./ChannelKeys";
 import { ChannelSide } from "./ChannelSide";
 import { StateMachine } from "./StateMachine";
+import { TxFactory } from "./TxFactory";
 
 export class Channel {
     public temporaryId: Buffer;
     public channelId: ChannelId;
     public isPublic: boolean;
+
+    public minimumDepth: number;
+    public fundingTx: Tx;
+    public fundingOutPoint: OutPoint;
 
     public feeRatePerKw: Value;
     public fundingAmount: Value;

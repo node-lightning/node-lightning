@@ -15,9 +15,10 @@ import { AcceptChannelMessage } from "../messages/AcceptChannelMessage";
 import { ChannelPreferences } from "./ChannelPreferences";
 import { TxFactory } from "./TxFactory";
 import { CommitmentSecret } from "./CommitmentSecret";
+import { FundingCreatedMessage } from "../messages/FundingCreatedMessage";
 
 export class Helpers implements IChannelLogic {
-    constructor(readonly wallet: IChannelWallet) {}
+    constructor(readonly wallet: IChannelWallet, public preferences: ChannelPreferences) {}
 
     /**
      * Constructs a `temporary_channel_id` that is unique per peer and
@@ -206,11 +207,8 @@ export class Helpers implements IChannelLogic {
      * @param channelPreferences
      * @returns
      */
-    public validateMaxAcceptedHtlcsTooSmall(
-        maxAcceptedHtlc: number,
-        channelPreferences: ChannelPreferences,
-    ): boolean {
-        return maxAcceptedHtlc >= channelPreferences.minMaxAcceptedHtlcs;
+    public validateMaxAcceptedHtlcsTooSmall(maxAcceptedHtlc: number): boolean {
+        return maxAcceptedHtlc >= this.preferences.minMaxAcceptedHtlcs;
     }
 
     /**
@@ -401,8 +399,8 @@ export class Helpers implements IChannelLogic {
      * @param depth
      * @returns
      */
-    public validateMinimumDepthTooLarge(depth: number, preferences: ChannelPreferences): boolean {
-        return depth <= preferences.maxMinimumFundingDepth;
+    public validateMinimumDepthTooLarge(depth: number): boolean {
+        return depth <= this.preferences.maxMinimumFundingDepth;
     }
 
     /**
@@ -414,11 +412,8 @@ export class Helpers implements IChannelLogic {
      * @param toSelfDelay
      * @returns
      */
-    public validateToSelfDelayTooLarge(
-        toSelfDelay: number,
-        preferences: ChannelPreferences,
-    ): boolean {
-        return toSelfDelay <= preferences.maxAllowedTooSelfDelay;
+    public validateToSelfDelayTooLarge(toSelfDelay: number): boolean {
+        return toSelfDelay <= this.preferences.maxAllowedTooSelfDelay;
     }
 
     /**
@@ -430,13 +425,9 @@ export class Helpers implements IChannelLogic {
      * @param preferences
      * @returns
      */
-    public validateHtlcMinimumTooLarge(
-        htlcMinium: Value,
-        channel: Channel,
-        preferences: ChannelPreferences,
-    ): boolean {
+    public validateHtlcMinimumTooLarge(htlcMinium: Value, channel: Channel): boolean {
         const maxSats =
-            (channel.fundingAmount.sats * BigInt(preferences.maxChanPercHtlcMinimum)) / 100n;
+            (channel.fundingAmount.sats * BigInt(this.preferences.maxChanPercHtlcMinimum)) / 100n;
         return htlcMinium.lte(Value.fromSats(maxSats));
     }
 
@@ -449,13 +440,10 @@ export class Helpers implements IChannelLogic {
      * @param channel
      * @param preferences
      */
-    public validateMaxHtlcInFlightTooSmall(
-        maxHtlcInFlight: Value,
-        channel: Channel,
-        preferences: ChannelPreferences,
-    ): boolean {
+    public validateMaxHtlcInFlightTooSmall(maxHtlcInFlight: Value, channel: Channel): boolean {
         const minSats =
-            (channel.fundingAmount.sats * BigInt(preferences.minChanPercMaxHtlcInFlight)) / 100n;
+            (channel.fundingAmount.sats * BigInt(this.preferences.minChanPercMaxHtlcInFlight)) /
+            100n;
         return maxHtlcInFlight.gte(Value.fromSats(minSats));
     }
 
@@ -470,13 +458,10 @@ export class Helpers implements IChannelLogic {
      * @param channel
      * @param preferences
      */
-    public validateChannelReserveTooLarge(
-        channelReserve: Value,
-        channel: Channel,
-        preferences: ChannelPreferences,
-    ): boolean {
+    public validateChannelReserveTooLarge(channelReserve: Value, channel: Channel): boolean {
         const maxSats =
-            (channel.fundingAmount.sats * BigInt(preferences.maxChanPercChannelReserve)) / 100n;
+            (channel.fundingAmount.sats * BigInt(this.preferences.maxChanPercChannelReserve)) /
+            100n;
         return channelReserve.lte(Value.fromSats(maxSats));
     }
 
@@ -488,10 +473,9 @@ export class Helpers implements IChannelLogic {
      * that is too large is an attack vector for stealing funds through
      * fee siphoning.
      * @param dustLimit
-     * @param preferences
      */
-    public validateDustLimitTooLarge(dustLimit: Value, preferences: ChannelPreferences): boolean {
-        return dustLimit.lte(preferences.maxDustLimit);
+    public validateDustLimitTooLarge(dustLimit: Value): boolean {
+        return dustLimit.lte(this.preferences.maxDustLimit);
     }
 
     /**
@@ -505,7 +489,6 @@ export class Helpers implements IChannelLogic {
      */
     public async validateAcceptChannel(
         channel: Channel,
-        preferences: ChannelPreferences,
         msg: AcceptChannelMessage,
     ): Promise<Result<boolean, OpeningError>> {
         // Must validate the dust limit is below the channel reserve for
@@ -523,7 +506,7 @@ export class Helpers implements IChannelLogic {
 
         // Must validate that the to_self_delay value is not unreasonably
         // large
-        if (!this.validateToSelfDelayTooLarge(msg.toSelfDelay, preferences)) {
+        if (!this.validateToSelfDelayTooLarge(msg.toSelfDelay)) {
             return OpeningError.toResult(OpeningErrorType.ToSelfDelayTooHigh);
         }
 
@@ -568,38 +551,32 @@ export class Helpers implements IChannelLogic {
         }
 
         // May validate that `minimum_depth` is not too large
-        if (!this.validateMinimumDepthTooLarge(msg.minimumDepth, preferences)) {
+        if (!this.validateMinimumDepthTooLarge(msg.minimumDepth)) {
             return OpeningError.toResult(OpeningErrorType.MinimumDepthTooHigh);
         }
 
         // May validate that `htlc_minimum_msat` is not too large
-        if (!this.validateHtlcMinimumTooLarge(msg.htlcMinimumValue, channel, preferences)) {
+        if (!this.validateHtlcMinimumTooLarge(msg.htlcMinimumValue, channel)) {
             return OpeningError.toResult(OpeningErrorType.HtlcMinimumTooHigh);
         }
 
         // May validate that `max_htlc_inflight` is not too small
-        if (
-            !this.validateMaxHtlcInFlightTooSmall(
-                msg.maxHtlcValueInFlightValue,
-                channel,
-                preferences,
-            )
-        ) {
+        if (!this.validateMaxHtlcInFlightTooSmall(msg.maxHtlcValueInFlightValue, channel)) {
             return OpeningError.toResult(OpeningErrorType.MaxHtlcInFlightTooLow);
         }
 
         // May validate that the `channel_reserve` isn't too high
-        if (!this.validateChannelReserveTooLarge(msg.channelReserveValue, channel, preferences)) {
+        if (!this.validateChannelReserveTooLarge(msg.channelReserveValue, channel)) {
             return OpeningError.toResult(OpeningErrorType.ChannelReserveTooHigh);
         }
 
         // May validate that `max_accepted_htlcs` is not too small
-        if (!this.validateMaxAcceptedHtlcsTooSmall(msg.maxAcceptedHtlcs, preferences)) {
+        if (!this.validateMaxAcceptedHtlcsTooSmall(msg.maxAcceptedHtlcs)) {
             return OpeningError.toResult(OpeningErrorType.MaxAcceptedHtlcsTooLow);
         }
 
         // May validate that the `dust_limit_satoshi` is not too large
-        if (!this.validateDustLimitTooLarge(msg.dustLimitValue, preferences)) {
+        if (!this.validateDustLimitTooLarge(msg.dustLimitValue)) {
             return OpeningError.toResult(OpeningErrorType.DustLimitTooHigh);
         }
 
@@ -634,5 +611,17 @@ export class Helpers implements IChannelLogic {
         );
         await this.wallet.fundTx(tx);
         return tx.toTx();
+    }
+
+    public async createFundingCreatedMessage(
+        channel: Channel,
+        signature: Buffer,
+    ): Promise<FundingCreatedMessage> {
+        const msg = new FundingCreatedMessage();
+        msg.temporaryChannelId = channel.temporaryId;
+        msg.fundingTxId = channel.fundingOutPoint.txid.serialize(HashByteOrder.Internal);
+        msg.fundingOutputIndex = channel.fundingOutPoint.outputIndex;
+        msg.signature = signature;
+        return msg;
     }
 }
