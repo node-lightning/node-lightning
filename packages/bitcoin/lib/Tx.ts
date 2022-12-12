@@ -143,7 +143,7 @@ export class Tx {
      * segwit transaction is the hash256 of
      * `hash256(version||inputs||ouputs||locktime)`.
      */
-    public get txId(): Readonly<HashValue> {
+    public get txId(): HashValue {
         if (!this._txId) this._lazyCalc();
         return this._txId;
     }
@@ -157,26 +157,26 @@ export class Tx {
      * This is the same value as the `hash` property in bitcoind RPC
      * results.
      */
-    public get witnessTxId(): Readonly<HashValue> {
+    public get witnessTxId(): HashValue {
         if (!this._wtxid) this._lazyCalc();
         return this._wtxid;
     }
 
-    public get isSegWit(): Readonly<boolean> {
+    public get isSegWit(): boolean {
         return this.inputs.some(p => p.witness.length > 0);
     }
 
-    public get size(): Readonly<number> {
+    public get size(): number {
         if (!this._sizes) this._lazyCalc();
         return this._sizes.size;
     }
 
-    public get vsize(): Readonly<number> {
+    public get vsize(): number {
         if (!this._sizes) this._lazyCalc();
         return this._sizes.vsize;
     }
 
-    public get weight(): Readonly<number> {
+    public get weight(): number {
         if (!this._sizes) this._lazyCalc();
         return this._sizes.weight;
     }
