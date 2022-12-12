@@ -2,17 +2,16 @@
 
 Inputs:
 
--   `feerate_per_kw`
--   `funding_satoshis`
--   `funding_pubkey` from funder
--   `funding_pubkey` from fundee
+-   `Channel`
+    -   `funding_satoshis`
+    -   `funding_pubkey` from `open_channel`
+    -   `funding_pubkey` from `accept_channel`
 
 Calls:
 
--   `obtainUtxo`
--   `obtainChangeAddress`
+-   `walletFundTx`
 
-Constructs a transaction with one or more inputs sufficient to cover the `funding_satoshis` value. Contains one or more outputs, one of which must be the funding output. The funding transaction is defined [BOLT 3](https://github.com/lightning/bolts/blob/master/03-transactions.md#funding-transaction-output). This funding output must be a P2WSH output script matching:
+Constructs a partial transaction with one or more inputs sufficient to cover the `funding_satoshis` value. Contains one or more outputs, one of which must be the funding output. The funding transaction is defined [BOLT 3](https://github.com/lightning/bolts/blob/master/03-transactions.md#funding-transaction-output). This funding output must be a P2WSH output script matching:
 
     ```
     2 <pubkey1> <pubkey2> 2 OP_CHECKMULTISIG
