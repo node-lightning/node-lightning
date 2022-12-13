@@ -11,6 +11,7 @@ import {
     createFakeAcceptChannel,
     createFakeChannel,
     createFakeChannelWallet,
+    createFakeFundingTx,
     createFakeKey,
     createFakePeer,
     createFakeTxIn,
@@ -793,7 +794,6 @@ describe(Helpers.name, () => {
                 perCommitmentSeed.toString("hex"),
             );
 
-            expect(channel.ourSide.commitmentNumber.value).to.equal(0n);
             expect(channel.ourSide.htlcCounter).to.equal(undefined);
             expect(channel.ourSide.channelReserve).to.equal(undefined);
             expect(channel.ourSide.dustLimit.sats).to.equal(354n);
@@ -816,7 +816,10 @@ describe(Helpers.name, () => {
             expect(channel.ourSide.revocationBasePoint.toHex()).to.equal(
                 revocationBasePointSecret.toPubKey(true).toHex(),
             );
-            expect(channel.ourSide.commitmentPoint.toHex()).to.equal(
+            expect(channel.ourSide.commitmentNumber).to.equal(undefined);
+            expect(channel.ourSide.commitmentPoint).to.equal(undefined);
+            expect(channel.ourSide.nextCommitmentNumber.value).to.equal(0n);
+            expect(channel.ourSide.nextCommitmentPoint.toHex()).to.equal(
                 new PrivateKey(
                     Buffer.from(
                         "02a40c85b6f28da08dfdbe0926c53fab2de6d28c10301f8f7c4073d5e42e3148",
@@ -827,9 +830,7 @@ describe(Helpers.name, () => {
                     .toPubKey(true)
                     .toHex(),
             );
-            expect(channel.ourSide.nextCommitmentPoint).to.equal(undefined);
 
-            expect(channel.theirSide.commitmentNumber.value).to.equal(0n);
             expect(channel.theirSide.htlcCounter).to.equal(undefined);
             expect(channel.theirSide.channelReserve.sats).to.equal(10_000n);
             expect(channel.theirSide.dustLimit).to.be.equal(undefined);
@@ -842,8 +843,10 @@ describe(Helpers.name, () => {
             expect(channel.theirSide.delayedBasePoint).to.equal(undefined);
             expect(channel.theirSide.htlcBasePoint).to.equal(undefined);
             expect(channel.theirSide.revocationBasePoint).to.equal(undefined);
+            expect(channel.theirSide.commitmentNumber).to.equal(undefined);
             expect(channel.theirSide.commitmentPoint).to.equal(undefined);
             expect(channel.theirSide.nextCommitmentPoint).to.equal(undefined);
+            expect(channel.theirSide.nextCommitmentNumber).to.equal(undefined);
         });
     });
 
@@ -905,7 +908,7 @@ describe(Helpers.name, () => {
                 ourRevocationSecret.toPubKey(true).toHex(),
             );
             expect(result.firstPerCommitmentPoint.toString("hex")).to.equal(
-                channel.ourSide.commitmentPoint.toHex(),
+                channel.ourSide.nextCommitmentPoint.toHex(),
             );
 
             expect(result.announceChannel).to.equal(true);

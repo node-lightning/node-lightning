@@ -16,6 +16,9 @@ import { ChannelPreferences } from "./ChannelPreferences";
 import { TxFactory } from "./TxFactory";
 import { CommitmentSecret } from "./CommitmentSecret";
 import { FundingCreatedMessage } from "../messages/FundingCreatedMessage";
+import { ChannelKeys } from "./ChannelKeys";
+import { Htlc } from "../domain/Htlc";
+import { CommitmentNumber } from "./CommitmentNumber";
 
 export class Helpers implements IChannelLogic {
     constructor(readonly wallet: IChannelWallet, public preferences: ChannelPreferences) {}
@@ -343,10 +346,11 @@ export class Helpers implements IChannelLogic {
         channel.perCommitmentSeed = await this.wallet.createPerCommitmentSeed();
 
         // Must generate `first_per_commitment_point` from the seed
-        channel.ourSide.commitmentPoint = CommitmentSecret.privateKey(
+        channel.ourSide.nextCommitmentNumber = new CommitmentNumber(0n);
+        channel.ourSide.nextCommitmentPoint = CommitmentSecret.privateKey(
             channel.perCommitmentSeed,
             channel.network,
-            channel.ourSide.commitmentNumber,
+            channel.ourSide.nextCommitmentNumber,
         ).toPubKey(true);
 
         return Result.ok(channel);
@@ -373,7 +377,7 @@ export class Helpers implements IChannelLogic {
         msg.delayedPaymentBasePoint = channel.ourSide.delayedBasePoint.toBuffer();
         msg.htlcBasePoint = channel.ourSide.htlcBasePoint.toBuffer();
         msg.revocationBasePoint = channel.ourSide.revocationBasePoint.toBuffer();
-        msg.firstPerCommitmentPoint = channel.ourSide.commitmentPoint.toBuffer();
+        msg.firstPerCommitmentPoint = channel.ourSide.nextCommitmentPoint.toBuffer();
 
         msg.announceChannel = channel.isPublic;
 
@@ -611,17 +615,5 @@ export class Helpers implements IChannelLogic {
         );
         await this.wallet.fundTx(tx);
         return tx.toTx();
-    }
-
-    public async createFundingCreatedMessage(
-        channel: Channel,
-        signature: Buffer,
-    ): Promise<FundingCreatedMessage> {
-        const msg = new FundingCreatedMessage();
-        msg.temporaryChannelId = channel.temporaryId;
-        msg.fundingTxId = channel.fundingOutPoint.txid.serialize(HashByteOrder.Internal);
-        msg.fundingOutputIndex = channel.fundingOutPoint.outputIndex;
-        msg.signature = signature;
-        return msg;
     }
 }

@@ -12,6 +12,7 @@ import {
     PrivateKey,
     PublicKey,
     Script,
+    Tx,
     TxIn,
     TxOut,
     Value,
@@ -144,6 +145,7 @@ export function createFakeChannel(
         ourHtlcSecret: PrivateKey;
         ourRevocationSecret: PrivateKey;
         ourPerCommitmentSeed: Buffer;
+        fundingOutPoint: OutPoint;
     }>,
 ): Channel {
     const peerId = options.peerId ?? (createFakePeer().id as string);
@@ -156,8 +158,10 @@ export function createFakeChannel(
     channel.pushAmount = options.pushAmount ?? Value.fromSats(2_000);
     channel.feeRatePerKw = options.feeRatePerKw ?? Value.fromSats(1000);
     channel.isPublic = options.isPublic ?? true;
+    channel.fundingOutPoint = options.fundingOutPoint;
 
     if (isFunder) {
+        channel.ourSide.balance = channel.fundingAmount;
         channel.ourSide.dustLimit = options.funder?.dustLimit ?? Value.fromSats(354);
         channel.ourSide.minHtlcValue = options.funder?.minHtlcValue ?? Value.fromSats(200);
         channel.ourSide.maxAcceptedHtlc = options.funder?.maxAcceptedHtlc ?? 30;
@@ -174,17 +178,21 @@ export function createFakeChannel(
         channel.perCommitmentSeed = options.ourPerCommitmentSeed ?? Buffer.alloc(32, 0x00);
 
         // create their public keys
+        channel.theirSide.balance = channel.fundingAmount.subn(channel.pushAmount);
         channel.theirSide.fundingPubKey = createFakeKey(11n).toPubKey(true);
         channel.theirSide.paymentBasePoint = createFakeKey(12n).toPubKey(true);
         channel.theirSide.delayedBasePoint = createFakeKey(13n).toPubKey(true);
         channel.theirSide.htlcBasePoint = createFakeKey(14n).toPubKey(true);
         channel.theirSide.revocationBasePoint = createFakeKey(15n).toPubKey(true);
-        channel.theirSide.commitmentPoint = CommitmentSecret.privateKey(
+
+        channel.theirSide.nextCommitmentNumber = new CommitmentNumber(0n);
+        channel.theirSide.nextCommitmentPoint = CommitmentSecret.privateKey(
             Buffer.alloc(32, 0xff),
             network,
-            channel.theirSide.commitmentNumber,
+            channel.theirSide.nextCommitmentNumber,
         ).toPubKey(true);
     } else {
+        channel.theirSide.balance = channel.fundingAmount.subn(channel.pushAmount);
         channel.ourSide.dustLimit = options.funder?.dustLimit ?? Value.fromSats(354);
         channel.ourSide.minHtlcValue = options.funder?.minHtlcValue ?? Value.fromSats(200);
         channel.ourSide.maxAcceptedHtlc = options.funder?.maxAcceptedHtlc ?? 30;
@@ -199,22 +207,25 @@ export function createFakeChannel(
         channel.revocationBasePointSecret = options.ourRevocationSecret ?? createFakeKey(5n);
         channel.perCommitmentSeed = options.ourPerCommitmentSeed ?? Buffer.alloc(32, 0xff);
 
+        channel.ourSide.balance = channel.fundingAmount;
         channel.theirSide.fundingPubKey = createFakeKey(1n).toPubKey(true);
         channel.theirSide.paymentBasePoint = createFakeKey(2n).toPubKey(true);
         channel.theirSide.delayedBasePoint = createFakeKey(3n).toPubKey(true);
         channel.theirSide.htlcBasePoint = createFakeKey(4n).toPubKey(true);
         channel.theirSide.revocationBasePoint = createFakeKey(5n).toPubKey(true);
-        channel.theirSide.commitmentPoint = CommitmentSecret.privateKey(
+        channel.theirSide.nextCommitmentNumber = new CommitmentNumber(0n);
+        channel.theirSide.nextCommitmentPoint = CommitmentSecret.privateKey(
             Buffer.alloc(32, 0x00),
             network,
-            channel.theirSide.commitmentNumber,
+            channel.theirSide.nextCommitmentNumber,
         ).toPubKey(true);
     }
 
-    channel.ourSide.commitmentPoint = CommitmentSecret.privateKey(
+    channel.ourSide.nextCommitmentNumber = new CommitmentNumber(0n);
+    channel.ourSide.nextCommitmentPoint = CommitmentSecret.privateKey(
         channel.perCommitmentSeed,
         channel.network,
-        channel.ourSide.commitmentNumber,
+        channel.ourSide.nextCommitmentNumber,
     ).toPubKey(true);
 
     return channel;
@@ -296,5 +307,27 @@ export function createFakeTxOut(opts: Partial<TxOut> = {}) {
                 .toPubKey(true)
                 .hash160(),
         ),
+    );
+}
+
+export function createFakeFundingTx() {
+    return new Tx(
+        2,
+        [createFakeTxIn()],
+        [
+            new TxOut(
+                Value.fromSats(200_000),
+                Script.p2msLock(
+                    2,
+                    createFakeKey(1n)
+                        .toPubKey(true)
+                        .toBuffer(),
+                    createFakeKey(11n)
+                        .toPubKey(true)
+                        .toBuffer(),
+                ),
+            ),
+            createFakeTxOut(),
+        ],
     );
 }

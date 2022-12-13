@@ -14,10 +14,12 @@ export class ChannelSide {
     public revocationBasePoint: PublicKey;
     public htlcBasePoint: PublicKey;
 
+    public commitmentNumber: CommitmentNumber;
     public commitmentPoint: PublicKey;
+
+    public nextCommitmentNumber: CommitmentNumber;
     public nextCommitmentPoint: PublicKey;
 
     public balance: Value;
-    public commitmentNumber: CommitmentNumber = new CommitmentNumber(0n);
     public htlcCounter: number = undefined;
 }

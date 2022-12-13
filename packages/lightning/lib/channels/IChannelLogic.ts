@@ -23,10 +23,6 @@ export interface IChannelLogic {
         options: OpenChannelRequest,
     ): Promise<Result<Channel, OpeningError>>;
     createFundingTx(channel: Channel): Promise<Tx>;
-    createFundingCreatedMessage(
-        channel: Channel,
-        signature: Buffer,
-    ): Promise<FundingCreatedMessage>;
     createOpenChannelMessage(channel: Channel): Promise<OpenChannelMessage>;
     createTempChannelId(): Buffer;
     validateAcceptChannel(

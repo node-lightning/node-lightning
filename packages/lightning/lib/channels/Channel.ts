@@ -1,9 +1,7 @@
-import { Network, OutPoint, PrivateKey, Tx, TxBuilder, Value } from "@node-lightning/bitcoin";
+import { Network, OutPoint, PrivateKey, PublicKey, Tx, Value } from "@node-lightning/bitcoin";
 import { ChannelId } from "../domain/ChannelId";
-import { ChannelKeys } from "./ChannelKeys";
 import { ChannelSide } from "./ChannelSide";
 import { StateMachine } from "./StateMachine";
-import { TxFactory } from "./TxFactory";
 
 export class Channel {
     public temporaryId: Buffer;
@@ -67,6 +65,24 @@ export class Channel {
     public set htlcBasePointSecret(value: PrivateKey) {
         this._htlcBasePointSecret = value;
         this.ourSide.htlcBasePoint = value.toPubKey(true);
+    }
+
+    /**
+     * Returns the payment_basepoint used in the open_channel message.
+     * This getter is just sugar for checking who the funder is and
+     * returning their payment_basepoint.
+     */
+    public get openPaymentBasePoint(): PublicKey {
+        return this.funder ? this.ourSide.paymentBasePoint : this.theirSide.paymentBasePoint;
+    }
+
+    /**
+     * Returns the payment_basepoint used in the accept_channel message.
+     * This getter is just sugar for checking who the funder is and
+     * returning their payment_basepoint.
+     */
+    public get acceptPaymentBasePoint(): PublicKey {
+        return this.funder ? this.theirSide.paymentBasePoint : this.ourSide.paymentBasePoint;
     }
 
     public perCommitmentSeed: Buffer;
