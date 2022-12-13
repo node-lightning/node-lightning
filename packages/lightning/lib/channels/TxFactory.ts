@@ -190,20 +190,7 @@ export class TxFactory {
         }
 
         // 10. sort outputs using bip69 and using cltv for htlc tiebreaks
-        txouts.sort((a, b) => {
-            // compare on value
-            const value = Number(a[0].value.sats - b[0].value.sats);
-            if (value !== 0) return value;
-
-            // compare on script
-            const scriptCompare = a[0].scriptPubKey
-                .serializeCmds()
-                .compare(b[0].scriptPubKey.serializeCmds());
-            if (scriptCompare !== 0) return scriptCompare;
-
-            // tie-break on htlcs
-            return b[1].cltvExpiry - a[1].cltvExpiry;
-        });
+        TxFactory.sortCommitmentOutputs(txouts);
 
         // add the outputs in sorted order
         const sortedHtlcs: Htlc[] = [];
@@ -314,5 +301,33 @@ export class TxFactory {
         tx.locktime = LockTime.zero();
 
         return tx;
+    }
+
+    /**
+     * Sorts [output,htlc] tuples according to:
+     *  - First sort by value in ascending order
+     *  - Secondary by `scriptpubkey` by comparing by length first in ascending
+     *  - Lastly by `cltv_expiry` in ascending order
+     *
+     * Two offered HTLCs with the same `amount` and `payment_hash` will
+     * have identical outputs even when their `cltv_expiry` differs.
+     * Ordering matters because of the provided signatures for the
+     * `htlc_signatures`.
+     */
+    public static sortCommitmentOutputs(txouts: [TxOut, Htlc?][]) {
+        txouts.sort((a, b) => {
+            // compare on value
+            const value = Number(a[0].value.sats - b[0].value.sats);
+            if (value !== 0) return value;
+
+            // compare on script
+            const scriptCompare = a[0].scriptPubKey
+                .serializeCmds()
+                .compare(b[0].scriptPubKey.serializeCmds());
+            if (scriptCompare !== 0) return scriptCompare;
+
+            // tie-break on htlcs
+            return b[1].cltvExpiry - a[1].cltvExpiry;
+        });
     }
 }
