@@ -1,10 +1,10 @@
 ## Subroutine `calcCommitmentTxWeight`
 
-Calculates the fees for the commitment transaction according to [BOLT 3](https://github.com/lightning/bolts/blob/master/03-transactions.md#fee-calculation).
-
 Inputs:
 
--   Num unpruned HTLCs
+-   `unprunedHtlcCount`: `number`
+
+Calculates the fees for the commitment transaction according to [BOLT 3](https://github.com/lightning/bolts/blob/master/03-transactions.md#fee-calculation).
 
 Makes some assumptions to simplify fee calculations
 

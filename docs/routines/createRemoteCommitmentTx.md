@@ -1,18 +1,18 @@
 ## Subroutine `createRemoteCommitmentTx`
 
-Constructs a commitment transaction for the counterparty by calling the `createCommitmentTx` with values
+Inputs:
 
--   Commitment number
--   Channel funding side (local or remote)
--   Channel `funding_outpoint`
--   Channel `feerate_per_kw`
--   Counterparty's `dust_limit_satoshis`
--   Counterparty's satoshi balance
--   Our satoshi balance
--   Counterparty's `to_self_delay`
--   Counterparty's `per_commitment_point`
--   Counterparty's `delayed_payment_basepoint`
--   Our `payment_basepoint`
--   Our `revocation_basepoint`
--   Received HTLCs
--   Offerred HTLCs
+-   `channel`: `Channel`
+
+Calls:
+
+-   `derivePubKeyFromBasepoint`
+-   `deriveRevocationPubKey`
+
+This method converts the channel object into a specific commitment transaction Constructs a commitment transaction for the counterparty by using the generic `createCommitmentTx` with values
+
+-   Creates the `revocationPubKey` by call `deriveRevocationPubKey` using our `revocationBasePoint` and their `perCommitmentPoint`
+-   Creates the `localDelayedPubKey` by calling `derivePubKeyFromBasePoint` using their `delayedPaymentBasePoint` and their `perCommitmentPoint`
+-   Creates the `localHtlcPubKey` by calling `derivePubKeyFromBasePoint` using their `htlcBasePoint` and their `perCommitmentPoint`
+-   Creates the `remoteHtlcPubKey` by calling `derivePubKeyFromBasePoint` using our `htlcBasePoint` and their `perCommitmentPoint`
+-   Calls `createCommitmentTx`
