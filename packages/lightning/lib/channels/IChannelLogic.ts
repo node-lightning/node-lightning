@@ -1,12 +1,12 @@
-import { Network, Tx, Value } from "@node-lightning/bitcoin";
+import { Network, Tx, TxBuilder, Value } from "@node-lightning/bitcoin";
 import { BitField } from "../BitField";
+import { Htlc } from "../domain/Htlc";
 import { InitFeatureFlags } from "../flags/InitFeatureFlags";
 import { AcceptChannelMessage } from "../messages/AcceptChannelMessage";
 import { FundingCreatedMessage } from "../messages/FundingCreatedMessage";
 import { OpenChannelMessage } from "../messages/OpenChannelMessage";
 import { Result } from "../Result";
 import { Channel } from "./Channel";
-import { ChannelPreferences } from "./ChannelPreferences";
 import { OpenChannelRequest } from "./OpenChannelRequest";
 import { OpeningError } from "./states/opening/OpeningError";
 
@@ -22,9 +22,15 @@ export interface IChannelLogic {
         network: Network,
         options: OpenChannelRequest,
     ): Promise<Result<Channel, OpeningError>>;
+    createFundingCreatedMessage(
+        channel: Channel,
+        signature: Buffer,
+    ): Promise<FundingCreatedMessage>;
     createFundingTx(channel: Channel): Promise<Tx>;
     createOpenChannelMessage(channel: Channel): Promise<OpenChannelMessage>;
+    createRemoteCommitmentTx(channel: Channel): Promise<[TxBuilder, Htlc[]]>;
     createTempChannelId(): Buffer;
+    signCommitmentTx(channel: Channel, ctx: TxBuilder): Promise<Buffer>;
     validateAcceptChannel(
         channel: Channel,
         msg: AcceptChannelMessage,
