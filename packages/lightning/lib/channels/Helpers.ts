@@ -624,7 +624,7 @@ export class Helpers implements IChannelLogic {
      * @param channel
      * @returns
      */
-    public createRemoteCommitmentTx(channel: Channel): [TxBuilder, Htlc[]] {
+    public async createRemoteCommitmentTx(channel: Channel): Promise<[TxBuilder, Htlc[]]> {
         const revocationKey = ChannelKeys.deriveRevocationPubKey(
             channel.theirSide.nextCommitmentPoint.toBuffer(),
             channel.ourSide.revocationBasePoint.toBuffer(),

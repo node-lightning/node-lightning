@@ -1469,7 +1469,7 @@ describe(Helpers.name, () => {
     });
 
     describe(Helpers.prototype.createRemoteCommitmentTx.name, () => {
-        it("constructs a first commitment transaction", () => {
+        it("constructs a first commitment transaction", async () => {
             // arrange
             const channel = createFakeChannel()
                 .attachAcceptChannel(createFakeAcceptChannel())
@@ -1478,7 +1478,7 @@ describe(Helpers.name, () => {
             const helpers = new Helpers(undefined, undefined);
 
             // act
-            const [txbuilder, htlcs] = helpers.createRemoteCommitmentTx(channel);
+            const [txbuilder, htlcs] = await helpers.createRemoteCommitmentTx(channel);
 
             // assert
             expect(txbuilder.outputs.length).to.equal(2);
@@ -1531,7 +1531,7 @@ describe(Helpers.name, () => {
                 .attachAcceptChannel(createFakeAcceptChannel())
                 .attachFundingTx(createFakeFundingTx());
             const helpers = new Helpers(undefined, undefined);
-            const [ctx] = helpers.createRemoteCommitmentTx(channel);
+            const [ctx] = await helpers.createRemoteCommitmentTx(channel);
 
             // act
             const result = await helpers.signCommitmentTx(channel, ctx);
