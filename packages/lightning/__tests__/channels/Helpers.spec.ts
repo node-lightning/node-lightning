@@ -1,10 +1,19 @@
-import { LockTime, Network, OutPoint, PrivateKey, Sequence, Value } from "@node-lightning/bitcoin";
+import {
+    LockTime,
+    Network,
+    OutPoint,
+    PrivateKey,
+    Script,
+    Sequence,
+    Value,
+} from "@node-lightning/bitcoin";
 import { expect } from "chai";
-import { BitField, InitFeatureFlags, OpenChannelMessage } from "../../lib";
+import { BitField, ChannelKeys, InitFeatureFlags, OpenChannelMessage } from "../../lib";
 import { ChannelPreferences } from "../../lib/channels/ChannelPreferences";
 import { Helpers } from "../../lib/channels/Helpers";
 import { IChannelWallet } from "../../lib/channels/IChannelWallet";
 import { OpenChannelRequest } from "../../lib/channels/OpenChannelRequest";
+import { ScriptFactory } from "../../lib/channels/ScriptFactory";
 import { OpeningErrorType } from "../../lib/channels/states/opening/OpeningErrorType";
 import { AcceptChannelMessage } from "../../lib/messages/AcceptChannelMessage";
 import {
@@ -1456,6 +1465,62 @@ describe(Helpers.name, () => {
                 "2200201b192fa496a3c4b46eacd154ffb24292ee78775ee5985570fb2c60205430b67a",
             );
             expect(tx.locktime.value).to.equal(0);
+        });
+    });
+
+    describe(Helpers.prototype.createRemoteCommitmentTx.name, () => {
+        it("constructs a first commitment transaction", () => {
+            // arrange
+            const channel = createFakeChannel()
+                .attachAcceptChannel(createFakeAcceptChannel())
+                .attachFundingTx(createFakeFundingTx());
+
+            const helpers = new Helpers(undefined, undefined);
+
+            // act
+            const [txbuilder, htlcs] = helpers.createRemoteCommitmentTx(channel);
+
+            // assert
+            expect(txbuilder.outputs.length).to.equal(2);
+            expect(txbuilder.outputs[0].value.sats).to.equal(2000n, "to_local (fundee)");
+            expect(txbuilder.outputs[1].value.sats).to.equal(197_276n, "to_remote (funder)");
+
+            const revKey = ChannelKeys.deriveRevocationPubKey(
+                channel.theirSide.nextCommitmentPoint.toBuffer(),
+                channel.ourSide.revocationBasePoint.toBuffer(),
+            );
+            expect(revKey.toString("hex")).to.equal(
+                "02623d3aa976b9a84cc121df61664107a28ca2ebe89f37873b09e1e947c12b61f2",
+            );
+
+            const delayedKey = ChannelKeys.derivePubKey(
+                channel.theirSide.nextCommitmentPoint.toBuffer(),
+                channel.theirSide.paymentBasePoint.toBuffer(),
+            );
+            expect(delayedKey.toString("hex")).to.equal(
+                "0227b109a142c1e17ae7395b8d71dcf39ffad11abf59e9ae4c14691ce441ab27e4",
+            );
+
+            const localScript = Script.p2wshLock(
+                ScriptFactory.toLocalScript(
+                    revKey,
+                    delayedKey,
+                    channel.theirSide.toSelfDelayBlocks,
+                ),
+            );
+
+            expect(txbuilder.outputs[0].scriptPubKey.equals(localScript)).to.equal(
+                true,
+                "to_local rsmc",
+            );
+
+            const remoteScript = Script.p2wpkhLock(channel.ourSide.paymentBasePoint.toBuffer());
+            expect(txbuilder.outputs[1].scriptPubKey.equals(remoteScript)).to.equal(
+                true,
+                "to_remote p2wpkh",
+            );
+
+            expect(htlcs.length).to.equal(0);
         });
     });
 });

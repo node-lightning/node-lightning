@@ -160,8 +160,8 @@ export function createFakeChannel(
     channel.feeRatePerKw = options.feeRatePerKw ?? Value.fromSats(1000);
     channel.isPublic = options.isPublic ?? true;
 
-    channel.ourSide.balance = channel.fundingAmount;
-    channel.theirSide.balance = channel.fundingAmount.subn(channel.pushAmount);
+    channel.ourSide.balance = channel.fundingAmount.subn(channel.pushAmount);
+    channel.theirSide.balance = channel.pushAmount;
 
     channel.ourSide.dustLimit = options.ourDustLimit ?? Value.fromSats(354);
     channel.ourSide.minHtlcValue = options.ourMinHtlcValue ?? Value.fromSats(200);

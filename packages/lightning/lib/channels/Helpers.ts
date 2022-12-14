@@ -616,4 +616,54 @@ export class Helpers implements IChannelLogic {
         await this.wallet.fundTx(tx);
         return tx.toTx();
     }
+
+    /**
+     * This method converts the channel object into a specific commitment
+     * transaction Constructs a commitment transaction for the counterparty
+     * by using the generic `createCommitmentTx` with values.
+     * @param channel
+     * @returns
+     */
+    public createRemoteCommitmentTx(channel: Channel): [TxBuilder, Htlc[]] {
+        const revocationKey = ChannelKeys.deriveRevocationPubKey(
+            channel.theirSide.nextCommitmentPoint.toBuffer(),
+            channel.ourSide.revocationBasePoint.toBuffer(),
+        );
+
+        const delayedKey = ChannelKeys.derivePubKey(
+            channel.theirSide.nextCommitmentPoint.toBuffer(),
+            channel.theirSide.paymentBasePoint.toBuffer(),
+        );
+
+        const remoteKey = channel.ourSide.paymentBasePoint.toBuffer();
+
+        const theirHtlcKey = ChannelKeys.derivePubKey(
+            channel.theirSide.nextCommitmentPoint.toBuffer(),
+            channel.theirSide.htlcBasePoint.toBuffer(),
+        );
+
+        const ourHtlcKey = ChannelKeys.derivePubKey(
+            channel.theirSide.nextCommitmentPoint.toBuffer(),
+            channel.ourSide.htlcBasePoint.toBuffer(),
+        );
+
+        return TxFactory.createCommitment(
+            !channel.funder,
+            Number(channel.theirSide.nextCommitmentNumber.value),
+            channel.openPaymentBasePoint.toBuffer(),
+            channel.acceptPaymentBasePoint.toBuffer(),
+            channel.fundingOutPoint,
+            channel.theirSide.dustLimit,
+            channel.feeRatePerKw.sats,
+            channel.theirSide.toSelfDelayBlocks,
+            channel.theirSide.balance,
+            channel.ourSide.balance,
+            revocationKey,
+            delayedKey,
+            remoteKey,
+            true,
+            theirHtlcKey,
+            ourHtlcKey,
+        );
+    }
 }
