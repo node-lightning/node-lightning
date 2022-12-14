@@ -1542,4 +1542,30 @@ describe(Helpers.name, () => {
             );
         });
     });
+
+    describe(Helpers.prototype.createFundingCreatedMessage.name, () => {
+        it("creates the funding_created message", async () => {
+            // arrange
+            const channel = createFakeChannel()
+                .attachAcceptChannel(createFakeAcceptChannel())
+                .attachFundingTx(createFakeFundingTx());
+            const helpers = new Helpers(undefined, undefined);
+            const sig = Buffer.alloc(64, 0xff);
+
+            // act
+            const result = await helpers.createFundingCreatedMessage(channel, sig);
+
+            // assert
+            expect(result.temporaryChannelId.toString("hex")).to.deep.equal(
+                "0000000000000000000000000000000000000000000000000000000000000000",
+            );
+            expect(result.fundingTxId.toString("hex")).to.equal(
+                "6e7848c0fb7e9c4d336149a7fbc60d097f269cb0047917747156749b1bd5d5a0",
+            );
+            expect(result.fundingOutputIndex).to.equal(0);
+            expect(result.signature.toString("hex")).to.equal(
+                "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+            );
+        });
+    });
 });

@@ -686,4 +686,25 @@ export class Helpers implements IChannelLogic {
             channel.fundingAmount,
         );
     }
+
+    /**
+     * Once the funding node has created and signed the commitment
+     * transaction it can construct the `funding_created` message to
+     * send to the peer. This method constructs a `funding_created`
+     * message as defined in BOLT 2.
+     * @param channel
+     * @param signature
+     * @returns
+     */
+    public async createFundingCreatedMessage(
+        channel: Channel,
+        signature: Buffer,
+    ): Promise<FundingCreatedMessage> {
+        const msg = new FundingCreatedMessage();
+        msg.temporaryChannelId = channel.temporaryId;
+        msg.fundingTxId = channel.fundingOutPoint.txid.serialize(HashByteOrder.Internal);
+        msg.fundingOutputIndex = channel.fundingOutPoint.outputIndex;
+        msg.signature = signature;
+        return msg;
+    }
 }
