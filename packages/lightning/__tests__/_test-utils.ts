@@ -19,7 +19,6 @@ import {
 } from "@node-lightning/bitcoin";
 import { bigToBufBE } from "@node-lightning/bufio";
 import { Channel } from "../lib/channels/Channel";
-import { ChannelSide } from "../lib/channels/ChannelSide";
 import { IChannelLogic } from "../lib/channels/IChannelLogic";
 import { Helpers } from "../lib/channels/Helpers";
 import { IChannelStorage } from "../lib/channels/IChannelStorage";

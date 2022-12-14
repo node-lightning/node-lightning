@@ -666,4 +666,24 @@ export class Helpers implements IChannelLogic {
             ourHtlcKey,
         );
     }
+
+    /**
+     * Signs the commitment transaction using the `funding_secret` that
+     * was used to generate the `funding_pubkey` in either the
+     * `open_channel` or `accept_channel` message.
+     *
+     * Note: this method is not attached to channel so that an external
+     * signing method could be sued if needed.
+     * @param channel
+     * @param ctx
+     * @returns
+     */
+    public async signCommitmentTx(channel: Channel, ctx: TxBuilder): Promise<Buffer> {
+        return ctx.signSegWitv0(
+            0,
+            channel.fundingScript,
+            channel.fundingKey,
+            channel.fundingAmount,
+        );
+    }
 }

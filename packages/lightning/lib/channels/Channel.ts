@@ -4,7 +4,9 @@ import {
     OutPoint,
     PrivateKey,
     PublicKey,
+    Script,
     Tx,
+    TxBuilder,
     Value,
 } from "@node-lightning/bitcoin";
 import { ChannelId } from "../domain/ChannelId";
@@ -19,8 +21,24 @@ export class Channel {
     public isPublic: boolean;
 
     public minimumDepth: number;
+
+    /**
+     * Stores the entire funding transaction for use by the opener between
+     * creation of the transaction and broadcasting the funding transaction.
+     */
     public fundingTx: Tx;
+
+    /**
+     * OutPoint of the funding transaction
+     */
     public fundingOutPoint: OutPoint;
+
+    /**
+     * Script representing the P2WSH output paying to a 2-2MS transaction
+     * with the lexicographically ordered `payment_basepoint` values from
+     * `open_channel` and `accept_channel`.
+     */
+    public fundingScript: Script;
 
     public feeRatePerKw: Value;
     public fundingAmount: Value;
@@ -140,6 +158,7 @@ export class Channel {
     public attachFundingTx(tx: Tx) {
         this.fundingTx = tx;
         this.fundingOutPoint = new OutPoint(tx.txId, 0);
+        this.fundingScript = tx.outputs[0].scriptPubKey;
         return this;
     }
 }

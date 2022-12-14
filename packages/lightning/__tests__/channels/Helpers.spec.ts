@@ -15,7 +15,6 @@ import { IChannelWallet } from "../../lib/channels/IChannelWallet";
 import { OpenChannelRequest } from "../../lib/channels/OpenChannelRequest";
 import { ScriptFactory } from "../../lib/channels/ScriptFactory";
 import { OpeningErrorType } from "../../lib/channels/states/opening/OpeningErrorType";
-import { AcceptChannelMessage } from "../../lib/messages/AcceptChannelMessage";
 import {
     createFakeAcceptChannel,
     createFakeChannel,
@@ -1431,6 +1430,7 @@ describe(Helpers.name, () => {
         it("should construct a valid funding tx", async () => {
             // arrange
             const wallet = createFakeChannelWallet();
+            // eslint-disable-next-line @typescript-eslint/require-await
             wallet.fundTx.callsFake(async tx => {
                 // attach funding input with rbf enabled
                 tx.inputs.push(
@@ -1521,6 +1521,25 @@ describe(Helpers.name, () => {
             );
 
             expect(htlcs.length).to.equal(0);
+        });
+    });
+
+    describe(Helpers.prototype.signCommitmentTx.name, () => {
+        it("signs a commitment transaction", async () => {
+            // arrange
+            const channel = createFakeChannel()
+                .attachAcceptChannel(createFakeAcceptChannel())
+                .attachFundingTx(createFakeFundingTx());
+            const helpers = new Helpers(undefined, undefined);
+            const [ctx] = helpers.createRemoteCommitmentTx(channel);
+
+            // act
+            const result = await helpers.signCommitmentTx(channel, ctx);
+
+            // assert
+            expect(result.toString("hex")).to.equal(
+                "3045022100e5f4b74d7da947287f8ddc451a6f9d115ad806986192174dfe55a8fa19096854022040d390da9eaec83525d496a1e40370d80222ef7472d3dcf848f1e170ee487a9001",
+            );
         });
     });
 });

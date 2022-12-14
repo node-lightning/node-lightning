@@ -196,7 +196,7 @@ export class TxFactory {
         const sortedHtlcs: Htlc[] = [];
         for (const [txout, htlc] of txouts) {
             tx.addOutput(txout);
-            sortedHtlcs.push(htlc);
+            if (htlc) sortedHtlcs.push(htlc);
         }
 
         // return the tuple with the sorted htlcs
