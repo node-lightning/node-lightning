@@ -1181,7 +1181,7 @@ describe(Helpers.name, () => {
             // arrange
             const preferences = new ChannelPreferences({});
             const helpers = new Helpers(undefined, preferences);
-            const channel = createFakeChannel({ funder: { dustLimit: Value.fromSats(354) } });
+            const channel = createFakeChannel({ ourDustLimit: Value.fromSats(354) });
             const msg = createFakeAcceptChannel({ channelReserveValue: Value.fromSats(353) });
 
             // act
@@ -1441,7 +1441,7 @@ describe(Helpers.name, () => {
                 tx.locktime = LockTime.zero();
                 return tx;
             });
-            const channel = createFakeChannel({});
+            const channel = createFakeChannel().attachAcceptChannel(createFakeAcceptChannel());
             const preferences = new ChannelPreferences();
             const helpers = new Helpers(wallet, preferences);
 

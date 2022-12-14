@@ -1,6 +1,16 @@
-import { Network, OutPoint, PrivateKey, PublicKey, Tx, Value } from "@node-lightning/bitcoin";
+import {
+    HashValue,
+    Network,
+    OutPoint,
+    PrivateKey,
+    PublicKey,
+    Tx,
+    Value,
+} from "@node-lightning/bitcoin";
 import { ChannelId } from "../domain/ChannelId";
+import { AcceptChannelMessage } from "../messages/AcceptChannelMessage";
 import { ChannelSide } from "./ChannelSide";
+import { CommitmentNumber } from "./CommitmentNumber";
 import { StateMachine } from "./StateMachine";
 
 export class Channel {
@@ -95,5 +105,41 @@ export class Channel {
     constructor(readonly peerId: string, readonly network: Network, readonly funder: boolean) {
         this.ourSide = new ChannelSide();
         this.theirSide = new ChannelSide();
+    }
+
+    /**
+     * Modifies the channel object with state from the `accept_channel_message`.
+     * @param msg
+     */
+    public attachAcceptChannel(msg: AcceptChannelMessage) {
+        this.minimumDepth = msg.minimumDepth;
+        this.ourSide.channelReserve = msg.channelReserveValue;
+        this.ourSide.toSelfDelayBlocks = msg.toSelfDelay;
+        this.theirSide.dustLimit = msg.dustLimitValue;
+        this.theirSide.minHtlcValue = msg.htlcMinimumValue;
+        this.theirSide.maxAcceptedHtlc = msg.maxAcceptedHtlcs;
+        this.theirSide.maxInFlightHtlcValue = msg.maxHtlcValueInFlightValue;
+        this.theirSide.fundingPubKey = new PublicKey(msg.fundingPubKey, this.network);
+        this.theirSide.paymentBasePoint = new PublicKey(msg.paymentBasePoint, this.network);
+        this.theirSide.delayedBasePoint = new PublicKey(msg.delayedPaymentBasePoint, this.network);
+        this.theirSide.htlcBasePoint = new PublicKey(msg.htlcBasePoint, this.network);
+        this.theirSide.revocationBasePoint = new PublicKey(msg.revocationBasePoint, this.network);
+        this.theirSide.nextCommitmentNumber = new CommitmentNumber(0n);
+        this.theirSide.nextCommitmentPoint = new PublicKey(
+            msg.firstPerCommitmentPoint,
+            this.network,
+        );
+        return this;
+    }
+
+    /**
+     * Helper used by the funder to attach the funding transaction and
+     * funding outpoint in one pass.
+     * @param tx
+     */
+    public attachFundingTx(tx: Tx) {
+        this.fundingTx = tx;
+        this.fundingOutPoint = new OutPoint(tx.txId, 0);
+        return this;
     }
 }
