@@ -1,19 +1,17 @@
 import {
-    HashValue,
     Network,
     OutPoint,
     PrivateKey,
     PublicKey,
     Script,
     Tx,
-    TxBuilder,
     Value,
 } from "@node-lightning/bitcoin";
 import { ChannelId } from "../domain/ChannelId";
 import { AcceptChannelMessage } from "../messages/AcceptChannelMessage";
 import { ChannelSide } from "./ChannelSide";
 import { CommitmentNumber } from "./CommitmentNumber";
-import { StateMachine } from "./StateMachine";
+import { IStateMachine } from "./IStateMachine";
 
 export class Channel {
     public temporaryId: Buffer;
@@ -118,7 +116,7 @@ export class Channel {
     public ourSide: ChannelSide;
     public theirSide: ChannelSide;
 
-    public state: StateMachine;
+    public state: IStateMachine;
 
     constructor(readonly peerId: string, readonly network: Network, readonly funder: boolean) {
         this.ourSide = new ChannelSide();

@@ -25,6 +25,8 @@ import { IChannelStorage } from "../lib/channels/IChannelStorage";
 import { OpenChannelRequest } from "../lib/channels/OpenChannelRequest";
 import { AcceptChannelMessage } from "../lib/messages/AcceptChannelMessage";
 import { FundingCreatedMessage } from "../lib/messages/FundingCreatedMessage";
+import { IStateMachine } from "../lib/channels/IStateMachine";
+import { StateMachine } from "../lib/channels/StateMachine";
 
 export class FakePeer extends Readable implements IPeer {
     public state: PeerState;
@@ -301,5 +303,26 @@ export function createFakeFundingCreatedMessage(
     result.fundingTxId = opts.tx.inputs[0].outpoint.txid.serialize();
     result.fundingOutputIndex = opts.tx.inputs[0].outpoint.outputIndex;
     result.signature = opts.sig;
+    return result;
+}
+
+export function createFakeState(name: string): Sinon.SinonStubbedInstance<IStateMachine> {
+    const result: Sinon.SinonStubbedInstance<IStateMachine> = {
+        name,
+        subStates: new Map(),
+        parent: undefined,
+        addSubState: Sinon.stub(),
+        onEnter: Sinon.stub(),
+        onExit: Sinon.stub(),
+        onAcceptChannelMessage: Sinon.stub(),
+        onPeerConnected: Sinon.stub(),
+        onPeerDisconnected: Sinon.stub(),
+    };
+
+    result.addSubState.callsFake((state: IStateMachine) => {
+        result.subStates.set(state.name, state);
+        return result;
+    });
+
     return result;
 }

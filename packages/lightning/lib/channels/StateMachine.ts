@@ -7,16 +7,16 @@ import { ShutdownMessage } from "../messages/ShutdownMessage";
 import { IPeer } from "../Peer";
 
 import { Channel } from "./Channel";
-import { Helpers } from "./Helpers";
 import { IChannelLogic } from "./IChannelLogic";
+import { IStateMachine } from "./IStateMachine";
 
 export abstract class StateMachine {
     public logger: ILogger;
 
     public parent: StateMachine | undefined;
-    public subStates: Map<string, StateMachine> = new Map();
+    public subStates: Map<string, IStateMachine> = new Map();
 
-    public get stack(): StateMachine[] {
+    public get stack(): IStateMachine[] {
         const result: StateMachine[] = [];
         // eslint-disable-next-line @typescript-eslint/no-this-alias
         let current: StateMachine = this;
@@ -27,21 +27,25 @@ export abstract class StateMachine {
         return result.reverse();
     }
 
+    public get name(): string {
+        return this.constructor.name;
+    }
+
     public constructor(logger: ILogger, readonly logic: IChannelLogic) {
         this.logger = logger.sub(StateMachine.name);
     }
 
-    public addSubState(state: StateMachine): this {
+    public addSubState(state: IStateMachine): this {
         state.parent = this;
         this.subStates.set(state.constructor.name, state);
         return this;
     }
 
-    public async onEnter(channel: Channel, oldState: StateMachine): Promise<string> {
+    public async onEnter(channel: Channel, oldState: IStateMachine): Promise<string> {
         return undefined;
     }
 
-    public async onExit(channel: Channel, newState: StateMachine): Promise<string> {
+    public async onExit(channel: Channel, newState: IStateMachine): Promise<string> {
         return undefined;
     }
 
