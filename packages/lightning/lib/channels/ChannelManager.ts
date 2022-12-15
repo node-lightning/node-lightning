@@ -11,6 +11,8 @@ import { OpeningError } from "./states/opening/OpeningError";
 import { OpeningErrorType } from "./states/opening/OpeningErrorType";
 import { AwaitingAcceptChannelState } from "./states/opening/AwaitingAcceptChannelState";
 import { PeerState } from "../PeerState";
+import { AcceptChannelMessage } from "../messages/AcceptChannelMessage";
+import { IStateMachine } from "./IStateMachine";
 
 /**
  *
@@ -23,7 +25,7 @@ export class ChannelManager {
         readonly network: Network,
         readonly logic: IChannelLogic,
         readonly channelStorage: IChannelStorage,
-        public rootState: StateMachine,
+        public rootState: IStateMachine,
     ) {}
 
     /**
@@ -43,12 +45,12 @@ export class ChannelManager {
      * @param name
      * @returns
      */
-    public findState(name: string): StateMachine {
-        const queue: StateMachine[] = [];
+    public findState(name: string): IStateMachine {
+        const queue: IStateMachine[] = [];
         queue.push(this.rootState);
         while (queue.length) {
             const current = queue.shift();
-            if (current.constructor.name === name) {
+            if (current.name === name) {
                 return current;
             }
 
@@ -73,7 +75,7 @@ export class ChannelManager {
         let oldState = channel.state ?? this.rootState;
 
         // process until state stops changing
-        while (newStateName && newStateName !== oldState.constructor.name) {
+        while (newStateName && newStateName !== oldState.name) {
             const newState = this.findState(newStateName);
 
             // exit for old state
@@ -129,5 +131,20 @@ export class ChannelManager {
 
         // Return true result with the channel
         return Result.ok(channel);
+    }
+
+    /**
+     * Processes an `accept_channel` message.
+     * @param peer
+     * @param msg
+     * @returns
+     */
+    public async onAcceptChannelMessage(peer: IPeer, msg: AcceptChannelMessage): Promise<void> {
+        const channel = this.findChannelByTempId(peer.id, msg.temporaryChannelId);
+        if (!channel) {
+            return;
+        }
+        const newState = await channel.state.onAcceptChannelMessage(channel, peer, msg);
+        await this.transitionState(channel, newState);
     }
 }

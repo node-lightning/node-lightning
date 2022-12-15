@@ -14,12 +14,14 @@ import { OpeningError } from "../../lib/channels/states/opening/OpeningError";
 import { OpeningErrorType } from "../../lib/channels/states/opening/OpeningErrorType";
 import { Result } from "../../lib/Result";
 import {
+    createFakeAcceptChannel,
     createFakeChannel,
     createFakeChannelLogicFacade,
     createFakeChannelStorage,
     createFakeKey,
     createFakeLogger,
     createFakePeer,
+    createFakeState,
     FakePeer,
 } from "../_test-utils";
 
@@ -449,6 +451,73 @@ describe(ChannelManager.name, () => {
             // assert
             expect(result.isOk).to.equal(true);
             expect(result.value.state).is.instanceOf(AwaitingAcceptChannelState);
+        });
+    });
+
+    describe(ChannelManager.prototype.onAcceptChannelMessage.name, () => {
+        it("fails if channel not found");
+
+        it("calls onAcceptChannelMessage", async () => {
+            // arrange
+            const logger = createFakeLogger();
+            const logic = createFakeChannelLogicFacade();
+            const stateA = createFakeState("A");
+            const stateB = createFakeState("B");
+            const stateC = createFakeState("C");
+            stateA.addSubState(stateB).addSubState(stateC);
+
+            const sut = new ChannelManager(
+                logger,
+                Network.testnet,
+                logic,
+                createFakeChannelStorage(),
+                stateA,
+            );
+
+            const channel = createFakeChannel();
+            channel.state = stateB;
+
+            sut.channels.push(channel);
+            const peer = createFakePeer();
+            const msg = createFakeAcceptChannel();
+
+            // act
+            await sut.onAcceptChannelMessage(peer, msg);
+
+            // assert
+            expect(stateB.onAcceptChannelMessage.called).to.equal(true);
+        });
+
+        it("transitions to new state", async () => {
+            // arrange
+            const logger = createFakeLogger();
+            const logic = createFakeChannelLogicFacade();
+            const stateA = createFakeState("A");
+            const stateB = createFakeState("B");
+            stateB.onAcceptChannelMessage.resolves("C");
+            const stateC = createFakeState("C");
+            stateA.addSubState(stateB).addSubState(stateC);
+
+            const sut = new ChannelManager(
+                logger,
+                Network.testnet,
+                logic,
+                createFakeChannelStorage(),
+                stateA,
+            );
+
+            const channel = createFakeChannel();
+            channel.state = stateB;
+
+            sut.channels.push(channel);
+            const peer = createFakePeer();
+            const msg = createFakeAcceptChannel();
+
+            // act
+            await sut.onAcceptChannelMessage(peer, msg);
+
+            // assert
+            expect(channel.state).to.equal(stateC);
         });
     });
 });
