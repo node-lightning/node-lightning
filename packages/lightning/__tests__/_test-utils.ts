@@ -24,6 +24,7 @@ import { Helpers } from "../lib/channels/Helpers";
 import { IChannelStorage } from "../lib/channels/IChannelStorage";
 import { OpenChannelRequest } from "../lib/channels/OpenChannelRequest";
 import { AcceptChannelMessage } from "../lib/messages/AcceptChannelMessage";
+import { FundingCreatedMessage } from "../lib/messages/FundingCreatedMessage";
 
 export class FakePeer extends Readable implements IPeer {
     public state: PeerState;
@@ -286,4 +287,19 @@ export function createFakeFundingTx() {
             createFakeTxOut(),
         ],
     );
+}
+
+export function createFakeFundingCreatedMessage(
+    opts: Partial<{ tx: Tx; sig: Buffer; temporaryChannelId: Buffer }> = {},
+) {
+    if (!opts.tx) opts.tx = createFakeFundingTx();
+    if (!opts.sig) opts.sig = Buffer.alloc(64, 0xff);
+    if (!opts.temporaryChannelId) opts.temporaryChannelId = Buffer.alloc(32, 0x00);
+
+    const result = new FundingCreatedMessage();
+    result.temporaryChannelId = opts.temporaryChannelId;
+    result.fundingTxId = opts.tx.inputs[0].outpoint.txid.serialize();
+    result.fundingOutputIndex = opts.tx.inputs[0].outpoint.outputIndex;
+    result.signature = opts.sig;
+    return result;
 }
