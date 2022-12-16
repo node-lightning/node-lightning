@@ -809,4 +809,16 @@ export class Helpers implements IChannelLogic {
             return OpeningError.toResult(OpeningErrorType.InvalidCommitmentSig);
         }
     }
+
+    /**
+     * Used by the funder. This method accepts a completed funding
+     * transaction as an argument. The funder's on-chain wallet will
+     * known how to sign this transaction based on the used UTXOs and
+     * will perform the appropriate signing and input configurations.
+     * The wallet should return an immutable and broadcastable transaction.
+     * @param channel
+     */
+    public async signFundingTx(channel: Channel): Promise<Tx> {
+        return await this.wallet.signFundingTx(channel.fundingTx);
+    }
 }

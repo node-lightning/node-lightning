@@ -26,7 +26,6 @@ import { OpenChannelRequest } from "../lib/channels/OpenChannelRequest";
 import { AcceptChannelMessage } from "../lib/messages/AcceptChannelMessage";
 import { FundingCreatedMessage } from "../lib/messages/FundingCreatedMessage";
 import { IStateMachine } from "../lib/channels/IStateMachine";
-import { StateMachine } from "../lib/channels/StateMachine";
 
 export class FakePeer extends Readable implements IPeer {
     public state: PeerState;
@@ -91,6 +90,7 @@ export function createFakeChannelWallet(): Sinon.SinonStubbedInstance<IChannelWa
         createPerCommitmentSeed: Sinon.stub(),
         fundTx: Sinon.stub(),
         signTx: Sinon.stub(),
+        signFundingTx: Sinon.stub(),
     };
 }
 

@@ -1,4 +1,4 @@
-import { Value, PrivateKey, TxBuilder } from "@node-lightning/bitcoin";
+import { Value, PrivateKey, TxBuilder, Tx } from "@node-lightning/bitcoin";
 import { CreateBasePointsResult } from "./CreateBasePointsResult";
 
 export interface IChannelWallet {
@@ -10,4 +10,5 @@ export interface IChannelWallet {
     createPerCommitmentSeed(): Promise<Buffer>;
     fundTx(builder: TxBuilder): Promise<TxBuilder>;
     signTx(builder: TxBuilder): Promise<TxBuilder>;
+    signFundingTx(tx: Tx): Promise<Tx>;
 }

@@ -5,6 +5,7 @@ export * from "./Bech32";
 export * from "./BitcoinError";
 export * from "./BitcoinErrorCode";
 export * from "./Block";
+export * from "./EcdsaSig";
 export * from "./HashByteOrder";
 export * from "./HashValue";
 export * from "./HdKeyCodec";
