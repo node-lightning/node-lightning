@@ -61,6 +61,21 @@ describe("secp256k1", () => {
         });
     });
 
+    describe(".sigFromDER()", () => {
+        it("decodes a DER signature", () => {
+            const der = Buffer.from(
+                "304402206734cb4e3c071082482bf0f8579484f28dcdb1ca15b0cce72fbf130b2673d00c02205fbeecc4075cfd6a52634210486f24ce6db20f2870e606acc43ade814d48394a",
+                "hex",
+            );
+            const sig = Buffer.from(
+                "6734cb4e3c071082482bf0f8579484f28dcdb1ca15b0cce72fbf130b2673d00c5fbeecc4075cfd6a52634210486f24ce6db20f2870e606acc43ade814d48394a",
+                "hex",
+            );
+            const result = s256.sigFromDER(der);
+            expect(result).to.deep.equal(sig);
+        });
+    });
+
     describe(".verifySig()", () => {
         it("verifies message", () => {
             const msg = Buffer.alloc(32);

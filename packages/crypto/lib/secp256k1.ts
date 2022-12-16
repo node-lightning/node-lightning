@@ -68,6 +68,16 @@ export function sigToDER(sig: Buffer): Buffer {
 }
 
 /**
+ * Decodes a signature from DER encoding into a 64-byte buffer
+ * containing the tuple (r, s)
+ * @param der
+ * @returns
+ */
+export function sigFromDER(der: Buffer): Buffer {
+    return Buffer.from(secp256k1.signatureImport(der));
+}
+
+/**
  * Verifies an ECDSA signature and returns true or false
  * if the signatures is valid.
  *
