@@ -22,4 +22,5 @@ export enum OpeningErrorType {
     MinimumDepthTooHigh,
     HtlcMinimumTooHigh,
     MaxHtlcInFlightTooLow,
+    InvalidCommitmentSig,
 }

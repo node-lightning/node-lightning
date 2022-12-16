@@ -19,6 +19,8 @@ import { FundingCreatedMessage } from "../messages/FundingCreatedMessage";
 import { ChannelKeys } from "./ChannelKeys";
 import { Htlc } from "../domain/Htlc";
 import { CommitmentNumber } from "./CommitmentNumber";
+import { FundingSignedMessage } from "../messages/FundingSignedMessage";
+import { sigFromDER, verifySig } from "@node-lightning/crypto";
 
 export class Helpers implements IChannelLogic {
     constructor(readonly wallet: IChannelWallet, public preferences: ChannelPreferences) {}
@@ -680,12 +682,13 @@ export class Helpers implements IChannelLogic {
      * @returns
      */
     public async signCommitmentTx(channel: Channel, ctx: TxBuilder): Promise<Buffer> {
-        return ctx.signSegWitv0(
+        const der = ctx.signSegWitv0(
             0,
             channel.fundingScript,
             channel.fundingKey,
             channel.fundingAmount,
         );
+        return sigFromDER(der.subarray(0, der.length - 1));
     }
 
     /**
@@ -758,5 +761,52 @@ export class Helpers implements IChannelLogic {
             localHtlcKey,
             remoteHtlcKey,
         );
+    }
+
+    /**
+     * Performs ECDSA signature verification of the funding input for
+     * the commitment transaction. Fails if the signature is invalid for
+     * the public key or if the signature is not a low-S signature.
+     * @param channel
+     * @param tx
+     * @param sig
+     * @param pubkey
+     * @returns
+     */
+    public async validateCommitmentSig(
+        channel: Channel,
+        tx: TxBuilder,
+        sig: Buffer,
+        pubkey: PublicKey,
+    ): Promise<boolean> {
+        const hash = tx.hashSegwitv0(0, channel.fundingScript, channel.fundingAmount);
+        return verifySig(hash, sig, pubkey.toBuffer());
+    }
+
+    /**
+     * Validate the `funding_signed` message according to the rule
+     * defined in BOLT 2 which functionally comes down to validating that
+     * the signature is correct for the first local commitment transaction.
+     * @param channel
+     * @param msg
+     * @returns
+     */
+    public async validateFundingSignedMessage(
+        channel: Channel,
+        msg: FundingSignedMessage,
+    ): Promise<Result<boolean, OpeningError>> {
+        // construct local commitment
+        const [ctx] = await this.createLocalCommitmentTx(channel);
+
+        // validate signature
+        const result = await this.validateCommitmentSig(
+            channel,
+            ctx,
+            msg.signature,
+            channel.theirSide.fundingPubKey,
+        );
+        if (!result) {
+            return OpeningError.toResult(OpeningErrorType.InvalidCommitmentSig);
+        }
     }
 }

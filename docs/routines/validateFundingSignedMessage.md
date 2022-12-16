@@ -2,18 +2,17 @@
 
 Inputs:
 
--   `funding_signed` message
--   `funding_outpoint` from the `funding_created` message
--   Channel
+-   `fundingSigned`: `FundingSignedMessage`
+-   `channel`: `Channel`
 
 Calls:
 
--   `createChannelId`
 -   `createLocalCommitmentTx`
 
-We validate the `funding_signed` message according to the rule defined in [BOLT 2](https://github.com/lightning/bolts/blob/master/02-peer-protocol.md#the-funding_signed-message).
+Validate the `funding_signed` message according to the rule defined in [BOLT 2](https://github.com/lightning/bolts/blob/master/02-peer-protocol.md#the-funding_signed-message) which functionally comes down to validating that the signature is correct for the first local commitment transaction.
 
-1. Create the expected `channel_id` using the `createChannelId` subroutine
+Specifically:
+
 1. Must fail if `channel_id` is not the XOR of `funding_txid` and `funding_output_index` from the `funding_created` message.
 1. Construct the funders version of the first commitment transaction by calling `createLocalCommitmentTx` with values:
     - Commitment number = 0

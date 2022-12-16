@@ -1538,7 +1538,7 @@ describe(Helpers.name, () => {
 
             // assert
             expect(result.toString("hex")).to.equal(
-                "3044022010c6f99cd58b84056ef6f3d3ea58e682d009a6c071546dae62f221c38c6f617a02204c53fe4eae279bf84889429a1373ba8fb8eb266350613f3cb9139b3dcb2562d101",
+                "10c6f99cd58b84056ef6f3d3ea58e682d009a6c071546dae62f221c38c6f617a4c53fe4eae279bf84889429a1373ba8fb8eb266350613f3cb9139b3dcb2562d1",
             );
         });
 
@@ -1555,7 +1555,7 @@ describe(Helpers.name, () => {
 
             // assert
             expect(result.toString("hex")).to.equal(
-                "3044022025d5829f235c1b02d3664ca87572e2dc577eb4f5cdcec78fb62e413c93da043f022056f118ff9f572d57beca3d7f976ae1ba75995c4f45f7f1d95606453de51d1f9601",
+                "25d5829f235c1b02d3664ca87572e2dc577eb4f5cdcec78fb62e413c93da043f56f118ff9f572d57beca3d7f976ae1ba75995c4f45f7f1d95606453de51d1f96",
             );
         });
     });
@@ -1635,6 +1635,56 @@ describe(Helpers.name, () => {
             );
 
             expect(htlcs.length).to.equal(0);
+        });
+    });
+
+    describe(Helpers.prototype.validateCommitmentSig.name, () => {
+        it("returns true for a valid sig", async () => {
+            // arrange
+            const channel = createFakeChannel()
+                .attachAcceptChannel(createFakeAcceptChannel())
+                .attachFundingTx(createFakeFundingTx());
+            const helpers = new Helpers(undefined, undefined);
+            const [ctx] = await helpers.createRemoteCommitmentTx(channel);
+            const sig = Buffer.from(
+                "10c6f99cd58b84056ef6f3d3ea58e682d009a6c071546dae62f221c38c6f617a4c53fe4eae279bf84889429a1373ba8fb8eb266350613f3cb9139b3dcb2562d1",
+                "hex",
+            );
+
+            // act
+            const result = await helpers.validateCommitmentSig(
+                channel,
+                ctx,
+                sig,
+                channel.ourSide.fundingPubKey,
+            );
+
+            // assert
+            expect(result).to.equal(true);
+        });
+
+        it("returns false for an invalid sig", async () => {
+            // arrange
+            const channel = createFakeChannel()
+                .attachAcceptChannel(createFakeAcceptChannel())
+                .attachFundingTx(createFakeFundingTx());
+            const helpers = new Helpers(undefined, undefined);
+            const [ctx] = await helpers.createRemoteCommitmentTx(channel);
+            const sig = Buffer.from(
+                "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+                "hex",
+            );
+
+            // act
+            const result = await helpers.validateCommitmentSig(
+                channel,
+                ctx,
+                sig,
+                channel.ourSide.fundingPubKey,
+            );
+
+            // assert
+            expect(result).to.equal(false);
         });
     });
 });

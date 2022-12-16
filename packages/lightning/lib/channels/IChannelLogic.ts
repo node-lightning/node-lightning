@@ -1,9 +1,10 @@
-import { Network, Tx, TxBuilder, Value } from "@node-lightning/bitcoin";
+import { Network, PublicKey, Tx, TxBuilder, Value } from "@node-lightning/bitcoin";
 import { BitField } from "../BitField";
 import { Htlc } from "../domain/Htlc";
 import { InitFeatureFlags } from "../flags/InitFeatureFlags";
 import { AcceptChannelMessage } from "../messages/AcceptChannelMessage";
 import { FundingCreatedMessage } from "../messages/FundingCreatedMessage";
+import { FundingSignedMessage } from "../messages/FundingSignedMessage";
 import { OpenChannelMessage } from "../messages/OpenChannelMessage";
 import { Result } from "../Result";
 import { Channel } from "./Channel";
@@ -51,6 +52,16 @@ export interface IChannelLogic {
         feeRatePerKw: Value,
         channelReserve: Value,
     ): boolean;
+    validateCommitmentSig(
+        channel: Channel,
+        tx: TxBuilder,
+        sig: Buffer,
+        pubkey: PublicKey,
+    ): Promise<boolean>;
     validateFunderFees(fundingAmount: Value, pushAmount: Value, feeRatePerKw: Value): boolean;
+    validateFundingSignedMessage(
+        channel: Channel,
+        msg: FundingSignedMessage,
+    ): Promise<Result<boolean, OpeningError>>;
     validateMaxAcceptedHtlcsTooLarge(maxAcceptedHtlcs: number): boolean;
 }
