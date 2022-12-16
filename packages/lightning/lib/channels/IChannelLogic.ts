@@ -28,6 +28,7 @@ export interface IChannelLogic {
     ): Promise<FundingCreatedMessage>;
     createFundingTx(channel: Channel): Promise<Tx>;
     createOpenChannelMessage(channel: Channel): Promise<OpenChannelMessage>;
+    createLocalCommitmentTx(channel: Channel): Promise<[TxBuilder, Htlc[]]>;
     createRemoteCommitmentTx(channel: Channel): Promise<[TxBuilder, Htlc[]]>;
     createTempChannelId(): Buffer;
     signCommitmentTx(channel: Channel, ctx: TxBuilder): Promise<Buffer>;

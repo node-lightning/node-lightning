@@ -619,31 +619,32 @@ export class Helpers implements IChannelLogic {
 
     /**
      * This method converts the channel object into a specific commitment
-     * transaction Constructs a commitment transaction for the counterparty
-     * by using the generic `createCommitmentTx` with values.
+     * transaction for the remote node.
      * @param channel
      * @returns
      */
     public async createRemoteCommitmentTx(channel: Channel): Promise<[TxBuilder, Htlc[]]> {
+        const perCommitmentPoint = channel.theirSide.nextCommitmentPoint.toBuffer();
+
         const revocationKey = ChannelKeys.deriveRevocationPubKey(
-            channel.theirSide.nextCommitmentPoint.toBuffer(),
+            perCommitmentPoint,
             channel.ourSide.revocationBasePoint.toBuffer(),
         );
 
         const delayedKey = ChannelKeys.derivePubKey(
-            channel.theirSide.nextCommitmentPoint.toBuffer(),
-            channel.theirSide.paymentBasePoint.toBuffer(),
+            perCommitmentPoint,
+            channel.theirSide.delayedBasePoint.toBuffer(),
         );
 
         const remoteKey = channel.ourSide.paymentBasePoint.toBuffer();
 
-        const theirHtlcKey = ChannelKeys.derivePubKey(
-            channel.theirSide.nextCommitmentPoint.toBuffer(),
+        const localHtlcKey = ChannelKeys.derivePubKey(
+            perCommitmentPoint,
             channel.theirSide.htlcBasePoint.toBuffer(),
         );
 
-        const ourHtlcKey = ChannelKeys.derivePubKey(
-            channel.theirSide.nextCommitmentPoint.toBuffer(),
+        const remoteHtlcKey = ChannelKeys.derivePubKey(
+            perCommitmentPoint,
             channel.ourSide.htlcBasePoint.toBuffer(),
         );
 
@@ -662,8 +663,8 @@ export class Helpers implements IChannelLogic {
             delayedKey,
             remoteKey,
             true,
-            theirHtlcKey,
-            ourHtlcKey,
+            localHtlcKey,
+            remoteHtlcKey,
         );
     }
 
@@ -706,5 +707,56 @@ export class Helpers implements IChannelLogic {
         msg.fundingOutputIndex = channel.fundingOutPoint.outputIndex;
         msg.signature = signature;
         return msg;
+    }
+
+    /**
+     * This method converts the channel object into a specific commitment
+     * transaction for the local node.
+     * @param channel
+     * @returns
+     */
+    public async createLocalCommitmentTx(channel: Channel): Promise<[TxBuilder, Htlc[]]> {
+        const perCommitmentPoint = channel.ourSide.nextCommitmentPoint.toBuffer();
+
+        const revocationKey = ChannelKeys.deriveRevocationPubKey(
+            perCommitmentPoint,
+            channel.theirSide.revocationBasePoint.toBuffer(),
+        );
+
+        const delayedKey = ChannelKeys.derivePubKey(
+            perCommitmentPoint,
+            channel.ourSide.delayedBasePoint.toBuffer(),
+        );
+
+        const remoteKey = channel.theirSide.paymentBasePoint.toBuffer();
+
+        const localHtlcKey = ChannelKeys.derivePubKey(
+            perCommitmentPoint,
+            channel.ourSide.htlcBasePoint.toBuffer(),
+        );
+
+        const remoteHtlcKey = ChannelKeys.derivePubKey(
+            perCommitmentPoint,
+            channel.theirSide.htlcBasePoint.toBuffer(),
+        );
+
+        return TxFactory.createCommitment(
+            channel.funder,
+            Number(channel.ourSide.nextCommitmentNumber.value),
+            channel.openPaymentBasePoint.toBuffer(),
+            channel.acceptPaymentBasePoint.toBuffer(),
+            channel.fundingOutPoint,
+            channel.ourSide.dustLimit,
+            channel.feeRatePerKw.sats,
+            channel.ourSide.toSelfDelayBlocks,
+            channel.ourSide.balance,
+            channel.theirSide.balance,
+            revocationKey,
+            delayedKey,
+            remoteKey,
+            false,
+            localHtlcKey,
+            remoteHtlcKey,
+        );
     }
 }

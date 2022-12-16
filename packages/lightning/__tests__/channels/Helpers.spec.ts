@@ -1495,10 +1495,10 @@ describe(Helpers.name, () => {
 
             const delayedKey = ChannelKeys.derivePubKey(
                 channel.theirSide.nextCommitmentPoint.toBuffer(),
-                channel.theirSide.paymentBasePoint.toBuffer(),
+                channel.theirSide.delayedBasePoint.toBuffer(),
             );
             expect(delayedKey.toString("hex")).to.equal(
-                "0227b109a142c1e17ae7395b8d71dcf39ffad11abf59e9ae4c14691ce441ab27e4",
+                "0361b4e2fe09cdb243739a959c1b47867ae4f6067ec179d94cb51980ae2a82c7da",
             );
 
             const localScript = Script.p2wshLock(
@@ -1525,7 +1525,7 @@ describe(Helpers.name, () => {
     });
 
     describe(Helpers.prototype.signCommitmentTx.name, () => {
-        it("signs a commitment transaction", async () => {
+        it("signs a remote commitment transaction", async () => {
             // arrange
             const channel = createFakeChannel()
                 .attachAcceptChannel(createFakeAcceptChannel())
@@ -1538,7 +1538,24 @@ describe(Helpers.name, () => {
 
             // assert
             expect(result.toString("hex")).to.equal(
-                "3045022100e5f4b74d7da947287f8ddc451a6f9d115ad806986192174dfe55a8fa19096854022040d390da9eaec83525d496a1e40370d80222ef7472d3dcf848f1e170ee487a9001",
+                "3044022010c6f99cd58b84056ef6f3d3ea58e682d009a6c071546dae62f221c38c6f617a02204c53fe4eae279bf84889429a1373ba8fb8eb266350613f3cb9139b3dcb2562d101",
+            );
+        });
+
+        it("signs a local commitment transaction", async () => {
+            // arrange
+            const channel = createFakeChannel()
+                .attachAcceptChannel(createFakeAcceptChannel())
+                .attachFundingTx(createFakeFundingTx());
+            const helpers = new Helpers(undefined, undefined);
+            const [ctx] = await helpers.createLocalCommitmentTx(channel);
+
+            // act
+            const result = await helpers.signCommitmentTx(channel, ctx);
+
+            // assert
+            expect(result.toString("hex")).to.equal(
+                "3044022025d5829f235c1b02d3664ca87572e2dc577eb4f5cdcec78fb62e413c93da043f022056f118ff9f572d57beca3d7f976ae1ba75995c4f45f7f1d95606453de51d1f9601",
             );
         });
     });
@@ -1566,6 +1583,58 @@ describe(Helpers.name, () => {
             expect(result.signature.toString("hex")).to.equal(
                 "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
             );
+        });
+    });
+
+    describe(Helpers.prototype.createLocalCommitmentTx.name, () => {
+        it("constructs a first commitment transaction", async () => {
+            // arrange
+            const channel = createFakeChannel()
+                .attachAcceptChannel(createFakeAcceptChannel())
+                .attachFundingTx(createFakeFundingTx());
+
+            const helpers = new Helpers(undefined, undefined);
+
+            // act
+            const [txbuilder, htlcs] = await helpers.createLocalCommitmentTx(channel);
+
+            // assert
+            expect(txbuilder.outputs.length).to.equal(2);
+            expect(txbuilder.outputs[0].value.sats).to.equal(2000n, "to_remote (fundee)");
+            expect(txbuilder.outputs[1].value.sats).to.equal(197_276n, "to_local (funder)");
+
+            const remoteScript = Script.p2wpkhLock(channel.theirSide.paymentBasePoint.toBuffer());
+            expect(txbuilder.outputs[0].scriptPubKey.equals(remoteScript)).to.equal(
+                true,
+                "to_remote p2wpkh",
+            );
+
+            const revKey = ChannelKeys.deriveRevocationPubKey(
+                channel.ourSide.nextCommitmentPoint.toBuffer(),
+                channel.theirSide.revocationBasePoint.toBuffer(),
+            );
+            expect(revKey.toString("hex")).to.equal(
+                "03e9c96eebea836b5a7709d40f20ae5335ae89ddaf3ab05a5b12779f665f07ac21",
+            );
+
+            const delayedKey = ChannelKeys.derivePubKey(
+                channel.ourSide.nextCommitmentPoint.toBuffer(),
+                channel.ourSide.delayedBasePoint.toBuffer(),
+            );
+            expect(delayedKey.toString("hex")).to.equal(
+                "02de0e222fa052027db12684d30380021048ab8b40aa3d01ad7cc827342759bf34",
+            );
+
+            const localScript = Script.p2wshLock(
+                ScriptFactory.toLocalScript(revKey, delayedKey, channel.ourSide.toSelfDelayBlocks),
+            );
+
+            expect(txbuilder.outputs[1].scriptPubKey.equals(localScript)).to.equal(
+                true,
+                "to_local rsmc",
+            );
+
+            expect(htlcs.length).to.equal(0);
         });
     });
 });
