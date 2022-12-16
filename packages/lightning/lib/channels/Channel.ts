@@ -150,13 +150,17 @@ export class Channel {
 
     /**
      * Helper used by the funder to attach the funding transaction and
-     * funding outpoint in one pass.
+     * funding outpoint in one pass. This will also populate the
+     * `channel_id` which will be used when the `funding_signed` message
+     * is received.
      * @param tx
      */
     public attachFundingTx(tx: Tx) {
         this.fundingTx = tx;
-        this.fundingOutPoint = new OutPoint(tx.txId, 0);
+        const fundingOutPoint = new OutPoint(tx.txId, 0);
+        this.fundingOutPoint = fundingOutPoint;
         this.fundingScript = tx.outputs[0].scriptPubKey;
+        this.channelId = ChannelId.fromOutPoint(this.fundingOutPoint);
         return this;
     }
 }

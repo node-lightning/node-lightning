@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { Channel } from "../../lib/channels/Channel";
-import { createFakeAcceptChannel, createFakeChannel } from "../_test-utils";
+import { createFakeAcceptChannel, createFakeChannel, createFakeFundingTx } from "../_test-utils";
 
 describe(Channel.name, () => {
     describe(Channel.prototype.attachAcceptChannel.name, () => {
@@ -38,6 +38,25 @@ describe(Channel.name, () => {
             expect(channel.theirSide.nextCommitmentNumber.value).to.equal(0n);
             expect(channel.theirSide.nextCommitmentPoint.toHex()).to.equal(
                 "0288a618cb6027c3218a37cbe9e882379f17d87d03f6e99d0b60292478d2aded06",
+            );
+        });
+    });
+
+    describe(Channel.prototype.attachFundingTx.name, () => {
+        it("attach all properties", () => {
+            // arrange
+            const channel = createFakeChannel().attachAcceptChannel(createFakeAcceptChannel());
+            const fundingTx = createFakeFundingTx();
+
+            // act
+            channel.attachFundingTx(fundingTx);
+
+            // assert
+            expect(channel.fundingTx).to.equal(fundingTx);
+            expect(channel.fundingOutPoint.txid.eq(fundingTx.txId)).to.equal(true);
+            expect(channel.fundingOutPoint.outputIndex).to.equal(0);
+            expect(channel.channelId.toHex()).to.equal(
+                "6e7848c0fb7e9c4d336149a7fbc60d097f269cb0047917747156749b1bd5d5a0",
             );
         });
     });
