@@ -9,9 +9,9 @@ import { HashByteOrder, OutPoint } from "@node-lightning/bitcoin";
  */
 export class ChannelId {
     /**
-     * Constructs a `channel_id` from an outpoint by performing an XOR
-     * of the output index against the last-two bytes of the bid-endian
-     * txid.
+     * Constructs a `channel_id` from an outpoint by performing an
+     * big-endian XOR of the output index. This means the top-most byte
+     * of the txid and the outpoint index are XOR'd.
      * @param outpoint
      * @returns
      */
@@ -20,9 +20,9 @@ export class ChannelId {
             throw new Error("Invalid channel_id outpoint");
         }
 
-        const value = outpoint.txid.serialize(HashByteOrder.RPC);
-        value[30] ^= outpoint.outputIndex >> 8;
-        value[31] ^= outpoint.outputIndex & 0xff;
+        const value = outpoint.txid.serialize(HashByteOrder.Internal);
+        value[31] ^= outpoint.outputIndex >> 8;
+        value[30] ^= outpoint.outputIndex & 0xff;
         return new ChannelId(value);
     }
 
