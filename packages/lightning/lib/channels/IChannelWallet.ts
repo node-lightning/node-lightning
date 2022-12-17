@@ -11,4 +11,5 @@ export interface IChannelWallet {
     fundTx(builder: TxBuilder): Promise<TxBuilder>;
     signTx(builder: TxBuilder): Promise<TxBuilder>;
     signFundingTx(tx: Tx): Promise<Tx>;
+    broadcastTx(tx: Tx): Promise<void>;
 }

@@ -5,6 +5,7 @@ import {
     PrivateKey,
     Script,
     Sequence,
+    Tx,
     Value,
 } from "@node-lightning/bitcoin";
 import { expect } from "chai";
@@ -1685,6 +1686,44 @@ describe(Helpers.name, () => {
 
             // assert
             expect(result).to.equal(false);
+        });
+    });
+
+    describe(Helpers.prototype.signFundingTx.name, () => {
+        it("calls the wallet", async () => {
+            // arrange
+            const channel = createFakeChannel()
+                .attachAcceptChannel(createFakeAcceptChannel())
+                .attachFundingTx(createFakeFundingTx());
+            const wallet = createFakeChannelWallet();
+            const fakeTx = new Tx();
+            wallet.signFundingTx.resolves(fakeTx);
+            const helpers = new Helpers(wallet, undefined);
+
+            // act
+            const result = await helpers.signFundingTx(channel);
+
+            // assert
+            expect(result).to.equal(fakeTx);
+        });
+    });
+
+    describe(Helpers.prototype.broadcastTx.name, () => {
+        it("calls the wallet", async () => {
+            // arrange
+            const channel = createFakeChannel()
+                .attachAcceptChannel(createFakeAcceptChannel())
+                .attachFundingTx(createFakeFundingTx());
+            const wallet = createFakeChannelWallet();
+            const tx = new Tx();
+            const helpers = new Helpers(wallet, undefined);
+
+            // act
+            await helpers.broadcastTx(tx);
+
+            // assert
+            expect(wallet.broadcastTx.called).to.equal(true);
+            expect(wallet.broadcastTx.args[0][0]).to.equal(tx);
         });
     });
 });

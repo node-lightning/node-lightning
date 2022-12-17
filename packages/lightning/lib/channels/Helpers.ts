@@ -821,4 +821,12 @@ export class Helpers implements IChannelLogic {
     public async signFundingTx(channel: Channel): Promise<Tx> {
         return await this.wallet.signFundingTx(channel.fundingTx);
     }
+
+    /**
+     * Broadcasts a complete transaction to the Bitcoin network
+     * @param tx
+     */
+    public async broadcastTx(tx: Tx): Promise<void> {
+        return await this.wallet.broadcastTx(tx);
+    }
 }
