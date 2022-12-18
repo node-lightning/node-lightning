@@ -10,7 +10,7 @@ export class EcdsaSig {
          * 64-byte value representing the tuple of (r,s) for a secp256k1
          * signature.
          */
-        readonly tuple: Buffer,
+        readonly raw: Buffer,
     ) {}
 
     /**
@@ -21,6 +21,14 @@ export class EcdsaSig {
      * @returns
      */
     public isValid(msg: Buffer, pubkey: PublicKey): boolean {
-        return verifySig(msg, this.tuple, pubkey.toBuffer());
+        return verifySig(msg, this.raw, pubkey.toBuffer());
+    }
+
+    /**
+     * Returns the 64-byte (r,s) tuple for the signature.
+     * @returns
+     */
+    public toBuffer(): Buffer {
+        return Buffer.from(this.raw);
     }
 }
