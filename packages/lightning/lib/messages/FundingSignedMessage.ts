@@ -1,3 +1,4 @@
+import { EcdsaSig } from "@node-lightning/bitcoin";
 import { BufferReader, BufferWriter } from "@node-lightning/bufio";
 import { ChannelId } from "../domain/ChannelId";
 import { MessageType } from "../MessageType";
@@ -28,7 +29,7 @@ export class FundingSignedMessage implements IWireMessage {
 
         reader.readUInt16BE(); // read type
         instance.channelId = new ChannelId(reader.readBytes(32));
-        instance.signature = reader.readBytes(64);
+        instance.signature = new EcdsaSig(reader.readBytes(64));
 
         return instance;
     }
@@ -49,7 +50,7 @@ export class FundingSignedMessage implements IWireMessage {
      * using their own signature. The signature must be 64-bytes
      * representing the 32-byte (r,s) values for an ECDSA signature.
      */
-    public signature: Buffer;
+    public signature: EcdsaSig;
 
     /**
      * Serializes the message into a Buffer
@@ -58,7 +59,7 @@ export class FundingSignedMessage implements IWireMessage {
         const writer = new BufferWriter();
         writer.writeUInt16BE(this.type);
         writer.writeBytes(this.channelId.toBuffer());
-        writer.writeBytes(this.signature);
+        writer.writeBytes(this.signature.toBuffer());
         return writer.toBuffer();
     }
 }

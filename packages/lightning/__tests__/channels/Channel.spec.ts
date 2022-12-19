@@ -1,6 +1,11 @@
 import { expect } from "chai";
 import { Channel } from "../../lib/channels/Channel";
-import { createFakeAcceptChannel, createFakeChannel, createFakeFundingTx } from "../_test-utils";
+import {
+    createFakeAcceptChannel,
+    createFakeChannel,
+    createFakeFundingSignedMessage,
+    createFakeFundingTx,
+} from "../_test-utils";
 
 describe(Channel.name, () => {
     describe(Channel.prototype.attachAcceptChannel.name, () => {
@@ -57,6 +62,24 @@ describe(Channel.name, () => {
             expect(channel.fundingOutPoint.outputIndex).to.equal(0);
             expect(channel.channelId.toHex()).to.equal(
                 "6e7848c0fb7e9c4d336149a7fbc60d097f269cb0047917747156749b1bd5d5a0",
+            );
+        });
+    });
+
+    describe(Channel.prototype.attachFundingSigned.name, () => {
+        it("should attach signature to our side's next signature", () => {
+            // arrange
+            const channel = createFakeChannel()
+                .attachAcceptChannel(createFakeAcceptChannel())
+                .attachFundingTx(createFakeFundingTx());
+            const msg = createFakeFundingSignedMessage();
+
+            // act
+            channel.attachFundingSigned(msg);
+
+            // assert
+            expect(channel.ourSide.nextCommitmentSig.toBuffer()).to.deep.equal(
+                Buffer.alloc(64, 0xff),
             );
         });
     });
