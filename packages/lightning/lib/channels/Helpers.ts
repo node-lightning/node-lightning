@@ -1,5 +1,13 @@
 /* eslint-disable @typescript-eslint/require-await */
-import { HashByteOrder, Network, PublicKey, Tx, TxBuilder, Value } from "@node-lightning/bitcoin";
+import {
+    EcdsaSig,
+    HashByteOrder,
+    Network,
+    PublicKey,
+    Tx,
+    TxBuilder,
+    Value,
+} from "@node-lightning/bitcoin";
 import { randomBytes } from "crypto";
 import { BitField } from "../BitField";
 import { InitFeatureFlags } from "../flags/InitFeatureFlags";
@@ -776,11 +784,11 @@ export class Helpers implements IChannelLogic {
     public async validateCommitmentSig(
         channel: Channel,
         tx: TxBuilder,
-        sig: Buffer,
+        sig: EcdsaSig,
         pubkey: PublicKey,
     ): Promise<boolean> {
         const hash = tx.hashSegwitv0(0, channel.fundingScript, channel.fundingAmount);
-        return verifySig(hash, sig, pubkey.toBuffer());
+        return verifySig(hash, sig.toBuffer(), pubkey.toBuffer());
     }
 
     /**

@@ -1,4 +1,5 @@
 import {
+    EcdsaSig,
     LockTime,
     Network,
     OutPoint,
@@ -1647,9 +1648,11 @@ describe(Helpers.name, () => {
                 .attachFundingTx(createFakeFundingTx());
             const helpers = new Helpers(undefined, undefined);
             const [ctx] = await helpers.createRemoteCommitmentTx(channel);
-            const sig = Buffer.from(
-                "10c6f99cd58b84056ef6f3d3ea58e682d009a6c071546dae62f221c38c6f617a4c53fe4eae279bf84889429a1373ba8fb8eb266350613f3cb9139b3dcb2562d1",
-                "hex",
+            const sig = new EcdsaSig(
+                Buffer.from(
+                    "10c6f99cd58b84056ef6f3d3ea58e682d009a6c071546dae62f221c38c6f617a4c53fe4eae279bf84889429a1373ba8fb8eb266350613f3cb9139b3dcb2562d1",
+                    "hex",
+                ),
             );
 
             // act
@@ -1671,9 +1674,11 @@ describe(Helpers.name, () => {
                 .attachFundingTx(createFakeFundingTx());
             const helpers = new Helpers(undefined, undefined);
             const [ctx] = await helpers.createRemoteCommitmentTx(channel);
-            const sig = Buffer.from(
-                "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
-                "hex",
+            const sig = new EcdsaSig(
+                Buffer.from(
+                    "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+                    "hex",
+                ),
             );
 
             // act

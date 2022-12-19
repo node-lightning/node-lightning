@@ -1,4 +1,4 @@
-import { Value, PublicKey } from "@node-lightning/bitcoin";
+import { Value, PublicKey, EcdsaSig } from "@node-lightning/bitcoin";
 import { CommitmentNumber } from "./CommitmentNumber";
 
 export class ChannelSide {
@@ -16,9 +16,11 @@ export class ChannelSide {
 
     public commitmentNumber: CommitmentNumber;
     public commitmentPoint: PublicKey;
+    public commitmentSig: EcdsaSig;
 
     public nextCommitmentNumber: CommitmentNumber;
     public nextCommitmentPoint: PublicKey;
+    public nextCommitmentSig: EcdsaSig | undefined;
 
     public balance: Value;
     public htlcCounter: number = undefined;

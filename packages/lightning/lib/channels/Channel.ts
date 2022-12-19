@@ -9,6 +9,7 @@ import {
 } from "@node-lightning/bitcoin";
 import { ChannelId } from "../domain/ChannelId";
 import { AcceptChannelMessage } from "../messages/AcceptChannelMessage";
+import { FundingSignedMessage } from "../messages/FundingSignedMessage";
 import { ChannelSide } from "./ChannelSide";
 import { CommitmentNumber } from "./CommitmentNumber";
 import { IStateMachine } from "./IStateMachine";
@@ -162,5 +163,15 @@ export class Channel {
         this.fundingScript = tx.outputs[0].scriptPubKey;
         this.channelId = ChannelId.fromOutPoint(this.fundingOutPoint);
         return this;
+    }
+
+    /**
+     * Adds the peers signature to the `Channel` object. This signature
+     * gets captured on our side of the channel for the next commitment
+     * transaction our side can use.
+     * @param msg
+     */
+    public attachFundingSigned(msg: FundingSignedMessage) {
+        this.ourSide.nextCommitmentSig = msg.signature;
     }
 }

@@ -1,4 +1,4 @@
-import { Network, PublicKey, Tx, TxBuilder, Value } from "@node-lightning/bitcoin";
+import { EcdsaSig, Network, PublicKey, Tx, TxBuilder, Value } from "@node-lightning/bitcoin";
 import { BitField } from "../BitField";
 import { Htlc } from "../domain/Htlc";
 import { InitFeatureFlags } from "../flags/InitFeatureFlags";
@@ -55,7 +55,7 @@ export interface IChannelLogic {
     validateCommitmentSig(
         channel: Channel,
         tx: TxBuilder,
-        sig: Buffer,
+        sig: EcdsaSig,
         pubkey: PublicKey,
     ): Promise<boolean>;
     validateFunderFees(fundingAmount: Value, pushAmount: Value, feeRatePerKw: Value): boolean;

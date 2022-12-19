@@ -1,12 +1,20 @@
 import { BitField } from "../lib/BitField";
 import { ILogger, Logger } from "@node-lightning/logger";
 import { Readable } from "stream";
-import { CommitmentNumber, CommitmentSecret, IPeer, IWireMessage, PeerState } from "../lib";
+import {
+    ChannelId,
+    CommitmentNumber,
+    CommitmentSecret,
+    IPeer,
+    IWireMessage,
+    PeerState,
+} from "../lib";
 import { InitFeatureFlags } from "../lib/flags/InitFeatureFlags";
 import bech32 from "bech32";
 import { IChannelWallet } from "../lib/channels/IChannelWallet";
 import Sinon from "sinon";
 import {
+    EcdsaSig,
     Network,
     OutPoint,
     PrivateKey,
@@ -26,6 +34,7 @@ import { OpenChannelRequest } from "../lib/channels/OpenChannelRequest";
 import { AcceptChannelMessage } from "../lib/messages/AcceptChannelMessage";
 import { FundingCreatedMessage } from "../lib/messages/FundingCreatedMessage";
 import { IStateMachine } from "../lib/channels/IStateMachine";
+import { FundingSignedMessage } from "../lib/messages/FundingSignedMessage";
 
 export class FakePeer extends Readable implements IPeer {
     public state: PeerState;
@@ -326,4 +335,13 @@ export function createFakeState(name: string): Sinon.SinonStubbedInstance<IState
     });
 
     return result;
+}
+
+export function createFakeFundingSignedMessage(): FundingSignedMessage {
+    const msg = new FundingSignedMessage();
+    const fundingTx = createFakeFundingTx();
+    const fundingOutPoint = new OutPoint(fundingTx.txId, 0);
+    msg.channelId = ChannelId.fromOutPoint(fundingOutPoint);
+    msg.signature = new EcdsaSig(Buffer.alloc(64, 0xff));
+    return msg;
 }
