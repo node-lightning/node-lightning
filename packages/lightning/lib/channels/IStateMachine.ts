@@ -1,4 +1,5 @@
 import { AcceptChannelMessage } from "../messages/AcceptChannelMessage";
+import { FundingSignedMessage } from "../messages/FundingSignedMessage";
 import { IPeer } from "../Peer";
 import { Channel } from "./Channel";
 
@@ -16,5 +17,10 @@ export interface IStateMachine {
         channel: Channel,
         peer: IPeer,
         msg: AcceptChannelMessage,
+    ): Promise<string>;
+    onFundingSignedMessage(
+        channel: Channel,
+        peer: IPeer,
+        msg: FundingSignedMessage,
     ): Promise<string>;
 }
