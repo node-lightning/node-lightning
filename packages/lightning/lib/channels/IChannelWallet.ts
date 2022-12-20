@@ -12,4 +12,5 @@ export interface IChannelWallet {
     signTx(builder: TxBuilder): Promise<TxBuilder>;
     signFundingTx(tx: Tx): Promise<Tx>;
     broadcastTx(tx: Tx): Promise<void>;
+    getBlockHeight(): Promise<number>;
 }

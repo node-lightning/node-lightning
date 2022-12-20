@@ -101,6 +101,7 @@ export function createFakeChannelWallet(): Sinon.SinonStubbedInstance<IChannelWa
         signTx: Sinon.stub(),
         signFundingTx: Sinon.stub(),
         broadcastTx: Sinon.stub(),
+        getBlockHeight: Sinon.stub(),
     };
 }
 
