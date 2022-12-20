@@ -16,8 +16,10 @@ Once the transaction is broadcast the funder must remember the channel. We don't
 
 #### Actions
 
-1. Sign the funding transaction - [`signTx` subroutine](../routines/signTx.md)
+1. Attach `funding_signed` information to `channel` - [`attachFundingSigned`](../routines/attachFundingSigned.md)
+1. Sign the funding transaction - [`signFundingTx` subroutine](../routines/signTx.md)
 1. Broadcast funding transaction - [`broadcastTx` subroutine](../routines/broadcastTx.md)
+1. Transition to `AwaitingFundingDepth` channel state
 
 ### 21b. Receive `funding_signed` [invalid]
 

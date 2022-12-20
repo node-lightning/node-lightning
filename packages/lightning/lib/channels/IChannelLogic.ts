@@ -19,6 +19,7 @@ import { OpeningError } from "./states/opening/OpeningError";
  * actual code is organized.
  */
 export interface IChannelLogic {
+    broadcastTx(tx: Tx): Promise<void>;
     createChannel(
         network: Network,
         options: OpenChannelRequest,
@@ -33,6 +34,7 @@ export interface IChannelLogic {
     createRemoteCommitmentTx(channel: Channel): Promise<[TxBuilder, Htlc[]]>;
     createTempChannelId(): Buffer;
     signCommitmentTx(channel: Channel, ctx: TxBuilder): Promise<Buffer>;
+    signFundingTx(channel: Channel): Promise<Tx>;
     validateAcceptChannel(
         channel: Channel,
         msg: AcceptChannelMessage,
