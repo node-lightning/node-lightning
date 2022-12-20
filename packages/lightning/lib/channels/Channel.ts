@@ -19,6 +19,15 @@ export class Channel {
     public channelId: ChannelId;
     public isPublic: boolean;
 
+    /**
+     * Height of the best block chain when the channel open was initiated.
+     * This value will be used by the funder to determine if they need to
+     * bump the funding transaction. This value will be used by the fundee
+     * to determine if they should forget the channel if 2016 blocks have
+     * elapsed since the open_channel message was received.
+     */
+    public openBlockHeight: number;
+
     public minimumDepth: number;
 
     /**
@@ -125,7 +134,9 @@ export class Channel {
     }
 
     /**
-     * Modifies the channel object with state from the `accept_channel_message`.
+     * Attaches the properties from an `accept_channel` message defined
+     * in BOLT 2 to the channel instance. This method is called after an
+     * `accept_channel` message has been validated.
      * @param msg
      */
     public attachAcceptChannel(msg: AcceptChannelMessage) {

@@ -244,6 +244,9 @@ export class Helpers implements IChannelLogic {
         // (little-endian).
         const channel = new Channel(options.peer.id, network, true);
 
+        // Sets the height of the best block chain
+        channel.openBlockHeight = await this.wallet.getBlockHeight();
+
         // Must construct a `temporary_channel_id` that is unique to other
         //  channel ids with the same peer
         channel.temporaryId = this.createTempChannelId();

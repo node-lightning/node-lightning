@@ -758,6 +758,7 @@ describe(Helpers.name, () => {
                 revocationBasePointSecret,
             });
             wallet.createPerCommitmentSeed.resolves(perCommitmentSeed);
+            wallet.getBlockHeight.resolves(2_000_000);
 
             const helpers = new Helpers(wallet, undefined);
 
@@ -792,6 +793,7 @@ describe(Helpers.name, () => {
             expect(channel.fundingAmount.sats).to.equal(1_000_000n);
             expect(channel.pushAmount.sats).to.equal(1000n);
             expect(channel.fundingKey.toHex()).to.equal(fundingKey.toHex());
+            expect(channel.openBlockHeight).to.equal(2_000_000);
             expect(channel.paymentBasePointSecret.toHex()).to.equal(paymentBasePointSecret.toHex());
             expect(channel.delayedBasePointSecret.toHex()).to.equal(
                 delayedPaymentBasePointSecret.toHex(),
