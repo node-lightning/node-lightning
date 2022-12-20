@@ -1,8 +1,8 @@
 import { Network } from "@node-lightning/bitcoin";
 import { Channel } from "./Channel";
+import { ChannelId } from "../domain/ChannelId";
 import { IChannelStorage } from "./IChannelStorage";
 import { ILogger } from "@node-lightning/logger";
-import { StateMachine } from "./StateMachine";
 import { IChannelLogic } from "./IChannelLogic";
 import { IPeer } from "../Peer";
 import { Result } from "../Result";
@@ -13,6 +13,7 @@ import { AwaitingAcceptChannelState } from "./states/opening/AwaitingAcceptChann
 import { PeerState } from "../PeerState";
 import { AcceptChannelMessage } from "../messages/AcceptChannelMessage";
 import { IStateMachine } from "./IStateMachine";
+import { FundingSignedMessage } from "../messages/FundingSignedMessage";
 
 /**
  *
@@ -27,6 +28,10 @@ export class ChannelManager {
         readonly channelStorage: IChannelStorage,
         public rootState: IStateMachine,
     ) {}
+
+    public findChannelById(channelId: ChannelId): Channel | undefined {
+        return this.channels.find(p => channelId.equals(p.channelId));
+    }
 
     /**
      * Finds a channel by `temporaryChannelId`
@@ -145,6 +150,20 @@ export class ChannelManager {
             return;
         }
         const newState = await channel.state.onAcceptChannelMessage(channel, peer, msg);
+        await this.transitionState(channel, newState);
+    }
+
+    /**
+     * Processes a `funding_signed` message
+     * @param peer
+     * @param msg
+     */
+    public async onFundingSignedMessage(peer: IPeer, msg: FundingSignedMessage): Promise<void> {
+        const channel = this.findChannelById(msg.channelId);
+        if (!channel) {
+            return;
+        }
+        const newState = await channel.state.onFundingSignedMessage(channel, peer, msg);
         await this.transitionState(channel, newState);
     }
 }

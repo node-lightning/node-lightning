@@ -325,6 +325,7 @@ export function createFakeState(name: string): Sinon.SinonStubbedInstance<IState
         onEnter: Sinon.stub(),
         onExit: Sinon.stub(),
         onAcceptChannelMessage: Sinon.stub(),
+        onFundingSignedMessage: Sinon.stub(),
         onPeerConnected: Sinon.stub(),
         onPeerDisconnected: Sinon.stub(),
     };
