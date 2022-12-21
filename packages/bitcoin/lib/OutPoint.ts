@@ -9,6 +9,16 @@ import { ICloneable } from "./ICloneable";
  */
 export class OutPoint implements ICloneable<OutPoint> {
     /**
+     * Returns true for a coinbase outpoint which is defined as 32-bytes
+     * of 0x00 for the txid and an output index of 0xffffffff.
+     * @returns
+     */
+    public static coinbase: OutPoint = new OutPoint(
+        "0000000000000000000000000000000000000000000000000000000000000000",
+        0xffffffff,
+    );
+
+    /**
      * Creates an OutPoint from a byte stream.
      * @param reader
      */

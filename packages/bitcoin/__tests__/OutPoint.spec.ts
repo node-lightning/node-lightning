@@ -81,4 +81,13 @@ describe("OutPoint", () => {
             expect(a.eq(b)).to.equal(true);
         });
     });
+
+    describe("coinbase", () => {
+        it("returns the coinbase outpoint", () => {
+            const a = OutPoint.fromString(
+                "0000000000000000000000000000000000000000000000000000000000000000:4294967295",
+            );
+            expect(OutPoint.coinbase.eq(a));
+        });
+    });
 });
