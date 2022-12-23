@@ -9,6 +9,7 @@ import { BitcoinErrorCode } from "./BitcoinErrorCode";
 import { ICloneable } from "./ICloneable";
 import { Network } from "./Network";
 import { OpCode } from "./OpCodes";
+import { ScriptBuf } from "./ScriptBuf";
 import { ScriptCmd } from "./ScriptCmd";
 import { isSigHashTypeValid } from "./SigHashType";
 import { Stack } from "./Stack";
@@ -33,7 +34,9 @@ function assertValidPubKey(pubkey: Buffer) {
 }
 
 /**
- * Bitcoin Script
+ * Script instructions that are parsed from a ScriptBuf.  This
+ * type is used to construct scripts that can be serialized into
+ * a ScriptBuf type.
  */
 export class Script implements ICloneable<Script> {
     /**
@@ -140,11 +143,11 @@ export class Script implements ICloneable<Script> {
         }
 
         return new Script(
-            Script.number(m),
-            ...pubkeys,
-            Script.number(pubkeys.length),
-            OpCode.OP_CHECKMULTISIG,
-        ); // prettier-ignore
+        Script.number(m),
+        ...pubkeys,
+        Script.number(pubkeys.length),
+        OpCode.OP_CHECKMULTISIG,
+    ); // prettier-ignore
     }
 
     /**
@@ -166,9 +169,9 @@ export class Script implements ICloneable<Script> {
             asssertValidSig(sig);
         }
         return new Script(
-            OpCode.OP_0,
-            ...sigs
-        ); // prettier-ignore
+        OpCode.OP_0,
+        ...sigs
+    ); // prettier-ignore
     }
 
     /**
@@ -194,10 +197,10 @@ export class Script implements ICloneable<Script> {
         }
 
         return new Script(
-            OpCode.OP_HASH160,
-            scriptHash160,
-            OpCode.OP_EQUAL,
-        ); // prettier-ignore
+        OpCode.OP_HASH160,
+        scriptHash160,
+        OpCode.OP_EQUAL,
+    ); // prettier-ignore
     }
 
     /**
@@ -248,9 +251,9 @@ export class Script implements ICloneable<Script> {
         const hash160PubKey = value.length === 20 ? value : hash160(value);
 
         return new Script(
-            OpCode.OP_0,
-            hash160PubKey,
-        ); // prettier-ignore
+        OpCode.OP_0,
+        hash160PubKey,
+    ); // prettier-ignore
     }
 
     /**
@@ -266,9 +269,9 @@ export class Script implements ICloneable<Script> {
         }
 
         return new Script(
-            OpCode.OP_0,
-            sha256Script,
-        ); // prettier-ignore
+        OpCode.OP_0,
+        sha256Script,
+    ); // prettier-ignore
     }
 
     /**
@@ -276,6 +279,7 @@ export class Script implements ICloneable<Script> {
      * with a Varint length of Script data. The Script data is then parsed into
      * data blocks or op_codes depending on the meaning of the bytes
      * @param stream
+     * @deprecated Use `ScriptBuf` type instead
      */
     public static parse(reader: StreamReader) {
         // read the length
@@ -291,8 +295,20 @@ export class Script implements ICloneable<Script> {
     }
 
     /**
-     * When supplied with a Buffer of cmds this method will parse the commands
-     * into data blocks or op_codes depending on the meaning of the bytes
+     * Creates a Script from a buffer by parsing the commands using
+     * `parseCmd` method.
+     * @param buf
+     * @returns
+     */
+    public static fromBuffer(buf: Buffer): Script {
+        return new Script(...Script.parseCmds(buf));
+    }
+
+    /**
+     * Parses a Buffer containing script instructions into data blocks
+     * or op_codes depending on the meaning of the bytes. This buffer
+     * should not include the length, as this is implicit in the buffer
+     * size.
      * @param buf
      */
     public static parseCmds(buf: Buffer): ScriptCmd[] {
@@ -396,12 +412,21 @@ export class Script implements ICloneable<Script> {
     }
 
     /**
+     * Converts the Script into a Script Buffer for use in Transactions.
+     * @returns
+     */
+    public toScriptBuf(): ScriptBuf {
+        return new ScriptBuf(this.serializeCmds());
+    }
+
+    /**
      * Serializes the Script to a Buffer by serializing the cmds prefixed with
      * the overall length as a varint. Therefore the format of this method is
      * the format used when encoding a Script and is:
      *
      * [varint]: length
      * [length]: script_cmds
+     * @deprecated Use `ScriptBuf` instead
      */
     public serialize(): Buffer {
         // first obtain the length of all commands in the script
@@ -416,7 +441,7 @@ export class Script implements ICloneable<Script> {
 
     /**
      * Serializes the commands to a buffer. This information is the raw
-     * serialization and can be directly parsed with the `parseCmds` method.
+     * serialization and can be directly parsed with the `parse` method.
      */
     public serializeCmds(): Buffer {
         const results: Buffer[] = [];
@@ -484,7 +509,7 @@ export class Script implements ICloneable<Script> {
     }
 
     /**
-     * Performs a hash160 on the serialized commands. This is useful for
+     * Performs a hash160 on the script buffer. This is useful for
      * turning a script into a P2SH redeem script.
      */
     public hash160(): Buffer {
@@ -492,7 +517,7 @@ export class Script implements ICloneable<Script> {
     }
 
     /**
-     * Performs a sha256 hash on the serialized commands. This is useful
+     * Performs a sha256 hash on the script buffer. This is useful
      * fro turning a script into a P2WSH lock script.
      */
     public sha256(): Buffer {
