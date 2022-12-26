@@ -5,6 +5,7 @@ import { LockTime } from "./LockTime";
 import { OutPoint } from "./OutPoint";
 import { PrivateKey } from "./PrivateKey";
 import { Script } from "./Script";
+import { ScriptBuf } from "./ScriptBuf";
 import { Sequence } from "./Sequence";
 import { Tx } from "./Tx";
 import { TxIn } from "./TxIn";
@@ -84,7 +85,7 @@ export class TxBuilder {
      * @param scriptPubKey the locking script encumbering the funds send
      * to this output
      */
-    public addOutput(value: TxOut | number | Value, scriptPubKey?: Script) {
+    public addOutput(value: TxOut | number | Value, scriptPubKey?: ScriptBuf | Script) {
         if (value instanceof TxOut) {
             this._outputs.push(value.clone());
         } else {
@@ -111,11 +112,11 @@ export class TxBuilder {
      * @param index index of the input
      * @param script scriptSig to set for the input
      */
-    public setScriptSig(index: number, script: Script) {
+    public setScriptSig(index: number, script: ScriptBuf | Script) {
         if (index < 0 || index >= this._inputs.length) {
             throw new BitcoinError(BitcoinErrorCode.InputIndexOutOfRange, { index });
         }
-        this.inputs[index].scriptSig = script;
+        this.inputs[index].scriptSig = script instanceof Script ? script.toScriptBuf() : script;
     }
 
     /**
@@ -141,7 +142,7 @@ export class TxBuilder {
      * @param input signatory input index
      * @param commitScript the scriptSig used for the signature input
      */
-    public hashLegacy(input: number, commitScript: Script): Buffer {
+    public hashLegacy(input: number, commitScript: Script | ScriptBuf): Buffer {
         const writer = new BufferWriter();
 
         // write the version
@@ -152,7 +153,7 @@ export class TxBuilder {
         writer.writeVarInt(inputs.length);
         for (let i = 0; i < inputs.length; i++) {
             // blank out scriptSig for non-signatory inputs
-            let scriptSig = new Script();
+            let scriptSig: Script | ScriptBuf = new ScriptBuf();
 
             // use the commit script for signatory input
             if (i === input) {
@@ -196,7 +197,11 @@ export class TxBuilder {
      * @param value the value of the input. When a number is supplied it
      * is treated as bitcoin via `Value.fromBitcoin`
      */
-    public hashSegwitv0(index: number, commitScript: Script, value: number | Value): Buffer {
+    public hashSegwitv0(
+        index: number,
+        commitScript: Script | ScriptBuf,
+        value: number | Value,
+    ): Buffer {
         const writer = new BufferWriter();
 
         // Combines the previous outputs for all inputs in the
@@ -261,7 +266,11 @@ export class TxBuilder {
      * @param commitScript Script that is committed during signature
      * @param privateKey 32-byte private key
      */
-    public sign(input: number, commitScript: Script, privateKey: PrivateKey | Buffer): Buffer {
+    public sign(
+        input: number,
+        commitScript: Script | ScriptBuf,
+        privateKey: PrivateKey | Buffer,
+    ): Buffer {
         const privateKeyBuffer = Buffer.isBuffer(privateKey) ? privateKey : privateKey.toBuffer();
 
         // create the hash of the transaction for the input
@@ -288,7 +297,7 @@ export class TxBuilder {
      */
     public signSegWitv0(
         input: number,
-        commitScript: Script,
+        commitScript: Script | ScriptBuf,
         privateKey: PrivateKey | Buffer,
         value: number | Value,
     ): Buffer {
