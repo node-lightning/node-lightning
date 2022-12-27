@@ -38,7 +38,7 @@ describe("TxIn", () => {
                             "02f0da57e85eec2934a82a585ea337ce2f4998b50ae699dd79f5880e253dafafb7",
                             "hex",
                         ),
-                    ),
+                    ).toScriptBuf(),
                 ),
             );
             expect(sut.sequence.value).to.equal(0xfffffffe);
@@ -89,7 +89,7 @@ describe("TxIn", () => {
             const sequence = new Sequence(0xfffffffe);
             const sut = new TxIn(outpoint, scriptSig, sequence);
             expect(sut.toString()).to.equal(
-                "prev=9e067aedc661fca148e13953df75f8ca6eada9ce3b3d8d68631769ac60999156:1, scriptSig=OP_4, sequence=0xfffffffe",
+                "prev=9e067aedc661fca148e13953df75f8ca6eada9ce3b3d8d68631769ac60999156:1, scriptSig=54, sequence=0xfffffffe",
             );
         });
     });
@@ -111,7 +111,7 @@ describe("TxIn", () => {
                 "9e067aedc661fca148e13953df75f8ca6eada9ce3b3d8d68631769ac60999156",
             );
             expect(result.outpoint.index).to.equal(1);
-            expect(result.scriptSig).to.equal("OP_4");
+            expect(result.scriptSig).to.equal("54");
             expect(result.sequence).to.equal("0xfffffffe");
         });
     });

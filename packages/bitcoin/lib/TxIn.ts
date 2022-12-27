@@ -2,6 +2,7 @@ import { BufferWriter, StreamReader } from "@node-lightning/bufio";
 import { ICloneable } from "./ICloneable";
 import { OutPoint } from "./OutPoint";
 import { Script } from "./Script";
+import { ScriptBuf } from "./ScriptBuf";
 import { Sequence } from "./Sequence";
 import { Witness } from "./Witness";
 
@@ -12,7 +13,7 @@ export class TxIn implements ICloneable<TxIn> {
      */
     public static parse(reader: StreamReader): TxIn {
         const outpoint = OutPoint.parse(reader);
-        const scriptSig = Script.parse(reader);
+        const scriptSig = ScriptBuf.parse(reader);
         const sequence = new Sequence(reader.readUInt32LE());
         return new TxIn(outpoint, scriptSig, sequence);
     }
@@ -36,7 +37,7 @@ export class TxIn implements ICloneable<TxIn> {
     /**
      * ScriptSig for the input
      */
-    public scriptSig: Script;
+    public scriptSig: ScriptBuf;
 
     /**
      * nSequence value for the transaction. Defaults to 0xffffffff which
@@ -58,12 +59,12 @@ export class TxIn implements ICloneable<TxIn> {
      */
     constructor(
         outpoint: OutPoint,
-        scriptSig: Script = new Script(),
+        scriptSig: ScriptBuf | Script = new ScriptBuf(Buffer.alloc(0)),
         sequence: Sequence = new Sequence(),
         witness: Witness[] = [],
     ) {
         this.outpoint = outpoint;
-        this.scriptSig = scriptSig;
+        this.scriptSig = scriptSig instanceof Script ? scriptSig.toScriptBuf() : scriptSig;
         this.sequence = sequence;
         this.witness = witness;
     }
