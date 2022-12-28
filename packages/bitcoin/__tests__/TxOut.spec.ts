@@ -15,7 +15,11 @@ describe("TxOut", () => {
             expect(Number(sut.value.sats)).to.equal(60000);
             expect(
                 sut.scriptPubKey.equals(
-                    new Script(OpCode.OP_HASH160, Buffer.alloc(20, 1), OpCode.OP_EQUAL),
+                    new Script(
+                        OpCode.OP_HASH160,
+                        Buffer.alloc(20, 1),
+                        OpCode.OP_EQUAL,
+                    ).toScriptBuf(),
                 ),
             ).to.equal(true);
         });
@@ -41,7 +45,7 @@ describe("TxOut", () => {
             );
             const actual = sut.toString();
             expect(actual).to.equal(
-                'value="60000", scriptPubKey="OP_HASH160 0101010101010101010101010101010101010101 OP_EQUAL"',
+                'value="60000", scriptPubKey="a914010101010101010101010101010101010101010187"',
             );
         });
     });
@@ -54,9 +58,7 @@ describe("TxOut", () => {
             );
             const actual = sut.toJSON();
             expect(actual.value).to.equal("60000");
-            expect(actual.scriptPubKey).to.equal(
-                "OP_HASH160 0101010101010101010101010101010101010101 OP_EQUAL",
-            );
+            expect(actual.scriptPubKey).to.equal("a914010101010101010101010101010101010101010187");
         });
     });
 

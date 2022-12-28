@@ -1,6 +1,7 @@
 import { BufferWriter, StreamReader } from "@node-lightning/bufio";
 import { ICloneable } from "./ICloneable";
 import { Script } from "./Script";
+import { ScriptBuf } from "./ScriptBuf";
 import { Value } from "./Value";
 
 export class TxOut implements ICloneable<TxOut> {
@@ -10,7 +11,7 @@ export class TxOut implements ICloneable<TxOut> {
      */
     public static parse(reader: StreamReader): TxOut {
         const value = Value.fromSats(reader.readBigUInt64LE());
-        const scriptPubKey = Script.parse(reader);
+        const scriptPubKey = ScriptBuf.parse(reader);
         return new TxOut(value, scriptPubKey);
     }
 
@@ -38,16 +39,17 @@ export class TxOut implements ICloneable<TxOut> {
      * providing a ScriptSig that successfully evaluates when combined
      * with the ScriptPubKey.
      */
-    public scriptPubKey: Script;
+    public scriptPubKey: ScriptBuf;
 
     /**
      * Constructs a new TxOut from the supplied arguments
      * @param value
      * @param scriptPubKey
      */
-    constructor(value: Value, scriptPubKey: Script) {
+    constructor(value: Value, scriptPubKey: ScriptBuf | Script) {
         this.value = value;
-        this.scriptPubKey = scriptPubKey;
+        this.scriptPubKey =
+            scriptPubKey instanceof Script ? scriptPubKey.toScriptBuf() : scriptPubKey;
     }
 
     /**
