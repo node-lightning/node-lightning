@@ -5,6 +5,7 @@ import { TxOut } from "../lib/TxOut";
 import { expect } from "chai";
 import { Value } from "../lib/Value";
 import { Script } from "../lib/Script";
+import { ScriptBuf } from "../lib/ScriptBuf";
 
 describe("bip69InputSorter", () => {
     it("sorting by txid", () => {
@@ -57,23 +58,19 @@ describe("bip69OutputSorter", () => {
         const outputs = [
             new TxOut(
                 Value.fromSats(1),
-                new Script(
-                    ...Script.parseCmds(
-                        Buffer.from(
-                            "41046a0765b5865641ce08dd39690aade26dfbf5511430ca428a3089261361cef170e3929a68aee3d8d4848b0c5111b0a37b82b86ad559fd2a745b44d8e8d9dfdc0cac",
-                            "hex",
-                        ),
+                new ScriptBuf(
+                    Buffer.from(
+                        "41046a0765b5865641ce08dd39690aade26dfbf5511430ca428a3089261361cef170e3929a68aee3d8d4848b0c5111b0a37b82b86ad559fd2a745b44d8e8d9dfdc0cac",
+                        "hex",
                     ),
                 ),
             ),
             new TxOut(
                 Value.fromSats(1),
-                new Script(
-                    ...Script.parseCmds(
-                        Buffer.from(
-                            "41044a656f065871a353f216ca26cef8dde2f03e8c16202d2e8ad769f02032cb86a5eb5e56842e92e19141d60a01928f8dd2c875a390f67c1f6c94cfc617c0ea45afac",
-                            "hex",
-                        ),
+                new ScriptBuf(
+                    Buffer.from(
+                        "41044a656f065871a353f216ca26cef8dde2f03e8c16202d2e8ad769f02032cb86a5eb5e56842e92e19141d60a01928f8dd2c875a390f67c1f6c94cfc617c0ea45afac",
+                        "hex",
                     ),
                 ),
             ),

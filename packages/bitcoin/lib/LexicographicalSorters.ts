@@ -31,5 +31,5 @@ export function bip69OutputSorter(a: TxOut, b: TxOut): number {
     if (amount !== 0) return amount;
 
     // then sort by script pub key
-    return a.scriptPubKey.serializeCmds().compare(b.scriptPubKey.serializeCmds());
+    return a.scriptPubKey.buffer.compare(b.scriptPubKey.buffer);
 }
