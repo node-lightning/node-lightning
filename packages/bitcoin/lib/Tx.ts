@@ -5,7 +5,7 @@ import { HashByteOrder } from "./HashByteOrder";
 import { HashValue } from "./HashValue";
 import { LockTime } from "./LockTime";
 import { OutPoint } from "./OutPoint";
-import { Script } from "./Script";
+import { ScriptBuf } from "./ScriptBuf";
 import { Sequence } from "./Sequence";
 import { SizeResult } from "./SizeResult";
 import { TxIn } from "./TxIn";
@@ -20,22 +20,6 @@ import { Witness } from "./Witness";
  */
 export class Tx {
     /**
-     * Decodes a `Tx` stream similar to Bitcoin Core's DecodeTx method
-     * in that it will first try to parse with SegWit markers enabled.
-     * If there is an error (such as  with a base transaction with no
-     * inputs), then it will try parsing using the legacy method.
-     * @param reader
-     */
-    public static decode(reader: StreamReader): Tx {
-        const data = reader.readBytes();
-        try {
-            return Tx.parse(StreamReader.fromBuffer(data), true);
-        } catch (ex) {
-            return Tx.parse(StreamReader.fromBuffer(data), false);
-        }
-    }
-
-    /**
      * Parses a transaction from its byte format in a stream. Capable of
      * parsing both legacy and segwit transactions. This method is
      * similar to Bitcoin Core's `UnserializeTransaction` on the
@@ -43,13 +27,14 @@ export class Tx {
      * is enabled and we have an ambiguous base transaction (zero inputs).
      * @param reader
      */
-    private static parse(reader: StreamReader, allowWitness: boolean): Tx {
+    public static parse(reader: StreamReader, allowWitness: boolean = true): Tx {
         // Read the version
         const version = reader.readUInt32LE();
 
         // Try reading inputs. If this is segwit or a base/dummy, we get
         // an empty array
         let vins: TxIn[] = Tx.parseInputs(reader);
+
         let vouts: TxOut[];
 
         let flags: number = 0;
@@ -96,9 +81,8 @@ export class Tx {
         const vinLen = Number(reader.readVarInt());
         const inputs: TxIn[] = [];
         for (let idx = 0; idx < vinLen; idx++) {
-            inputs.push(
-                new TxIn(OutPoint.parse(reader), Script.parse(reader), Sequence.parse(reader)),
-            );
+            const outpoint = OutPoint.parse(reader);
+            inputs.push(new TxIn(outpoint, ScriptBuf.parse(reader), Sequence.parse(reader)));
         }
         return inputs;
     }
@@ -114,10 +98,25 @@ export class Tx {
         for (let idx = 0; idx < voutLen; idx++) {
             outputs.push(new TxOut(
                 Value.fromSats(reader.readBigUInt64LE()),
-                Script.parse(reader),
+                ScriptBuf.parse(reader),
             )); // prettier-ignore
         }
         return outputs;
+    }
+
+    /**
+     * Safely decodes a `Tx` buffer similar to Bitcoin Core's DecodeTx method
+     * in that it will first try to parse with SegWit markers enabled.
+     * If there is an error (such as  with a base transaction with no
+     * inputs), then it will try parsing using the legacy method.
+     * @param buf
+     */
+    private static safeDecode(buf: Buffer): Tx {
+        try {
+            return Tx.parse(StreamReader.fromBuffer(buf), true);
+        } catch (ex) {
+            return Tx.parse(StreamReader.fromBuffer(buf), false);
+        }
     }
 
     /**
@@ -126,7 +125,7 @@ export class Tx {
      * @param buf
      */
     public static fromBuffer(buf: Buffer): Tx {
-        return Tx.decode(StreamReader.fromBuffer(buf));
+        return Tx.safeDecode(buf);
     }
 
     /**
@@ -135,7 +134,7 @@ export class Tx {
      * @param hex
      */
     public static fromHex(hex: string): Tx {
-        return Tx.decode(StreamReader.fromHex(hex));
+        return Tx.safeDecode(Buffer.from(hex, "hex"));
     }
 
     /**
@@ -392,7 +391,7 @@ export class Tx {
             standardBytes += 4;
 
             // scriptSig length
-            const scriptSig = input.scriptSig.serializeCmds();
+            const scriptSig = input.scriptSig.buffer;
             standardBytes += varIntBytes(scriptSig.length);
             standardBytes += scriptSig.length;
 
@@ -421,7 +420,7 @@ export class Tx {
             standardBytes += 8;
 
             // scriptPubKey length
-            const scriptPubKey = output.scriptPubKey.serializeCmds();
+            const scriptPubKey = output.scriptPubKey.buffer;
             standardBytes += varIntBytes(scriptPubKey.length);
             standardBytes += scriptPubKey.length;
         }
