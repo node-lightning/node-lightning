@@ -28,10 +28,11 @@ export class Block extends BlockHeader {
         const numTxs = Number(r.readVarUint());
 
         // read txs as a stream
-        const txsStream = StreamReader.fromBuffer(r.readBytes());
+        const txBytes = r.readBytes();
+        const txsStream = StreamReader.fromBuffer(txBytes);
         const txs: Tx[] = [];
         for (let i = 0; i < numTxs; i++) {
-            txs.push(Tx.decode(txsStream));
+            txs.push(Tx.parse(txsStream, true));
         }
 
         // return block
@@ -47,7 +48,7 @@ export class Block extends BlockHeader {
     }
 
     /**
-     * Complete list of transactions, in the order they weere included
+     * Complete list of transactions, in the order they were included
      * in the `Block`.
      */
     public txs: Tx[];
@@ -85,5 +86,13 @@ export class Block extends BlockHeader {
         }
 
         return bw.toBuffer();
+    }
+
+    /**
+     * Returns the coinbase transaction which will be the first transaction
+     * in the block.
+     */
+    public get coinbase(): Tx {
+        return this.txs[0];
     }
 }
