@@ -113,4 +113,38 @@ describe(Block.name, () => {
             expect(buffer.toString("hex")).to.equal(block768274.hex);
         });
     });
+
+    describe("coinbase", () => {
+        it("block 0", () => {
+            // arrange
+            const hex = Buffer.from(block0.hex, "hex");
+            const block = Block.fromBuffer(hex);
+
+            // act
+            const tx = block.coinbase;
+
+            // assert
+            expect(tx).to.be.instanceOf(Tx);
+            expect(tx.inputs.length).to.equal(1);
+            expect(tx.inputs[0].outpoint.toString()).to.equal(
+                "0000000000000000000000000000000000000000000000000000000000000000:4294967295",
+            );
+        });
+
+        it("block 768274", () => {
+            // arrange
+            const hex = Buffer.from(block768274.hex, "hex");
+            const block = Block.fromBuffer(hex);
+
+            // act
+            const tx = block.coinbase;
+
+            // assert
+            expect(tx).to.be.instanceOf(Tx);
+            expect(tx.inputs.length).to.equal(1);
+            expect(tx.inputs[0].outpoint.toString()).to.equal(
+                "0000000000000000000000000000000000000000000000000000000000000000:4294967295",
+            );
+        });
+    });
 });
