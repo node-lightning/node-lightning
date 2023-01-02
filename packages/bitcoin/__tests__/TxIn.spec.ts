@@ -140,4 +140,34 @@ describe("TxIn", () => {
             expect(b.serialize()).to.deep.equal(a.serialize());
         });
     });
+
+    describe(".isCoinbase", () => {
+        it("returns true when coinbase", () => {
+            const outpoint = OutPoint.coinbase;
+            const scriptSig = new Script(OpCode.OP_1, OpCode.OP_1);
+            const input = new TxIn(outpoint, scriptSig);
+
+            expect(input.isCoinbase).to.equal(true);
+        });
+
+        it("returns false when not coinbase", () => {
+            const outpoint = OutPoint.fromString(
+                "56919960ac691763688d3d3bcea9ad6ecaf875df5339e148a1fc61c6ed7a069e:4294967295",
+            );
+            const scriptSig = new Script(OpCode.OP_1, OpCode.OP_1);
+            const input = new TxIn(outpoint, scriptSig);
+
+            expect(input.isCoinbase).to.equal(false);
+        });
+
+        it("returns false when not coinbase", () => {
+            const outpoint = OutPoint.fromString(
+                "0000000000000000000000000000000000000000000000000000000000000000:0",
+            );
+            const scriptSig = new Script(OpCode.OP_1, OpCode.OP_1);
+            const input = new TxIn(outpoint, scriptSig);
+
+            expect(input.isCoinbase).to.equal(false);
+        });
+    });
 });

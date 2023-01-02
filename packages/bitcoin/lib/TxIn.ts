@@ -51,6 +51,14 @@ export class TxIn implements ICloneable<TxIn> {
     public witness: Witness[];
 
     /**
+     * Returns true when the outpoint uses a previous hash of 32-bytes of
+     * 0x00 and the output index is 0xffffffff.
+     */
+    public get isCoinbase(): boolean {
+        return this.outpoint.eq(OutPoint.coinbase);
+    }
+
+    /**
      * Constructs a new transaction input from the values
      * @param outpoint
      * @param scriptSig
