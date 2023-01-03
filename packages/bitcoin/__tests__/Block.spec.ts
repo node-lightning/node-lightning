@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { Block, HashByteOrder } from "../lib";
+import { Block, HashByteOrder, Tx } from "../lib";
 import block0 from "../__fixtures__/block_0.json";
 import block768274 from "../__fixtures__/block_768274.json";
 
@@ -145,6 +145,32 @@ describe(Block.name, () => {
             expect(tx.inputs[0].outpoint.toString()).to.equal(
                 "0000000000000000000000000000000000000000000000000000000000000000:4294967295",
             );
+        });
+    });
+
+    describe("bip34Height", () => {
+        it("returns undefined when not available", () => {
+            // arrange
+            const hex = Buffer.from(block0.hex, "hex");
+            const block = Block.fromBuffer(hex);
+
+            // act
+            const height = block.bip34Height;
+
+            // assert
+            expect(height).to.equal(undefined);
+        });
+
+        it("returns height when available", () => {
+            // arrange
+            const hex = Buffer.from(block768274.hex, "hex");
+            const block = Block.fromBuffer(hex);
+
+            // act
+            const height = block.bip34Height;
+
+            // assert
+            expect(height).to.equal(768274n);
         });
     });
 });

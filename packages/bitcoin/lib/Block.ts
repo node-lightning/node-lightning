@@ -1,7 +1,8 @@
-import { BufferReader, BufferWriter, StreamReader } from "@node-lightning/bufio";
+import { bigFromBufLE, BufferReader, BufferWriter, StreamReader } from "@node-lightning/bufio";
 import { Bits } from "./Bits";
 import { BlockHeader } from "./BlockHeader";
 import { HashValue } from "./HashValue";
+import { Script } from "./Script";
 import { Tx } from "./Tx";
 
 /**
@@ -52,6 +53,7 @@ export class Block extends BlockHeader {
      * in the `Block`.
      */
     public txs: Tx[];
+    private _bip34Height: bigint;
 
     constructor(
         version: number,
@@ -94,5 +96,27 @@ export class Block extends BlockHeader {
      */
     public get coinbase(): Tx {
         return this.txs[0];
+    }
+
+    /**
+     * Returns the BIP34 height if one exists. A BIP34 height will exist
+     * in block versions > 1. BIP34 encodes the block height LE encoding
+     * as the first data in the coinbase's scriptSig.
+     */
+    public get bip34Height(): bigint | undefined {
+        // return undefined when BIP34 is not supported for the block
+        if (this.version < 2) return;
+
+        // Return the previously decoded height
+        if (this._bip34Height) return this._bip34Height;
+
+        // Decode and return the height
+        const scriptGen = Script.readCmds(this.coinbase.inputs[0].scriptSig.buffer);
+        const first = scriptGen.next();
+        if (first.done) return;
+
+        // convert from buffer
+        this._bip34Height = bigFromBufLE(first.value as Buffer);
+        return this._bip34Height;
     }
 }
