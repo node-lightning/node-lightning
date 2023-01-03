@@ -218,6 +218,14 @@ export class Tx {
     }
 
     /**
+     * Returns true if there is only a single input and that input
+     * matches the coinbase pattern.
+     */
+    public get isCoinbase(): boolean {
+        return this.inputs.length === 1 && this.inputs[0].isCoinbase;
+    }
+
+    /**
      * Serializes legacy or segwit transactions into a Buffer
      */
     public serialize(): Buffer {
