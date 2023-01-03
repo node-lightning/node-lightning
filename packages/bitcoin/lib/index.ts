@@ -21,6 +21,7 @@ export * from "./OutPoint";
 export * from "./PrivateKey";
 export * from "./PublicKey";
 export * from "./Script";
+export * from "./ScriptBuf";
 export * from "./ScriptCmd";
 export * from "./Sequence";
 export * from "./SigHashType";
