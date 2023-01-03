@@ -3,7 +3,7 @@ import {
     OutPoint,
     PrivateKey,
     PublicKey,
-    Script,
+    ScriptBuf,
     Tx,
     Value,
 } from "@node-lightning/bitcoin";
@@ -46,7 +46,7 @@ export class Channel {
      * with the lexicographically ordered `payment_basepoint` values from
      * `open_channel` and `accept_channel`.
      */
-    public fundingScript: Script;
+    public fundingScript: ScriptBuf;
 
     public feeRatePerKw: Value;
     public fundingAmount: Value;

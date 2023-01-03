@@ -1511,14 +1511,16 @@ describe(Helpers.name, () => {
                     delayedKey,
                     channel.theirSide.toSelfDelayBlocks,
                 ),
-            );
+            ).toScriptBuf();
 
             expect(txbuilder.outputs[0].scriptPubKey.equals(localScript)).to.equal(
                 true,
                 "to_local rsmc",
             );
 
-            const remoteScript = Script.p2wpkhLock(channel.ourSide.paymentBasePoint.toBuffer());
+            const remoteScript = Script.p2wpkhLock(
+                channel.ourSide.paymentBasePoint.toBuffer(),
+            ).toScriptBuf();
             expect(txbuilder.outputs[1].scriptPubKey.equals(remoteScript)).to.equal(
                 true,
                 "to_remote p2wpkh",
@@ -1607,7 +1609,9 @@ describe(Helpers.name, () => {
             expect(txbuilder.outputs[0].value.sats).to.equal(2000n, "to_remote (fundee)");
             expect(txbuilder.outputs[1].value.sats).to.equal(197_276n, "to_local (funder)");
 
-            const remoteScript = Script.p2wpkhLock(channel.theirSide.paymentBasePoint.toBuffer());
+            const remoteScript = Script.p2wpkhLock(
+                channel.theirSide.paymentBasePoint.toBuffer(),
+            ).toScriptBuf();
             expect(txbuilder.outputs[0].scriptPubKey.equals(remoteScript)).to.equal(
                 true,
                 "to_remote p2wpkh",
@@ -1631,7 +1635,7 @@ describe(Helpers.name, () => {
 
             const localScript = Script.p2wshLock(
                 ScriptFactory.toLocalScript(revKey, delayedKey, channel.ourSide.toSelfDelayBlocks),
-            );
+            ).toScriptBuf();
 
             expect(txbuilder.outputs[1].scriptPubKey.equals(localScript)).to.equal(
                 true,

@@ -45,7 +45,7 @@ describe("TxFactory", () => {
             builder.inputs[0].scriptSig = Script.p2pkhUnlock(
                 builder.sign(0, Script.p2pkhLock(pubkey), privkey),
                 crypto.getPublicKey(privkey, true),
-            );
+            ).toScriptBuf();
 
             // witness_script is:
             // 5221023da092f6980e58d2c037173180e9a465476026ee50f96695963e8efe436f54eb21030e9f7b623d2ccc7c9bd44d66d5ce21ce504c0acf6385a132cec6d3c39fa711c152ae

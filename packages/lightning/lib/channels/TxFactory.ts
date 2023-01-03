@@ -321,9 +321,9 @@ export class TxFactory {
             if (value !== 0) return value;
 
             // compare on script
-            const scriptCompare = a[0].scriptPubKey
-                .serializeCmds()
-                .compare(b[0].scriptPubKey.serializeCmds());
+            const aBuf = a[0].scriptPubKey.buffer;
+            const bBuf = b[0].scriptPubKey.buffer;
+            const scriptCompare = aBuf.compare(bBuf);
             if (scriptCompare !== 0) return scriptCompare;
 
             // tie-break on htlcs
