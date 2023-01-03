@@ -48,6 +48,23 @@ export class Channel {
      */
     public fundingScript: ScriptBuf;
 
+    /**
+     * The height that the funding transaction was confirmed. This height
+     * plus the minimum_depth value received in accept_channel will be
+     * used to calculate the readyHeight signifying the channel can
+     * move to the ready state.
+     */
+    public fundingConfirmedHeight: number;
+
+    /**
+     * The block height when the channel can be considered ready. This
+     * value is calculated from the fundingConfirmedheight + minimumDepth
+     * that was received in accept_channel.
+     */
+    public get readyHeight(): number {
+        return this.fundingConfirmedHeight + this.minimumDepth;
+    }
+
     public feeRatePerKw: Value;
     public fundingAmount: Value;
     public pushAmount: Value;
