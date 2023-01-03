@@ -286,12 +286,10 @@ export class Script implements ICloneable<Script> {
         const len = reader.readVarInt();
 
         // read the length of bytes occupied by the script and then pass it
-        // through the command parser.
+        // through the command reader.
         const buf = reader.readBytes(Number(len));
-        const cmds = Script.parseCmds(buf);
 
-        // return the script object with the commands
-        return new Script(...cmds);
+        return Script.fromBuffer(buf);
     }
 
     /**
@@ -301,21 +299,45 @@ export class Script implements ICloneable<Script> {
      * @returns
      */
     public static fromBuffer(buf: Buffer): Script {
-        return new Script(...Script.parseCmds(buf));
+        // Pass the buffer through the command reader
+        const cmds: ScriptCmd[] = [];
+        for (const cmd of Script.readCmds(buf)) {
+            cmds.push(cmd);
+        }
+
+        // return the script object with the commands
+        return new Script(...cmds);
     }
 
     /**
      * Parses a Buffer containing script instructions into data blocks
      * or op_codes depending on the meaning of the bytes. This buffer
      * should not include the length, as this is implicit in the buffer
-     * size.
+     * size. This method will throw on parse errors.
      * @param buf
+     * @deprecated
      */
     public static parseCmds(buf: Buffer): ScriptCmd[] {
-        const br = new BufferReader(buf);
+        const results: ScriptCmd[] = [];
 
-        // commands that were read off the stack
-        const cmds: ScriptCmd[] = [];
+        for (const cmd of Script.readCmds(buf)) {
+            results.push(cmd);
+        }
+
+        return results;
+    }
+
+    /**
+     * Yields commands from a Buffer containing script instructions into
+     * data blocks or op_codes depending on the meaning of the bytes.
+     * This method is useful for partial evaluation of the Script.
+     *
+     * The buffer should not include the length, as this is implicit in
+     * the buffer size.
+     * @param buf
+     */
+    public static *readCmds(buf: Buffer) {
+        const br = new BufferReader(buf);
 
         // loop until all bytes have been read
         while (!br.eof) {
@@ -327,7 +349,7 @@ export class Script implements ICloneable<Script> {
             if (op >= 0x01 && op <= 0x4b) {
                 const n = op;
                 const bytes = br.readBytes(n);
-                cmds.push(bytes);
+                yield bytes;
             }
 
             // data range between 76 and 255 bytes uses OP_PUSHDATA1 and uses
@@ -335,7 +357,7 @@ export class Script implements ICloneable<Script> {
             // read from the script
             else if (op === OpCode.OP_PUSHDATA1) {
                 const n = br.readUInt8();
-                cmds.push(br.readBytes(n));
+                yield br.readBytes(n);
             }
 
             // data range between 256 and 520 uses OP_PUSHDATA2 and uses the
@@ -343,16 +365,14 @@ export class Script implements ICloneable<Script> {
             // data of data that need to be read.
             else if (op === OpCode.OP_PUSHDATA2) {
                 const n = br.readUInt16LE();
-                cmds.push(br.readBytes(n));
+                yield br.readBytes(n);
             }
 
             // otherwise the value is an opcode that should be added to the cmds
             else {
-                cmds.push(op);
+                yield op;
             }
         }
-
-        return cmds;
     }
 
     /**
