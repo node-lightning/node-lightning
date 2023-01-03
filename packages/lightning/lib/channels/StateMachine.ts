@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/require-await */
+import { Block } from "@node-lightning/bitcoin";
 import { ILogger } from "@node-lightning/logger";
 import { AcceptChannelMessage } from "../messages/AcceptChannelMessage";
 import { FundingSignedMessage } from "../messages/FundingSignedMessage";
@@ -82,6 +83,10 @@ export abstract class StateMachine {
         peer: IPeer,
         msg: FundingSignedMessage,
     ): Promise<string> {
+        return undefined;
+    }
+
+    public async onBlockConnected(block: Block): Promise<string> {
         return undefined;
     }
 }

@@ -1,3 +1,4 @@
+import { Block } from "@node-lightning/bitcoin";
 import { AcceptChannelMessage } from "../messages/AcceptChannelMessage";
 import { FundingSignedMessage } from "../messages/FundingSignedMessage";
 import { IPeer } from "../Peer";
@@ -23,4 +24,5 @@ export interface IStateMachine {
         peer: IPeer,
         msg: FundingSignedMessage,
     ): Promise<string>;
+    onBlockConnected(block: Block): Promise<string>;
 }
