@@ -1,4 +1,4 @@
-import { Network } from "@node-lightning/bitcoin";
+import { Block, Network } from "@node-lightning/bitcoin";
 import { Channel } from "./Channel";
 import { ChannelId } from "../domain/ChannelId";
 import { IChannelStorage } from "./IChannelStorage";
@@ -165,5 +165,16 @@ export class ChannelManager {
         }
         const newState = await channel.state.onFundingSignedMessage(channel, peer, msg);
         await this.transitionState(channel, newState);
+    }
+
+    /**
+     * Processes a connected block for all open channel
+     * @param block
+     */
+    public async onBlockConnected(block: Block): Promise<void> {
+        for (const channel of this.channels) {
+            const newState = await channel.state.onBlockConnected(block);
+            await this.transitionState(channel, newState);
+        }
     }
 }
