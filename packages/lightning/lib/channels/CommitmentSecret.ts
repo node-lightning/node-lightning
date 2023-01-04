@@ -1,4 +1,4 @@
-import { Network, PrivateKey } from "@node-lightning/bitcoin";
+import { Network, PrivateKey, PublicKey } from "@node-lightning/bitcoin";
 import { sha256 } from "@node-lightning/crypto";
 import { CommitmentNumber } from "./CommitmentNumber";
 
@@ -50,5 +50,19 @@ export class CommitmentSecret {
      */
     public static privateKey(seed: Buffer, network: Network, number: CommitmentNumber): PrivateKey {
         return new PrivateKey(CommitmentSecret.derive(seed, number.secretIndex), network);
+    }
+
+    /**
+     * Helper that returns a PublicKey from a seed, network, and
+     * `CommitmentNumber`. The commitment number calculates the secret
+     * index that should be used for the key and converts the private key
+     * into a compressed public key.
+     * @param seed
+     * @param network
+     * @param number
+     * @returns
+     */
+    public static publicKey(seed: Buffer, network: Network, number: CommitmentNumber): PublicKey {
+        return this.privateKey(seed, network, number).toPubKey(true);
     }
 }

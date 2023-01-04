@@ -12,6 +12,7 @@ import { AcceptChannelMessage } from "../messages/AcceptChannelMessage";
 import { FundingSignedMessage } from "../messages/FundingSignedMessage";
 import { ChannelSide } from "./ChannelSide";
 import { CommitmentNumber } from "./CommitmentNumber";
+import { CommitmentSecret } from "./CommitmentSecret";
 import { IStateMachine } from "./IStateMachine";
 
 export class Channel {
@@ -201,5 +202,30 @@ export class Channel {
      */
     public attachFundingSigned(msg: FundingSignedMessage) {
         this.ourSide.nextCommitmentSig = msg.signature;
+        return this;
+    }
+
+    /**
+     * This function is used when preparing to send `channel_ready` or
+     * prior to sending the `revoke_and_ack` message to a peer. This
+     * function will revoke the properties of the current commitment and
+     * transition the `next_*` values into the the current, thus
+     * establishing a new "next commitment".
+     */
+    public revokeLocalCommitment() {
+        // rotate next into current
+        this.ourSide.commitmentNumber = this.ourSide.nextCommitmentNumber;
+        this.ourSide.commitmentPoint = this.ourSide.nextCommitmentPoint;
+        this.ourSide.commitmentSig = this.ourSide.nextCommitmentSig;
+
+        // reset next
+        this.ourSide.nextCommitmentNumber = this.ourSide.commitmentNumber.next();
+        this.ourSide.nextCommitmentPoint = CommitmentSecret.publicKey(
+            this.perCommitmentSeed,
+            this.network,
+            this.ourSide.nextCommitmentNumber,
+        );
+        this.ourSide.nextCommitmentSig = undefined;
+        return this;
     }
 }

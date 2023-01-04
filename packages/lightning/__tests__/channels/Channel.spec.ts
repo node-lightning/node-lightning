@@ -83,4 +83,34 @@ describe(Channel.name, () => {
             );
         });
     });
+
+    describe(Channel.prototype.revokeLocalCommitment.name, () => {
+        it("stores the revoked key");
+
+        it("moves next to current and creates next", () => {
+            // arrange
+            const channel = createFakeChannel()
+                .attachAcceptChannel(createFakeAcceptChannel())
+                .attachFundingTx(createFakeFundingTx())
+                .attachFundingSigned(createFakeFundingSignedMessage());
+
+            // act
+            channel.revokeLocalCommitment();
+
+            // assert
+            expect(channel.ourSide.commitmentNumber.value).to.equal(0n);
+            expect(channel.ourSide.commitmentPoint.toHex()).to.equal(
+                "02037803a3228ec3a517835480ffac64c0557d9d75e0fe85861ab0be9eb224e6f8",
+            );
+            expect(channel.ourSide.commitmentSig.toBuffer().toString("hex")).to.equal(
+                "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+            );
+
+            expect(channel.ourSide.nextCommitmentNumber.value).to.equal(1n);
+            expect(channel.ourSide.nextCommitmentPoint.toHex()).to.equal(
+                "027eed8389cf8eb715d73111b73d94d2c2d04bf96dc43dfd5b0970d80b3617009d",
+            );
+            expect(channel.ourSide.nextCommitmentSig).to.equal(undefined);
+        });
+    });
 });
