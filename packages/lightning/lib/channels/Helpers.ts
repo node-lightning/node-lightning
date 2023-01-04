@@ -29,6 +29,7 @@ import { Htlc } from "../domain/Htlc";
 import { CommitmentNumber } from "./CommitmentNumber";
 import { FundingSignedMessage } from "../messages/FundingSignedMessage";
 import { sigFromDER, verifySig } from "@node-lightning/crypto";
+import { FundingLockedMessage } from "../messages/FundingLockedMessage";
 
 export class Helpers implements IChannelLogic {
     constructor(readonly wallet: IChannelWallet, public preferences: ChannelPreferences) {}
@@ -839,5 +840,21 @@ export class Helpers implements IChannelLogic {
      */
     public async broadcastTx(tx: Tx): Promise<void> {
         return await this.wallet.broadcastTx(tx);
+    }
+
+    /**
+     * Constructs the `channel_ready` message according to BOLT 2.
+     * Provides the second_per_commitment_point for use in local
+     * commitment transactions to allow the channel to transition to the
+     * ready state and the counter party to construct signatures for the
+     * next version of our commitment transition.
+     * @param channel
+     * @returns
+     */
+    public async createChannelReadyMessage(channel: Channel): Promise<FundingLockedMessage> {
+        const msg = new FundingLockedMessage();
+        msg.channelId = channel.channelId;
+        msg.nextPerCommitmentPoint = channel.ourSide.nextCommitmentPoint.toBuffer();
+        return msg;
     }
 }

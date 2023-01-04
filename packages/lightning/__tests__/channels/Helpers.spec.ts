@@ -21,6 +21,7 @@ import {
     createFakeAcceptChannel,
     createFakeChannel,
     createFakeChannelWallet,
+    createFakeFundingSignedMessage,
     createFakeFundingTx,
     createFakeKey,
     createFakePeer,
@@ -1735,6 +1736,27 @@ describe(Helpers.name, () => {
             // assert
             expect(wallet.broadcastTx.called).to.equal(true);
             expect(wallet.broadcastTx.args[0][0]).to.equal(tx);
+        });
+    });
+
+    describe(Helpers.prototype.createChannelReadyMessage.name, () => {
+        it("constructs the message with the next commitment point", async () => {
+            // arrange
+            const channel = createFakeChannel()
+                .attachAcceptChannel(createFakeAcceptChannel())
+                .attachFundingTx(createFakeFundingTx())
+                .attachFundingSigned(createFakeFundingSignedMessage())
+                .revokeLocalCommitment();
+            const helpers = new Helpers(undefined, undefined);
+
+            // act
+            const result = await helpers.createChannelReadyMessage(channel);
+
+            // assert
+            expect(result.channelId.toHex()).to.equal(channel.channelId.toHex());
+            expect(result.nextPerCommitmentPoint.toString("hex")).to.equal(
+                "027eed8389cf8eb715d73111b73d94d2c2d04bf96dc43dfd5b0970d80b3617009d",
+            );
         });
     });
 });
