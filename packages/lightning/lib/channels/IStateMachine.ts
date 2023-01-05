@@ -24,5 +24,5 @@ export interface IStateMachine {
         peer: IPeer,
         msg: FundingSignedMessage,
     ): Promise<string>;
-    onBlockConnected(block: Block): Promise<string>;
+    onBlockConnected(channel: Channel, block: Block): Promise<string>;
 }

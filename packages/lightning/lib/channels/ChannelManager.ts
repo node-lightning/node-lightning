@@ -173,7 +173,7 @@ export class ChannelManager {
      */
     public async onBlockConnected(block: Block): Promise<void> {
         for (const channel of this.channels) {
-            const newState = await channel.state.onBlockConnected(block);
+            const newState = await channel.state.onBlockConnected(channel, block);
             await this.transitionState(channel, newState);
         }
     }
