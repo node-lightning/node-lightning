@@ -1,4 +1,4 @@
-import { Tx, TxBuilder } from "@node-lightning/bitcoin";
+import { Tx } from "@node-lightning/bitcoin";
 import { ILogger } from "@node-lightning/logger";
 import { expect } from "chai";
 import { Channel } from "../../../lib/channels/Channel";
@@ -8,7 +8,6 @@ import { AwaitingFundingDepthState } from "../../../lib/channels/states/opening/
 import { AwaitingFundingSignedState } from "../../../lib/channels/states/opening/AwaitingFundingSignedState";
 import { OpeningError } from "../../../lib/channels/states/opening/OpeningError";
 import { OpeningErrorType } from "../../../lib/channels/states/opening/OpeningErrorType";
-import { AcceptChannelMessage } from "../../../lib/messages/AcceptChannelMessage";
 import { FundingSignedMessage } from "../../../lib/messages/FundingSignedMessage";
 import { Result } from "../../../lib/Result";
 import {
@@ -18,8 +17,6 @@ import {
     FakePeer,
     createFakePeer,
     createFakeAcceptChannel,
-    createFakeFundingTx,
-    createFakeFundingCreatedMessage,
     createFakeFundingSignedMessage,
 } from "../../_test-utils";
 
