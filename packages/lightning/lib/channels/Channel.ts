@@ -50,17 +50,30 @@ export class Channel {
      */
     public fundingScript: ScriptBuf;
 
+    public feeRatePerKw: Value;
+    public fundingAmount: Value;
+    public pushAmount: Value;
+
+    private _fundingKey: PrivateKey;
+    private _paymentBasePointSecret: PrivateKey;
+    private _delayedBasePointSecret: PrivateKey;
+    private _revocationBasePointSecret: PrivateKey;
+    private _htlcBasePointSecret: PrivateKey;
+    private _fundingConfirmedHeight: number;
+
     /**
      * The height that the funding transaction was confirmed. This height
      * plus the minimum_depth value received in accept_channel will be
      * used to calculate the readyHeight signifying the channel can
      * move to the ready state.
      */
-    public fundingConfirmedHeight: number;
+    public get fundingConfirmedHeight(): number {
+        return this._fundingConfirmedHeight;
+    }
 
     /**
      * The block height when the channel can be considered ready. This
-     * value is calculated from the fundingConfirmedheight + minimumDepth
+     * value is calculated from the fundingConfirmedHeight + minimumDepth
      * that was received in accept_channel.
      */
     public get readyHeight(): number {
@@ -235,6 +248,9 @@ export class Channel {
      * @param block
      */
     public markConfirmed(height: number) {
+        this._fundingConfirmedHeight = height;
+    }
+
     /**
      * Stores the `second_per_commitment_point` received by the peer
      * onto their side of the channel and rotates the next commitment

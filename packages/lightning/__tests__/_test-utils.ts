@@ -348,3 +348,19 @@ export function createFakeFundingSignedMessage(): FundingSignedMessage {
     msg.signature = new EcdsaSig(Buffer.alloc(64, 0xff));
     return msg;
 }
+
+export function createFakeChannelReady(): FundingLockedMessage {
+    const msg = new FundingLockedMessage();
+    const fundingTx = createFakeFundingTx();
+    const fundingOutPoint = new OutPoint(fundingTx.txId, 0);
+    msg.channelId = ChannelId.fromOutPoint(fundingOutPoint);
+    msg.nextPerCommitmentPoint = CommitmentSecret.publicKey(
+        Buffer.alloc(32, 0xff),
+        Network.testnet,
+        new CommitmentNumber(1n),
+    )
+        .toPubKey(true)
+        .toBuffer();
+
+    return msg;
+}
