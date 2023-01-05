@@ -113,4 +113,20 @@ describe(Channel.name, () => {
             expect(channel.ourSide.nextCommitmentSig).to.equal(undefined);
         });
     });
+
+    describe(Channel.prototype.markConfirmed.name, () => {
+        it("marks the height", () => {
+            // arrange
+            const channel = createFakeChannel()
+                .attachAcceptChannel(createFakeAcceptChannel())
+                .attachFundingTx(createFakeFundingTx())
+                .attachFundingSigned(createFakeFundingSignedMessage());
+
+            // act
+            channel.markConfirmed(500_000);
+
+            // assert
+            expect(channel.fundingConfirmedHeight).to.equal(500_000);
+        });
+    });
 });

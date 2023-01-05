@@ -228,4 +228,12 @@ export class Channel {
         this.ourSide.nextCommitmentSig = undefined;
         return this;
     }
+
+    /**
+     * Marks the height that channel was confirmed at.
+     * @param block
+     */
+    public markConfirmed(height: number) {
+        this.fundingConfirmedHeight = height;
+    }
 }
