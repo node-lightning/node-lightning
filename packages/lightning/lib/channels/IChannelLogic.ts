@@ -51,6 +51,7 @@ export interface IChannelLogic {
     validateMinimumDepthTooLarge(depth: number);
     validatePushAmount(fundingAmount: Value, pushAmount: Value): boolean;
     validateDustLimitTooSmall(dustLimit: Value): boolean;
+    validateChannelReadyMessage(channel: Channel, msg: FundingLockedMessage): boolean;
     validateChannelReserveDustLimit(channelReserve: Value, dustLimit: Value): boolean;
     validateChannelReserveReachable(
         fundingAmount: Value,

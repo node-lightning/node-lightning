@@ -1,4 +1,4 @@
-## Subroutine `validateChannelReady`
+## Subroutine `validateChannelReadyMessage`
 
 Inputs:
 

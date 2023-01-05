@@ -892,4 +892,17 @@ export class Helpers implements IChannelLogic {
 
         return true;
     }
+
+    /**
+     * Validate the message according to BOLT 2.
+     *
+     * 1. Must have a valid secp256k1 point for `second_per_commitment_point`
+     * @param channel
+     * @param msg
+     */
+    public validateChannelReadyMessage(channel: Channel, msg: FundingLockedMessage): boolean {
+        if (!PublicKey.isValid(msg.nextPerCommitmentPoint)) return false;
+
+        return true;
+    }
 }
