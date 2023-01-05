@@ -86,7 +86,7 @@ export abstract class StateMachine {
         return undefined;
     }
 
-    public async onBlockConnected(channel: Channel, block: Block): Promise<string> {
+    public async onBlockConnected(channel: Channel, peer: IPeer, block: Block): Promise<string> {
         return undefined;
     }
 }

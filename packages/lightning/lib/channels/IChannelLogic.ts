@@ -4,6 +4,7 @@ import { Htlc } from "../domain/Htlc";
 import { InitFeatureFlags } from "../flags/InitFeatureFlags";
 import { AcceptChannelMessage } from "../messages/AcceptChannelMessage";
 import { FundingCreatedMessage } from "../messages/FundingCreatedMessage";
+import { FundingLockedMessage } from "../messages/FundingLockedMessage";
 import { FundingSignedMessage } from "../messages/FundingSignedMessage";
 import { OpenChannelMessage } from "../messages/OpenChannelMessage";
 import { Result } from "../Result";
@@ -24,6 +25,7 @@ export interface IChannelLogic {
         network: Network,
         options: OpenChannelRequest,
     ): Promise<Result<Channel, OpeningError>>;
+    createChannelReadyMessage(channel: Channel): Promise<FundingLockedMessage>;
     createFundingCreatedMessage(
         channel: Channel,
         signature: Buffer,

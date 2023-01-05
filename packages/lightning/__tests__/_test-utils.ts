@@ -14,12 +14,15 @@ import bech32 from "bech32";
 import { IChannelWallet } from "../lib/channels/IChannelWallet";
 import Sinon from "sinon";
 import {
+    Block,
     EcdsaSig,
+    HashValue,
     Network,
     OutPoint,
     PrivateKey,
     PublicKey,
     Script,
+    Stack,
     Tx,
     TxIn,
     TxOut,
@@ -35,6 +38,7 @@ import { AcceptChannelMessage } from "../lib/messages/AcceptChannelMessage";
 import { FundingCreatedMessage } from "../lib/messages/FundingCreatedMessage";
 import { IStateMachine } from "../lib/channels/IStateMachine";
 import { FundingSignedMessage } from "../lib/messages/FundingSignedMessage";
+import { Bits } from "@node-lightning/bitcoin/dist/Bits";
 import { FundingLockedMessage } from "../lib/messages/FundingLockedMessage";
 
 export class FakePeer extends Readable implements IPeer {
@@ -364,4 +368,18 @@ export function createFakeChannelReady(): FundingLockedMessage {
         .toBuffer();
 
     return msg;
+}
+
+export function createFakeBlock(height: number = 500_000, ...txs: Tx[]): Block {
+    const coinbase = new Tx(2, [new TxIn(OutPoint.coinbase, new Script(Stack.encodeNum(height)))]);
+    const block = new Block(
+        0x21002000,
+        new HashValue(Buffer.alloc(32)),
+        new HashValue(Buffer.alloc(32)),
+        0,
+        new Bits(0xffff, 0x1d),
+        0,
+        [coinbase, ...txs],
+    );
+    return block;
 }
