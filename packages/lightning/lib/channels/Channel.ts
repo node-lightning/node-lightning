@@ -80,15 +80,15 @@ export class Channel {
         return this.fundingConfirmedHeight + this.minimumDepth;
     }
 
-    public feeRatePerKw: Value;
-    public fundingAmount: Value;
-    public pushAmount: Value;
-
-    private _fundingKey: PrivateKey;
-    private _paymentBasePointSecret: PrivateKey;
-    private _delayedBasePointSecret: PrivateKey;
-    private _revocationBasePointSecret: PrivateKey;
-    private _htlcBasePointSecret: PrivateKey;
+    /**
+     * Returns true when we have received the `channel_ready` message
+     * from the peer. This will be evident from the peer's side of the
+     * channel having a nextCommitmentNumber > 0.
+     * @returns
+     */
+    public get hasChannelReady(): boolean {
+        return this.theirSide.nextCommitmentNumber.value > 0n;
+    }
 
     public get fundingKey(): PrivateKey {
         return this._fundingKey;
@@ -272,6 +272,5 @@ export class Channel {
         );
         this.theirSide.nextCommitmentSig = undefined;
         return this;
-    }
     }
 }

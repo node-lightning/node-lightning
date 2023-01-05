@@ -3,6 +3,7 @@ import { Channel } from "../../lib/channels/Channel";
 import {
     createFakeAcceptChannel,
     createFakeChannel,
+    createFakeChannelReady,
     createFakeFundingSignedMessage,
     createFakeFundingTx,
 } from "../_test-utils";
@@ -152,6 +153,37 @@ describe(Channel.name, () => {
             expect(channel.theirSide.nextCommitmentPoint.toHex()).to.equal(
                 "032405cbd0f41225d5f203fe4adac8401321a9e05767c5f8af97d51d2e81fbb206",
             );
+        });
+    });
+
+    describe(".hasChannelReady", () => {
+        it("returns true when nextCommitmentNumber > 0", () => {
+            // arrange
+            const channel = createFakeChannel()
+                .attachAcceptChannel(createFakeAcceptChannel())
+                .attachFundingTx(createFakeFundingTx())
+                .attachFundingSigned(createFakeFundingSignedMessage())
+                .attachChannelReady(createFakeChannelReady());
+
+            // act
+            const result = channel.hasChannelReady;
+
+            // assert
+            expect(result).to.equal(true);
+        });
+
+        it("returns false when nextCommitmentNumber = 0", () => {
+            // arrange
+            const channel = createFakeChannel()
+                .attachAcceptChannel(createFakeAcceptChannel())
+                .attachFundingTx(createFakeFundingTx())
+                .attachFundingSigned(createFakeFundingSignedMessage());
+
+            // act
+            const result = channel.hasChannelReady;
+
+            // assert
+            expect(result).to.equal(false);
         });
     });
 });

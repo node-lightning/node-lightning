@@ -35,6 +35,7 @@ import { AcceptChannelMessage } from "../lib/messages/AcceptChannelMessage";
 import { FundingCreatedMessage } from "../lib/messages/FundingCreatedMessage";
 import { IStateMachine } from "../lib/channels/IStateMachine";
 import { FundingSignedMessage } from "../lib/messages/FundingSignedMessage";
+import { FundingLockedMessage } from "../lib/messages/FundingLockedMessage";
 
 export class FakePeer extends Readable implements IPeer {
     public state: PeerState;
