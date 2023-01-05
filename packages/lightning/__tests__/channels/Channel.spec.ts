@@ -129,4 +129,29 @@ describe(Channel.name, () => {
             expect(channel.fundingConfirmedHeight).to.equal(500_000);
         });
     });
+
+    describe(Channel.prototype.attachChannelReady.name, () => {
+        it("moves next to current and creates next", () => {
+            // arrange
+            const channel = createFakeChannel()
+                .attachAcceptChannel(createFakeAcceptChannel())
+                .attachFundingTx(createFakeFundingTx())
+                .attachFundingSigned(createFakeFundingSignedMessage());
+            const msg = createFakeChannelReady();
+
+            // act
+            channel.attachChannelReady(msg);
+
+            // assert
+            expect(channel.theirSide.commitmentNumber.value).to.equal(0n);
+            expect(channel.theirSide.commitmentPoint.toHex()).to.equal(
+                "0288a618cb6027c3218a37cbe9e882379f17d87d03f6e99d0b60292478d2aded06",
+            );
+
+            expect(channel.theirSide.nextCommitmentNumber.value).to.equal(1n);
+            expect(channel.theirSide.nextCommitmentPoint.toHex()).to.equal(
+                "032405cbd0f41225d5f203fe4adac8401321a9e05767c5f8af97d51d2e81fbb206",
+            );
+        });
+    });
 });

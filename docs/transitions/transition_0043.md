@@ -4,9 +4,9 @@ A node may receive the `channel_ready` message while it is still awaiting the fu
 
 #### Condition
 
-Validate the message according to [BOLT 2](https://github.com/lightning/bolts/blob/master/02-peer-protocol.md#the-channel_ready-message).
+Validate the message according to [BOLT 2](https://github.com/lightning/bolts/blob/master/02-peer-protocol.md#the-channel_ready-message) .
 
-1. Must have a valid secp256k1 point for `next_per_commitment_point`
+1. Must validate the `channel_ready` message by calling [`validateChannelReady` subroutine](../routines/validateChannelReady.md)
 
 ### 43a. Receive `channel_ready` [valid]
 
@@ -14,7 +14,7 @@ Upon receipt of a valid `channel_ready` message we need to capture the peer's me
 
 #### Actions
 
-1. Store the `next_per_commitment_point` as received by the peer.
+1. Store the `next_per_commitment_point` as received by the peer by calling `attachChannelReady`.
 
 ### 43b. Receive `channel_ready` [invalid]
 

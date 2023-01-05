@@ -9,6 +9,7 @@ import {
 } from "@node-lightning/bitcoin";
 import { ChannelId } from "../domain/ChannelId";
 import { AcceptChannelMessage } from "../messages/AcceptChannelMessage";
+import { FundingLockedMessage } from "../messages/FundingLockedMessage";
 import { FundingSignedMessage } from "../messages/FundingSignedMessage";
 import { ChannelSide } from "./ChannelSide";
 import { CommitmentNumber } from "./CommitmentNumber";
@@ -234,6 +235,27 @@ export class Channel {
      * @param block
      */
     public markConfirmed(height: number) {
-        this.fundingConfirmedHeight = height;
+    /**
+     * Stores the `second_per_commitment_point` received by the peer
+     * onto their side of the channel and rotates the next commitment
+     * information into the current position while establishing a new
+     * `next` position.
+     * @param msg
+     */
+    public attachChannelReady(msg: FundingLockedMessage) {
+        // rotate next into current
+        this.theirSide.commitmentNumber = this.theirSide.nextCommitmentNumber;
+        this.theirSide.commitmentPoint = this.theirSide.nextCommitmentPoint;
+        this.theirSide.commitmentSig = this.theirSide.nextCommitmentSig;
+
+        // attach next point
+        this.theirSide.nextCommitmentNumber = this.theirSide.commitmentNumber.next();
+        this.theirSide.nextCommitmentPoint = new PublicKey(
+            msg.nextPerCommitmentPoint,
+            this.network,
+        );
+        this.theirSide.nextCommitmentSig = undefined;
+        return this;
+    }
     }
 }
