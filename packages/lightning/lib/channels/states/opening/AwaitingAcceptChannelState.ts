@@ -1,15 +1,12 @@
 import { AcceptChannelMessage } from "../../../messages/AcceptChannelMessage";
-import { IPeer } from "../../../Peer";
 import { Channel } from "../../Channel";
 import { StateMachine } from "../../StateMachine";
 import { FailingState } from "../FailingState";
 import { AwaitingFundingSignedState } from "./AwaitingFundingSignedState";
-import { OpeningErrorType } from "./OpeningErrorType";
 
 export class AwaitingAcceptChannelState extends StateMachine {
     public async onAcceptChannelMessage(
         channel: Channel,
-        peer: IPeer,
         msg: AcceptChannelMessage,
     ): Promise<string> {
         // validate the message
@@ -35,7 +32,7 @@ export class AwaitingAcceptChannelState extends StateMachine {
         const fundingCreatedMessage = await this.logic.createFundingCreatedMessage(channel, sig);
 
         // send message to the peer
-        peer.sendMessage(fundingCreatedMessage);
+        await this.logic.sendMessage(channel.peerId, fundingCreatedMessage);
 
         // return new state
         return AwaitingFundingSignedState.name;

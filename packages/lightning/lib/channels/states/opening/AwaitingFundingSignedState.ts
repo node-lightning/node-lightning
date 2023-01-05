@@ -1,5 +1,4 @@
 import { FundingSignedMessage } from "../../../messages/FundingSignedMessage";
-import { IPeer } from "../../../Peer";
 import { Channel } from "../../Channel";
 import { StateMachine } from "../../StateMachine";
 import { FailingState } from "../FailingState";
@@ -8,7 +7,6 @@ import { AwaitingFundingDepthState } from "./AwaitingFundingDepthState";
 export class AwaitingFundingSignedState extends StateMachine {
     public async onFundingSignedMessage(
         channel: Channel,
-        peer: IPeer,
         msg: FundingSignedMessage,
     ): Promise<string> {
         // Validate the funding_signed message

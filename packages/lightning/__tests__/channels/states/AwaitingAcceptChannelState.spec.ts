@@ -1,7 +1,7 @@
 import { TxBuilder, Value } from "@node-lightning/bitcoin";
 import { ILogger } from "@node-lightning/logger";
 import { expect } from "chai";
-import { IPeer, IWireMessage } from "../../../lib";
+import { IWireMessage } from "../../../lib";
 import { Channel } from "../../../lib/channels/Channel";
 import { IChannelLogic } from "../../../lib/channels/IChannelLogic";
 import { FailingState } from "../../../lib/channels/states/FailingState";
@@ -19,8 +19,6 @@ import {
     createFakeFundingCreatedMessage,
     createFakeFundingTx,
     createFakeLogger,
-    createFakePeer,
-    FakePeer,
 } from "../../_test-utils";
 
 describe(AwaitingAcceptChannelState.name, () => {
@@ -47,10 +45,9 @@ describe(AwaitingAcceptChannelState.name, () => {
             it("transitions to Failing", async () => {
                 // arrange
                 const msg = createFakeAcceptChannel({ dustLimitValue: Value.fromSats(200) });
-                const peer = createFakePeer();
 
                 // act
-                const result = await sut.onAcceptChannelMessage(channel, peer, msg);
+                const result = await sut.onAcceptChannelMessage(channel, msg);
 
                 // assert
                 expect(result).to.equal(FailingState.name);
@@ -58,12 +55,10 @@ describe(AwaitingAcceptChannelState.name, () => {
         });
 
         describe("valid message", () => {
-            let peer: FakePeer;
             let msg: AcceptChannelMessage;
             let sig: Buffer;
 
             beforeEach(() => {
-                peer = createFakePeer();
                 msg = createFakeAcceptChannel();
                 sig = Buffer.alloc(64, 0xff);
                 logic.validateAcceptChannel.resolves(Result.ok(true));
@@ -80,7 +75,7 @@ describe(AwaitingAcceptChannelState.name, () => {
                 expect(channel.theirSide.fundingPubKey).to.equal(undefined);
 
                 // act
-                await sut.onAcceptChannelMessage(channel, peer, msg);
+                await sut.onAcceptChannelMessage(channel, msg);
 
                 // assert
                 expect(channel.theirSide.fundingPubKey).to.not.equal(undefined);
@@ -91,26 +86,27 @@ describe(AwaitingAcceptChannelState.name, () => {
                 expect(channel.fundingTx).to.equal(undefined);
 
                 // act
-                await sut.onAcceptChannelMessage(channel, peer, msg);
+                await sut.onAcceptChannelMessage(channel, msg);
 
                 // assert
                 expect(channel.fundingTx).to.not.equal(undefined);
             });
 
-            it("sends create_funding message to peer", () => {
-                // assert
-                peer.on("readable", () => {
-                    const msg = peer.read() as IWireMessage;
-                    expect(msg.type).to.equal(FundingCreatedMessage.type);
-                });
-
+            it("sends create_funding message to peer", async () => {
                 // act
-                void sut.onAcceptChannelMessage(channel, peer, msg);
+                await sut.onAcceptChannelMessage(channel, msg);
+
+                // assert
+                expect(logic.sendMessage.called).to.equal(true);
+                expect(logic.sendMessage.args[0][0]).to.equal(channel.peerId);
+                expect((logic.sendMessage.args[0][1] as IWireMessage).type).to.equal(
+                    FundingCreatedMessage.type,
+                );
             });
 
             it("transitions to awaiting_funding_signed", async () => {
                 // act
-                const result = await sut.onAcceptChannelMessage(channel, peer, msg);
+                const result = await sut.onAcceptChannelMessage(channel, msg);
 
                 // assert
                 expect(result).to.equal(AwaitingFundingSignedState.name);

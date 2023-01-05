@@ -50,4 +50,9 @@ export class PeerManager {
             }
         }
     }
+
+    public sendMessage(peerId: string, msg: IWireMessage) {
+        const peer = this.peers.find(p => p.id === peerId);
+        peer.sendMessage(msg);
+    }
 }

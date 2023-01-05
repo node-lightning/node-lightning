@@ -14,8 +14,6 @@ import {
     createFakeLogger,
     createFakeChannelLogicFacade,
     createFakeChannel,
-    FakePeer,
-    createFakePeer,
     createFakeAcceptChannel,
     createFakeFundingSignedMessage,
 } from "../../_test-utils";
@@ -44,22 +42,19 @@ describe(AwaitingFundingSignedState.name, () => {
             it("returns failed state on validation error", async () => {
                 // arrange
                 const msg = createFakeFundingSignedMessage();
-                const peer = createFakePeer();
 
                 // act
-                const result = await sut.onFundingSignedMessage(channel, peer, msg);
+                const result = await sut.onFundingSignedMessage(channel, msg);
 
                 // assert
                 expect(result).to.equal(FailingState.name);
             });
         });
         describe("valid message", () => {
-            let peer: FakePeer;
             let msg: FundingSignedMessage;
             let fundingTx: Tx;
 
             beforeEach(() => {
-                peer = createFakePeer();
                 msg = createFakeFundingSignedMessage();
                 fundingTx = new Tx();
                 logic.validateFundingSignedMessage.resolves(Result.ok(true));
@@ -71,7 +66,7 @@ describe(AwaitingFundingSignedState.name, () => {
                 expect(channel.ourSide.nextCommitmentSig).to.equal(undefined);
 
                 // act
-                await sut.onFundingSignedMessage(channel, peer, msg);
+                await sut.onFundingSignedMessage(channel, msg);
 
                 // assert
                 expect(channel.ourSide.nextCommitmentSig).to.not.equal(undefined);
@@ -79,7 +74,7 @@ describe(AwaitingFundingSignedState.name, () => {
 
             it("broadcasts the funding transaction", async () => {
                 // act
-                await sut.onFundingSignedMessage(channel, peer, msg);
+                await sut.onFundingSignedMessage(channel, msg);
 
                 // assert
                 expect(logic.broadcastTx.called).to.equal(true, "broadcasts funding tx");
@@ -87,7 +82,7 @@ describe(AwaitingFundingSignedState.name, () => {
 
             it("transitions to awaiting_funding_depth state", async () => {
                 // act
-                const result = await sut.onFundingSignedMessage(channel, peer, msg);
+                const result = await sut.onFundingSignedMessage(channel, msg);
 
                 // assert
                 expect(result).to.equal(AwaitingFundingDepthState.name);

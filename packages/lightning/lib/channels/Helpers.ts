@@ -4,7 +4,6 @@ import {
     HashByteOrder,
     Network,
     PublicKey,
-    Script,
     Tx,
     TxBuilder,
     TxOut,
@@ -32,10 +31,23 @@ import { CommitmentNumber } from "./CommitmentNumber";
 import { FundingSignedMessage } from "../messages/FundingSignedMessage";
 import { sigFromDER, verifySig } from "@node-lightning/crypto";
 import { FundingLockedMessage } from "../messages/FundingLockedMessage";
-import { ScriptFactory } from "./ScriptFactory";
+import { IWireMessage, PeerManager } from "..";
 
 export class Helpers implements IChannelLogic {
-    constructor(readonly wallet: IChannelWallet, public preferences: ChannelPreferences) {}
+    constructor(
+        readonly wallet: IChannelWallet,
+        public preferences: ChannelPreferences,
+        readonly peerManager: PeerManager,
+    ) {}
+
+    /**
+     * Sends the message to a peer
+     * @param peerId
+     * @param msg
+     */
+    public sendMessage(peerId: string, msg: IWireMessage) {
+        this.peerManager.sendMessage(peerId, msg);
+    }
 
     /**
      * Constructs a `temporary_channel_id` that is unique per peer and

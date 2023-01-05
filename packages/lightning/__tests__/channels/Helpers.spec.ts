@@ -8,7 +8,6 @@ import {
     Script,
     Sequence,
     Tx,
-    TxBuilder,
     TxOut,
     Value,
 } from "@node-lightning/bitcoin";
@@ -36,7 +35,7 @@ describe(Helpers.name, () => {
     describe(Helpers.prototype.createTempChannelId.name, () => {
         it("should return a random 32-byte nonce", () => {
             // arrange
-            const helpers = new Helpers(undefined, undefined);
+            const helpers = new Helpers(undefined, undefined, undefined);
 
             // act
             const result = helpers.createTempChannelId();
@@ -53,7 +52,7 @@ describe(Helpers.name, () => {
             local.set(InitFeatureFlags.optionSupportLargeChannelOptional);
             const remote = new BitField<InitFeatureFlags>();
             remote.set(InitFeatureFlags.optionSupportLargeChannelOptional);
-            const helpers = new Helpers(undefined, undefined);
+            const helpers = new Helpers(undefined, undefined, undefined);
             const fundingAmount = Value.fromSats(2 ** 24 + 1);
 
             // act
@@ -68,7 +67,7 @@ describe(Helpers.name, () => {
             const local = new BitField<InitFeatureFlags>();
             local.set(InitFeatureFlags.optionSupportLargeChannelOptional);
             const remote = new BitField<InitFeatureFlags>();
-            const helpers = new Helpers(undefined, undefined);
+            const helpers = new Helpers(undefined, undefined, undefined);
             const fundingAmount = Value.fromSats(2 ** 24 + 1);
 
             // act
@@ -83,7 +82,7 @@ describe(Helpers.name, () => {
             const local = new BitField<InitFeatureFlags>();
             const remote = new BitField<InitFeatureFlags>();
             remote.set(InitFeatureFlags.optionSupportLargeChannelOptional);
-            const helpers = new Helpers(undefined, undefined);
+            const helpers = new Helpers(undefined, undefined, undefined);
             const fundingAmount = Value.fromSats(2 ** 24 + 1);
 
             // act
@@ -97,7 +96,7 @@ describe(Helpers.name, () => {
             // arrange
             const local = new BitField<InitFeatureFlags>();
             const remote = new BitField<InitFeatureFlags>();
-            const helpers = new Helpers(undefined, undefined);
+            const helpers = new Helpers(undefined, undefined, undefined);
             const fundingAmount = Value.fromSats(1000);
 
             // act
@@ -111,7 +110,7 @@ describe(Helpers.name, () => {
     describe(Helpers.prototype.validatePushAmount.name, () => {
         it("returns true when equal to the funding amount", () => {
             // arrange
-            const helpers = new Helpers(undefined, undefined);
+            const helpers = new Helpers(undefined, undefined, undefined);
             const fundingAmount = Value.fromSats(1000);
             const pushAmount = Value.fromSats(1000);
 
@@ -124,7 +123,7 @@ describe(Helpers.name, () => {
 
         it("returns true when less than to the funding amount", () => {
             // arrange
-            const helpers = new Helpers(undefined, undefined);
+            const helpers = new Helpers(undefined, undefined, undefined);
             const fundingAmount = Value.fromSats(1000);
             const pushAmount = Value.fromSats(0);
 
@@ -137,7 +136,7 @@ describe(Helpers.name, () => {
 
         it("returns false when greater than the funding amount", () => {
             // arrange
-            const helpers = new Helpers(undefined, undefined);
+            const helpers = new Helpers(undefined, undefined, undefined);
             const fundingAmount = Value.fromSats(1000);
             const pushAmount = Value.fromSats(1001);
 
@@ -152,7 +151,7 @@ describe(Helpers.name, () => {
     describe(Helpers.prototype.validateDustLimitTooSmall.name, () => {
         it("returns true when equal to 354", () => {
             // arrange
-            const helpers = new Helpers(undefined, undefined);
+            const helpers = new Helpers(undefined, undefined, undefined);
             const dustLimit = Value.fromSats(354);
 
             // act
@@ -164,7 +163,7 @@ describe(Helpers.name, () => {
 
         it("returns true when above 354", () => {
             // arrange
-            const helpers = new Helpers(undefined, undefined);
+            const helpers = new Helpers(undefined, undefined, undefined);
             const dustLimit = Value.fromBitcoin(355);
 
             // act
@@ -176,7 +175,7 @@ describe(Helpers.name, () => {
 
         it("returns false when below 354", () => {
             // arrange
-            const helpers = new Helpers(undefined, undefined);
+            const helpers = new Helpers(undefined, undefined, undefined);
             const dustLimit = Value.fromSats(1);
 
             // act
@@ -191,7 +190,7 @@ describe(Helpers.name, () => {
         describe("open_channel", () => {
             it("should return true when greater than the dust limit", () => {
                 // arrange
-                const helpers = new Helpers(undefined, undefined);
+                const helpers = new Helpers(undefined, undefined, undefined);
                 const openDustLimit = Value.fromSats(354);
                 const openChannelReserve = Value.fromSats(356);
 
@@ -207,7 +206,7 @@ describe(Helpers.name, () => {
 
             it("should return true when equal to the dust limit", () => {
                 // arrange
-                const helpers = new Helpers(undefined, undefined);
+                const helpers = new Helpers(undefined, undefined, undefined);
                 const openDustLimit = Value.fromSats(354);
                 const openChannelReserve = Value.fromSats(354);
 
@@ -223,7 +222,7 @@ describe(Helpers.name, () => {
 
             it("should return false when less than the dust limit", () => {
                 // arrange
-                const helpers = new Helpers(undefined, undefined);
+                const helpers = new Helpers(undefined, undefined, undefined);
                 const openDustLimit = Value.fromSats(354);
                 const openChannelReserve = Value.fromSats(353);
 
@@ -241,7 +240,7 @@ describe(Helpers.name, () => {
         describe("accept_channel", () => {
             it("should return true when both dust_limit <= channel_reserve", () => {
                 // arrange
-                const helpers = new Helpers(undefined, undefined);
+                const helpers = new Helpers(undefined, undefined, undefined);
                 const openDustLimit = Value.fromSats(354);
                 const openChannelReserve = Value.fromSats(354);
                 const acceptDustLimit = Value.fromSats(354);
@@ -261,7 +260,7 @@ describe(Helpers.name, () => {
 
             it("should return false when funder channel_reserve too low", () => {
                 // arrange
-                const helpers = new Helpers(undefined, undefined);
+                const helpers = new Helpers(undefined, undefined, undefined);
                 const openDustLimit = Value.fromSats(354);
                 const openChannelReserve = Value.fromSats(354);
                 const acceptDustLimit = Value.fromSats(354);
@@ -281,7 +280,7 @@ describe(Helpers.name, () => {
 
             it("should return false when fundee dust_limit too high", () => {
                 // arrange
-                const helpers = new Helpers(undefined, undefined);
+                const helpers = new Helpers(undefined, undefined, undefined);
                 const openDustLimit = Value.fromSats(354);
                 const openChannelReserve = Value.fromSats(354);
                 const acceptDustLimit = Value.fromSats(355);
@@ -304,7 +303,7 @@ describe(Helpers.name, () => {
     describe(Helpers.prototype.validateChannelReserveReachable.name, () => {
         it("should return false if funders balance would be negative", () => {
             // arrange
-            const helpers = new Helpers(undefined, undefined);
+            const helpers = new Helpers(undefined, undefined, undefined);
             const fundingAmount = Value.fromSats(1);
             const pushAmount = Value.fromSats(0);
             const feeRatePerKw = Value.fromSats(1000);
@@ -324,7 +323,7 @@ describe(Helpers.name, () => {
 
         it("should return false when both below channel_reserve", () => {
             // arrange
-            const helpers = new Helpers(undefined, undefined);
+            const helpers = new Helpers(undefined, undefined, undefined);
             const fundingAmount = Value.fromSats(1000);
             const pushAmount = Value.fromSats(0);
             const feeRatePerKw = Value.fromSats(1000);
@@ -344,7 +343,7 @@ describe(Helpers.name, () => {
 
         it("should return true local greater than channel_reserve", () => {
             // arrange
-            const helpers = new Helpers(undefined, undefined);
+            const helpers = new Helpers(undefined, undefined, undefined);
             const fundingAmount = Value.fromSats(2000);
             const pushAmount = Value.fromSats(0);
             const feeRatePerKw = Value.fromSats(1000);
@@ -364,7 +363,7 @@ describe(Helpers.name, () => {
 
         it("should return true remote greater than channel_reserve", () => {
             // arrange
-            const helpers = new Helpers(undefined, undefined);
+            const helpers = new Helpers(undefined, undefined, undefined);
             const fundingAmount = Value.fromSats(1475);
             const pushAmount = Value.fromSats(751);
             const feeRatePerKw = Value.fromSats(1000);
@@ -386,7 +385,7 @@ describe(Helpers.name, () => {
     describe(Helpers.prototype.validateFunderFees.name, () => {
         it("should return false if funders value would be negative", () => {
             // arrange
-            const helpers = new Helpers(undefined, undefined);
+            const helpers = new Helpers(undefined, undefined, undefined);
             const fundingAmount = Value.fromSats(1000);
             const pushAmount = Value.fromSats(1000);
             const feeRatePerKw = Value.fromSats(1000);
@@ -400,7 +399,7 @@ describe(Helpers.name, () => {
 
         it("should return false when funder can't pay fees", () => {
             // arrange
-            const helpers = new Helpers(undefined, undefined);
+            const helpers = new Helpers(undefined, undefined, undefined);
             const fundingAmount = Value.fromSats(1724);
             const pushAmount = Value.fromSats(1000);
             const feeRatePerKw = Value.fromSats(1000);
@@ -414,7 +413,7 @@ describe(Helpers.name, () => {
 
         it("should return true when funder can pay fees", () => {
             // arrange
-            const helpers = new Helpers(undefined, undefined);
+            const helpers = new Helpers(undefined, undefined, undefined);
             const fundingAmount = Value.fromSats(1725);
             const pushAmount = Value.fromSats(1000);
             const feeRatePerKw = Value.fromSats(1000);
@@ -430,7 +429,7 @@ describe(Helpers.name, () => {
     describe(Helpers.prototype.validateMaxAcceptedHtlcsTooLarge.name, () => {
         it("should return true when equal to 483", () => {
             // arrange
-            const helpers = new Helpers(undefined, undefined);
+            const helpers = new Helpers(undefined, undefined, undefined);
             const maxAcceptedHtlc = 483;
 
             // act
@@ -442,7 +441,7 @@ describe(Helpers.name, () => {
 
         it("should return true when less than 483", () => {
             // arrange
-            const helpers = new Helpers(undefined, undefined);
+            const helpers = new Helpers(undefined, undefined, undefined);
             const maxAcceptedHtlc = 482;
 
             // act
@@ -454,7 +453,7 @@ describe(Helpers.name, () => {
 
         it("should return false when above 483", () => {
             // arrange
-            const helpers = new Helpers(undefined, undefined);
+            const helpers = new Helpers(undefined, undefined, undefined);
             const maxAcceptedHtlc = 484;
 
             // act
@@ -469,7 +468,7 @@ describe(Helpers.name, () => {
         it("should return false when less than minMaxAcceptedHtlcs", () => {
             // arrange
             const preferences = new ChannelPreferences({ minMaxAcceptedHtlcs: 1 });
-            const helpers = new Helpers(undefined, preferences);
+            const helpers = new Helpers(undefined, preferences, undefined);
             const maxAcceptedHtlc = 0;
 
             // act
@@ -482,7 +481,7 @@ describe(Helpers.name, () => {
         it("should return true when equal to minMaxAcceptedHtlcs", () => {
             // arrange
             const preferences = new ChannelPreferences({ minMaxAcceptedHtlcs: 1 });
-            const helpers = new Helpers(undefined, preferences);
+            const helpers = new Helpers(undefined, preferences, undefined);
             const maxAcceptedHtlc = 1;
 
             // act
@@ -495,7 +494,7 @@ describe(Helpers.name, () => {
         it("should return true when greater than to minMaxAcceptedHtlcs", () => {
             // arrange
             const preferences = new ChannelPreferences({ minMaxAcceptedHtlcs: 1 });
-            const helpers = new Helpers(undefined, preferences);
+            const helpers = new Helpers(undefined, preferences, undefined);
             const maxAcceptedHtlc = 2;
 
             // act
@@ -512,7 +511,7 @@ describe(Helpers.name, () => {
             const wallet = createFakeChannelWallet();
             wallet.checkWalletHasFunds.resolves(false);
 
-            const helpers = new Helpers(wallet, undefined);
+            const helpers = new Helpers(wallet, undefined, undefined);
 
             const options: OpenChannelRequest = {
                 peer: createFakePeer(),
@@ -540,7 +539,7 @@ describe(Helpers.name, () => {
             const wallet = createFakeChannelWallet();
             wallet.checkWalletHasFunds.resolves(true);
 
-            const helpers = new Helpers(wallet, undefined);
+            const helpers = new Helpers(wallet, undefined, undefined);
 
             const options: OpenChannelRequest = {
                 peer: createFakePeer(),
@@ -569,7 +568,7 @@ describe(Helpers.name, () => {
             wallet.checkWalletHasFunds.resolves(true);
             wallet.getFeeRatePerKw.resolves(Value.fromSats(15000));
 
-            const helpers = new Helpers(wallet, undefined);
+            const helpers = new Helpers(wallet, undefined, undefined);
 
             const options: OpenChannelRequest = {
                 peer: createFakePeer(),
@@ -598,7 +597,7 @@ describe(Helpers.name, () => {
             wallet.checkWalletHasFunds.resolves(true);
             wallet.getFeeRatePerKw.resolves(Value.fromSats(0));
 
-            const helpers = new Helpers(wallet, undefined);
+            const helpers = new Helpers(wallet, undefined, undefined);
 
             const options: OpenChannelRequest = {
                 peer: createFakePeer(),
@@ -628,7 +627,7 @@ describe(Helpers.name, () => {
             wallet.getFeeRatePerKw.resolves(Value.fromSats(250));
             wallet.getDustLimit.resolves(Value.fromSats(353));
 
-            const helpers = new Helpers(wallet, undefined);
+            const helpers = new Helpers(wallet, undefined, undefined);
 
             const options: OpenChannelRequest = {
                 peer: createFakePeer(),
@@ -658,7 +657,7 @@ describe(Helpers.name, () => {
             wallet.getFeeRatePerKw.resolves(Value.fromSats(250));
             wallet.getDustLimit.resolves(Value.fromSats(354));
 
-            const helpers = new Helpers(wallet, undefined);
+            const helpers = new Helpers(wallet, undefined, undefined);
 
             const options: OpenChannelRequest = {
                 peer: createFakePeer(),
@@ -688,7 +687,7 @@ describe(Helpers.name, () => {
             wallet.getFeeRatePerKw.resolves(Value.fromSats(250));
             wallet.getDustLimit.resolves(Value.fromSats(354));
 
-            const helpers = new Helpers(wallet, undefined);
+            const helpers = new Helpers(wallet, undefined, undefined);
 
             const options: OpenChannelRequest = {
                 peer: createFakePeer(),
@@ -718,7 +717,7 @@ describe(Helpers.name, () => {
             wallet.getFeeRatePerKw.resolves(Value.fromSats(250));
             wallet.getDustLimit.resolves(Value.fromSats(354));
 
-            const helpers = new Helpers(wallet, undefined);
+            const helpers = new Helpers(wallet, undefined, undefined);
 
             const options: OpenChannelRequest = {
                 peer: createFakePeer(),
@@ -764,7 +763,7 @@ describe(Helpers.name, () => {
             wallet.createPerCommitmentSeed.resolves(perCommitmentSeed);
             wallet.getBlockHeight.resolves(2_000_000);
 
-            const helpers = new Helpers(wallet, undefined);
+            const helpers = new Helpers(wallet, undefined, undefined);
 
             const options: OpenChannelRequest = {
                 peer: createFakePeer(),
@@ -877,7 +876,7 @@ describe(Helpers.name, () => {
             const ourPerCommitmentSeed = Buffer.alloc(32);
 
             const wallet: IChannelWallet = undefined;
-            const helpers = new Helpers(wallet, undefined);
+            const helpers = new Helpers(wallet, undefined, undefined);
             const channel = createFakeChannel({
                 ourFundingSecret,
                 ourPaymentSecret,
@@ -935,7 +934,7 @@ describe(Helpers.name, () => {
         it("returns false when above 144", () => {
             // arrange
             const preferences = new ChannelPreferences({ maxMinimumFundingDepth: 144 });
-            const helpers = new Helpers(undefined, preferences);
+            const helpers = new Helpers(undefined, preferences, undefined);
 
             // act
             const result = helpers.validateMinimumDepthTooLarge(145);
@@ -947,7 +946,7 @@ describe(Helpers.name, () => {
         it("returns true when equal to 144", () => {
             // arrange
             const preferences = new ChannelPreferences({ maxMinimumFundingDepth: 144 });
-            const helpers = new Helpers(undefined, preferences);
+            const helpers = new Helpers(undefined, preferences, undefined);
 
             // act
             const result = helpers.validateMinimumDepthTooLarge(144);
@@ -959,7 +958,7 @@ describe(Helpers.name, () => {
         it("returns true when below to 144", () => {
             // arrange
             const preferences = new ChannelPreferences({ maxMinimumFundingDepth: 144 });
-            const helpers = new Helpers(undefined, preferences);
+            const helpers = new Helpers(undefined, preferences, undefined);
 
             // act
             const result = helpers.validateMinimumDepthTooLarge(143);
@@ -974,7 +973,7 @@ describe(Helpers.name, () => {
             // arrange
             const preferences = new ChannelPreferences();
             preferences.maxAllowedTooSelfDelay = 2016;
-            const helpers = new Helpers(undefined, preferences);
+            const helpers = new Helpers(undefined, preferences, undefined);
 
             // act
             const result = helpers.validateToSelfDelayTooLarge(2015);
@@ -986,7 +985,7 @@ describe(Helpers.name, () => {
         it("should return true when equal to 2016", () => {
             // arrange
             const preferences = new ChannelPreferences();
-            const helpers = new Helpers(undefined, preferences);
+            const helpers = new Helpers(undefined, preferences, undefined);
 
             // act
             const result = helpers.validateToSelfDelayTooLarge(2016);
@@ -997,7 +996,7 @@ describe(Helpers.name, () => {
         it("should return false when above 2016", () => {
             // arrange
             const preferences = new ChannelPreferences();
-            const helpers = new Helpers(undefined, preferences);
+            const helpers = new Helpers(undefined, preferences, undefined);
 
             // act
             const result = helpers.validateToSelfDelayTooLarge(2017);
@@ -1011,7 +1010,7 @@ describe(Helpers.name, () => {
         it("should return true when below the configured channel percentage", () => {
             // arrange
             const preferences = new ChannelPreferences({ maxChanPercHtlcMinimum: 10 });
-            const helpers = new Helpers(undefined, preferences);
+            const helpers = new Helpers(undefined, preferences, undefined);
             const channel = createFakeChannel({ fundingAmount: Value.fromSats(200_000) });
             const htlcMinimum = Value.fromSats(19_000);
 
@@ -1025,7 +1024,7 @@ describe(Helpers.name, () => {
         it("should return true when at the configured channel percentage", () => {
             // arrange
             const preferences = new ChannelPreferences({ maxChanPercHtlcMinimum: 10 });
-            const helpers = new Helpers(undefined, preferences);
+            const helpers = new Helpers(undefined, preferences, undefined);
             const channel = createFakeChannel({ fundingAmount: Value.fromSats(200_000) });
             const htlcMinimum = Value.fromSats(20_000);
 
@@ -1039,7 +1038,7 @@ describe(Helpers.name, () => {
         it("should return false when above the configured channel percentage", () => {
             // arrange
             const preferences = new ChannelPreferences({ maxChanPercHtlcMinimum: 10 });
-            const helpers = new Helpers(undefined, preferences);
+            const helpers = new Helpers(undefined, preferences, undefined);
             const channel = createFakeChannel({ fundingAmount: Value.fromSats(200_000) });
             const htlcMinimum = Value.fromSats(21_000);
 
@@ -1055,7 +1054,7 @@ describe(Helpers.name, () => {
         it("should return true when above the configured channel percentage", () => {
             // arrange
             const preferences = new ChannelPreferences({ minChanPercMaxHtlcInFlight: 1 });
-            const helpers = new Helpers(undefined, preferences);
+            const helpers = new Helpers(undefined, preferences, undefined);
             const channel = createFakeChannel({ fundingAmount: Value.fromSats(100_000) });
             const maxHtlcInFlight = Value.fromSats(2_000);
 
@@ -1068,7 +1067,7 @@ describe(Helpers.name, () => {
         it("should return true when at the configured channel percentage", () => {
             // arrange
             const preferences = new ChannelPreferences({ minChanPercMaxHtlcInFlight: 1 });
-            const helpers = new Helpers(undefined, preferences);
+            const helpers = new Helpers(undefined, preferences, undefined);
             const channel = createFakeChannel({ fundingAmount: Value.fromSats(100_000) });
             const maxHtlcInFlight = Value.fromSats(1_000);
 
@@ -1081,7 +1080,7 @@ describe(Helpers.name, () => {
         it("should return false when below the configured channel percentage", () => {
             // arrange
             const preferences = new ChannelPreferences({ minChanPercMaxHtlcInFlight: 1 });
-            const helpers = new Helpers(undefined, preferences);
+            const helpers = new Helpers(undefined, preferences, undefined);
             const channel = createFakeChannel({ fundingAmount: Value.fromSats(100_000) });
             const maxHtlcInFlight = Value.fromSats(999);
 
@@ -1097,7 +1096,7 @@ describe(Helpers.name, () => {
         it("should return true when below configured channel percentage", () => {
             // arrange
             const preferences = new ChannelPreferences({ maxChanPercChannelReserve: 20 });
-            const helpers = new Helpers(undefined, preferences);
+            const helpers = new Helpers(undefined, preferences, undefined);
             const channel = createFakeChannel({ fundingAmount: Value.fromSats(100_000) });
             const maxHtlcInFlight = Value.fromSats(19_999);
 
@@ -1111,7 +1110,7 @@ describe(Helpers.name, () => {
         it("should return true when at the configured channel percentage", () => {
             // arrange
             const preferences = new ChannelPreferences({ maxChanPercChannelReserve: 20 });
-            const helpers = new Helpers(undefined, preferences);
+            const helpers = new Helpers(undefined, preferences, undefined);
             const channel = createFakeChannel({ fundingAmount: Value.fromSats(100_000) });
             const maxHtlcInFlight = Value.fromSats(20_000);
 
@@ -1125,7 +1124,7 @@ describe(Helpers.name, () => {
         it("should return false when above configured channel percentage", () => {
             // arrange
             const preferences = new ChannelPreferences({ maxChanPercChannelReserve: 20 });
-            const helpers = new Helpers(undefined, preferences);
+            const helpers = new Helpers(undefined, preferences, undefined);
             const channel = createFakeChannel({ fundingAmount: Value.fromSats(100_000) });
             const maxHtlcInFlight = Value.fromSats(20_001);
 
@@ -1141,7 +1140,7 @@ describe(Helpers.name, () => {
         it("return true when dust limit below threshold", () => {
             // arrange
             const preferences = new ChannelPreferences({ maxDustLimit: Value.fromSats(1000) });
-            const helpers = new Helpers(undefined, preferences);
+            const helpers = new Helpers(undefined, preferences, undefined);
             const dustLimit = Value.fromSats(999);
 
             // act
@@ -1154,7 +1153,7 @@ describe(Helpers.name, () => {
         it("returns true when dust limit at threshold", () => {
             // arrange
             const preferences = new ChannelPreferences({ maxDustLimit: Value.fromSats(1000) });
-            const helpers = new Helpers(undefined, preferences);
+            const helpers = new Helpers(undefined, preferences, undefined);
             const dustLimit = Value.fromSats(1000);
 
             // act
@@ -1167,7 +1166,7 @@ describe(Helpers.name, () => {
         it("returns false when dust limit above threshold", () => {
             // arrange
             const preferences = new ChannelPreferences({ maxDustLimit: Value.fromSats(1000) });
-            const helpers = new Helpers(undefined, preferences);
+            const helpers = new Helpers(undefined, preferences, undefined);
             const dustLimit = Value.fromSats(1001);
 
             // act
@@ -1182,7 +1181,7 @@ describe(Helpers.name, () => {
         it("returns true when valid", async () => {
             // arrange
             const preferences = new ChannelPreferences({});
-            const helpers = new Helpers(undefined, preferences);
+            const helpers = new Helpers(undefined, preferences, undefined);
             const channel = createFakeChannel({});
             const msg = createFakeAcceptChannel();
 
@@ -1196,7 +1195,7 @@ describe(Helpers.name, () => {
         it("returns false when funder channel_reserve/dust_limit invalid", async () => {
             // arrange
             const preferences = new ChannelPreferences({});
-            const helpers = new Helpers(undefined, preferences);
+            const helpers = new Helpers(undefined, preferences, undefined);
             const channel = createFakeChannel({ ourDustLimit: Value.fromSats(354) });
             const msg = createFakeAcceptChannel({ channelReserveValue: Value.fromSats(353) });
 
@@ -1211,7 +1210,7 @@ describe(Helpers.name, () => {
         it("returns false when to_self_delay too large", async () => {
             // arrange
             const preferences = new ChannelPreferences({});
-            const helpers = new Helpers(undefined, preferences);
+            const helpers = new Helpers(undefined, preferences, undefined);
             const channel = createFakeChannel({});
             const msg = createFakeAcceptChannel({ toSelfDelay: 10_000 });
 
@@ -1226,7 +1225,7 @@ describe(Helpers.name, () => {
         it("returns false when max_accepted_htlcs too large", async () => {
             // arrange
             const preferences = new ChannelPreferences({});
-            const helpers = new Helpers(undefined, preferences);
+            const helpers = new Helpers(undefined, preferences, undefined);
             const channel = createFakeChannel({});
             const msg = createFakeAcceptChannel({ maxAcceptedHtlcs: 500 });
 
@@ -1241,7 +1240,7 @@ describe(Helpers.name, () => {
         it("returns false when funding_pubkey is invalid", async () => {
             // arrange
             const preferences = new ChannelPreferences({});
-            const helpers = new Helpers(undefined, preferences);
+            const helpers = new Helpers(undefined, preferences, undefined);
             const channel = createFakeChannel({});
             const msg = createFakeAcceptChannel({ fundingPubKey: Buffer.alloc(33) });
 
@@ -1256,7 +1255,7 @@ describe(Helpers.name, () => {
         it("returns false when payment_basepoint is invalid", async () => {
             // arrange
             const preferences = new ChannelPreferences({});
-            const helpers = new Helpers(undefined, preferences);
+            const helpers = new Helpers(undefined, preferences, undefined);
             const channel = createFakeChannel({});
             const msg = createFakeAcceptChannel({ paymentBasePoint: Buffer.alloc(33) });
 
@@ -1271,7 +1270,7 @@ describe(Helpers.name, () => {
         it("returns false when deplayed_payment_basepoint is invalid", async () => {
             // arrange
             const preferences = new ChannelPreferences({});
-            const helpers = new Helpers(undefined, preferences);
+            const helpers = new Helpers(undefined, preferences, undefined);
             const channel = createFakeChannel({});
             const msg = createFakeAcceptChannel({ delayedPaymentBasePoint: Buffer.alloc(33) });
 
@@ -1286,7 +1285,7 @@ describe(Helpers.name, () => {
         it("returns false when htlc_basepoint is invalid", async () => {
             // arrange
             const preferences = new ChannelPreferences({});
-            const helpers = new Helpers(undefined, preferences);
+            const helpers = new Helpers(undefined, preferences, undefined);
             const channel = createFakeChannel({});
             const msg = createFakeAcceptChannel({ htlcBasePoint: Buffer.alloc(33) });
 
@@ -1301,7 +1300,7 @@ describe(Helpers.name, () => {
         it("returns false when revocation_basepoint is invalid", async () => {
             // arrange
             const preferences = new ChannelPreferences({});
-            const helpers = new Helpers(undefined, preferences);
+            const helpers = new Helpers(undefined, preferences, undefined);
             const channel = createFakeChannel({});
             const msg = createFakeAcceptChannel({ revocationBasePoint: Buffer.alloc(33) });
 
@@ -1316,7 +1315,7 @@ describe(Helpers.name, () => {
         it("returns false when first_per_commitment_point is invalid", async () => {
             // arrange
             const preferences = new ChannelPreferences({});
-            const helpers = new Helpers(undefined, preferences);
+            const helpers = new Helpers(undefined, preferences, undefined);
             const channel = createFakeChannel({});
             const msg = createFakeAcceptChannel({ firstPerCommitmentPoint: Buffer.alloc(33) });
 
@@ -1331,7 +1330,7 @@ describe(Helpers.name, () => {
         it("returns false when dust_limit_satoshis < 354", async () => {
             // arrange
             const preferences = new ChannelPreferences({});
-            const helpers = new Helpers(undefined, preferences);
+            const helpers = new Helpers(undefined, preferences, undefined);
             const channel = createFakeChannel({});
             const msg = createFakeAcceptChannel({ dustLimitValue: Value.fromSats(353) });
 
@@ -1346,7 +1345,7 @@ describe(Helpers.name, () => {
         it("returns false when minimum_depth is too large", async () => {
             // arrange
             const preferences = new ChannelPreferences({});
-            const helpers = new Helpers(undefined, preferences);
+            const helpers = new Helpers(undefined, preferences, undefined);
             const channel = createFakeChannel({});
             const msg = createFakeAcceptChannel({ minimumDepth: 10000 });
 
@@ -1361,7 +1360,7 @@ describe(Helpers.name, () => {
         it("returns false when htlc_minimum_msat is too large", async () => {
             // arrange
             const preferences = new ChannelPreferences({});
-            const helpers = new Helpers(undefined, preferences);
+            const helpers = new Helpers(undefined, preferences, undefined);
             const channel = createFakeChannel({});
             const msg = createFakeAcceptChannel({ htlcMinimumValue: Value.fromSats(100_000) });
 
@@ -1376,7 +1375,7 @@ describe(Helpers.name, () => {
         it("returns false when max_htlc_value_in_flight_msat is too small", async () => {
             // arrange
             const preferences = new ChannelPreferences({});
-            const helpers = new Helpers(undefined, preferences);
+            const helpers = new Helpers(undefined, preferences, undefined);
             const channel = createFakeChannel({});
             const msg = createFakeAcceptChannel({ maxHtlcValueInFlightValue: Value.fromSats(1) });
 
@@ -1391,7 +1390,7 @@ describe(Helpers.name, () => {
         it("returns false when channel_reserve_balance is too large", async () => {
             // arrange
             const preferences = new ChannelPreferences({});
-            const helpers = new Helpers(undefined, preferences);
+            const helpers = new Helpers(undefined, preferences, undefined);
             const channel = createFakeChannel({});
             const msg = createFakeAcceptChannel({ channelReserveValue: Value.fromSats(100_000) });
 
@@ -1406,7 +1405,7 @@ describe(Helpers.name, () => {
         it("returns false when max_accepted_htlcs is too small", async () => {
             // arrange
             const preferences = new ChannelPreferences({});
-            const helpers = new Helpers(undefined, preferences);
+            const helpers = new Helpers(undefined, preferences, undefined);
             const channel = createFakeChannel({});
             const msg = createFakeAcceptChannel({ maxAcceptedHtlcs: 0 });
 
@@ -1421,7 +1420,7 @@ describe(Helpers.name, () => {
         it("returns false when dust_limit_satoshis is too large", async () => {
             // arrange
             const preferences = new ChannelPreferences({});
-            const helpers = new Helpers(undefined, preferences);
+            const helpers = new Helpers(undefined, preferences, undefined);
             const channel = createFakeChannel({});
             const msg = createFakeAcceptChannel({ dustLimitValue: Value.fromSats(1001) });
 
@@ -1460,7 +1459,7 @@ describe(Helpers.name, () => {
             });
             const channel = createFakeChannel().attachAcceptChannel(createFakeAcceptChannel());
             const preferences = new ChannelPreferences();
-            const helpers = new Helpers(wallet, preferences);
+            const helpers = new Helpers(wallet, preferences, undefined);
 
             // act
             const tx = await helpers.createFundingTx(channel);
@@ -1483,7 +1482,7 @@ describe(Helpers.name, () => {
                 .attachAcceptChannel(createFakeAcceptChannel())
                 .attachFundingTx(createFakeFundingTx());
 
-            const helpers = new Helpers(undefined, undefined);
+            const helpers = new Helpers(undefined, undefined, undefined);
 
             // act
             const [txbuilder, htlcs] = await helpers.createRemoteCommitmentTx(channel);
@@ -1540,7 +1539,7 @@ describe(Helpers.name, () => {
             const channel = createFakeChannel()
                 .attachAcceptChannel(createFakeAcceptChannel())
                 .attachFundingTx(createFakeFundingTx());
-            const helpers = new Helpers(undefined, undefined);
+            const helpers = new Helpers(undefined, undefined, undefined);
             const [ctx] = await helpers.createRemoteCommitmentTx(channel);
 
             // act
@@ -1557,7 +1556,7 @@ describe(Helpers.name, () => {
             const channel = createFakeChannel()
                 .attachAcceptChannel(createFakeAcceptChannel())
                 .attachFundingTx(createFakeFundingTx());
-            const helpers = new Helpers(undefined, undefined);
+            const helpers = new Helpers(undefined, undefined, undefined);
             const [ctx] = await helpers.createLocalCommitmentTx(channel);
 
             // act
@@ -1576,7 +1575,7 @@ describe(Helpers.name, () => {
             const channel = createFakeChannel()
                 .attachAcceptChannel(createFakeAcceptChannel())
                 .attachFundingTx(createFakeFundingTx());
-            const helpers = new Helpers(undefined, undefined);
+            const helpers = new Helpers(undefined, undefined, undefined);
             const sig = Buffer.alloc(64, 0xff);
 
             // act
@@ -1603,7 +1602,7 @@ describe(Helpers.name, () => {
                 .attachAcceptChannel(createFakeAcceptChannel())
                 .attachFundingTx(createFakeFundingTx());
 
-            const helpers = new Helpers(undefined, undefined);
+            const helpers = new Helpers(undefined, undefined, undefined);
 
             // act
             const [txbuilder, htlcs] = await helpers.createLocalCommitmentTx(channel);
@@ -1656,7 +1655,7 @@ describe(Helpers.name, () => {
             const channel = createFakeChannel()
                 .attachAcceptChannel(createFakeAcceptChannel())
                 .attachFundingTx(createFakeFundingTx());
-            const helpers = new Helpers(undefined, undefined);
+            const helpers = new Helpers(undefined, undefined, undefined);
             const [ctx] = await helpers.createRemoteCommitmentTx(channel);
             const sig = new EcdsaSig(
                 Buffer.from(
@@ -1682,7 +1681,7 @@ describe(Helpers.name, () => {
             const channel = createFakeChannel()
                 .attachAcceptChannel(createFakeAcceptChannel())
                 .attachFundingTx(createFakeFundingTx());
-            const helpers = new Helpers(undefined, undefined);
+            const helpers = new Helpers(undefined, undefined, undefined);
             const [ctx] = await helpers.createRemoteCommitmentTx(channel);
             const sig = new EcdsaSig(
                 Buffer.from(
@@ -1713,7 +1712,7 @@ describe(Helpers.name, () => {
             const wallet = createFakeChannelWallet();
             const fakeTx = new Tx();
             wallet.signFundingTx.resolves(fakeTx);
-            const helpers = new Helpers(wallet, undefined);
+            const helpers = new Helpers(wallet, undefined, undefined);
 
             // act
             const result = await helpers.signFundingTx(channel);
@@ -1731,7 +1730,7 @@ describe(Helpers.name, () => {
                 .attachFundingTx(createFakeFundingTx());
             const wallet = createFakeChannelWallet();
             const tx = new Tx();
-            const helpers = new Helpers(wallet, undefined);
+            const helpers = new Helpers(wallet, undefined, undefined);
 
             // act
             await helpers.broadcastTx(tx);
@@ -1750,7 +1749,7 @@ describe(Helpers.name, () => {
                 .attachFundingTx(createFakeFundingTx())
                 .attachFundingSigned(createFakeFundingSignedMessage())
                 .revokeLocalCommitment();
-            const helpers = new Helpers(undefined, undefined);
+            const helpers = new Helpers(undefined, undefined, undefined);
 
             // act
             const result = await helpers.createChannelReadyMessage(channel);
@@ -1770,7 +1769,7 @@ describe(Helpers.name, () => {
                 .attachAcceptChannel(createFakeAcceptChannel())
                 .attachFundingTx(createFakeFundingTx())
                 .attachFundingSigned(createFakeFundingSignedMessage());
-            const helpers = new Helpers(undefined, undefined);
+            const helpers = new Helpers(undefined, undefined, undefined);
             const txout = createFakeFundingTx().outputs[0];
 
             // act
@@ -1786,7 +1785,7 @@ describe(Helpers.name, () => {
                 .attachAcceptChannel(createFakeAcceptChannel())
                 .attachFundingTx(createFakeFundingTx())
                 .attachFundingSigned(createFakeFundingSignedMessage());
-            const helpers = new Helpers(undefined, undefined);
+            const helpers = new Helpers(undefined, undefined, undefined);
             const txout = createFakeFundingTx().outputs[0] as TxOut;
             txout.value = Value.fromBitcoin(1);
 
@@ -1803,7 +1802,7 @@ describe(Helpers.name, () => {
                 .attachAcceptChannel(createFakeAcceptChannel())
                 .attachFundingTx(createFakeFundingTx())
                 .attachFundingSigned(createFakeFundingSignedMessage());
-            const helpers = new Helpers(undefined, undefined);
+            const helpers = new Helpers(undefined, undefined, undefined);
             const txout = createFakeFundingTx().outputs[0] as TxOut;
             txout.scriptPubKey = new Script(OpCode.OP_1).toScriptBuf();
 

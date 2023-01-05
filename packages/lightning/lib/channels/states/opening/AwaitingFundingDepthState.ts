@@ -1,13 +1,11 @@
 import { Block, OutPoint } from "@node-lightning/bitcoin";
-import { IPeer } from "../../../Peer";
 import { Channel } from "../../Channel";
 import { StateMachine } from "../../StateMachine";
 import { NormalState } from "../NormalState";
 import { AwaitingChannelReadyState } from "./AwaitingChannelReadyState";
 
 export class AwaitingFundingDepthState extends StateMachine {
-    // eslint-disable-next-line @typescript-eslint/require-await
-    public async onBlockConnected(channel: Channel, peer: IPeer, block: Block): Promise<string> {
+    public async onBlockConnected(channel: Channel, block: Block): Promise<string> {
         // If the funding transaction hasn't been confirmed yet we perform
         if (!channel.fundingConfirmedHeight) {
             // If the block contains our funding transaction then we mark the
@@ -28,7 +26,9 @@ export class AwaitingFundingDepthState extends StateMachine {
             // received the channel ready message or we transition to
             // Normal state
             const msg = await this.logic.createChannelReadyMessage(channel);
-            peer.sendMessage(msg);
+
+            // Send the message to the peer
+            await this.logic.sendMessage(channel.peerId, msg);
 
             // If we already have the `channel_ready` message we can
             // transition to the normal state

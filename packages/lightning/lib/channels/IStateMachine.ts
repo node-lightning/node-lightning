@@ -1,7 +1,6 @@
 import { Block } from "@node-lightning/bitcoin";
 import { AcceptChannelMessage } from "../messages/AcceptChannelMessage";
 import { FundingSignedMessage } from "../messages/FundingSignedMessage";
-import { IPeer } from "../Peer";
 import { Channel } from "./Channel";
 
 export interface IStateMachine {
@@ -12,17 +11,9 @@ export interface IStateMachine {
     addSubState(state: IStateMachine): IStateMachine;
     onEnter(channel: Channel, oldState: IStateMachine): Promise<string>;
     onExit(channel: Channel, newState: IStateMachine): Promise<string>;
-    onPeerConnected(peer: IPeer, channel: Channel): Promise<string>;
-    onPeerDisconnected(peer: IPeer, channel: Channel): Promise<string>;
-    onAcceptChannelMessage(
-        channel: Channel,
-        peer: IPeer,
-        msg: AcceptChannelMessage,
-    ): Promise<string>;
-    onFundingSignedMessage(
-        channel: Channel,
-        peer: IPeer,
-        msg: FundingSignedMessage,
-    ): Promise<string>;
-    onBlockConnected(channel: Channel, peer: IPeer, block: Block): Promise<string>;
+    onPeerConnected(channel: Channel): Promise<string>;
+    onPeerDisconnected(channel: Channel): Promise<string>;
+    onAcceptChannelMessage(channel: Channel, msg: AcceptChannelMessage): Promise<string>;
+    onFundingSignedMessage(channel: Channel, msg: FundingSignedMessage): Promise<string>;
+    onBlockConnected(channel: Channel, block: Block): Promise<string>;
 }

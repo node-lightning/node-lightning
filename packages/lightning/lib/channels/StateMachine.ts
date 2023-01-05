@@ -50,43 +50,37 @@ export abstract class StateMachine {
         return undefined;
     }
 
-    public async onPeerConnected(peer: IPeer, channel: Channel): Promise<string> {
+    public async onPeerConnected(channel: Channel): Promise<string> {
         return undefined;
     }
 
-    public async onPeerDisconnected(peer: IPeer, channel: Channel): Promise<string> {
+    public async onPeerDisconnected(channel: Channel): Promise<string> {
         return undefined;
     }
 
-    public async openChannel(channel: Channel, peer: IPeer): Promise<string> {
+    public async openChannel(channel: Channel): Promise<string> {
         return undefined;
     }
 
     public async onAcceptChannelMessage(
         channel: Channel,
-        peer: IPeer,
         msg: AcceptChannelMessage,
     ): Promise<string> {
         return undefined;
     }
 
-    public async onShutdownMessage(
-        channel: Channel,
-        peer: IPeer,
-        msg: ShutdownMessage,
-    ): Promise<string> {
+    public async onShutdownMessage(channel: Channel, msg: ShutdownMessage): Promise<string> {
         return undefined;
     }
 
     public async onFundingSignedMessage(
         channel: Channel,
-        peer: IPeer,
         msg: FundingSignedMessage,
     ): Promise<string> {
         return undefined;
     }
 
-    public async onBlockConnected(channel: Channel, peer: IPeer, block: Block): Promise<string> {
+    public async onBlockConnected(channel: Channel, block: Block): Promise<string> {
         return undefined;
     }
 }

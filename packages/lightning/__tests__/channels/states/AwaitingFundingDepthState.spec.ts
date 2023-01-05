@@ -13,8 +13,6 @@ import {
     createFakeFundingTx,
     createFakeFundingSignedMessage,
     createFakeBlock,
-    createFakePeer,
-    FakePeer,
     createFakeChannelReady,
 } from "../../_test-utils";
 
@@ -24,13 +22,11 @@ describe(AwaitingFundingDepthState.name, () => {
         let logic: sinon.SinonStubbedInstance<IChannelLogic>;
         let sut: AwaitingFundingDepthState;
         let channel: Channel;
-        let peer: FakePeer;
 
         beforeEach(() => {
             logger = createFakeLogger();
             logic = createFakeChannelLogicFacade();
             sut = new AwaitingFundingDepthState(logger, logic);
-            peer = createFakePeer();
             channel = createFakeChannel()
                 .attachAcceptChannel(createFakeAcceptChannel())
                 .attachFundingTx(createFakeFundingTx())
@@ -42,7 +38,7 @@ describe(AwaitingFundingDepthState.name, () => {
             const block = createFakeBlock();
 
             // act
-            const result = await sut.onBlockConnected(channel, peer, block);
+            const result = await sut.onBlockConnected(channel, block);
 
             // assert
             expect(channel.fundingConfirmedHeight).to.equal(undefined);
@@ -55,7 +51,7 @@ describe(AwaitingFundingDepthState.name, () => {
             const block = createFakeBlock(500_000, fundingTx);
 
             // act
-            const result = await sut.onBlockConnected(channel, peer, block);
+            const result = await sut.onBlockConnected(channel, block);
 
             // assert
             expect(channel.fundingConfirmedHeight).to.equal(500_000);
@@ -69,7 +65,7 @@ describe(AwaitingFundingDepthState.name, () => {
             const block = createFakeBlock(500_001);
 
             // act
-            const result = await sut.onBlockConnected(channel, peer, block);
+            const result = await sut.onBlockConnected(channel, block);
 
             // assert
             expect(channel.fundingConfirmedHeight).to.equal(500_000);
@@ -83,11 +79,11 @@ describe(AwaitingFundingDepthState.name, () => {
             const block = createFakeBlock(500_006);
 
             // act
-            const result = await sut.onBlockConnected(channel, peer, block);
+            const result = await sut.onBlockConnected(channel, block);
 
             // assert
             expect(result).to.equal(AwaitingChannelReadyState.name);
-            expect(peer.sendMessage.called).to.equal(true);
+            expect(logic.sendMessage.called).to.equal(true);
         });
 
         it("meets depth + has channel_ready => sends channel_ready + transitions to normal", async () => {
@@ -98,11 +94,11 @@ describe(AwaitingFundingDepthState.name, () => {
             const block = createFakeBlock(500_006);
 
             // act
-            const result = await sut.onBlockConnected(channel, peer, block);
+            const result = await sut.onBlockConnected(channel, block);
 
             // assert
             expect(result).to.equal(NormalState.name);
-            expect(peer.sendMessage.called).to.equal(true); // arrange
+            expect(logic.sendMessage.called).to.equal(true); // arrange
         });
     });
 });

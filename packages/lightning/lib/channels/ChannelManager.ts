@@ -149,7 +149,7 @@ export class ChannelManager {
         if (!channel) {
             return;
         }
-        const newState = await channel.state.onAcceptChannelMessage(channel, peer, msg);
+        const newState = await channel.state.onAcceptChannelMessage(channel, msg);
         await this.transitionState(channel, newState);
     }
 
@@ -163,7 +163,7 @@ export class ChannelManager {
         if (!channel) {
             return;
         }
-        const newState = await channel.state.onFundingSignedMessage(channel, peer, msg);
+        const newState = await channel.state.onFundingSignedMessage(channel, msg);
         await this.transitionState(channel, newState);
     }
 

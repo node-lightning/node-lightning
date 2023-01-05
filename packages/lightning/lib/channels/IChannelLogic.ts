@@ -6,6 +6,7 @@ import { AcceptChannelMessage } from "../messages/AcceptChannelMessage";
 import { FundingCreatedMessage } from "../messages/FundingCreatedMessage";
 import { FundingLockedMessage } from "../messages/FundingLockedMessage";
 import { FundingSignedMessage } from "../messages/FundingSignedMessage";
+import { IWireMessage } from "../messages/IWireMessage";
 import { OpenChannelMessage } from "../messages/OpenChannelMessage";
 import { Result } from "../Result";
 import { Channel } from "./Channel";
@@ -35,6 +36,7 @@ export interface IChannelLogic {
     createLocalCommitmentTx(channel: Channel): Promise<[TxBuilder, Htlc[]]>;
     createRemoteCommitmentTx(channel: Channel): Promise<[TxBuilder, Htlc[]]>;
     createTempChannelId(): Buffer;
+    sendMessage(peerId: string, msg: IWireMessage);
     signCommitmentTx(channel: Channel, ctx: TxBuilder): Promise<Buffer>;
     signFundingTx(channel: Channel): Promise<Tx>;
     validateAcceptChannel(
