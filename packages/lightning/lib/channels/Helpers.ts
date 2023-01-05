@@ -4,8 +4,10 @@ import {
     HashByteOrder,
     Network,
     PublicKey,
+    Script,
     Tx,
     TxBuilder,
+    TxOut,
     Value,
 } from "@node-lightning/bitcoin";
 import { randomBytes } from "crypto";
@@ -30,6 +32,7 @@ import { CommitmentNumber } from "./CommitmentNumber";
 import { FundingSignedMessage } from "../messages/FundingSignedMessage";
 import { sigFromDER, verifySig } from "@node-lightning/crypto";
 import { FundingLockedMessage } from "../messages/FundingLockedMessage";
+import { ScriptFactory } from "./ScriptFactory";
 
 export class Helpers implements IChannelLogic {
     constructor(readonly wallet: IChannelWallet, public preferences: ChannelPreferences) {}
@@ -856,5 +859,25 @@ export class Helpers implements IChannelLogic {
         msg.channelId = channel.channelId;
         msg.nextPerCommitmentPoint = channel.ourSide.nextCommitmentPoint.toBuffer();
         return msg;
+    }
+
+    /**
+     * When the funding transaction is confirmed on-chain, we need to
+     * validate that the expected outpoint and script. In BOLT, prior to
+     * sending a `channel_ready` message we need to validate that the
+     * funding transaction corresponds to the expected channel creation.
+     * We do this by verifying:
+     * 1. The output pays exactly `funding_satoshis`
+     * 2. The output pays to the scriptpubkey established in BOLT 3 for
+     * the funding transaction
+     * @param channel
+     * @param tx
+     */
+    public validateFundingTx(channel: Channel, output: TxOut): boolean {
+        if (!output.value.eq(channel.fundingAmount)) return false;
+
+        if (!output.scriptPubKey.equals(channel.fundingScript)) return false;
+
+        return true;
     }
 }

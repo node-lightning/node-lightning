@@ -2,11 +2,14 @@ import {
     EcdsaSig,
     LockTime,
     Network,
+    OpCode,
     OutPoint,
     PrivateKey,
     Script,
     Sequence,
     Tx,
+    TxBuilder,
+    TxOut,
     Value,
 } from "@node-lightning/bitcoin";
 import { expect } from "chai";
@@ -1757,6 +1760,58 @@ describe(Helpers.name, () => {
             expect(result.nextPerCommitmentPoint.toString("hex")).to.equal(
                 "027eed8389cf8eb715d73111b73d94d2c2d04bf96dc43dfd5b0970d80b3617009d",
             );
+        });
+    });
+
+    describe(Helpers.prototype.validateFundingTx.name, () => {
+        it("true when matching value and script", () => {
+            // arrange
+            const channel = createFakeChannel()
+                .attachAcceptChannel(createFakeAcceptChannel())
+                .attachFundingTx(createFakeFundingTx())
+                .attachFundingSigned(createFakeFundingSignedMessage());
+            const helpers = new Helpers(undefined, undefined);
+            const txout = createFakeFundingTx().outputs[0];
+
+            // act
+            const result = helpers.validateFundingTx(channel, txout);
+
+            // assert
+            expect(result).to.equal(true);
+        });
+
+        it("false when mismatched value", () => {
+            // arrange
+            const channel = createFakeChannel()
+                .attachAcceptChannel(createFakeAcceptChannel())
+                .attachFundingTx(createFakeFundingTx())
+                .attachFundingSigned(createFakeFundingSignedMessage());
+            const helpers = new Helpers(undefined, undefined);
+            const txout = createFakeFundingTx().outputs[0] as TxOut;
+            txout.value = Value.fromBitcoin(1);
+
+            // act
+            const result = helpers.validateFundingTx(channel, txout);
+
+            // assert
+            expect(result).to.equal(false);
+        });
+
+        it("false when mismatched script", () => {
+            // arrange
+            const channel = createFakeChannel()
+                .attachAcceptChannel(createFakeAcceptChannel())
+                .attachFundingTx(createFakeFundingTx())
+                .attachFundingSigned(createFakeFundingSignedMessage());
+            const helpers = new Helpers(undefined, undefined);
+            const txout = createFakeFundingTx().outputs[0] as TxOut;
+            txout.scriptPubKey = new Script(OpCode.OP_1).toScriptBuf();
+
+            // act
+            const result = helpers.validateFundingTx(channel, txout);
+
+            // assert
+            expect(result).to.equal(false);
         });
     });
 });
