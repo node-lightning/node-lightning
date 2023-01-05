@@ -14,6 +14,7 @@ import { PeerState } from "../PeerState";
 import { AcceptChannelMessage } from "../messages/AcceptChannelMessage";
 import { IStateMachine } from "./IStateMachine";
 import { FundingSignedMessage } from "../messages/FundingSignedMessage";
+import { FundingLockedMessage } from "../messages/FundingLockedMessage";
 
 /**
  *
@@ -176,5 +177,19 @@ export class ChannelManager {
             const newState = await channel.state.onBlockConnected(channel, block);
             await this.transitionState(channel, newState);
         }
+    }
+
+    /**
+     * Processes a `channel_ready` message
+     * @param peer
+     * @param msg
+     */
+    public async onChannelReadyMessage(peer: IPeer, msg: FundingLockedMessage) {
+        const channel = this.findChannelById(msg.channelId);
+        if (!channel) {
+            return;
+        }
+        const newState = await channel.state.onChannelReadyMessage(channel, msg);
+        await this.transitionState(channel, newState);
     }
 }

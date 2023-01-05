@@ -335,6 +335,7 @@ export function createFakeState(name: string): Sinon.SinonStubbedInstance<IState
         onPeerConnected: Sinon.stub(),
         onPeerDisconnected: Sinon.stub(),
         onBlockConnected: Sinon.stub(),
+        onChannelReadyMessage: Sinon.stub(),
     };
 
     result.addSubState.callsFake((state: IStateMachine) => {
