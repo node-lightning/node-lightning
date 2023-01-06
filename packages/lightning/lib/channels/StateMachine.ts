@@ -3,7 +3,7 @@
 import { Block } from "@node-lightning/bitcoin";
 import { ILogger } from "@node-lightning/logger";
 import { AcceptChannelMessage } from "../messages/AcceptChannelMessage";
-import { FundingLockedMessage } from "../messages/FundingLockedMessage";
+import { ChannelReadyMessage } from "../messages/ChannelReadyMessage";
 import { FundingSignedMessage } from "../messages/FundingSignedMessage";
 import { ShutdownMessage } from "../messages/ShutdownMessage";
 import { IPeer } from "../Peer";
@@ -87,7 +87,7 @@ export abstract class StateMachine {
 
     public async onChannelReadyMessage(
         channel: Channel,
-        msg: FundingLockedMessage,
+        msg: ChannelReadyMessage,
     ): Promise<string> {
         return undefined;
     }

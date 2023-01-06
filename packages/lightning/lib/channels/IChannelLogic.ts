@@ -4,7 +4,7 @@ import { Htlc } from "../domain/Htlc";
 import { InitFeatureFlags } from "../flags/InitFeatureFlags";
 import { AcceptChannelMessage } from "../messages/AcceptChannelMessage";
 import { FundingCreatedMessage } from "../messages/FundingCreatedMessage";
-import { FundingLockedMessage } from "../messages/FundingLockedMessage";
+import { ChannelReadyMessage } from "../messages/ChannelReadyMessage";
 import { FundingSignedMessage } from "../messages/FundingSignedMessage";
 import { IWireMessage } from "../messages/IWireMessage";
 import { OpenChannelMessage } from "../messages/OpenChannelMessage";
@@ -26,7 +26,7 @@ export interface IChannelLogic {
         network: Network,
         options: OpenChannelRequest,
     ): Promise<Result<Channel, OpeningError>>;
-    createChannelReadyMessage(channel: Channel): Promise<FundingLockedMessage>;
+    createChannelReadyMessage(channel: Channel): Promise<ChannelReadyMessage>;
     createFundingCreatedMessage(
         channel: Channel,
         signature: Buffer,
@@ -51,7 +51,7 @@ export interface IChannelLogic {
     validateMinimumDepthTooLarge(depth: number);
     validatePushAmount(fundingAmount: Value, pushAmount: Value): boolean;
     validateDustLimitTooSmall(dustLimit: Value): boolean;
-    validateChannelReadyMessage(channel: Channel, msg: FundingLockedMessage): boolean;
+    validateChannelReadyMessage(channel: Channel, msg: ChannelReadyMessage): boolean;
     validateChannelReserveDustLimit(channelReserve: Value, dustLimit: Value): boolean;
     validateChannelReserveReachable(
         fundingAmount: Value,

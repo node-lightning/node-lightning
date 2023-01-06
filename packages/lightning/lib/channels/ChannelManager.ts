@@ -14,7 +14,7 @@ import { PeerState } from "../PeerState";
 import { AcceptChannelMessage } from "../messages/AcceptChannelMessage";
 import { IStateMachine } from "./IStateMachine";
 import { FundingSignedMessage } from "../messages/FundingSignedMessage";
-import { FundingLockedMessage } from "../messages/FundingLockedMessage";
+import { ChannelReadyMessage } from "../messages/ChannelReadyMessage";
 
 /**
  *
@@ -184,7 +184,7 @@ export class ChannelManager {
      * @param peer
      * @param msg
      */
-    public async onChannelReadyMessage(peer: IPeer, msg: FundingLockedMessage) {
+    public async onChannelReadyMessage(peer: IPeer, msg: ChannelReadyMessage) {
         const channel = this.findChannelById(msg.channelId);
         if (!channel) {
             return;

@@ -39,7 +39,7 @@ import { FundingCreatedMessage } from "../lib/messages/FundingCreatedMessage";
 import { IStateMachine } from "../lib/channels/IStateMachine";
 import { FundingSignedMessage } from "../lib/messages/FundingSignedMessage";
 import { Bits } from "@node-lightning/bitcoin/dist/Bits";
-import { FundingLockedMessage } from "../lib/messages/FundingLockedMessage";
+import { ChannelReadyMessage } from "../lib/messages/ChannelReadyMessage";
 
 export class FakePeer extends Readable implements IPeer {
     public state: PeerState;
@@ -355,8 +355,8 @@ export function createFakeFundingSignedMessage(): FundingSignedMessage {
     return msg;
 }
 
-export function createFakeChannelReady(): FundingLockedMessage {
-    const msg = new FundingLockedMessage();
+export function createFakeChannelReady(): ChannelReadyMessage {
+    const msg = new ChannelReadyMessage();
     const fundingTx = createFakeFundingTx();
     const fundingOutPoint = new OutPoint(fundingTx.txId, 0);
     msg.channelId = ChannelId.fromOutPoint(fundingOutPoint);

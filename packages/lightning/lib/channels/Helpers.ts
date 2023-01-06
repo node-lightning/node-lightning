@@ -30,7 +30,7 @@ import { Htlc } from "../domain/Htlc";
 import { CommitmentNumber } from "./CommitmentNumber";
 import { FundingSignedMessage } from "../messages/FundingSignedMessage";
 import { sigFromDER, verifySig } from "@node-lightning/crypto";
-import { FundingLockedMessage } from "../messages/FundingLockedMessage";
+import { ChannelReadyMessage } from "../messages/ChannelReadyMessage";
 import { IWireMessage, PeerManager } from "..";
 
 export class Helpers implements IChannelLogic {
@@ -866,8 +866,8 @@ export class Helpers implements IChannelLogic {
      * @param channel
      * @returns
      */
-    public async createChannelReadyMessage(channel: Channel): Promise<FundingLockedMessage> {
-        const msg = new FundingLockedMessage();
+    public async createChannelReadyMessage(channel: Channel): Promise<ChannelReadyMessage> {
+        const msg = new ChannelReadyMessage();
         msg.channelId = channel.channelId;
         msg.nextPerCommitmentPoint = channel.ourSide.nextCommitmentPoint.toBuffer();
         return msg;
@@ -900,7 +900,7 @@ export class Helpers implements IChannelLogic {
      * @param channel
      * @param msg
      */
-    public validateChannelReadyMessage(channel: Channel, msg: FundingLockedMessage): boolean {
+    public validateChannelReadyMessage(channel: Channel, msg: ChannelReadyMessage): boolean {
         if (!PublicKey.isValid(msg.nextPerCommitmentPoint)) return false;
 
         return true;

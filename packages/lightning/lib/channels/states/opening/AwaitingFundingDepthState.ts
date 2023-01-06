@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/require-await */
 import { Block, OutPoint } from "@node-lightning/bitcoin";
-import { FundingLockedMessage } from "../../../messages/FundingLockedMessage";
+import { ChannelReadyMessage } from "../../../messages/ChannelReadyMessage";
 import { Channel } from "../../Channel";
 import { StateMachine } from "../../StateMachine";
 import { FailingState } from "../FailingState";
@@ -10,7 +10,7 @@ import { AwaitingChannelReadyState } from "./AwaitingChannelReadyState";
 export class AwaitingFundingDepthState extends StateMachine {
     public async onChannelReadyMessage(
         channel: Channel,
-        msg: FundingLockedMessage,
+        msg: ChannelReadyMessage,
     ): Promise<string> {
         // Validate received message
         const isValid = this.logic.validateChannelReadyMessage(channel, msg);

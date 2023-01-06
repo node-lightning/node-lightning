@@ -9,7 +9,7 @@ import {
 } from "@node-lightning/bitcoin";
 import { ChannelId } from "../domain/ChannelId";
 import { AcceptChannelMessage } from "../messages/AcceptChannelMessage";
-import { FundingLockedMessage } from "../messages/FundingLockedMessage";
+import { ChannelReadyMessage } from "../messages/ChannelReadyMessage";
 import { FundingSignedMessage } from "../messages/FundingSignedMessage";
 import { ChannelSide } from "./ChannelSide";
 import { CommitmentNumber } from "./CommitmentNumber";
@@ -258,7 +258,7 @@ export class Channel {
      * `next` position.
      * @param msg
      */
-    public attachChannelReady(msg: FundingLockedMessage) {
+    public attachChannelReady(msg: ChannelReadyMessage) {
         // rotate next into current
         this.theirSide.commitmentNumber = this.theirSide.nextCommitmentNumber;
         this.theirSide.commitmentPoint = this.theirSide.nextCommitmentPoint;

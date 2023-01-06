@@ -1,6 +1,6 @@
 import { Block } from "@node-lightning/bitcoin";
 import { AcceptChannelMessage } from "../messages/AcceptChannelMessage";
-import { FundingLockedMessage } from "../messages/FundingLockedMessage";
+import { ChannelReadyMessage } from "../messages/ChannelReadyMessage";
 import { FundingSignedMessage } from "../messages/FundingSignedMessage";
 import { Channel } from "./Channel";
 
@@ -16,6 +16,6 @@ export interface IStateMachine {
     onPeerDisconnected(channel: Channel): Promise<string>;
     onAcceptChannelMessage(channel: Channel, msg: AcceptChannelMessage): Promise<string>;
     onFundingSignedMessage(channel: Channel, msg: FundingSignedMessage): Promise<string>;
-    onChannelReadyMessage(channel: Channel, msg: FundingLockedMessage): Promise<string>;
+    onChannelReadyMessage(channel: Channel, msg: ChannelReadyMessage): Promise<string>;
     onBlockConnected(channel: Channel, block: Block): Promise<string>;
 }

@@ -5,7 +5,7 @@ import { ChannelUpdateMessage } from "./messages/ChannelUpdateMessage";
 import { ClosingSignedMessage } from "./messages/ClosingSignedMessage";
 import { ErrorMessage } from "./messages/ErrorMessage";
 import { FundingCreatedMessage } from "./messages/FundingCreatedMessage";
-import { FundingLockedMessage } from "./messages/FundingLockedMessage";
+import { ChannelReadyMessage } from "./messages/ChannelReadyMessage";
 import { FundingSignedMessage } from "./messages/FundingSignedMessage";
 import { GossipTimestampFilterMessage } from "./messages/GossipTimestampFilterMessage";
 import { InitMessage } from "./messages/InitMessage";
@@ -46,7 +46,7 @@ export class MessageFactory {
             case MessageType.FundingSigned:
                 return FundingSignedMessage.deserialize(buffer);
             case MessageType.FundingLocked:
-                return FundingLockedMessage.deserialize(buffer);
+                return ChannelReadyMessage.deserialize(buffer);
             case MessageType.AnnouncementSignatures:
                 return AnnouncementSignaturesMessage.deserialize(buffer);
             case MessageType.Shutdown:
@@ -102,7 +102,7 @@ export class MessageFactory {
         return m.type === MessageType.FundingSigned;
     }
 
-    public static isFundingLocked(m: IWireMessage): m is FundingLockedMessage {
+    public static isFundingLocked(m: IWireMessage): m is ChannelReadyMessage {
         return m.type === MessageType.FundingLocked;
     }
 

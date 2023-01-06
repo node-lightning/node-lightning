@@ -9,17 +9,17 @@ import { IWireMessage } from "./IWireMessage";
  * in `accept_channel` via the `minimum_depth` property). This message
  * enables normal operation for the channel by providing the
  * next `per_commitment_point` needed to generate a new commitment
- * transaction signature. This message may get resent upon reconnections
+ * transaction signature. This message may get resent upon reconnection
  * if no additional updates have occurred for the channel.
  */
-export class FundingLockedMessage implements IWireMessage {
+export class ChannelReadyMessage implements IWireMessage {
     public static type: MessageType = MessageType.FundingLocked;
 
     /**
      * Deserializes the `funding_signed` message per BOLT2
      */
-    public static deserialize(buf: Buffer): FundingLockedMessage {
-        const instance = new FundingLockedMessage();
+    public static deserialize(buf: Buffer): ChannelReadyMessage {
+        const instance = new ChannelReadyMessage();
         const reader = new BufferReader(buf);
 
         reader.readUInt16BE(); // read type
@@ -32,7 +32,7 @@ export class FundingLockedMessage implements IWireMessage {
     /**
      * The type for message. funding_signed = 35
      */
-    public readonly type: MessageType = FundingLockedMessage.type;
+    public readonly type: MessageType = ChannelReadyMessage.type;
 
     /**
      * Unique channel identifier for the channel based on the funding
