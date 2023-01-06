@@ -1,10 +1,30 @@
+/* eslint-disable @typescript-eslint/require-await */
 import { Block, OutPoint } from "@node-lightning/bitcoin";
+import { FundingLockedMessage } from "../../../messages/FundingLockedMessage";
 import { Channel } from "../../Channel";
 import { StateMachine } from "../../StateMachine";
+import { FailingState } from "../FailingState";
 import { NormalState } from "../NormalState";
 import { AwaitingChannelReadyState } from "./AwaitingChannelReadyState";
 
 export class AwaitingFundingDepthState extends StateMachine {
+    public async onChannelReadyMessage(
+        channel: Channel,
+        msg: FundingLockedMessage,
+    ): Promise<string> {
+        // Validate received message
+        const isValid = this.logic.validateChannelReadyMessage(channel, msg);
+        if (!isValid) {
+            return FailingState.name;
+        }
+
+        // Capture the second_per_commitment_point on the channel
+        channel.attachChannelReady(msg);
+
+        // Stay in the same state until the funding depth has been reached
+        return AwaitingFundingDepthState.name;
+    }
+
     public async onBlockConnected(channel: Channel, block: Block): Promise<string> {
         // If the funding transaction hasn't been confirmed yet we perform
         if (!channel.fundingConfirmedHeight) {
