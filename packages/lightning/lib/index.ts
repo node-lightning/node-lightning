@@ -20,6 +20,10 @@ export * from "./IPausedReadable";
 export * from "./LinkedList";
 export * from "./LinkedListNode";
 
+export * from "./channels/IChannelLogic";
+export * from "./channels/IChannelStorage";
+export * from "./channels/IChannelWallet";
+
 export * from "./domain/Address";
 export * from "./domain/AddressIPv4";
 export * from "./domain/AddressIPv6";
