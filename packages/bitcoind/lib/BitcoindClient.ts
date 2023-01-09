@@ -17,6 +17,7 @@ import { Utxo } from "./types/Transaction";
 import url from "url";
 import { JsonRpcOptions } from "./JsonRpcOptions";
 import { SmartFeeEstimate } from "./types/SmartFeeEstimate";
+import { UnspentTx } from "./types/UnspentTx";
 
 export declare interface IBitcoindClient {
     on(event: "rawtx", listener: (rawtx: Buffer) => void): this;
@@ -220,6 +221,17 @@ export class BitcoindClient extends EventEmitter {
         type: "legacy" | "p2sh-segwit" | "bech32" = "bech32",
     ): Promise<string> {
         return await this._jsonrpc<string>("getnewaddress", [label, type]);
+    }
+
+    /**
+     * Returns array of unspent transaction outputs with between minconf
+     * and maxconf (inclusive) confirmations.
+     *
+     * Optionally filter to only include txouts paid to specified addresses.
+     * @returns
+     */
+    public async listUnspent(): Promise<UnspentTx[]> {
+        return await this._jsonrpc<UnspentTx[]>("listunspent");
     }
 
     /**
