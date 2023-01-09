@@ -16,6 +16,7 @@ import { Transaction } from "./types/Transaction";
 import { Utxo } from "./types/Transaction";
 import url from "url";
 import { JsonRpcOptions } from "./JsonRpcOptions";
+import { SmartFeeEstimate } from "./types/SmartFeeEstimate";
 
 export declare interface IBitcoindClient {
     on(event: "rawtx", listener: (rawtx: Buffer) => void): this;
@@ -72,6 +73,17 @@ export class BitcoindClient extends EventEmitter {
         sock.connect(this.opts.zmqpubrawblock);
         sock.subscribe("rawblock");
         sock.on("message", (topic: string, message: Buffer) => this.emit("rawblock", message));
+    }
+
+    /**
+     * Estimates the approximate fee per kilobyte needed for a
+     * transaction to begin confirmation within conf_target blocks if
+     * possible and return the number of blocks for which the estimate
+     * is valid.
+     * @param blocks
+     */
+    public async estimateSmartFee(confTarget: number): Promise<SmartFeeEstimate> {
+        return this._jsonrpc<SmartFeeEstimate>("estimatesmartfee", [confTarget]);
     }
 
     /**
