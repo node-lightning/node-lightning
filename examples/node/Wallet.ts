@@ -66,8 +66,14 @@ export class Wallet implements IChannelWallet {
         return Value.fromBitcoin(satsPerKvb * 4);
     }
 
+    /**
+     * Returns the configured dust limit for the Bitcoin node backing
+     * the Lightning instance. This must conform with BOLT 3 Dust Limits
+     * which has a specified limit of 354 as specified in BOLT 2 in order
+     * to accommodate option_shutdown_any_segwit.
+     */
     public async getDustLimit(): Promise<Value> {
-        throw new Error("Not implemented");
+        return Value.fromSats(354);
     }
 
     public async checkWalletHasFunds(fundingAmt: Value): Promise<boolean> {
