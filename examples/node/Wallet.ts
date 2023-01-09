@@ -76,8 +76,22 @@ export class Wallet implements IChannelWallet {
         return Value.fromSats(354);
     }
 
+    /**
+     * Verify with the wallet that sufficient funds are available for
+     * spending.
+     *
+     * This method uses `listunspent` RPC call to obtain a list of UTXOs
+     * that are available for spending. It calculates the total available
+     * and if this is greater than our requested amount we return true.
+     * @param fundingAmt
+     */
     public async checkWalletHasFunds(fundingAmt: Value): Promise<boolean> {
-        throw new Error("Not implemented");
+        const unspent = await this.bitcoind.listUnspent();
+        const total = unspent
+            .filter(p => p.spendable)
+            .map(p => Value.fromBitcoin(p.amount))
+            .reduce((sum, btc) => sum.add(btc), Value.zero());
+        return total.gte(fundingAmt);
     }
 
     public async createFundingKey(): Promise<PrivateKey> {
