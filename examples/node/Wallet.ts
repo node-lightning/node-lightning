@@ -1,10 +1,21 @@
-import { Value, PrivateKey, TxBuilder, Tx, Network } from "@node-lightning/bitcoin";
+import { Value, PrivateKey, TxBuilder, Tx, Network, HashValue } from "@node-lightning/bitcoin";
 import { BitcoindClient } from "@node-lightning/bitcoind";
 import { IChannelWallet } from "@node-lightning/lightning";
 import { CreateBasePointsResult } from "@node-lightning/lightning/dist/channels/CreateBasePointsResult";
+import crypto from "crypto";
 
 export class Wallet implements IChannelWallet {
-    constructor(readonly network: Network, readonly bitcoind: BitcoindClient) {}
+    public network: Network;
+
+    constructor(readonly bitcoind: BitcoindClient) {}
+
+    /**
+     *
+     */
+    public async initialize() {
+        const hash = await this.bitcoind.getBlockHash(0);
+        this.network = Network.regtest(HashValue.fromRpc(hash));
+    }
 
     /**
      * Obtains a `feerate_per_kw` that will ensure a transaction will be
@@ -94,16 +105,34 @@ export class Wallet implements IChannelWallet {
         return total.gte(fundingAmt);
     }
 
+    /**
+     * Creates a new private key for use in the 2-of-2 multisig output
+     * of the funding transaction.
+     */
     public async createFundingKey(): Promise<PrivateKey> {
-        throw new Error("Not implemented");
+        return new PrivateKey(crypto.randomBytes(32), this.network);
     }
 
+    /**
+     * Calls the wallet to obtain new basepoint secrets for
+     * `payment_basepoint_`, `_delayed_payment_basepoint_`,
+     * `_htlc_basepoint` and `_revocation_basepoint_`.
+     */
     public async createBasePointSecrets(): Promise<CreateBasePointsResult> {
-        throw new Error("Not implemented");
+        return {
+            paymentBasePointSecret: new PrivateKey(crypto.randomBytes(32), this.network),
+            delayedPaymentBasePointSecret: new PrivateKey(crypto.randomBytes(32), this.network),
+            htlcBasePointSecret: new PrivateKey(crypto.randomBytes(32), this.network),
+            revocationBasePointSecret: new PrivateKey(crypto.randomBytes(32), this.network),
+        };
     }
 
+    /**
+     * Calls the wallet to obtain an unguessabele seed for use in the
+     * per-commitment secret.
+     */
     public async createPerCommitmentSeed(): Promise<Buffer> {
-        throw new Error("Not implemented");
+        return crypto.randomBytes(32);
     }
 
     public async fundTx(builder: TxBuilder): Promise<TxBuilder> {
