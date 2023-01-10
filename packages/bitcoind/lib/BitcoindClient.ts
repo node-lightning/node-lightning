@@ -18,6 +18,7 @@ import url from "url";
 import { JsonRpcOptions } from "./JsonRpcOptions";
 import { SmartFeeEstimate } from "./types/SmartFeeEstimate";
 import { UnspentTx } from "./types/UnspentTx";
+import { SigningResult } from "./types/SigningResult";
 
 export declare interface IBitcoindClient {
     on(event: "rawtx", listener: (rawtx: Buffer) => void): this;
@@ -232,6 +233,21 @@ export class BitcoindClient extends EventEmitter {
      */
     public async listUnspent(): Promise<UnspentTx[]> {
         return await this._jsonrpc<UnspentTx[]>("listunspent");
+    }
+
+    /**
+     * Sign inputs for raw transaction (serialized, hex-encoded).
+     *
+     * The second optional argument (may be null) is an array of previous
+     * transaction outputs that this transaction depends on but may not
+     * yet be in the block chain.
+     *
+     * Requires wallet passphrase to be set with walletpassphrase call
+     * if wallet is encrypted.
+     * @param hex
+     */
+    public async signTransactionWithWallet(hex: string): Promise<SigningResult> {
+        return await this._jsonrpc<SigningResult>("signrawtransactionwithwallet", [hex]);
     }
 
     /**

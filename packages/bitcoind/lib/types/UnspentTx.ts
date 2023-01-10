@@ -6,8 +6,11 @@ export type UnspentTx = {
     scriptPubKey: string;
     amount: number;
     confirmations: number;
+    redeemScript: string;
+    witnessScript: string;
     spendable: boolean;
     solvable: boolean;
+    reused: boolean;
     desc: string;
     safe: boolean;
 };
