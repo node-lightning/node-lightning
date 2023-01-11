@@ -27,7 +27,9 @@ export class Tx {
      * is enabled and we have an ambiguous base transaction (zero inputs).
      * @param reader
      */
-    public static parse(reader: StreamReader, allowWitness: boolean = true): Tx {
+    public static parse(input: StreamReader | Buffer, allowWitness: boolean = true): Tx {
+        const reader = input instanceof Buffer ? StreamReader.fromBuffer(input) : input;
+
         // Read the version
         const version = reader.readUInt32LE();
 
