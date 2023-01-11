@@ -71,7 +71,7 @@ export class TxBuilder {
      */
     public addInput(outpoint: TxIn | string | OutPoint, sequence?: Sequence): void {
         if (outpoint instanceof TxIn) {
-            this._inputs.push(outpoint.clone());
+            this._inputs.push(outpoint);
         } else {
             outpoint = outpoint instanceof OutPoint ? outpoint : OutPoint.fromString(outpoint);
             this._inputs.push(new TxIn(outpoint, undefined, sequence));
@@ -87,7 +87,7 @@ export class TxBuilder {
      */
     public addOutput(value: TxOut | number | Value, scriptPubKey?: ScriptBuf | Script) {
         if (value instanceof TxOut) {
-            this._outputs.push(value.clone());
+            this._outputs.push(value);
         } else {
             value = value instanceof Value ? value : Value.fromBitcoin(value);
             this._outputs.push(new TxOut(value, scriptPubKey));

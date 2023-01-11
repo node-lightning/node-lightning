@@ -9,4 +9,6 @@ export * from "./types/Block";
 export * from "./types/BlockChainInfo";
 export * from "./types/BlockHeader";
 export * from "./types/BlockSummary";
+export * from "./types/SigningResult";
 export * from "./types/Transaction";
+export * from "./types/UnspentTx";
