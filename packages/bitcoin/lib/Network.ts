@@ -1,27 +1,13 @@
+import { BitcoinError } from "./BitcoinError";
+import { BitcoinErrorCode } from "./BitcoinErrorCode";
 import { HashValue } from "./HashValue";
 
 export class Network {
-    public static regtest(genesisHash: HashValue): Network {
-        return new Network(
-            "regtest",
-            genesisHash,
-            0x6f, // m or n
-            0xc4, // 2
-            "bcrt",
-            "bcrt",
-            0x043587cf, // tpub
-            0x04358394, // tprv
-            0x044a5262, // upub
-            0x044a4e28, // uprv
-            0x045f1cf6, // vpub
-            0x045f18bc, // vprv
-            0xef,
-        );
-    }
+    private _genesisHash: HashValue;
 
     constructor(
         readonly name: string,
-        readonly genesisHash: HashValue,
+        genesisHash: HashValue,
         readonly p2pkhPrefix: number,
         readonly p2shPrefix: number,
         readonly p2wpkhPrefix: string,
@@ -33,22 +19,81 @@ export class Network {
         readonly zpubVersion: number,
         readonly zprvVersion: number,
         readonly wifPrefix: number,
-    ) {}
+    ) {
+        this._genesisHash = genesisHash;
+    }
 
     public isMainnet() {
         return this.name === "mainnet";
     }
 
+    /**
+     * Gets the hash of the genesis block for the network.
+     */
+    public get genesisHash(): HashValue {
+        if (!this._genesisHash) {
+            throw new BitcoinError(BitcoinErrorCode.GenesisHashNotDefined);
+        }
+        return this._genesisHash;
+    }
+
+    /**
+     * Sets the hash of the genesis block for the network.
+     */
+    public set genesisHash(value: HashValue) {
+        this._genesisHash = value;
+    }
+
+    /**
+     * Gets the mainnet Network instance
+     */
     public static get mainnet(): Network {
         return mainnet;
     }
 
+    /**
+     * Gets the testnet Network instance
+     */
     public static get testnet(): Network {
         return testnet;
     }
 
+    /**
+     * Gets the default regtest Network instance. Note that
+     * `genesisHash` is undefined. Use `createRegtest` method to create
+     * a custom `regtest` network.
+     */
+    public static get regtest(): Network {
+        return regtest;
+    }
+
+    /**
+     * Gets all default networks
+     */
     public static get all(): Network[] {
         return all;
+    }
+
+    /**
+     * Clones the network into a new instance.
+     * @returns
+     */
+    public clone(): Network {
+        return new Network(
+            this.name,
+            this.genesisHash,
+            this.p2pkhPrefix,
+            this.p2shPrefix,
+            this.p2wpkhPrefix,
+            this.p2wshPrefix,
+            this.xpubVersion,
+            this.xprvVersion,
+            this.ypubVersion,
+            this.yprvVersion,
+            this.zpubVersion,
+            this.zprvVersion,
+            this.wifPrefix,
+        );
     }
 }
 
@@ -84,4 +129,20 @@ const testnet = new Network(
     0xef,
 );
 
-const all = [mainnet, testnet];
+const regtest = new Network(
+    "regtest",
+    undefined,
+    0x6f, // m or n
+    0xc4, // 2
+    "bcrt",
+    "bcrt",
+    0x043587cf, // tpub
+    0x04358394, // tprv
+    0x044a5262, // upub
+    0x044a4e28, // uprv
+    0x045f1cf6, // vpub
+    0x045f18bc, // vprv
+    0xef,
+);
+
+const all = [mainnet, testnet, regtest];

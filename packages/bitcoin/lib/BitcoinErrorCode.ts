@@ -42,4 +42,7 @@ export enum BitcoinErrorCode {
 
     // Value
     ValueUnderflow,
+
+    // Network
+    GenesisHashNotDefined,
 }
