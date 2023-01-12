@@ -634,6 +634,9 @@ export class Helpers implements IChannelLogic {
      * This function calls the bitcoin wallet to obtain inputs that are
      * sufficient to cover the `fundingAmount` and ensure the funding
      * transaction is confirmed immediately.
+     *
+     * The result of this function is an immutable, ready-to-broadcast
+     * funding transaction.
      * @param channel
      * @returns
      */
