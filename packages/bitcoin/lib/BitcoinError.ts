@@ -68,6 +68,9 @@ function getMessage(code: BitcoinErrorCode) {
 
         case BitcoinErrorCode.ValueUnderflow:
             return "Value underflow";
+
+        case BitcoinErrorCode.GenesisHashNotDefined:
+            return "Genesis hash not set";
     }
 }
 
