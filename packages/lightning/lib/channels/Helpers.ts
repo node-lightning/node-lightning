@@ -617,7 +617,7 @@ export class Helpers implements IChannelLogic {
     }
 
     /**
-     * Constructs a partial transaction with one or more inputs
+     * Constructs a completed transaction with one or more inputs
      * sufficient to cover the `funding_satoshis` value. Contains one or
      * more outputs, one of which must be the funding output. The funding
      * transaction is defined BOLT 3. This funding output must be a
@@ -630,6 +630,10 @@ export class Helpers implements IChannelLogic {
      * The pubkeys are the lexicographical ordering of the
      * `funding_pubkey` values. Lexicographical ordering improves privacy
      * by not leaking which of the nodes is the funding node.
+     *
+     * This function calls the bitcoin wallet to obtain inputs that are
+     * sufficient to cover the `fundingAmount` and ensure the funding
+     * transaction is confirmed immediately.
      * @param channel
      * @returns
      */
@@ -642,8 +646,7 @@ export class Helpers implements IChannelLogic {
                 channel.theirSide.fundingPubKey.toBuffer(),
             ),
         );
-        await this.wallet.fundTx(tx);
-        return tx.toTx();
+        return await this.wallet.fundTx(tx);
     }
 
     /**
@@ -835,18 +838,6 @@ export class Helpers implements IChannelLogic {
         if (!result) {
             return OpeningError.toResult(OpeningErrorType.InvalidCommitmentSig);
         }
-    }
-
-    /**
-     * Used by the funder. This method accepts a completed funding
-     * transaction as an argument. The funder's on-chain wallet will
-     * known how to sign this transaction based on the used UTXOs and
-     * will perform the appropriate signing and input configurations.
-     * The wallet should return an immutable and broadcastable transaction.
-     * @param channel
-     */
-    public async signFundingTx(channel: Channel): Promise<Tx> {
-        return await this.wallet.signFundingTx(channel.fundingTx);
     }
 
     /**

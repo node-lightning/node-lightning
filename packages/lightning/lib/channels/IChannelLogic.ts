@@ -38,7 +38,6 @@ export interface IChannelLogic {
     createTempChannelId(): Buffer;
     sendMessage(peerId: string, msg: IWireMessage);
     signCommitmentTx(channel: Channel, ctx: TxBuilder): Promise<Buffer>;
-    signFundingTx(channel: Channel): Promise<Tx>;
     validateAcceptChannel(
         channel: Channel,
         msg: AcceptChannelMessage,

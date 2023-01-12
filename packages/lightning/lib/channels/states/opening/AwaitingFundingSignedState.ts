@@ -19,9 +19,6 @@ export class AwaitingFundingSignedState extends StateMachine {
         // Attach funding_signed information to channel
         channel.attachFundingSigned(msg);
 
-        // Sign the funding transaction
-        channel.fundingTx = await this.logic.signFundingTx(channel);
-
         // Broadcast funding transaction
         await this.logic.broadcastTx(channel.fundingTx);
 

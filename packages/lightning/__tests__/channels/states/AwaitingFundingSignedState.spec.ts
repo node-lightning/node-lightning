@@ -1,4 +1,3 @@
-import { Tx } from "@node-lightning/bitcoin";
 import { ILogger } from "@node-lightning/logger";
 import { expect } from "chai";
 import { Channel } from "../../../lib/channels/Channel";
@@ -16,6 +15,7 @@ import {
     createFakeChannel,
     createFakeAcceptChannel,
     createFakeFundingSignedMessage,
+    createFakeFundingTx,
 } from "../../_test-utils";
 
 describe(AwaitingFundingSignedState.name, () => {
@@ -52,13 +52,11 @@ describe(AwaitingFundingSignedState.name, () => {
         });
         describe("valid message", () => {
             let msg: FundingSignedMessage;
-            let fundingTx: Tx;
 
             beforeEach(() => {
                 msg = createFakeFundingSignedMessage();
-                fundingTx = new Tx();
+                channel.attachFundingTx(createFakeFundingTx());
                 logic.validateFundingSignedMessage.resolves(Result.ok(true));
-                logic.signFundingTx.resolves(fundingTx);
             });
 
             it("attaches signature to channel", async () => {
