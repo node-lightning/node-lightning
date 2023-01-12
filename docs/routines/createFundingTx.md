@@ -21,3 +21,7 @@ Constructs a partial transaction with one or more inputs sufficient to cover the
 -   Once this transaction is created, we can use the outpoint (txid + output index). We will hold off on broadcasting the funding transaction until we have a valid commitment signature from our peer.
 -   This transaction should only use segwit BIP141 (SegWit) inputs.
 -   If the funding transaction fails to confirm within 2016 blocks, the fundee (accepting node) will forget the channel. As such it is recommended to include a change output that is eligible for fee bumping the funding transaction via CPFP
+
+This function calls the bitcoin wallet to obtain inputs that are sufficient to cover the `fundingAmount` and ensure the funding transaction is confirmed immediately.
+
+The result of this function is an immutable, ready-to-broadcast funding transaction.

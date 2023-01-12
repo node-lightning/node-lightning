@@ -1455,7 +1455,7 @@ describe(Helpers.name, () => {
 
                 // enable rbf
                 tx.locktime = LockTime.zero();
-                return tx;
+                return tx.toTx();
             });
             const channel = createFakeChannel().attachAcceptChannel(createFakeAcceptChannel());
             const preferences = new ChannelPreferences();
@@ -1700,25 +1700,6 @@ describe(Helpers.name, () => {
 
             // assert
             expect(result).to.equal(false);
-        });
-    });
-
-    describe(Helpers.prototype.signFundingTx.name, () => {
-        it("calls the wallet", async () => {
-            // arrange
-            const channel = createFakeChannel()
-                .attachAcceptChannel(createFakeAcceptChannel())
-                .attachFundingTx(createFakeFundingTx());
-            const wallet = createFakeChannelWallet();
-            const fakeTx = new Tx();
-            wallet.signFundingTx.resolves(fakeTx);
-            const helpers = new Helpers(wallet, undefined, undefined);
-
-            // act
-            const result = await helpers.signFundingTx(channel);
-
-            // assert
-            expect(result).to.equal(fakeTx);
         });
     });
 
