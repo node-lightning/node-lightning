@@ -1,4 +1,5 @@
 import { BufferWriter } from "@node-lightning/bufio";
+import { AddressType } from "./AddressType";
 import { Base58Check } from "./Base58Check";
 import { Bech32, Bech32Version } from "./Bech32";
 import { BitcoinError } from "./BitcoinError";
@@ -9,6 +10,32 @@ import { Network } from "./Network";
  * Address encoding/decoding utility for legacy and segwit addresses.
  */
 export class Address {
+    /**
+     * Convenient helper method that attempts to decode any address.
+     *
+     * @param address
+     */
+    public static fromStr(address: string): { type: AddressType; network: Network; hash: Buffer } {
+        const bech32Prefixes: string[] = [];
+        for (const network of Network.all) {
+            bech32Prefixes.push(network.p2wpkhPrefix);
+            bech32Prefixes.push(network.p2wpkhPrefix.toUpperCase());
+            bech32Prefixes.push(network.p2wshPrefix);
+            bech32Prefixes.push(network.p2wshPrefix.toUpperCase());
+        }
+
+        // try bech32 first by checking if it starts with an hrp prefix
+        for (const bech32Prefix of bech32Prefixes) {
+            if (address.startsWith(bech32Prefix)) {
+                const result = this.decodeBech32(address);
+                return { type: result.type, network: result.network, hash: result.program };
+            }
+        }
+
+        // otherwise try base58
+        return this.decodeBase58(address);
+    }
+
     /**
      * Encodes a P2PKH or P2SH address using Base58Check in the format
      * - 1-byte: prefix
@@ -36,7 +63,7 @@ export class Address {
      */
     public static decodeBase58(
         encoded: string,
-    ): { network: Network; prefix: number; hash: Buffer } {
+    ): { type: AddressType; network: Network; prefix: number; hash: Buffer } {
         const data = Base58Check.decode(encoded);
         const prefix = data[0];
         const hash = data.slice(1);
@@ -44,8 +71,10 @@ export class Address {
             throw new BitcoinError(BitcoinErrorCode.Hash160Invalid, { hash });
         }
         for (const network of Network.all) {
-            if (network.p2pkhPrefix === prefix || network.p2shPrefix === prefix) {
-                return { network, prefix, hash };
+            if (network.p2pkhPrefix === prefix) {
+                return { type: AddressType.P2pkh, network, prefix, hash };
+            } else if (network.p2shPrefix === prefix) {
+                return { type: AddressType.P2sh, network, prefix, hash };
             }
         }
         throw new BitcoinError(BitcoinErrorCode.UnknownAddressPrefix, { encoded });
@@ -71,7 +100,7 @@ export class Address {
      */
     public static decodeBech32(
         encoded: string,
-    ): { network: Network; version: number; program: Buffer } {
+    ): { type: AddressType; network: Network; version: number; program: Buffer } {
         const { hrp, words, version: checksum } = Bech32.decode(encoded);
         const version = words[0];
         if (version < 0 || version > 16) {
@@ -87,6 +116,12 @@ export class Address {
         }
 
         const program = Bech32.wordsToBuffer(words.slice(1), false);
+
+        let type: AddressType;
+        if (version === 0) {
+            if (program.length === 20) type = AddressType.P2wpkh;
+            if (program.length === 32) type = AddressType.P2wsh;
+        }
 
         if (version === 0 && program.length !== 20 && program.length !== 32) {
             throw new BitcoinError(BitcoinErrorCode.InvalidWitnessProgram, {
@@ -107,7 +142,7 @@ export class Address {
         }
 
         for (const network of Network.all) {
-            if (hrp === network.p2wpkhPrefix) return { network, version, program };
+            if (hrp === network.p2wpkhPrefix) return { type, network, version, program };
         }
 
         throw new BitcoinError(BitcoinErrorCode.UnknownAddressPrefix, { encoded, hrp });

@@ -3,8 +3,45 @@ import { Address } from "../lib/Address";
 import { Network } from "../lib/Network";
 import { Script } from "../lib/Script";
 import { OpCode, PrivateKey } from "../lib";
+import { AddressType } from "../lib/AddressType";
 
 describe("Address", () => {
+    describe(Address.fromStr.name, () => {
+        it("valid P2PKH", () => {
+            const decoded = Address.fromStr("1BgGZ9tcN4rm9KBzDn7KprQz87SZ26SAMH");
+            expect(decoded.type).to.equal(AddressType.P2pkh);
+        });
+
+        it("valid P2SH", () => {
+            const decoded = Address.fromStr("3MaB7QVq3k4pQx3BhsvEADgzQonLSBwMdj");
+            expect(decoded.type).to.equal(AddressType.P2sh);
+        });
+
+        it("valid P2WPKH", () => {
+            const decoded = Address.fromStr("bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4");
+            expect(decoded.type).to.equal(AddressType.P2wpkh);
+        });
+
+        it("valid P2WPKH", () => {
+            const decoded = Address.fromStr("BC1QW508D6QEJXTDG4Y5R3ZARVARY0C5XW7KV8F3T4");
+            expect(decoded.type).to.equal(AddressType.P2wpkh);
+        });
+
+        it("valid P2WSH", () => {
+            const decoded = Address.fromStr(
+                "bc1qft5p2uhsdcdc3l2ua4ap5qqfg4pjaqlp250x7us7a8qqhrxrxfsq2gp3gp",
+            );
+            expect(decoded.type).to.equal(AddressType.P2wsh);
+        });
+
+        it("valid P2WSH", () => {
+            const decoded = Address.fromStr(
+                "BC1QFT5P2UHSDCDC3L2UA4AP5QQFG4PJAQLP250X7US7A8QQHRXRXFSQ2GP3GP",
+            );
+            expect(decoded.type).to.equal(AddressType.P2wsh);
+        });
+    });
+
     describe(".encodeBase58()", () => {
         it("throws on invalid hash length", () => {
             const input = Buffer.alloc(32);
@@ -69,6 +106,7 @@ describe("Address", () => {
 
         it("decode P2PKH", () => {
             const decoded = Address.decodeBase58("1BgGZ9tcN4rm9KBzDn7KprQz87SZ26SAMH");
+            expect(decoded.type).to.equal(AddressType.P2pkh);
             expect(decoded.network).to.equal(Network.mainnet);
             expect(decoded.prefix).to.equal(Network.mainnet.p2pkhPrefix);
             expect(decoded.hash.toString("hex")).to.equal(
@@ -90,6 +128,7 @@ describe("Address", () => {
 
         it("decode P2SH", () => {
             const decoded = Address.decodeBase58("3MaB7QVq3k4pQx3BhsvEADgzQonLSBwMdj");
+            expect(decoded.type).to.equal(AddressType.P2sh);
             expect(decoded.network).to.equal(Network.mainnet);
             expect(decoded.prefix).to.equal(Network.mainnet.p2shPrefix);
             expect(decoded.hash.toString("hex")).to.equal(
@@ -152,6 +191,7 @@ describe("Address", () => {
 
         it("decode P2WPKH", () => {
             const decoded = Address.decodeBech32("bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4");
+            expect(decoded.type).to.equal(AddressType.P2wpkh);
             expect(decoded.network).to.equal(Network.mainnet);
             expect(decoded.version).to.equal(0);
             expect(decoded.program.toString("hex")).to.equal(
@@ -168,6 +208,7 @@ describe("Address", () => {
             const decoded = Address.decodeBech32(
                 "bc1qft5p2uhsdcdc3l2ua4ap5qqfg4pjaqlp250x7us7a8qqhrxrxfsq2gp3gp",
             );
+            expect(decoded.type).to.equal(AddressType.P2wsh);
             expect(decoded.network).to.equal(Network.mainnet);
             expect(decoded.version).to.equal(0);
             expect(decoded.program.toString("hex")).to.equal(
