@@ -13,6 +13,7 @@
     "@node-lightning/bitcoin": "file:../../packages/bitcoin",
     "@node-lightning/bitcoind": "file:../../packages/bitcoind",
     "@node-lightning/bufio": "file:../../packages/bufio",
-    "@node-lightning/lightning": "file:../../packages/lightning"
+    "@node-lightning/lightning": "file:../../packages/lightning",
+    "@node-lightning/logger": "file:../../packages/logger"
   }
 }
