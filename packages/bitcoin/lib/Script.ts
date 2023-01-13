@@ -4,6 +4,7 @@ import { BufferReader } from "@node-lightning/bufio";
 import { StreamReader } from "@node-lightning/bufio";
 import { hash160, isDERSig, sha256, validPublicKey } from "@node-lightning/crypto";
 import { Address } from "./Address";
+import { AddressType } from "./AddressType";
 import { BitcoinError } from "./BitcoinError";
 import { BitcoinErrorCode } from "./BitcoinErrorCode";
 import { ICloneable } from "./ICloneable";
@@ -57,6 +58,24 @@ export class Script implements ICloneable<Script> {
         // anything else is encoded as signed-magnitude value
         // and added to the script as raw push bytes
         return Stack.encodeNum(val);
+    }
+
+    /**
+     * This is a sugar method that parses the address and constructs a
+     * scriptPubKey for the appropriate address type.
+     */
+    public static p2addrLock(address: string): Script {
+        const { type, hash } = Address.fromStr(address);
+        switch (type) {
+            case AddressType.P2pkh:
+                return Script.p2pkhLock(hash);
+            case AddressType.P2sh:
+                return Script.p2shLock(hash);
+            case AddressType.P2wpkh:
+                return Script.p2wpkhLock(hash);
+            case AddressType.P2wsh:
+                return Script.p2wshLock(hash);
+        }
     }
 
     /**
