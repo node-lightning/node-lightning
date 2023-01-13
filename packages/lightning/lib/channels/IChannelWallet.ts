@@ -9,7 +9,6 @@ export interface IChannelWallet {
     createBasePointSecrets(): Promise<CreateBasePointsResult>;
     createPerCommitmentSeed(): Promise<Buffer>;
     fundTx(builder: TxBuilder): Promise<Tx>;
-    signFundingTx(tx: Tx): Promise<Tx>;
     broadcastTx(tx: Tx): Promise<void>;
     getBlockHeight(): Promise<number>;
 }
