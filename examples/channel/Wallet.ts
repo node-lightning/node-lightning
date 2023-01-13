@@ -1,3 +1,4 @@
+import { ILogger } from "@node-lightning/logger";
 import { varIntBytes } from "@node-lightning/bufio";
 import {
     Value,
@@ -20,7 +21,11 @@ import { CreateBasePointsResult } from "@node-lightning/lightning/dist/channels/
 import crypto from "crypto";
 
 export class Wallet implements IChannelWallet {
-    constructor(readonly network: Network, readonly bitcoind: BitcoindClient) {}
+    public logger: ILogger;
+
+    constructor(logger: ILogger, readonly network: Network, readonly bitcoind: BitcoindClient) {
+        this.logger = logger.sub(Wallet.name);
+    }
 
     /**
      * Returns a list of spendable UTXOs
@@ -175,8 +180,17 @@ export class Wallet implements IChannelWallet {
      * @param builder
      */
     public async fundTx(builder: TxBuilder): Promise<Tx> {
-        const fundingAmount = builder.outputs[0].value;
-        console.log("fundingAmount", fundingAmount.bitcoin.toFixed(8));
+        this.logger.info(
+            "funding transaction:",
+            builder.inputs.length,
+            "vin,",
+            builder.outputs.length,
+            "vout",
+        );
+        const outputAmount = builder.outputs
+            .map(vout => vout.value)
+            .reduce((sum, val) => sum.addn(val), Value.zero());
+        this.logger.debug("  output_value=", outputAmount.bitcoin.toFixed(8));
 
         // obtain utxos
         const utxos = await this.getSpendableUtxos();
@@ -188,18 +202,19 @@ export class Wallet implements IChannelWallet {
             const amount = Value.fromBitcoin(utxo.amount);
             inputAmount.add(amount);
 
-            if (inputAmount.gt(fundingAmount)) break;
+            if (inputAmount.gt(outputAmount)) break;
         }
-        console.log("inputAmount", inputAmount.bitcoin.toFixed(8));
+        this.logger.debug("  input_num=", builder.inputs.length);
+        this.logger.debug("  input_value=", inputAmount.bitcoin.toFixed(8));
 
         // add change output
         const changeAddress = await this.bitcoind.getNewAddress(undefined, "bech32");
-        const changeProgram = Address.decodeBech32(changeAddress);
-        const changeOutput = new TxOut(Value.zero(), Script.p2wpkhLock(changeProgram.program));
+        const changeOutput = new TxOut(Value.zero(), Script.p2addrLock(changeAddress));
         builder.addOutput(changeOutput);
 
         // get the feeRatePerKw
         const feeRatePerKw = await this.getFeeRatePerKw();
+        this.logger.debug("  fee_rate_per_kw=", feeRatePerKw.bitcoin.toFixed(8));
 
         let stdWeight =
             4 + // version
@@ -220,21 +235,21 @@ export class Wallet implements IChannelWallet {
             2 + // flag bytes
             builder.inputs.length * (varIntBytes(2) + varIntBytes(73) + 73 + varIntBytes(33) + 33); // fixed length witness since all are p2wpkh inputs
         const weight = stdWeight + witnessWeight;
+        this.logger.debug("  tx_weight=", weight);
 
         // calc fees
         const fees = Value.fromSats((BigInt(weight) * feeRatePerKw.sats) / 1000n);
-
-        console.log("feeValue", fees.bitcoin.toFixed(8));
+        this.logger.debug("  fee_value=", fees.bitcoin.toFixed(8));
 
         // check for overflow
-        if (fundingAmount.addn(fees).gt(inputAmount)) {
+        if (outputAmount.addn(fees).gt(inputAmount)) {
             throw new Error("Failed to fund");
         }
 
         // calculate change
-        const change = inputAmount.subn(fundingAmount).subn(fees);
+        const change = inputAmount.subn(outputAmount).subn(fees);
         changeOutput.value = change;
-        console.log("changeValue", change.bitcoin.toFixed(8));
+        this.logger.debug("  change_value=", change.bitcoin.toFixed(8));
 
         // sign the transaction
         const signResult = await this.bitcoind.signTransactionWithWallet(builder.toTx().toHex());
@@ -243,24 +258,11 @@ export class Wallet implements IChannelWallet {
         return Tx.fromHex(signResult.hex);
     }
 
-    public async signTx(builder: TxBuilder): Promise<Tx> {
-        throw new Error("Not implemented");
-    }
-
-    public async signFundingTx(tx: Tx): Promise<Tx> {
-        // sign the transaction
-        const result = await this.bitcoind.signTransactionWithWallet(tx.toHex());
-        if (!result.complete) {
-            throw new Error("Failed to sign transaction");
-        }
-        return Tx.fromHex(result.hex);
-    }
-
     public async broadcastTx(tx: Tx): Promise<void> {
-        throw new Error("Not implemented");
+        this.bitcoind.sendRawTransaction(tx.toHex());
     }
 
     public async getBlockHeight(): Promise<number> {
-        throw new Error("Not implemented");
+        return await this.bitcoind.getBlockCount();
     }
 }
