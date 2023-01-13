@@ -96,6 +96,15 @@ export class BitcoindClient extends EventEmitter {
     }
 
     /**
+     * Returns the height of the most-work fully-validated chain.
+     * The genesis block has height 0.
+     * @returns
+     */
+    public async getBlockCount(): Promise<number> {
+        return this._jsonrpc<number>("getblockcount");
+    }
+
+    /**
      * Returns the hash of the best block.
      */
     public async getBestBlockHash(): Promise<string> {
