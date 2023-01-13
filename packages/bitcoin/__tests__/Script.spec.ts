@@ -1,5 +1,6 @@
 import * as crypto from "@node-lightning/crypto";
 import { expect } from "chai";
+import { PrivateKey, PublicKey } from "../lib";
 import { Network } from "../lib/Network";
 import { OpCode } from "../lib/OpCodes";
 import { Script } from "../lib/Script";
@@ -277,6 +278,67 @@ describe("Script", () => {
             "304402207efc6629be179f7322378883507f434d2814a45369870795d538ca3497efb451022041640c6c86e4c7fd3d17eb859624e3fb37777d494eaf50fc0546b552bfcd2fbc01",
             "hex",
         );
+
+        describe(Script.p2addrLock.name, () => {
+            const fixtures: Array<Fixture<string, string>> = [
+                {
+                    title: "p2pkh compressed pubkey",
+                    input: new PrivateKey(privkeyA, Network.testnet)
+                        .toPubKey(true)
+                        .toP2pkhAddress(),
+                    expected: "76a91479b000887626b294a914501a4cd226b58b23598388ac",
+                },
+                {
+                    title: "p2pkh uncompressed pubkey",
+                    input: new PrivateKey(privkeyA, Network.testnet)
+                        .toPubKey(false)
+                        .toP2pkhAddress(),
+                    expected: "76a9146ff3443c994fb2c821969dae53bd5b5052d8394f88ac",
+                },
+                {
+                    title: "p2sh non-standard script",
+                    input: new Script(
+                        OpCode.OP_SHA256,
+                        Buffer.from(
+                            "253c853e2915f5979e3c6b248b028cc5e3b4e7be3d0884db6c3632fd85702def",
+                            "hex",
+                        ),
+                        OpCode.OP_EQUAL,
+                    ).toP2shAddress(Network.testnet),
+                    expected: "a9140714c97d999d7e3f1c68b015fec735b857e9064987",
+                },
+                {
+                    title: "p2wpkh compressed pubkey",
+                    input: new PrivateKey(privkeyA, Network.testnet)
+                        .toPubKey(true)
+                        .toP2wpkhAddress(),
+                    expected: "001479b000887626b294a914501a4cd226b58b235983",
+                },
+                {
+                    title: "p2wpkh uncompressed pubkey",
+                    input: new PrivateKey(privkeyA, Network.testnet)
+                        .toPubKey(false)
+                        .toP2wpkhAddress(),
+                    expected: "00146ff3443c994fb2c821969dae53bd5b5052d8394f",
+                },
+                {
+                    title: "p2wsh script input",
+                    input: Script.p2pkhLock(crypto.getPublicKey(privkeyA, true)).toP2wshAddress(
+                        Network.testnet,
+                    ),
+                    expected:
+                        "00206f1b349d7fed5240ad719948529e8b06abf038438f9b523820489375af513a3f",
+                },
+            ];
+
+            const run = (input: string) => Script.p2addrLock(input);
+
+            const assert = (actual: Script, expected: string) => {
+                expect(actual.serializeCmds().toString("hex")).to.equal(expected);
+            };
+
+            testFixtures(fixtures, run, assert);
+        });
 
         describe("#p2pkLock()", () => {
             const fixtures: Array<Fixture<Buffer, string>> = [
