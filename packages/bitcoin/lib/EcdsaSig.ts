@@ -31,4 +31,13 @@ export class EcdsaSig {
     public toBuffer(): Buffer {
         return Buffer.from(this.raw);
     }
+
+    /**
+     * Returns the 64-byte (r,s) tuple for the signature encoded into
+     * hexadecimal.
+     * @returns
+     */
+    public toHex(): string {
+        return this.toBuffer().toString("hex");
+    }
 }
