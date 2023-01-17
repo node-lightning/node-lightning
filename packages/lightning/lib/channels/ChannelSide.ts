@@ -24,4 +24,28 @@ export class ChannelSide {
 
     public balance: Value;
     public htlcCounter: number = undefined;
+
+    public toJSON() {
+        return {
+            balance: this.balance?.bitcoin,
+            channelReserve: this.channelReserve?.bitcoin,
+            commitmentNumber: this.commitmentNumber?.value,
+            commitmentPoint: this.commitmentPoint?.toHex(),
+            commitmentSig: this.commitmentSig?.toHex(),
+            delayedBasePoint: this.delayedBasePoint?.toHex(),
+            dustLimit: this.dustLimit?.bitcoin,
+            fundingPubKey: this.fundingPubKey?.toHex(),
+            htlcBasePoint: this.htlcBasePoint?.toHex(),
+            htlcCounter: this.htlcCounter,
+            maxAcceptedHtlc: this.maxAcceptedHtlc,
+            maxInFlightHtlcValue: this.maxInFlightHtlcValue?.bitcoin,
+            minHtlcValue: this.minHtlcValue?.bitcoin,
+            nextCommitmentNumber: this.nextCommitmentNumber?.value,
+            nextCommitmentPoint: this.nextCommitmentPoint?.toHex(),
+            nextCommitmentSig: this.nextCommitmentSig?.toHex(),
+            paymentBasePoint: this.paymentBasePoint?.toHex(),
+            revocationBasePoint: this.revocationBasePoint?.toHex(),
+            toSelfDelayBlocks: this.toSelfDelayBlocks,
+        };
+    }
 }
