@@ -249,6 +249,7 @@ export class Channel {
      */
     public markConfirmed(height: number) {
         this._fundingConfirmedHeight = height;
+        return this;
     }
 
     /**
@@ -272,5 +273,34 @@ export class Channel {
         );
         this.theirSide.nextCommitmentSig = undefined;
         return this;
+    }
+
+    public toJSON() {
+        return {
+            channelId: this.channelId?.toHex(),
+            delayedBasePointSecret: this.delayedBasePointSecret?.toHex(),
+            feeRatePerKw: this.feeRatePerKw?.bitcoin,
+            funder: this.funder,
+            fundingAmount: this.fundingAmount?.bitcoin,
+            fundingConfirmedHeight: this.fundingConfirmedHeight,
+            fundingKey: this.fundingKey?.toHex(),
+            fundingOutPoint: this.fundingOutPoint?.toString(),
+            fundingScript: this.fundingScript?.toHex(),
+            fundingTx: this.fundingTx?.toHex(),
+            htlcBasePointSecret: this.htlcBasePointSecret?.toHex(),
+            isPublic: this.isPublic,
+            minimumDepth: this.minimumDepth,
+            network: this.network.name,
+            openBlockHeight: this.openBlockHeight,
+            ourSide: this.ourSide?.toJSON(),
+            paymentBasePointSecret: this.paymentBasePointSecret?.toHex(),
+            peerId: this.peerId,
+            perCommitmentSeed: this.perCommitmentSeed?.toString("hex"),
+            pushAmount: this.pushAmount?.bitcoin,
+            revocationBasePointSecret: this.revocationBasePointSecret?.toHex(),
+            state: this.state?.name,
+            temporaryId: this.temporaryId?.toString("hex"),
+            theirSide: this.theirSide?.toJSON(),
+        };
     }
 }

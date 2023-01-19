@@ -53,6 +53,14 @@ export class ScriptBuf implements ICloneable<ScriptBuf> {
      * Returns a hex encoded string of the Script buffer.
      */
     public toString(): string {
+        return this.toHex();
+    }
+
+    /**
+     * Returns the hex encoded string of the Script buffer.
+     * @returns
+     */
+    public toHex(): string {
         return this.buffer.toString("hex");
     }
 
