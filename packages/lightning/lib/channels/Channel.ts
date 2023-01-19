@@ -249,6 +249,7 @@ export class Channel {
      */
     public markConfirmed(height: number) {
         this._fundingConfirmedHeight = height;
+        return this;
     }
 
     /**
