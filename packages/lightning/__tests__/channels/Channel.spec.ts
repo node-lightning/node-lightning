@@ -1,3 +1,4 @@
+import { Network } from "@node-lightning/bitcoin";
 import { expect } from "chai";
 import { Channel } from "../../lib/channels/Channel";
 import {
@@ -185,5 +186,48 @@ describe(Channel.name, () => {
             // assert
             expect(result).to.equal(false);
         });
+    });
+
+    describe(Channel.prototype.toJSON.name, () => {
+        it("should work with no data", () => {
+            // arrange
+            const channel = new Channel(
+                "031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f",
+                Network.testnet,
+                true,
+            );
+
+            // act
+            const result = channel.toJSON();
+
+            // assert
+            expect(result.channelId).to.equal(undefined);
+            expect(result.delayedBasePointSecret).to.equal(undefined);
+            expect(result.feeRatePerKw).to.equal(undefined);
+            expect(result.funder).to.equal(true);
+            expect(result.fundingAmount).to.equal(undefined);
+            expect(result.fundingConfirmedHeight).to.equal(undefined);
+            expect(result.fundingKey).to.equal(undefined);
+            expect(result.fundingOutPoint).to.equal(undefined);
+            expect(result.fundingScript).to.equal(undefined);
+            expect(result.fundingTx).to.equal(undefined);
+            expect(result.htlcBasePointSecret).to.equal(undefined);
+            expect(result.isPublic).to.equal(true);
+            expect(result.minimumDepth).to.equal(undefined);
+            expect(result.network).to.equal(Network.testnet.name);
+            expect(result.openBlockHeight).to.equal(undefined);
+            expect(result.ourSide).to.equal(undefined);
+            expect(result.paymentBasePointSecret).to.equal(undefined);
+            expect(result.peerId).to.equal(
+                "031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f",
+            );
+            expect(result.perCommitmentSeed).to.equal(undefined);
+            expect(result.pushAmount).to.equal(undefined);
+            expect(result.revocationBasePointSecret).to.equal(undefined);
+            expect(result.state).to.equal(undefined);
+            expect(result.temporaryId).to.equal(undefined);
+            expect(result.theirSide).to.equal(undefined);
+        });
+        it("should work with data");
     });
 });
