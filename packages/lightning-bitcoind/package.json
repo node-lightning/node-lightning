@@ -23,6 +23,7 @@
   "dependencies": {
     "@node-lightning/bitcoin": "^0.28.0",
     "@node-lightning/bitcoind": "^0.28.0",
+    "@node-lightning/bufio": "^0.28.0",
     "@node-lightning/lightning": "^0.28.0",
     "@node-lightning/logger": "^0.28.0"
   },
