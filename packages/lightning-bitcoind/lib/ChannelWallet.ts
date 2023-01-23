@@ -104,7 +104,7 @@ export class ChannelWallet implements IChannelWallet {
     }
 
     /**
-     * Verify with the wallet that sufficient funds are available for
+     * Verify with the wallet that sufficient funds available for
      * spending.
      *
      * This method uses `listunspent` RPC call to obtain a list of UTXOs
