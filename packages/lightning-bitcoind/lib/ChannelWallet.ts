@@ -256,7 +256,7 @@ export class ChannelWallet implements IChannelWallet {
     }
 
     public async broadcastTx(tx: Tx): Promise<void> {
-        this.bitcoind.sendRawTransaction(tx.toHex());
+        await this.bitcoind.sendRawTransaction(tx.toHex());
     }
 
     public async getBlockHeight(): Promise<number> {
