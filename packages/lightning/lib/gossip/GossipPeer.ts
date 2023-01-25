@@ -1,7 +1,7 @@
 import { ILogger } from "@node-lightning/logger";
 import { InitFeatureFlags } from "../flags/InitFeatureFlags";
 import { GossipQueriesSync } from "./GossipQueriesSync";
-import { Peer } from "../Peer";
+import { IPeer } from "../Peer";
 import { GossipQueriesReceiver } from "./GossipQueriesReceiver";
 
 /**
@@ -14,7 +14,7 @@ export class GossipPeer {
     protected logger: ILogger;
     protected receiver: GossipQueriesReceiver;
 
-    constructor(logger: ILogger, readonly peer: Peer) {
+    constructor(logger: ILogger, readonly peer: IPeer) {
         this.logger = logger.sub(GossipPeer.name);
         this.key = peer.id;
         if (this.gossipQueries) {
