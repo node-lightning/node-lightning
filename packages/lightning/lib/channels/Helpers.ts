@@ -31,13 +31,14 @@ import { CommitmentNumber } from "./CommitmentNumber";
 import { FundingSignedMessage } from "../messages/FundingSignedMessage";
 import { sigFromDER, verifySig } from "@node-lightning/crypto";
 import { ChannelReadyMessage } from "../messages/ChannelReadyMessage";
-import { IWireMessage, PeerManager } from "..";
+import { PeerRepository } from "../PeerRepository";
+import { IWireMessage } from "../messages/IWireMessage";
 
 export class Helpers implements IChannelLogic {
     constructor(
         readonly wallet: IChannelWallet,
         public preferences: ChannelPreferences,
-        readonly peerManager: PeerManager,
+        readonly peerRepository: PeerRepository,
     ) {}
 
     /**
@@ -46,7 +47,8 @@ export class Helpers implements IChannelLogic {
      * @param msg
      */
     public sendMessage(peerId: string, msg: IWireMessage) {
-        this.peerManager.sendMessage(peerId, msg);
+        const peer = this.peerRepository.findById(peerId);
+        peer.sendMessage(msg);
     }
 
     /**
