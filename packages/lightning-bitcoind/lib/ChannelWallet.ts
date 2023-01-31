@@ -90,7 +90,7 @@ export class ChannelWallet implements IChannelWallet {
     public async getFeeRatePerKw(): Promise<Value> {
         const result = await this.bitcoind.estimateSmartFee(1);
         const satsPerKvb = result.feerate ?? 20_000;
-        return Value.fromBitcoin(satsPerKvb / 4);
+        return Value.fromSats(satsPerKvb / 4);
     }
 
     /**
