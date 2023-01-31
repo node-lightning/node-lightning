@@ -327,7 +327,7 @@ export class TxFactory {
             if (scriptCompare !== 0) return scriptCompare;
 
             // tie-break on htlcs
-            return b[1].cltvExpiry - a[1].cltvExpiry;
+            return a[1].cltvExpiry - b[1].cltvExpiry;
         });
     }
 }
