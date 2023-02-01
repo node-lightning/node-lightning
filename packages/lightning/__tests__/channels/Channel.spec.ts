@@ -191,6 +191,37 @@ describe(Channel.name, () => {
         });
     });
 
+    describe(".readyHeight", () => {
+        it("returns undefined when not confirmed", () => {
+            // arrange
+            const channel = createFakeChannel()
+                .attachAcceptChannel(createFakeAcceptChannel())
+                .attachFundingTx(createFakeFundingTx())
+                .attachFundingSigned(createFakeFundingSignedMessage());
+
+            // act
+            const result = channel.readyHeight;
+
+            // assert
+            expect(result).to.equal(undefined);
+        });
+
+        it("returns height when confirmed", () => {
+            // arrange
+            const channel = createFakeChannel()
+                .attachAcceptChannel(createFakeAcceptChannel())
+                .attachFundingTx(createFakeFundingTx())
+                .attachFundingSigned(createFakeFundingSignedMessage())
+                .markConfirmed(500_000);
+
+            // act
+            const result = channel.readyHeight;
+
+            // assert
+            expect(result).to.equal(500_005);
+        });
+    });
+
     describe(Channel.prototype.toJSON.name, () => {
         it("should work with no data", () => {
             // arrange

@@ -75,10 +75,13 @@ export class Channel {
     /**
      * The block height when the channel can be considered ready. This
      * value is calculated from the fundingConfirmedHeight + minimumDepth
-     * that was received in accept_channel.
+     * that was received in accept_channel.  Returns undefined if the
+     * funding_tx has not yet been confirmed.
      */
     public get readyHeight(): number {
-        return this.fundingConfirmedHeight + this.minimumDepth;
+        if (this.fundingConfirmedHeight === undefined) return undefined;
+
+        return this.fundingConfirmedHeight + this.minimumDepth - 1;
     }
 
     /**
@@ -208,7 +211,6 @@ export class Channel {
         this.fundingTx = tx;
         const fundingOutPoint = new OutPoint(tx.txId, 0);
         this.fundingOutPoint = fundingOutPoint;
-        this.fundingScript = tx.outputs[0].scriptPubKey;
         this.channelId = ChannelId.fromOutPoint(this.fundingOutPoint);
         return this;
     }
