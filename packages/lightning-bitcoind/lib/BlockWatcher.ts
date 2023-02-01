@@ -2,7 +2,7 @@ import { BitcoindClient } from "@node-lightning/bitcoind";
 import { BlockHeader } from "@node-lightning/bitcoind";
 import { BlockDiffer } from "./BlockDiffer";
 import { ILogger } from "@node-lightning/logger";
-import { Block } from "@node-lightning/bitcoin";
+import { Block, HashByteOrder } from "@node-lightning/bitcoin";
 import { BlockProducerFn, IBlockProducer } from "@node-lightning/lightning";
 
 /**
@@ -15,21 +15,27 @@ import { BlockProducerFn, IBlockProducer } from "@node-lightning/lightning";
  * block tip.
  */
 export class BlockWatcher implements IBlockProducer {
+    public logger: ILogger;
     public knownHash: string;
     public blockDiffer: BlockDiffer;
     public syncing: boolean;
+    public onBlockConnected: BlockProducerFn;
+    public onBlockDisconnected: BlockProducerFn;
 
     protected _handle: NodeJS.Timeout;
 
     constructor(
         readonly client: BitcoindClient,
-        knownHash: string,
-        readonly onBlockConnected: BlockProducerFn,
-        readonly onBlockDisconnected: BlockProducerFn,
-        readonly logger?: ILogger,
+        knownHash?: string,
+        onBlockConnected?: BlockProducerFn,
+        onBlockDisconnected?: BlockProducerFn,
+        logger?: ILogger,
         readonly pollIntervalMs: number = 5000,
     ) {
         this.knownHash = knownHash;
+        this.onBlockConnected = onBlockConnected;
+        this.onBlockDisconnected = onBlockDisconnected;
+        this.logger = logger?.sub(BlockWatcher.name);
     }
 
     public start(): void {
@@ -67,6 +73,10 @@ export class BlockWatcher implements IBlockProducer {
         this.syncing = true;
         const bestHash = await this.client.getBestBlockHash();
 
+        if (!this.knownHash) {
+            this.knownHash = bestHash;
+        }
+
         // eslint-disable-next-line no-constant-condition
         while (true) {
             if (bestHash === this.knownHash) break;
@@ -97,16 +107,28 @@ export class BlockWatcher implements IBlockProducer {
     }
 
     protected async _connectBlock(header: BlockHeader) {
-        if (this.logger) this.logger.debug("connecting block", header.height, header.hash);
         const blockBuf = await this.client.getRawBlock(header.hash);
         const block = Block.fromBuffer(blockBuf);
+        if (this.logger) {
+            this.logger.debug(
+                "connecting block",
+                block.bip34Height,
+                block.hash().toString(HashByteOrder.RPC),
+            );
+        }
         await this.onBlockConnected(block);
     }
 
     protected async _disconnectBlock(header: BlockHeader) {
-        if (this.logger) this.logger.debug("disconnecting block", header.height, header.hash);
         const blockBuf = await this.client.getRawBlock(header.hash);
         const block = Block.fromBuffer(blockBuf);
+        if (this.logger) {
+            this.logger.debug(
+                "disconnecting block",
+                block.bip34Height,
+                block.hash().toString(HashByteOrder.RPC),
+            );
+        }
         await this.onBlockDisconnected(block);
     }
 }
