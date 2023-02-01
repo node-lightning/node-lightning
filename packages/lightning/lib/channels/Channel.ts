@@ -15,6 +15,7 @@ import { ChannelSide } from "./ChannelSide";
 import { CommitmentNumber } from "./CommitmentNumber";
 import { CommitmentSecret } from "./CommitmentSecret";
 import { IStateMachine } from "./IStateMachine";
+import { ScriptFactory } from "./ScriptFactory";
 
 export class Channel {
     public temporaryId: Buffer;
@@ -189,6 +190,10 @@ export class Channel {
             msg.firstPerCommitmentPoint,
             this.network,
         );
+        this.fundingScript = ScriptFactory.fundingScript(
+            this.ourSide.fundingPubKey.toBuffer(),
+            this.theirSide.fundingPubKey.toBuffer(),
+        ).toScriptBuf();
         return this;
     }
 

@@ -46,6 +46,9 @@ describe(Channel.name, () => {
             expect(channel.theirSide.nextCommitmentPoint.toHex()).to.equal(
                 "0288a618cb6027c3218a37cbe9e882379f17d87d03f6e99d0b60292478d2aded06",
             );
+            expect(channel.fundingScript.toString()).to.equal(
+                "52210279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f817982103774ae7f858a9411e5ef4246b70c65aac5649980be5c17891bbec17895da008cb52ae",
+            );
         });
     });
 
