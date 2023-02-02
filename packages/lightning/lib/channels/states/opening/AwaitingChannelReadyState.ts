@@ -10,11 +10,14 @@ export class AwaitingChannelReadyState extends StateMachine {
         channel: Channel,
         msg: ChannelReadyMessage,
     ): Promise<string> {
+        this.logger.debug("processing channel_ready message", msg);
+
         // validate the message
         const isOk = this.logic.validateChannelReadyMessage(channel, msg);
 
         // fail if not ok which will transition to a local unilateral close
         if (!isOk) {
+            this.logger.warn("validating channel_ready message failed");
             return FailingState.name;
         }
 

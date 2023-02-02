@@ -9,6 +9,8 @@ export class AwaitingFundingSignedState extends StateMachine {
         channel: Channel,
         msg: FundingSignedMessage,
     ): Promise<string> {
+        this.logger.debug("processing funding_signed message", msg);
+
         // Validate the funding_signed message
         const msgOk = await this.logic.validateFundingSignedMessage(channel, msg);
         if (msgOk.isErr) {

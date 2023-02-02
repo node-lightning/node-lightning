@@ -12,9 +12,12 @@ export class AwaitingFundingDepthState extends StateMachine {
         channel: Channel,
         msg: ChannelReadyMessage,
     ): Promise<string> {
+        this.logger.debug("processing channel_ready message");
+
         // Validate received message
         const isValid = this.logic.validateChannelReadyMessage(channel, msg);
         if (!isValid) {
+            this.logger.warn("channel_ready validation failed");
             return FailingState.name;
         }
 
@@ -30,8 +33,9 @@ export class AwaitingFundingDepthState extends StateMachine {
         if (!channel.fundingConfirmedHeight) {
             // If the block contains our funding transaction then we mark the
             // depth and transition to the awaiting_funding_depth state
-            if (createsOutPoint(block, channel.fundingOutPoint)) {
-                channel.markConfirmed(Number(block.bip34Height));
+            if (containsOutPoint(block, channel.fundingOutPoint)) {
+                const confirmedHeight = Number(block.bip34Height);
+                channel.markConfirmed(confirmedHeight);
                 return AwaitingFundingDepthState.name;
             }
 
@@ -41,6 +45,7 @@ export class AwaitingFundingDepthState extends StateMachine {
 
         // When block height reaches ready height...
         if (block.bip34Height >= channel.readyHeight) {
+            this.logger.debug("channel funding depth has been reached");
             // Construct the channel ready message and transition
             // to either the awaiting_channel_ready state if we haven't
             // received the channel ready message or we transition to
@@ -74,7 +79,7 @@ export class AwaitingFundingDepthState extends StateMachine {
  * @param target
  * @returns
  */
-function createsOutPoint(block: Block, target: OutPoint): boolean {
+function containsOutPoint(block: Block, target: OutPoint): boolean {
     for (const tx of block.txs) {
         for (let i = 0; i < tx.outputs.length; i++) {
             const outpoint = new OutPoint(tx.txId, i);

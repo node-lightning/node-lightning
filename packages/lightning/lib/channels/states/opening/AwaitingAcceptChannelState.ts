@@ -9,6 +9,8 @@ export class AwaitingAcceptChannelState extends StateMachine {
         channel: Channel,
         msg: AcceptChannelMessage,
     ): Promise<string> {
+        this.logger.debug("processing accept_channel message", msg);
+
         // validate the message
         const ok = await this.logic.validateAcceptChannel(channel, msg);
         if (ok.isErr) {
@@ -20,7 +22,10 @@ export class AwaitingAcceptChannelState extends StateMachine {
         channel.attachAcceptChannel(msg);
 
         // construct funding transaction
-        channel.attachFundingTx(await this.logic.createFundingTx(channel));
+        const fundingTx = await this.logic.createFundingTx(channel);
+
+        // attaching funding transaction to channel
+        channel.attachFundingTx(fundingTx);
 
         // create the ctx
         const [ctx] = await this.logic.createRemoteCommitmentTx(channel);
