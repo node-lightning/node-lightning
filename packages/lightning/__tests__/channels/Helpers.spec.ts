@@ -1551,6 +1551,14 @@ describe(Helpers.name, () => {
             expect(result.toString("hex")).to.equal(
                 "10c6f99cd58b84056ef6f3d3ea58e682d009a6c071546dae62f221c38c6f617a4c53fe4eae279bf84889429a1373ba8fb8eb266350613f3cb9139b3dcb2562d1",
             );
+
+            const sig = new EcdsaSig(result);
+            expect(
+                sig.isValid(
+                    ctx.hashSegwitv0(0, channel.fundingScript, channel.fundingAmount),
+                    channel.fundingKey.toPubKey(true),
+                ),
+            ).to.equal(true);
         });
 
         it("signs a local commitment transaction", async () => {
@@ -1708,9 +1716,6 @@ describe(Helpers.name, () => {
     describe(Helpers.prototype.broadcastTx.name, () => {
         it("calls the wallet", async () => {
             // arrange
-            const channel = createFakeChannel()
-                .attachAcceptChannel(createFakeAcceptChannel())
-                .attachFundingTx(createFakeFundingTx());
             const wallet = createFakeChannelWallet();
             const tx = new Tx();
             const helpers = new Helpers(wallet, undefined, undefined);
@@ -1794,6 +1799,41 @@ describe(Helpers.name, () => {
 
             // assert
             expect(result).to.equal(false);
+        });
+    });
+
+    describe(Helpers.prototype.validateFundingSignedMessage.name, () => {
+        it("true when valid commitment signature", async () => {
+            // arrange
+            const channel = createFakeChannel()
+                .attachAcceptChannel(createFakeAcceptChannel())
+                .attachFundingTx(createFakeFundingTx())
+                .attachFundingSigned(createFakeFundingSignedMessage());
+            const helpers = new Helpers(undefined, undefined, undefined);
+            const msg = createFakeFundingSignedMessage();
+
+            // act
+            const result = await helpers.validateFundingSignedMessage(channel, msg);
+
+            // assert
+            expect(result.isOk).to.equal(true);
+        });
+
+        it("false when invalid commitment signature", async () => {
+            // arrange
+            const channel = createFakeChannel()
+                .attachAcceptChannel(createFakeAcceptChannel())
+                .attachFundingTx(createFakeFundingTx())
+                .attachFundingSigned(createFakeFundingSignedMessage());
+            const helpers = new Helpers(undefined, undefined, undefined);
+            const msg = createFakeFundingSignedMessage();
+            msg.signature.raw[0] = 0x00;
+
+            // act
+            const result = await helpers.validateFundingSignedMessage(channel, msg);
+
+            // assert
+            expect(result.isOk).to.equal(false);
         });
     });
 });

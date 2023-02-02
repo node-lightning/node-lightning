@@ -847,6 +847,8 @@ export class Helpers implements IChannelLogic {
         if (!result) {
             return OpeningError.toResult(OpeningErrorType.InvalidCommitmentSig);
         }
+
+        return Result.ok(true);
     }
 
     /**
