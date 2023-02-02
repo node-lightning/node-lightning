@@ -49,6 +49,16 @@ export class Block extends BlockHeader {
     }
 
     /**
+     * Parses a Block with full transactions information by first
+     * parsing the `BlockHeader` then the transactions.
+     * @param buf
+     */
+    public static fromHex(hex: string) {
+        const buffer = Buffer.from(hex, "hex");
+        return Block.fromBuffer(buffer);
+    }
+
+    /**
      * Complete list of transactions, in the order they were included
      * in the `Block`.
      */
