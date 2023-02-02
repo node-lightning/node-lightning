@@ -28,12 +28,21 @@ import {
     FakePeer,
 } from "../_test-utils";
 
+const REGTEST_BLOCK_100 =
+    "000000208be3e76d035c1c65fd77f91a22fd63164b739bab38bde1f76171bbf89a98f157da36b3350dc904f6b10c7ff8e14f1af3c8c89729d3b72b40dd9f56618efb6f25f3d6da63ffff7f200200000001020000000001010000000000000000000000000000000000000000000000000000000000000000ffffffff0401640101ffffffff0200f2052a0100000016001413f6b113aee72d7ada32e6ecd12e73f33dfefe140000000000000000266a24aa21a9ede2f61c3f71d1defd3fa999dfa36953755c690689799962b48bebd836974e8cf90120000000000000000000000000000000000000000000000000000000000000000000000000";
+
 describe(ChannelManager.name, () => {
     describe(ChannelManager.prototype.findChannelByTempId.name, () => {
         let sut: ChannelManager;
 
         beforeEach(() => {
-            sut = new ChannelManager(undefined, undefined, undefined, undefined, undefined);
+            sut = new ChannelManager(
+                createFakeLogger(),
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+            );
         });
 
         it("returns channel when matching the tempChannelId and peerId", () => {
@@ -128,13 +137,7 @@ describe(ChannelManager.name, () => {
         beforeEach(() => {
             logger = createFakeLogger();
             logic = createFakeChannelLogicFacade();
-            sut = new ChannelManager(
-                undefined,
-                undefined,
-                logic,
-                undefined,
-                new Root(logger, logic),
-            );
+            sut = new ChannelManager(logger, undefined, logic, undefined, new Root(logger, logic));
             a = new A(logger, logic);
             b = new B(logger, logic);
             c = new C(logger, logic);
@@ -373,6 +376,21 @@ describe(ChannelManager.name, () => {
                 expect(storage.save.called).to.equal(true, "call save");
                 expect(channel.state).to.equal(c, "state=C");
             });
+
+            it("throws if not found", async () => {
+                // arrange
+                const channel = createFakeChannel({});
+                channel.state = a;
+                (b.onEnter as Sinon.SinonStub).resolves("D");
+
+                // act
+                try {
+                    await sut.transitionState(channel, "B");
+                    throw new Error("Should have thrown");
+                } catch (ex) {
+                    expect(ex.message).to.equal("Failed to find state, state=D");
+                }
+            });
         });
     });
 
@@ -438,8 +456,9 @@ describe(ChannelManager.name, () => {
 
             // assert
             expect(result.isOk).to.equal(true);
-            expect(peer.sendMessage.called).to.equal(true);
-            expect(peer.sendMessage.args[0][0]).to.be.instanceOf(OpenChannelMessage);
+            expect(logic.sendMessage.called).to.equal(true);
+            expect(logic.sendMessage.args[0][0]).to.equal(peer.id);
+            expect(logic.sendMessage.args[0][1]).to.be.instanceOf(OpenChannelMessage);
         });
 
         it("transitions to AwaitingAcceptMessage state", async () => {
@@ -454,6 +473,20 @@ describe(ChannelManager.name, () => {
             // assert
             expect(result.isOk).to.equal(true);
             expect(result.value.state).is.instanceOf(AwaitingAcceptChannelState);
+        });
+
+        it("adds to list of channels", async () => {
+            // arrange
+            peer.state = PeerState.Ready;
+            const request = new OpenChannelRequest();
+            logic.createChannel.resolves(Result.ok(createFakeChannel({})));
+
+            // act
+            const result = await sut.openChannel(peer, request);
+
+            // assert
+            expect(sut.channels.length).to.equal(1);
+            expect(sut.channels).contains(result.value);
         });
     });
 
@@ -623,7 +656,7 @@ describe(ChannelManager.name, () => {
             sut.channels.push(channel);
             const peer = createFakePeer();
             const msg = createFakeFundingSignedMessage();
-            const block: Block = undefined;
+            const block: Block = Block.fromHex(REGTEST_BLOCK_100);
 
             // act
             await sut.onBlockConnected(block);
@@ -658,7 +691,7 @@ describe(ChannelManager.name, () => {
             sut.channels.push(channel);
             const peer = createFakePeer();
             const msg = createFakeFundingSignedMessage();
-            const block: Block = undefined;
+            const block: Block = Block.fromHex(REGTEST_BLOCK_100);
 
             // act
             await sut.onBlockConnected(block);
