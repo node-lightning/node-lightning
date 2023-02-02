@@ -44,10 +44,12 @@ export abstract class StateMachine {
     }
 
     public async onEnter(channel: Channel, oldState: IStateMachine): Promise<string> {
+        this.logger.debug("Entering", this.name);
         return undefined;
     }
 
     public async onExit(channel: Channel, newState: IStateMachine): Promise<string> {
+        this.logger.debug("Exiting", this.name);
         return undefined;
     }
 
