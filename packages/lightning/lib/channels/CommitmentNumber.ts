@@ -106,4 +106,12 @@ export class CommitmentNumber {
     public next(): CommitmentNumber {
         return new CommitmentNumber(this.value + 1n);
     }
+
+    public toString() {
+        return this.value.toString();
+    }
+
+    public toJSON() {
+        return this.toString();
+    }
 }
