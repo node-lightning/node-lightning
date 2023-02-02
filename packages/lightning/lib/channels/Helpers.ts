@@ -306,6 +306,10 @@ export class Helpers implements IChannelLogic {
             return Result.err(new OpeningError(OpeningErrorType.FundingAmountTooLow));
         }
 
+        // Set the initial balances
+        channel.theirSide.balance = options.pushAmount;
+        channel.ourSide.balance = options.fundingAmount.subn(options.pushAmount);
+
         // Should set `dust_limit_satoshis` to a value sufficient to propagate transactions is sufficient to propagate transactions by checking with the Bitcoin node using `getDustLimit` subroutine.
         channel.ourSide.dustLimit = await this.wallet.getDustLimit();
 

@@ -809,6 +809,7 @@ describe(Helpers.name, () => {
                 perCommitmentSeed.toString("hex"),
             );
 
+            expect(channel.ourSide.balance.sats).to.equal(999_000n, "funding_amt - push_amt");
             expect(channel.ourSide.htlcCounter).to.equal(undefined);
             expect(channel.ourSide.channelReserve).to.equal(undefined);
             expect(channel.ourSide.dustLimit.sats).to.equal(354n);
@@ -846,6 +847,7 @@ describe(Helpers.name, () => {
                     .toHex(),
             );
 
+            expect(channel.theirSide.balance.sats).to.equal(1000n, "push_amt");
             expect(channel.theirSide.htlcCounter).to.equal(undefined);
             expect(channel.theirSide.channelReserve.sats).to.equal(10_000n);
             expect(channel.theirSide.dustLimit).to.be.equal(undefined);
