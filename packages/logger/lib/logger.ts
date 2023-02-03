@@ -1,7 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import util from "util";
 import { LogLevel } from "./log-level";
 import { ITransport } from "./transport";
-import { ConsoleTransport } from "./transports/console-transport";
 import { shouldLog } from "./util";
 
 export interface ILogger {
@@ -30,7 +30,7 @@ export class Logger implements ILogger {
         this._level = LogLevel.Info;
         this._transports = [];
 
-        // create bound methods so consumer doesnt lose context
+        // create bound methods so consumer doesn't lose context
         this.trace = this.trace.bind(this);
         this.debug = this.debug.bind(this);
         this.info = this.info.bind(this);
@@ -41,18 +41,18 @@ export class Logger implements ILogger {
     /**
      * Configured log-level
      */
-    get level() {
+    public get level() {
         return this._root._level;
     }
 
-    set level(value: LogLevel) {
+    public set level(value: LogLevel) {
         this._root._level = value;
     }
 
     /**
      * Gets the available transports
      */
-    get transports() {
+    public get transports() {
         return this._root._transports;
     }
 
@@ -120,8 +120,17 @@ export class Logger implements ILogger {
         const instanceFmt = instance ? " " + instance : "";
 
         // convert buffers to hex encodings
-        args = args.map(arg => (Buffer.isBuffer(arg) ? arg.toString("hex") : arg));
+        args = args.map(arg =>
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+            Buffer.isBuffer(arg)
+                ? arg.toString("hex")
+                : typeof arg === "object"
+                ? // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+                  util.inspect(arg.toJSON ? arg.toJSON() : arg, false, 10, false)
+                : arg,
+        );
 
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         const msg = util.format(args[0], ...args.slice(1));
         return `${date} [${level}]${formattedArea}${instanceFmt}: ${msg}`;
     }
