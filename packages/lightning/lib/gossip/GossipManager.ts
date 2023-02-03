@@ -228,7 +228,7 @@ export class GossipManager {
     }
 
     public async onWireMessage(peer: IPeer, msg: IWireMessage): Promise<WireMessageResult> {
-        let result: WireMessageResult;
+        let result: WireMessageResult = Result.ok(msg); // default to ok
 
         // process inbound messages
         if (
@@ -238,9 +238,7 @@ export class GossipManager {
         ) {
             try {
                 const filterResult = await this.gossipFilter.validateMessage(msg);
-                if (filterResult.isOk) {
-                    result = Result.ok(msg);
-                } else {
+                if (filterResult.isErr) {
                     result = Result.err(filterResult.error, msg);
                 }
             } catch (err) {
@@ -251,8 +249,10 @@ export class GossipManager {
                     msg,
                 );
             }
-        } else {
-            result = Result.ok(msg);
+        }
+        // Not a message that we handle, so return ok.
+        else {
+            return result;
         }
 
         // process any sync task as well
