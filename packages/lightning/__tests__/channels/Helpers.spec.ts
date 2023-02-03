@@ -1454,9 +1454,6 @@ describe(Helpers.name, () => {
 
                 // attach change output, 5000 in fees
                 tx.outputs.push(createFakeTxOut({ value: Value.fromSats(795_000) }));
-
-                // enable rbf
-                tx.locktime = LockTime.zero();
                 return tx.toTx();
             });
             const channel = createFakeChannel().attachAcceptChannel(createFakeAcceptChannel());

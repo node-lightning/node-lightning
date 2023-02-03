@@ -2,6 +2,7 @@
 import {
     EcdsaSig,
     HashByteOrder,
+    LockTime,
     Network,
     PublicKey,
     Tx,
@@ -655,6 +656,7 @@ export class Helpers implements IChannelLogic {
                 channel.theirSide.fundingPubKey.toBuffer(),
             ),
         );
+        tx.locktime = LockTime.zero();
         return await this.wallet.fundTx(tx);
     }
 
