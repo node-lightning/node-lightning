@@ -10,8 +10,6 @@ export class AwaitingChannelReadyState extends StateMachine {
         channel: Channel,
         msg: ChannelReadyMessage,
     ): Promise<string> {
-        this.logger.debug("processing channel_ready message", msg);
-
         // validate the message
         const isOk = this.logic.validateChannelReadyMessage(channel, msg);
 

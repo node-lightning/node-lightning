@@ -158,7 +158,7 @@ export class ChannelManager {
      * @returns
      */
     public async onAcceptChannelMessage(peer: IPeer, msg: AcceptChannelMessage): Promise<void> {
-        this.logger.debug("handling accept_channel", msg);
+        this.logger.debug("handling", msg);
         const channel = this.findChannelByTempId(peer.id, msg.temporaryChannelId);
         if (!channel) {
             this.logger.debug("failed to find channel");
@@ -175,7 +175,7 @@ export class ChannelManager {
      * @param msg
      */
     public async onFundingSignedMessage(peer: IPeer, msg: FundingSignedMessage): Promise<void> {
-        this.logger.debug("handling funding_signed", msg);
+        this.logger.debug("handling", msg);
         const channel = this.findChannelById(msg.channelId);
         if (!channel) {
             this.logger.debug("failed to find channel");
@@ -203,7 +203,7 @@ export class ChannelManager {
      * @param msg
      */
     public async onChannelReadyMessage(peer: IPeer, msg: ChannelReadyMessage) {
-        this.logger.debug("handling channel_ready message", msg);
+        this.logger.debug("handling", msg);
         const channel = this.findChannelById(msg.channelId);
         if (!channel) {
             return;
