@@ -14,8 +14,7 @@ export class LightningEvent {
      * @returns
      */
     public static createBlockConnected(block: Block): LightningEvent {
-        const event = new LightningEvent();
-        event.type = LightningEventType.BlockConnected;
+        const event = new LightningEvent(LightningEventType.BlockConnected);
         event.block = block;
         return event;
     }
@@ -26,8 +25,7 @@ export class LightningEvent {
      * @returns
      */
     public static createPeerReadable(peer: IPeer): LightningEvent {
-        const event = new LightningEvent();
-        event.type = LightningEventType.PeerReadable;
+        const event = new LightningEvent(LightningEventType.PeerReadable);
         event.peer = peer;
         return event;
     }
@@ -39,8 +37,7 @@ export class LightningEvent {
      * @returns
      */
     public static createPeerReady(peer: IPeer): LightningEvent {
-        const event = new LightningEvent();
-        event.type = LightningEventType.PeerReady;
+        const event = new LightningEvent(LightningEventType.PeerReady);
         event.peer = peer;
         return event;
     }
@@ -51,16 +48,10 @@ export class LightningEvent {
      * @returns
      */
     public static createPeerDisconnected(peer: IPeer): LightningEvent {
-        const event = new LightningEvent();
-        event.type = LightningEventType.PeerDisconnected;
+        const event = new LightningEvent(LightningEventType.PeerDisconnected);
         event.peer = peer;
         return event;
     }
-
-    /**
-     * The type
-     */
-    public type: LightningEventType;
 
     /**
      * A peer which is attached for any peer related event.
@@ -76,4 +67,6 @@ export class LightningEvent {
      * The block for a block connected or disconnected event.
      */
     public block: Block;
+
+    constructor(readonly type: LightningEventType) {}
 }
