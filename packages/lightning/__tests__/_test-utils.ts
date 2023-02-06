@@ -7,6 +7,7 @@ import {
     CommitmentSecret,
     IPeer,
     IWireMessage,
+    LightningEventMuxer,
     PeerState,
 } from "../lib";
 import { InitFeatureFlags } from "../lib/flags/InitFeatureFlags";
@@ -40,6 +41,7 @@ import { IStateMachine } from "../lib/channels/IStateMachine";
 import { FundingSignedMessage } from "../lib/messages/FundingSignedMessage";
 import { Bits } from "@node-lightning/bitcoin/dist/Bits";
 import { ChannelReadyMessage } from "../lib/messages/ChannelReadyMessage";
+import { ILightningEventMuxer } from "../lib/ILightningEventMuxer";
 
 export class FakePeer extends Readable implements IPeer {
     public state: PeerState;
@@ -205,7 +207,9 @@ export function createFakeChannel(
 }
 
 export function createFakeChannelLogicFacade(): Sinon.SinonStubbedInstance<IChannelLogic> {
-    return Sinon.createStubInstance(Helpers);
+    return (Sinon.createStubInstance(Helpers) as unknown) as Sinon.SinonStubbedInstance<
+        IChannelLogic
+    >;
 }
 
 export function createFakeChannelStorage(): Sinon.SinonStubbedInstance<IChannelStorage> {
@@ -397,4 +401,8 @@ export function createFakeBlock(height: number = 500_000, ...txs: Tx[]): Block {
         [coinbase, ...txs],
     );
     return block;
+}
+
+export function createFakeLightningEventMuxer(): Sinon.SinonStubbedInstance<ILightningEventMuxer> {
+    return Sinon.createStubInstance(LightningEventMuxer);
 }

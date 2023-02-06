@@ -22,6 +22,7 @@ export class LightningEventQueue {
     public processing: boolean = false;
 
     public queue: LightningEvent[] = [];
+    public flushed: () => void;
 
     constructor(readonly muxer: ILightningEventMuxer) {}
 
@@ -39,7 +40,12 @@ export class LightningEventQueue {
         if (this.processing) return;
 
         // ignore if queue length is zero
-        if (this.queue.length === 0) return;
+        if (this.queue.length === 0) {
+            if (this.flushed) {
+                this.flushed();
+            }
+            return;
+        }
 
         // flag that we are processing
         this.processing = true;
@@ -62,8 +68,7 @@ export class LightningEventQueue {
 
                         // construct a new wire msg event and supply it
                         // to the handler
-                        const event2 = new LightningEvent();
-                        event2.type = LightningEventType.PeerMessage;
+                        const event2 = new LightningEvent(LightningEventType.PeerMessage);
                         event2.peer = event.peer;
                         event2.msg = msg;
 
@@ -74,6 +79,7 @@ export class LightningEventQueue {
 
                 default:
                     await this.muxer.onEvent(event);
+                    break;
             }
         } catch (ex) {
             // TODO
