@@ -3,8 +3,10 @@ import { ILogger, Logger } from "@node-lightning/logger";
 import { Readable } from "stream";
 import {
     ChannelId,
+    ChannelManager,
     CommitmentNumber,
     CommitmentSecret,
+    GossipManager,
     IPeer,
     IWireMessage,
     LightningEventMuxer,
@@ -405,4 +407,12 @@ export function createFakeBlock(height: number = 500_000, ...txs: Tx[]): Block {
 
 export function createFakeLightningEventMuxer(): Sinon.SinonStubbedInstance<ILightningEventMuxer> {
     return Sinon.createStubInstance(LightningEventMuxer);
+}
+
+export function createFakeChannelManager(): Sinon.SinonStubbedInstance<ChannelManager> {
+    return Sinon.createStubInstance(ChannelManager);
+}
+
+export function createFakeGossipManager(): Sinon.SinonStubbedInstance<GossipManager> {
+    return Sinon.createStubInstance(GossipManager);
 }
