@@ -31,6 +31,20 @@ export class LightningEvent {
     }
 
     /**
+     * Creates an event for a peer message. This should be follow a readable
+     * event.
+     * @param peer
+     * @param msg
+     * @returns
+     */
+    public static createPeerMessage(peer: IPeer, msg: IWireMessage): LightningEvent {
+        const event = new LightningEvent(LightningEventType.PeerMessage);
+        event.peer = peer;
+        event.msg = msg;
+        return event;
+    }
+
+    /**
      * Creates and event for when a peer is a ready - as defined as
      * having performed initialization.
      * @param peer

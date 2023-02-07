@@ -52,43 +52,38 @@ export class LightningEventQueue {
 
         const event = this.queue.shift();
 
-        try {
-            switch (event.type) {
-                case LightningEventType.PeerReadable: {
-                    // attempt to read from the peer, if we don't get a
-                    // message than the peer buffer is empty. This will
-                    // happen because we re-enqueue the readable event
-                    // for a peer after each successful read. This ensures
-                    // that other event type can be processed.
-                    const msg = event.peer.read();
+        switch (event.type) {
+            case LightningEventType.PeerReadable: {
+                // attempt to read from the peer, if we don't get a
+                // message than the peer buffer is empty. This will
+                // happen because we re-enqueue the readable event
+                // for a peer after each successful read. This ensures
+                // that other event type can be processed.
+                const msg = event.peer.read();
 
-                    if (msg) {
-                        // re-add incase there is more data in the stream
-                        this.queue.push(event);
+                if (msg) {
+                    // re-add incase there is more data in the stream
+                    this.queue.push(event);
 
-                        // construct a new wire msg event and supply it
-                        // to the handler
-                        const event2 = new LightningEvent(LightningEventType.PeerMessage);
-                        event2.peer = event.peer;
-                        event2.msg = msg;
+                    // construct a new wire msg event and supply it
+                    // to the handler
+                    const msgEvent = LightningEvent.createPeerMessage(event.peer, msg);
 
-                        await this.muxer.onEvent(event2);
-                    }
-                    break;
+                    // handle the event
+                    await this.muxer.onEvent(msgEvent);
                 }
-
-                default:
-                    await this.muxer.onEvent(event);
-                    break;
+                break;
             }
-        } catch (ex) {
-            // TODO
-        } finally {
-            this.processing = false;
 
-            // try to process next message
-            void this.process();
+            default:
+                await this.muxer.onEvent(event);
+                break;
         }
+
+        this.processing = false;
+
+        // try next item in queue
+        void this.process();
     }
 }
 export { LightningEvent };
