@@ -83,8 +83,8 @@ describe(Channel.name, () => {
             channel.attachFundingSigned(msg);
 
             // assert
-            expect(channel.ourSide.nextCommitmentSig.toBuffer()).to.deep.equal(
-                Buffer.alloc(64, 0xff),
+            expect(channel.ourSide.nextCommitmentSig.toHex()).to.deep.equal(
+                "4e5342dc670bd1f6db706e7071be0ee30b014fea8ea81dcb51d9f3c3e2f481f33fa26e38bfba7351f05190dda1f9da5658fc56e34e8ec3dae3d4da515b58d2e9",
             );
         });
     });
@@ -108,7 +108,7 @@ describe(Channel.name, () => {
                 "02037803a3228ec3a517835480ffac64c0557d9d75e0fe85861ab0be9eb224e6f8",
             );
             expect(channel.ourSide.commitmentSig.toBuffer().toString("hex")).to.equal(
-                "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+                "4e5342dc670bd1f6db706e7071be0ee30b014fea8ea81dcb51d9f3c3e2f481f33fa26e38bfba7351f05190dda1f9da5658fc56e34e8ec3dae3d4da515b58d2e9",
             );
 
             expect(channel.ourSide.nextCommitmentNumber.value).to.equal(1n);
@@ -345,7 +345,7 @@ describe(Channel.name, () => {
                     commitmentPoint:
                         "02037803a3228ec3a517835480ffac64c0557d9d75e0fe85861ab0be9eb224e6f8",
                     commitmentSig:
-                        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+                        "4e5342dc670bd1f6db706e7071be0ee30b014fea8ea81dcb51d9f3c3e2f481f33fa26e38bfba7351f05190dda1f9da5658fc56e34e8ec3dae3d4da515b58d2e9",
                     delayedBasePoint:
                         "02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9",
                     dustLimit: "0.00000354",

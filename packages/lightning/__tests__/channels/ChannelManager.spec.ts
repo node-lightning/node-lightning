@@ -1,3 +1,5 @@
+import fs from "fs";
+import path from "path";
 import { Block, Network } from "@node-lightning/bitcoin";
 import { ILogger } from "@node-lightning/logger";
 import { expect } from "chai";
@@ -28,8 +30,10 @@ import {
     FakePeer,
 } from "../_test-utils";
 
-const REGTEST_BLOCK_100 =
-    "000000208be3e76d035c1c65fd77f91a22fd63164b739bab38bde1f76171bbf89a98f157da36b3350dc904f6b10c7ff8e14f1af3c8c89729d3b72b40dd9f56618efb6f25f3d6da63ffff7f200200000001020000000001010000000000000000000000000000000000000000000000000000000000000000ffffffff0401640101ffffffff0200f2052a0100000016001413f6b113aee72d7ada32e6ecd12e73f33dfefe140000000000000000266a24aa21a9ede2f61c3f71d1defd3fa999dfa36953755c690689799962b48bebd836974e8cf90120000000000000000000000000000000000000000000000000000000000000000000000000";
+const REGTEST_BLOCK_100 = fs.readFileSync(
+    path.join(__dirname, "../../__fixtures__/regtest_block_100.txt"),
+    "ascii",
+);
 
 describe(ChannelManager.name, () => {
     describe(ChannelManager.prototype.findChannelByTempId.name, () => {
