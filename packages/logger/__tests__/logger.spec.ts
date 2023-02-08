@@ -118,6 +118,35 @@ describe("Logger", () => {
                 );
             });
 
+            it("should work with deeply nested objects", () => {
+                sut[fn]("%j", { depth: { depth: { depth: { depth: { depth: 5 } } } } });
+                expect((transport.write as sinon.SinonSpy).args[0][0]).to.contain(
+                    '{"depth":{"depth":{"depth":{"depth":{"depth":5}}}}}',
+                );
+            });
+
+            it("should work with objects with toJSON", () => {
+                sut[fn]("%j", {
+                    test: 1n,
+                    toJSON() {
+                        return { test: this.test.toString() };
+                    },
+                });
+                expect((transport.write as sinon.SinonSpy).args[0][0]).to.contain('{"test":"1"}');
+            });
+
+            it("should work not use toJSON if no formatter", () => {
+                sut[fn]({
+                    test: 1n,
+                    toJSON() {
+                        return { test: this.test.toString() };
+                    },
+                });
+                expect((transport.write as sinon.SinonSpy).args[0][0]).to.contain(
+                    "{ test: 1n, toJSON: [Function: toJSON] }",
+                );
+            });
+
             it("should call write with variadic message", () => {
                 sut[fn]("testing", 1, 2, 3, 4, "5");
                 expect((transport.write as sinon.SinonSpy).args[0][0]).to.contain(

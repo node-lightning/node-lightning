@@ -120,18 +120,11 @@ export class Logger implements ILogger {
         const instanceFmt = instance ? " " + instance : "";
 
         // convert buffers to hex encodings
-        args = args.map(arg =>
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-            Buffer.isBuffer(arg)
-                ? arg.toString("hex")
-                : typeof arg === "object"
-                ? // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-                  util.inspect(arg.toJSON ? arg.toJSON() : arg, false, 10, false)
-                : arg,
-        );
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        args = args.map(arg => (Buffer.isBuffer(arg) ? arg.toString("hex") : arg));
 
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-        const msg = util.format(args[0], ...args.slice(1));
+        const msg = util.formatWithOptions({ colors: false, depth: 10 }, args[0], ...args.slice(1));
         return `${date} [${level}]${formattedArea}${instanceFmt}: ${msg}`;
     }
 
