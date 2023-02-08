@@ -14,6 +14,9 @@ export class ChannelStorage implements IChannelStorage {
      * @param channel
      */
     public async save(channel: Channel): Promise<void> {
+        // only save once we have the channel_id
+        if (!channel.channelId) return;
+
         const filename = `channel_${channel.channelId.toString()}.json`;
         await fs.writeFile(
             path.join(this.folder, filename),
