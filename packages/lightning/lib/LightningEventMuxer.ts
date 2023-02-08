@@ -50,7 +50,7 @@ export class LightningEventMuxer implements ILightningEventMuxer {
 
     protected async onPeerReady(event: LightningEvent): Promise<LightningEventResult> {
         // eslint-disable-next-line @typescript-eslint/await-thenable
-        await this.gossipManager.onPeerReady(event.peer);
+        await this.gossipManager?.onPeerReady(event.peer);
         return Result.ok(event);
     }
 
@@ -76,7 +76,7 @@ export class LightningEventMuxer implements ILightningEventMuxer {
                 break;
             }
             case MessageType.AcceptChannel: {
-                await this.channelManager.onAcceptChannelMessage(
+                await this.channelManager?.onAcceptChannelMessage(
                     event.peer,
                     event.msg as AcceptChannelMessage,
                 );
@@ -86,14 +86,14 @@ export class LightningEventMuxer implements ILightningEventMuxer {
                 break;
             }
             case MessageType.FundingSigned: {
-                await this.channelManager.onFundingSignedMessage(
+                await this.channelManager?.onFundingSignedMessage(
                     event.peer,
                     event.msg as FundingSignedMessage,
                 );
                 break;
             }
             case MessageType.FundingLocked: {
-                await this.channelManager.onChannelReadyMessage(
+                await this.channelManager?.onChannelReadyMessage(
                     event.peer,
                     event.msg as ChannelReadyMessage,
                 );
@@ -105,7 +105,7 @@ export class LightningEventMuxer implements ILightningEventMuxer {
     }
 
     protected async onBlockConnected(event: LightningEvent): Promise<LightningEventResult> {
-        await this.channelManager.onBlockConnected(event.block);
+        await this.channelManager?.onBlockConnected(event.block);
         return Result.ok(event);
     }
 }
