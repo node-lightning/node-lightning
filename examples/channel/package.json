@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "../../node_modules/.bin/ts-node index.ts"
   },
   "keywords": [],
   "author": "",
@@ -14,6 +14,7 @@
     "@node-lightning/bitcoind": "file:../../packages/bitcoind",
     "@node-lightning/bufio": "file:../../packages/bufio",
     "@node-lightning/lightning": "file:../../packages/lightning",
+    "@node-lightning/lightning-bitcoind": "file:../../packages/lightning-bitcoind",
     "@node-lightning/logger": "file:../../packages/logger"
   }
 }
