@@ -250,10 +250,6 @@ export class GossipManager {
                 );
             }
         }
-        // Not a message that we handle, so return ok.
-        else {
-            return result;
-        }
 
         // process any sync task as well
         const gossipPeer = this.findPeer(peer);
