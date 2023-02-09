@@ -12,7 +12,8 @@
     "postinstall": "lerna run prehoist",
     "bootstrap:ci": "lerna bootstrap --hoist",
     "version": "lerna version --no-push --no-git-tag-version",
-    "publish": "lerna publish from-package"
+    "publish": "lerna publish from-package",
+    "clean": "lerna run clean"
   },
   "keywords": [
     "lightning-network",

@@ -7,7 +7,8 @@
     "lint": "../../node_modules/.bin/eslint lib/**/* __tests__/**/*",
     "build": "../../node_modules/.bin/tsc --project ./tsconfig-build.json",
     "prepublish": "npm run build",
-    "tsnode": "../../node_modules/.bin/ts-node"
+    "tsnode": "../../node_modules/.bin/ts-node",
+    "clean": "rm -rf node_modules; rm -rf dist"
   },
   "keywords": [
     "lightning",
