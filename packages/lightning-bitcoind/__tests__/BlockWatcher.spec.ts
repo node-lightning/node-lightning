@@ -5,12 +5,19 @@ import sinon from "sinon";
 import { expect } from "chai";
 import { BlockWatcher } from "../lib/BlockWatcher";
 import { BitcoindClient } from "../../bitcoind";
+import { HashByteOrder } from "@node-lightning/bitcoin";
 
-const TestnetHeaders = require("../__fixtures__/TestnetHeaders.json");
+const TestnetHeaders = require("../__fixtures__/TestnetHeaders2.json");
 const headerLookup: any = hash => TestnetHeaders[hash];
 
-const TestnetBlocks = require("../__fixtures__/TestnetBlocks.json");
-const blockLookup: any = hash => TestnetBlocks[hash];
+const TestnetBlocks = require("../__fixtures__/TestnetBlocks2.json");
+const blockLookup: (hash: string) => Promise<Buffer> = (hash: string) =>
+    Promise.resolve(Buffer.from(TestnetBlocks[hash], "hex"));
+
+const stale = "000000000000d928eff3c58ef2f660f80d18ed31f6225d1d9aaf19eda274e49e";
+const common = "000000000e0c41e51bcc6f005b72b0cf694a0aaec61ce052850aff7fca941cd9";
+const common_plus_1 = "0000000002bb108d93bd491061d7312ad9299c8c916630754709dff0ec04a60f";
+const common_plus_2 = "00000000171bd3b4b88e3fed065df77ed2fc194fc3a84b0265ccf0548db3c839";
 
 describe("BlockWatcher", () => {
     let bitcoind: sinon.SinonStubbedInstance<BitcoindClient>;
@@ -18,44 +25,44 @@ describe("BlockWatcher", () => {
     beforeEach(() => {
         bitcoind = sinon.createStubInstance(BitcoindClient);
         bitcoind.getHeader.callsFake(headerLookup);
-        bitcoind.getBestBlockHash.resolves("0000000000bf27f2b81c3091ee3d25b1e48f485b06ae85ac50b7faa86857a60d"); // prettier-ignore
-        bitcoind.getBlockSummary.callsFake(blockLookup);
+        bitcoind.getBestBlockHash.resolves(common_plus_2);
+        bitcoind.getRawBlock.callsFake(blockLookup);
     });
 
     describe("._sync()", () => {
         it("should handle reorg", async () => {
             const onConnect = sinon.stub();
             const onDisconnect = sinon.stub();
-            const hash = "0000000000f65e714a2cdbf191b621c706f1fc77d12ceb9de8a9609487687f1f";
+            const hash = stale;
 
-            const sut = new BlockWatcher(bitcoind as any, hash, onConnect, onDisconnect);
+            const sut = new BlockWatcher(bitcoind, hash, onConnect, onDisconnect);
             await (sut as any)._sync();
             expect(onDisconnect.callCount).to.equal(1);
-            expect(onDisconnect.args[0][0]).to.deep.equal(blockLookup("0000000000f65e714a2cdbf191b621c706f1fc77d12ceb9de8a9609487687f1f")); // prettier-ignore
+            expect(onDisconnect.args[0][0].hash().toString(HashByteOrder.RPC)).to.equal(stale);
 
             expect(onConnect.callCount).to.equal(2);
-            expect(onConnect.args[0][0]).to.deep.equal(blockLookup("0000000000850925fd57eb2799a4687f7748507aa831e214b57be1fbe68f451f")); // prettier-ignore
-            expect(onConnect.args[1][0]).to.deep.equal(blockLookup("0000000000bf27f2b81c3091ee3d25b1e48f485b06ae85ac50b7faa86857a60d")); // prettier-ignore
+            expect(onConnect.args[0][0].hash().toString(HashByteOrder.RPC)).to.equal(common_plus_1);
+            expect(onConnect.args[1][0].hash().toString(HashByteOrder.RPC)).to.equal(common_plus_2);
         });
 
         it("should continue chain", async () => {
             const onConnect = sinon.stub();
             const onDisconnect = sinon.stub();
-            const hash = "00000000032415dee48b1541cfe6c46a691350eb37493a6d2924b0452c4626c2";
+            const hash = common;
 
-            const sut = new BlockWatcher(bitcoind as any, hash, onConnect, onDisconnect, null);
+            const sut = new BlockWatcher(bitcoind, hash, onConnect, onDisconnect, null);
             await (sut as any)._sync();
             expect(onDisconnect.callCount).to.equal(0);
 
             expect(onConnect.callCount).to.equal(2);
-            expect(onConnect.args[0][0]).to.deep.equal(blockLookup("0000000000850925fd57eb2799a4687f7748507aa831e214b57be1fbe68f451f")); // prettier-ignore
-            expect(onConnect.args[1][0]).to.deep.equal(blockLookup("0000000000bf27f2b81c3091ee3d25b1e48f485b06ae85ac50b7faa86857a60d")); // prettier-ignore
+            expect(onConnect.args[0][0].hash().toString(HashByteOrder.RPC)).to.equal(common_plus_1);
+            expect(onConnect.args[1][0].hash().toString(HashByteOrder.RPC)).to.equal(common_plus_2);
         });
 
         it("should do nothing when same", async () => {
             const onConnect = sinon.stub();
             const onDisconnect = sinon.stub();
-            const hash = "0000000000bf27f2b81c3091ee3d25b1e48f485b06ae85ac50b7faa86857a60d";
+            const hash = common_plus_2;
 
             const sut = new BlockWatcher(bitcoind as any, hash, onConnect, onDisconnect, null);
             await (sut as any)._sync();
