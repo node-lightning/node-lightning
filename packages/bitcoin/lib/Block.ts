@@ -1,4 +1,5 @@
 import { bigFromBufLE, BufferReader, BufferWriter, StreamReader } from "@node-lightning/bufio";
+import { hash256 } from "@node-lightning/crypto";
 import { Bits } from "./Bits";
 import { BlockHeader } from "./BlockHeader";
 import { HashValue } from "./HashValue";
@@ -98,6 +99,19 @@ export class Block extends BlockHeader {
         }
 
         return bw.toBuffer();
+    }
+
+    /**
+     * Returns the `hash256` of the block header in RPC byte order. This
+     * value will have leading zeros and looks like:
+     * 0000000000000000007e9e4c586439b0cdbe13b1370bdd9435d76a644d047523
+     *
+     * Because this value can be directly converted into a hexadecimal
+     * number that can be compared to the target, it is considered
+     * big-endian.
+     */
+    public hash(): HashValue {
+        return new HashValue(hash256(super.toBuffer()));
     }
 
     /**
