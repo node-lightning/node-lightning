@@ -1,7 +1,7 @@
 import { ILogger } from "@node-lightning/logger";
 import { IWireMessage } from "../messages/IWireMessage";
 import { MessageType } from "../MessageType";
-import { Peer } from "../Peer";
+import { IPeer, Peer } from "../Peer";
 import { GossipFilter } from "./GossipFilter";
 import { SyncState } from "./SyncState";
 import { GossipPeer } from "./GossipPeer";
@@ -76,7 +76,7 @@ export class GossipManager {
         this.started = true;
     }
 
-    public onPeerReady(peer: Peer) {
+    public onPeerReady(peer: IPeer) {
         const gossipPeer = new GossipPeer(this.logger, peer);
         this.peers.set(gossipPeer.key, gossipPeer);
 
@@ -223,12 +223,12 @@ export class GossipManager {
         }
     }
 
-    public findPeer(peer: Peer): GossipPeer {
+    public findPeer(peer: IPeer): GossipPeer {
         return this.peers.get(peer.id);
     }
 
-    public async onWireMessage(peer: Peer, msg: IWireMessage): Promise<WireMessageResult> {
-        let result: WireMessageResult;
+    public async onWireMessage(peer: IPeer, msg: IWireMessage): Promise<WireMessageResult> {
+        let result: WireMessageResult = Result.ok(msg); // default to ok
 
         // process inbound messages
         if (
@@ -238,9 +238,7 @@ export class GossipManager {
         ) {
             try {
                 const filterResult = await this.gossipFilter.validateMessage(msg);
-                if (filterResult.isOk) {
-                    result = Result.ok(msg);
-                } else {
+                if (filterResult.isErr) {
                     result = Result.err(filterResult.error, msg);
                 }
             } catch (err) {
@@ -251,8 +249,6 @@ export class GossipManager {
                     msg,
                 );
             }
-        } else {
-            result = Result.ok(msg);
         }
 
         // process any sync task as well

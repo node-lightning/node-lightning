@@ -46,6 +46,9 @@ describe(Channel.name, () => {
             expect(channel.theirSide.nextCommitmentPoint.toHex()).to.equal(
                 "0288a618cb6027c3218a37cbe9e882379f17d87d03f6e99d0b60292478d2aded06",
             );
+            expect(channel.fundingScript.toString()).to.equal(
+                "52210279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f817982103774ae7f858a9411e5ef4246b70c65aac5649980be5c17891bbec17895da008cb52ae",
+            );
         });
     });
 
@@ -80,8 +83,8 @@ describe(Channel.name, () => {
             channel.attachFundingSigned(msg);
 
             // assert
-            expect(channel.ourSide.nextCommitmentSig.toBuffer()).to.deep.equal(
-                Buffer.alloc(64, 0xff),
+            expect(channel.ourSide.nextCommitmentSig.toHex()).to.deep.equal(
+                "4e5342dc670bd1f6db706e7071be0ee30b014fea8ea81dcb51d9f3c3e2f481f33fa26e38bfba7351f05190dda1f9da5658fc56e34e8ec3dae3d4da515b58d2e9",
             );
         });
     });
@@ -105,7 +108,7 @@ describe(Channel.name, () => {
                 "02037803a3228ec3a517835480ffac64c0557d9d75e0fe85861ab0be9eb224e6f8",
             );
             expect(channel.ourSide.commitmentSig.toBuffer().toString("hex")).to.equal(
-                "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+                "4e5342dc670bd1f6db706e7071be0ee30b014fea8ea81dcb51d9f3c3e2f481f33fa26e38bfba7351f05190dda1f9da5658fc56e34e8ec3dae3d4da515b58d2e9",
             );
 
             expect(channel.ourSide.nextCommitmentNumber.value).to.equal(1n);
@@ -185,6 +188,37 @@ describe(Channel.name, () => {
 
             // assert
             expect(result).to.equal(false);
+        });
+    });
+
+    describe(".readyHeight", () => {
+        it("returns undefined when not confirmed", () => {
+            // arrange
+            const channel = createFakeChannel()
+                .attachAcceptChannel(createFakeAcceptChannel())
+                .attachFundingTx(createFakeFundingTx())
+                .attachFundingSigned(createFakeFundingSignedMessage());
+
+            // act
+            const result = channel.readyHeight;
+
+            // assert
+            expect(result).to.equal(undefined);
+        });
+
+        it("returns height when confirmed", () => {
+            // arrange
+            const channel = createFakeChannel()
+                .attachAcceptChannel(createFakeAcceptChannel())
+                .attachFundingTx(createFakeFundingTx())
+                .attachFundingSigned(createFakeFundingSignedMessage())
+                .markConfirmed(500_000);
+
+            // act
+            const result = channel.readyHeight;
+
+            // assert
+            expect(result).to.equal(500_005);
         });
     });
 
@@ -287,9 +321,9 @@ describe(Channel.name, () => {
                 channelId: "6e7848c0fb7e9c4d336149a7fbc60d097f269cb0047917747156749b1bd5d5a0",
                 delayedBasePointSecret:
                     "0000000000000000000000000000000000000000000000000000000000000003",
-                feeRatePerKw: 0.00001,
+                feeRatePerKw: "0.00001",
                 funder: true,
-                fundingAmount: 0.002,
+                fundingAmount: "0.002",
                 fundingConfirmedHeight: 500000,
                 fundingKey: "0000000000000000000000000000000000000000000000000000000000000001",
                 fundingOutPoint:
@@ -305,25 +339,25 @@ describe(Channel.name, () => {
                 network: "testnet",
                 openBlockHeight: undefined,
                 ourSide: {
-                    balance: 0.00198,
-                    channelReserve: 0.0002,
-                    commitmentNumber: 0n,
+                    balance: "0.00198",
+                    channelReserve: "0.0002",
+                    commitmentNumber: "0",
                     commitmentPoint:
                         "02037803a3228ec3a517835480ffac64c0557d9d75e0fe85861ab0be9eb224e6f8",
                     commitmentSig:
-                        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+                        "4e5342dc670bd1f6db706e7071be0ee30b014fea8ea81dcb51d9f3c3e2f481f33fa26e38bfba7351f05190dda1f9da5658fc56e34e8ec3dae3d4da515b58d2e9",
                     delayedBasePoint:
                         "02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9",
-                    dustLimit: 0.00000354,
+                    dustLimit: "0.00000354",
                     fundingPubKey:
                         "0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798",
                     htlcBasePoint:
                         "02e493dbf1c10d80f3581e4904930b1404cc6c13900ee0758474fa94abe8c4cd13",
                     htlcCounter: undefined,
                     maxAcceptedHtlc: 30,
-                    maxInFlightHtlcValue: 2e-7,
-                    minHtlcValue: 0.000002,
-                    nextCommitmentNumber: 1n,
+                    maxInFlightHtlcValue: "2e-7",
+                    minHtlcValue: "0.000002",
+                    nextCommitmentNumber: "1",
                     nextCommitmentPoint:
                         "027eed8389cf8eb715d73111b73d94d2c2d04bf96dc43dfd5b0970d80b3617009d",
                     nextCommitmentSig: undefined,
@@ -338,30 +372,30 @@ describe(Channel.name, () => {
                 peerId: "031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f",
                 perCommitmentSeed:
                     "0000000000000000000000000000000000000000000000000000000000000000",
-                pushAmount: 0.00002,
+                pushAmount: "0.00002",
                 revocationBasePointSecret:
                     "0000000000000000000000000000000000000000000000000000000000000005",
                 state: undefined,
                 temporaryId: "0000000000000000000000000000000000000000000000000000000000000000",
                 theirSide: {
-                    balance: 0.00002,
-                    channelReserve: 0.0002,
-                    commitmentNumber: 0n,
+                    balance: "0.00002",
+                    channelReserve: "0.0002",
+                    commitmentNumber: "0",
                     commitmentPoint:
                         "0288a618cb6027c3218a37cbe9e882379f17d87d03f6e99d0b60292478d2aded06",
                     commitmentSig: undefined,
                     delayedBasePoint:
                         "03f28773c2d975288bc7d1d205c3748651b075fbc6610e58cddeeddf8f19405aa8",
-                    dustLimit: 0.00000354,
+                    dustLimit: "0.00000354",
                     fundingPubKey:
                         "03774ae7f858a9411e5ef4246b70c65aac5649980be5c17891bbec17895da008cb",
                     htlcBasePoint:
                         "03499fdf9e895e719cfd64e67f07d38e3226aa7b63678949e6e49b241a60e823e4",
                     htlcCounter: undefined,
                     maxAcceptedHtlc: 30,
-                    maxInFlightHtlcValue: 0.0002,
-                    minHtlcValue: 0.000002,
-                    nextCommitmentNumber: 1n,
+                    maxInFlightHtlcValue: "0.0002",
+                    minHtlcValue: "0.000002",
+                    nextCommitmentNumber: "1",
                     nextCommitmentPoint:
                         "032405cbd0f41225d5f203fe4adac8401321a9e05767c5f8af97d51d2e81fbb206",
                     nextCommitmentSig: undefined,

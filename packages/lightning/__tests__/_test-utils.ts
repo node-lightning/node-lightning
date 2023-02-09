@@ -3,10 +3,13 @@ import { ILogger, Logger } from "@node-lightning/logger";
 import { Readable } from "stream";
 import {
     ChannelId,
+    ChannelManager,
     CommitmentNumber,
     CommitmentSecret,
+    GossipManager,
     IPeer,
     IWireMessage,
+    LightningEventMuxer,
     PeerState,
 } from "../lib";
 import { InitFeatureFlags } from "../lib/flags/InitFeatureFlags";
@@ -40,6 +43,7 @@ import { IStateMachine } from "../lib/channels/IStateMachine";
 import { FundingSignedMessage } from "../lib/messages/FundingSignedMessage";
 import { Bits } from "@node-lightning/bitcoin/dist/Bits";
 import { ChannelReadyMessage } from "../lib/messages/ChannelReadyMessage";
+import { ILightningEventMuxer } from "../lib/ILightningEventMuxer";
 
 export class FakePeer extends Readable implements IPeer {
     public state: PeerState;
@@ -205,7 +209,9 @@ export function createFakeChannel(
 }
 
 export function createFakeChannelLogicFacade(): Sinon.SinonStubbedInstance<IChannelLogic> {
-    return Sinon.createStubInstance(Helpers);
+    return (Sinon.createStubInstance(Helpers) as unknown) as Sinon.SinonStubbedInstance<
+        IChannelLogic
+    >;
 }
 
 export function createFakeChannelStorage(): Sinon.SinonStubbedInstance<IChannelStorage> {
@@ -349,7 +355,23 @@ export function createFakeFundingSignedMessage(): FundingSignedMessage {
     const fundingTx = createFakeFundingTx();
     const fundingOutPoint = new OutPoint(fundingTx.txId, 0);
     msg.channelId = ChannelId.fromOutPoint(fundingOutPoint);
-    msg.signature = new EcdsaSig(Buffer.alloc(64, 0xff));
+
+    // const [ctx] = await helpers.createLocalCommitmentTx(channel);
+    // const fundeeFundingKey = createFakeKey(11n);
+    // const der = ctx.signSegWitv0(
+    //     0,
+    //     channel.fundingScript,
+    //     fundeeFundingKey,
+    //     channel.fundingAmount,
+    // );
+    // const sig = sigFromDER(der.subarray(0, der.length - 1));
+
+    msg.signature = new EcdsaSig(
+        Buffer.from(
+            "4e5342dc670bd1f6db706e7071be0ee30b014fea8ea81dcb51d9f3c3e2f481f33fa26e38bfba7351f05190dda1f9da5658fc56e34e8ec3dae3d4da515b58d2e9",
+            "hex",
+        ),
+    );
     return msg;
 }
 
@@ -381,4 +403,16 @@ export function createFakeBlock(height: number = 500_000, ...txs: Tx[]): Block {
         [coinbase, ...txs],
     );
     return block;
+}
+
+export function createFakeLightningEventMuxer(): Sinon.SinonStubbedInstance<ILightningEventMuxer> {
+    return Sinon.createStubInstance(LightningEventMuxer);
+}
+
+export function createFakeChannelManager(): Sinon.SinonStubbedInstance<ChannelManager> {
+    return Sinon.createStubInstance(ChannelManager);
+}
+
+export function createFakeGossipManager(): Sinon.SinonStubbedInstance<GossipManager> {
+    return Sinon.createStubInstance(GossipManager);
 }

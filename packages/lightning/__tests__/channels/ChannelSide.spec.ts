@@ -81,23 +81,23 @@ describe(ChannelSide.name, () => {
 
             // assert
             expect(result).to.deep.equal({
-                balance: 1,
-                channelReserve: 0.1,
-                commitmentNumber: 500000n,
+                balance: "1",
+                channelReserve: "0.1",
+                commitmentNumber: "500000",
                 commitmentPoint:
                     "031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f",
                 commitmentSig:
                     "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
                 delayedBasePoint:
                     "024d4b6cd1361032ca9bd2aeb9d900aa4d45d9ead80ac9423374c451a7254d0766",
-                dustLimit: 0.0001,
+                dustLimit: "0.0001",
                 fundingPubKey: "02531fe6068134503d2723133227c867ac8fa6c83c537e9a44c3c5bdbdcb1fe337",
                 htlcBasePoint: "03462779ad4aad39514614751a71085f2f10e1c7a593e4e030efb5b8721ce55b0b",
                 htlcCounter: 0,
                 maxAcceptedHtlc: 100,
-                maxInFlightHtlcValue: 0.1,
-                minHtlcValue: 0.001,
-                nextCommitmentNumber: 1n,
+                maxInFlightHtlcValue: "0.1",
+                minHtlcValue: "0.001",
+                nextCommitmentNumber: "1",
                 nextCommitmentPoint:
                     "0362c0a046dacce86ddd0343c6d3c7c79c2208ba0d9c9cf24a6d046d21d21f90f7",
                 nextCommitmentSig:

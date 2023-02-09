@@ -15,6 +15,7 @@ export class AwaitingChannelReadyState extends StateMachine {
 
         // fail if not ok which will transition to a local unilateral close
         if (!isOk) {
+            this.logger.warn("validating channel_ready message failed");
             return FailingState.name;
         }
 

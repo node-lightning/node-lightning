@@ -1,10 +1,9 @@
-import { BitcoindClient, BlockSummary } from "@node-lightning/bitcoind";
+import { BitcoindClient } from "@node-lightning/bitcoind";
 import { BlockHeader } from "@node-lightning/bitcoind";
 import { BlockDiffer } from "./BlockDiffer";
 import { ILogger } from "@node-lightning/logger";
-import { EventEmitter } from "events";
-
-export type BlockWatcherFn = (block: BlockSummary) => Promise<void>;
+import { Block, HashByteOrder } from "@node-lightning/bitcoin";
+import { BlockProducerFn, IBlockProducer } from "@node-lightning/lightning";
 
 /**
  * This class polls for blocks from a bitcoind instance and fires a
@@ -15,24 +14,28 @@ export type BlockWatcherFn = (block: BlockSummary) => Promise<void>;
  * common ancestor has been found and reconnected to get to the best
  * block tip.
  */
-export class BlockWatcher extends EventEmitter {
+export class BlockWatcher implements IBlockProducer {
+    public logger: ILogger;
     public knownHash: string;
     public blockDiffer: BlockDiffer;
     public syncing: boolean;
+    public onBlockConnected: BlockProducerFn;
+    public onBlockDisconnected: BlockProducerFn;
 
     protected _handle: NodeJS.Timeout;
 
     constructor(
         readonly client: BitcoindClient,
-        knownHash: string,
-        readonly onConnect: BlockWatcherFn,
-        readonly onDisconnect: BlockWatcherFn,
-        readonly logger?: ILogger,
+        knownHash?: string,
+        onBlockConnected?: BlockProducerFn,
+        onBlockDisconnected?: BlockProducerFn,
+        logger?: ILogger,
         readonly pollIntervalMs: number = 5000,
     ) {
-        super();
         this.knownHash = knownHash;
-        this.blockDiffer = new BlockDiffer(client);
+        this.onBlockConnected = onBlockConnected;
+        this.onBlockDisconnected = onBlockDisconnected;
+        this.logger = logger?.sub(BlockWatcher.name);
     }
 
     public start(): void {
@@ -59,7 +62,7 @@ export class BlockWatcher extends EventEmitter {
         try {
             await this._sync();
         } catch (ex) {
-            this.emit("error", ex);
+            // to-do
         }
         this._scheduleNext();
     }
@@ -69,6 +72,10 @@ export class BlockWatcher extends EventEmitter {
 
         this.syncing = true;
         const bestHash = await this.client.getBestBlockHash();
+
+        if (!this.knownHash) {
+            this.knownHash = bestHash;
+        }
 
         // eslint-disable-next-line no-constant-condition
         while (true) {
@@ -100,14 +107,28 @@ export class BlockWatcher extends EventEmitter {
     }
 
     protected async _connectBlock(header: BlockHeader) {
-        if (this.logger) this.logger.debug("connecting block", header.height, header.hash);
-        const block = await this.client.getBlockSummary(header.hash);
-        await this.onConnect(block);
+        const blockBuf = await this.client.getRawBlock(header.hash);
+        const block = Block.fromBuffer(blockBuf);
+        if (this.logger) {
+            this.logger.debug(
+                "connecting block",
+                block.bip34Height,
+                block.hash().toString(HashByteOrder.RPC),
+            );
+        }
+        await this.onBlockConnected(block);
     }
 
     protected async _disconnectBlock(header: BlockHeader) {
-        if (this.logger) this.logger.debug("disconnecting block", header.height, header.hash);
-        const block = await this.client.getBlockSummary(header.hash);
-        await this.onDisconnect(block);
+        const blockBuf = await this.client.getRawBlock(header.hash);
+        const block = Block.fromBuffer(blockBuf);
+        if (this.logger) {
+            this.logger.debug(
+                "disconnecting block",
+                block.bip34Height,
+                block.hash().toString(HashByteOrder.RPC),
+            );
+        }
+        await this.onBlockDisconnected(block);
     }
 }

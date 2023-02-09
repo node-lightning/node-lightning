@@ -1,5 +1,6 @@
 import { BitField } from "../BitField";
 import { Address } from "../domain/Address";
+import { NodeFeatureFlags } from "../flags/NodeFeatureFlags";
 import { Channel } from "./channel";
 
 /**
@@ -11,7 +12,7 @@ export class Node {
     public alias: Buffer;
     public addresses: Address[] = [];
     public rgbColor: Buffer;
-    public features: BitField;
+    public features: BitField<NodeFeatureFlags>;
 
     /**
      * Channels that the node belongs to

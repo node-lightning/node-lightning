@@ -2,6 +2,7 @@ import { BitField } from "../BitField";
 import { ShortChannelId } from "../domain/ShortChannelId";
 import { OutPoint } from "@node-lightning/bitcoin";
 import { ChannelSettings } from "./channel-settings";
+import { ChannelFeatureFlags } from "../flags/ChannelFeatureFlags";
 
 export class Channel {
     /**
@@ -31,7 +32,7 @@ export class Channel {
     /**
      * Channel features
      */
-    public features: BitField;
+    public features: BitField<ChannelFeatureFlags>;
 
     /**
      * Routing policy for the first node

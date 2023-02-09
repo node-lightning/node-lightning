@@ -1,5 +1,13 @@
 import { ConsoleTransport, Logger, LogLevel } from "@node-lightning/logger";
-import { ChannelAnnouncementMessage, GossipFilter } from "@node-lightning/lightning";
+import {
+    ChannelAnnouncementMessage,
+    LightningEventMuxer,
+    LightningEventQueue,
+    GossipFilter,
+    LightningEventResult,
+    PeerRepository,
+    LightningEvent,
+} from "@node-lightning/lightning";
 import { ChannelUpdateMessage } from "@node-lightning/lightning";
 import { NodeAnnouncementMessage } from "@node-lightning/lightning";
 import { ExtendedChannelAnnouncementMessage } from "@node-lightning/lightning";
@@ -9,8 +17,6 @@ import { InitFeatureFlags } from "@node-lightning/lightning";
 import { BitField } from "@node-lightning/lightning";
 import { GossipManager } from "@node-lightning/lightning";
 import { PeerManager } from "@node-lightning/lightning";
-import { WireMessageResult } from "@node-lightning/lightning";
-import { isBuffer } from "util";
 
 // tslint:disable-next-line: no-var-requires
 const config = require("../config.json");
@@ -18,6 +24,18 @@ const config = require("../config.json");
 const logger = new Logger("app");
 logger.transports.push(new ConsoleTransport(console));
 logger.level = LogLevel.Debug;
+
+class CustomMuxer extends LightningEventMuxer {
+    public afterEvent: (result: LightningEventResult) => void;
+
+    public async onEvent(event: LightningEvent): Promise<LightningEventResult> {
+        const result = await super.onEvent(event);
+        if (this.afterEvent) {
+            this.afterEvent(result);
+        }
+        return result;
+    }
+}
 
 async function connectToPeer(peerInfo: { rpk: string; host: string; port: number }) {
     // local secret is obtained from the config file and
@@ -54,12 +72,21 @@ async function connectToPeer(peerInfo: { rpk: string; host: string; port: number
     // in our config file
     peer.connect(Buffer.from(peerInfo.rpk, "hex"), peerInfo.host, peerInfo.port);
 
-    const peerManager = new PeerManager(gossipManager);
+    const eventMuxer = new CustomMuxer(logger, gossipManager, undefined);
+    const eventQueue = new LightningEventQueue(eventMuxer);
+
+    const peerRepo = new PeerRepository();
+    const peerManager = new PeerManager(peerRepo, eventQueue);
     peerManager.addPeer(peer);
 
     let counter = 0;
-    peerManager.afterPeerMessage = (result: WireMessageResult) => {
-        const msg = result.value;
+    eventMuxer.afterEvent = async (result: LightningEventResult) => {
+        if (!result) return;
+
+        const event = result.value;
+        const msg = event.msg;
+        if (!msg) return;
+
         let extra = "";
         if (msg instanceof ChannelAnnouncementMessage) {
             extra += msg.shortChannelId.toString();

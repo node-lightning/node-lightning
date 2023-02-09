@@ -11,7 +11,8 @@
     "install": "npm run build:native",
     "prepublish": "npm run build",
     "submodule": "git submodule update --init",
-    "prehoist": "npm run submodule"
+    "prehoist": "npm run submodule",
+    "clean": "rm -rf node_modules; rm -rf dist"
   },
   "keywords": [
     "node-lightning",

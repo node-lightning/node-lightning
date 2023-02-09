@@ -20,6 +20,7 @@ export class AwaitingFundingSignedState extends StateMachine {
         channel.attachFundingSigned(msg);
 
         // Broadcast funding transaction
+        this.logger.debug("broadcasting funding tx");
         await this.logic.broadcastTx(channel.fundingTx);
 
         // Transition to AwaitingFundingDepth state

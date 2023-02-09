@@ -1,3 +1,4 @@
+import { sha256 } from "@node-lightning/crypto";
 import { expect } from "chai";
 import { Block, HashByteOrder, Tx } from "../lib";
 import block0 from "../__fixtures__/block_0.json";
@@ -114,6 +115,34 @@ describe(Block.name, () => {
         });
     });
 
+    describe(Block.prototype.hash.name, () => {
+        it("block 0", () => {
+            // arrange
+            const block = Block.fromHex(block0.hex);
+
+            // act
+            const hash = block.hash();
+
+            // assert
+            expect(hash.toString(HashByteOrder.RPC)).to.equal(
+                "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f",
+            );
+        });
+
+        it("block 768274", () => {
+            // arrange
+            const block = Block.fromHex(block768274.hex);
+
+            // act
+            const hash = block.hash();
+
+            // assert
+            expect(hash.toString(HashByteOrder.RPC)).to.equal(
+                "00000000000000000004a792625715b4ae1ae3a0a300310855a010463aeb5d46",
+            );
+        });
+    });
+
     describe("coinbase", () => {
         it("block 0", () => {
             // arrange
@@ -172,5 +201,16 @@ describe(Block.name, () => {
             // assert
             expect(height).to.equal(768274n);
         });
+    });
+
+    it("hash", () => {
+        const block = Block.fromHex(
+            "008076259ee474a2ed19af9a1d5d22f631ed180df860f6f28ec5f3ef28d90000000000002d0f180bee604c22450db0a0119916be1e5809c556d9df3bb2885fd671487d0d0a01606300413f1c09249da901010000000001010000000000000000000000000000000000000000000000000000000000000000ffffffff19032d5724012012090909200909200904decf008f0800000000ffffffff02be40250000000000160014820d4a343a44e915c36494995c2899abe37418930000000000000000266a24aa21a9ede2f61c3f71d1defd3fa999dfa36953755c690689799962b48bebd836974e8cf90120000000000000000000000000000000000000000000000000000000000000000000000000",
+        );
+        console.log(block.toBuffer().toString("hex"));
+        console.log(sha256(block.toBuffer()).toString("hex"));
+        expect(block.hash().toString(HashByteOrder.RPC)).to.equal(
+            "000000000000d5998701b045574a2fe3b940bf3733e83a95ecfb598e7336f5db",
+        );
     });
 });

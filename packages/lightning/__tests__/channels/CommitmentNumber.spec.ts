@@ -39,4 +39,18 @@ describe("CommitmentNumber", () => {
             expect(result).to.equal(42);
         });
     });
+
+    describe(CommitmentNumber.prototype.toString.name, () => {
+        it("outputs the string of the value", () => {
+            const result = new CommitmentNumber(0n);
+            expect(result.toString()).to.equal("0");
+        });
+    });
+
+    describe(CommitmentNumber.prototype.toJSON.name, () => {
+        it("outputs the string of the value", () => {
+            const result = new CommitmentNumber(0n);
+            expect(result.toJSON()).to.equal("0");
+        });
+    });
 });

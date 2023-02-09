@@ -15,6 +15,7 @@ import { ChannelSide } from "./ChannelSide";
 import { CommitmentNumber } from "./CommitmentNumber";
 import { CommitmentSecret } from "./CommitmentSecret";
 import { IStateMachine } from "./IStateMachine";
+import { ScriptFactory } from "./ScriptFactory";
 
 export class Channel {
     public temporaryId: Buffer;
@@ -74,10 +75,13 @@ export class Channel {
     /**
      * The block height when the channel can be considered ready. This
      * value is calculated from the fundingConfirmedHeight + minimumDepth
-     * that was received in accept_channel.
+     * that was received in accept_channel.  Returns undefined if the
+     * funding_tx has not yet been confirmed.
      */
     public get readyHeight(): number {
-        return this.fundingConfirmedHeight + this.minimumDepth;
+        if (this.fundingConfirmedHeight === undefined) return undefined;
+
+        return this.fundingConfirmedHeight + this.minimumDepth - 1;
     }
 
     /**
@@ -189,6 +193,10 @@ export class Channel {
             msg.firstPerCommitmentPoint,
             this.network,
         );
+        this.fundingScript = ScriptFactory.fundingScript(
+            this.ourSide.fundingPubKey.toBuffer(),
+            this.theirSide.fundingPubKey.toBuffer(),
+        ).toScriptBuf();
         return this;
     }
 
@@ -203,7 +211,6 @@ export class Channel {
         this.fundingTx = tx;
         const fundingOutPoint = new OutPoint(tx.txId, 0);
         this.fundingOutPoint = fundingOutPoint;
-        this.fundingScript = tx.outputs[0].scriptPubKey;
         this.channelId = ChannelId.fromOutPoint(this.fundingOutPoint);
         return this;
     }
@@ -279,13 +286,13 @@ export class Channel {
         return {
             channelId: this.channelId?.toHex(),
             delayedBasePointSecret: this.delayedBasePointSecret?.toHex(),
-            feeRatePerKw: this.feeRatePerKw?.bitcoin,
+            feeRatePerKw: this.feeRatePerKw?.bitcoin.toString(),
             funder: this.funder,
-            fundingAmount: this.fundingAmount?.bitcoin,
+            fundingAmount: this.fundingAmount?.bitcoin.toString(),
             fundingConfirmedHeight: this.fundingConfirmedHeight,
             fundingKey: this.fundingKey?.toHex(),
             fundingOutPoint: this.fundingOutPoint?.toString(),
-            fundingScript: this.fundingScript?.toHex(),
+            fundingScript: this.fundingScript?.toString(),
             fundingTx: this.fundingTx?.toHex(),
             htlcBasePointSecret: this.htlcBasePointSecret?.toHex(),
             isPublic: this.isPublic,
@@ -296,7 +303,7 @@ export class Channel {
             paymentBasePointSecret: this.paymentBasePointSecret?.toHex(),
             peerId: this.peerId,
             perCommitmentSeed: this.perCommitmentSeed?.toString("hex"),
-            pushAmount: this.pushAmount?.bitcoin,
+            pushAmount: this.pushAmount?.bitcoin.toString(),
             revocationBasePointSecret: this.revocationBasePointSecret?.toHex(),
             state: this.state?.name,
             temporaryId: this.temporaryId?.toString("hex"),

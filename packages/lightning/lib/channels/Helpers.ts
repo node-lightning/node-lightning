@@ -2,6 +2,7 @@
 import {
     EcdsaSig,
     HashByteOrder,
+    LockTime,
     Network,
     PublicKey,
     Tx,
@@ -31,13 +32,14 @@ import { CommitmentNumber } from "./CommitmentNumber";
 import { FundingSignedMessage } from "../messages/FundingSignedMessage";
 import { sigFromDER, verifySig } from "@node-lightning/crypto";
 import { ChannelReadyMessage } from "../messages/ChannelReadyMessage";
-import { IWireMessage, PeerManager } from "..";
+import { PeerRepository } from "../PeerRepository";
+import { IWireMessage } from "../messages/IWireMessage";
 
 export class Helpers implements IChannelLogic {
     constructor(
         readonly wallet: IChannelWallet,
         public preferences: ChannelPreferences,
-        readonly peerManager: PeerManager,
+        readonly peerRepository: PeerRepository,
     ) {}
 
     /**
@@ -46,7 +48,8 @@ export class Helpers implements IChannelLogic {
      * @param msg
      */
     public sendMessage(peerId: string, msg: IWireMessage) {
-        this.peerManager.sendMessage(peerId, msg);
+        const peer = this.peerRepository.findById(peerId);
+        peer.sendMessage(msg);
     }
 
     /**
@@ -303,6 +306,10 @@ export class Helpers implements IChannelLogic {
         ) {
             return Result.err(new OpeningError(OpeningErrorType.FundingAmountTooLow));
         }
+
+        // Set the initial balances
+        channel.theirSide.balance = options.pushAmount;
+        channel.ourSide.balance = options.fundingAmount.subn(options.pushAmount);
 
         // Should set `dust_limit_satoshis` to a value sufficient to propagate transactions is sufficient to propagate transactions by checking with the Bitcoin node using `getDustLimit` subroutine.
         channel.ourSide.dustLimit = await this.wallet.getDustLimit();
@@ -649,6 +656,7 @@ export class Helpers implements IChannelLogic {
                 channel.theirSide.fundingPubKey.toBuffer(),
             ),
         );
+        tx.locktime = LockTime.zero();
         return await this.wallet.fundTx(tx);
     }
 
@@ -841,6 +849,8 @@ export class Helpers implements IChannelLogic {
         if (!result) {
             return OpeningError.toResult(OpeningErrorType.InvalidCommitmentSig);
         }
+
+        return Result.ok(true);
     }
 
     /**

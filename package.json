@@ -12,7 +12,8 @@
     "postinstall": "lerna run prehoist",
     "bootstrap:ci": "lerna bootstrap --hoist",
     "version": "lerna version --no-push --no-git-tag-version",
-    "publish": "lerna publish from-package"
+    "publish": "lerna publish from-package",
+    "clean": "lerna run clean"
   },
   "keywords": [
     "lightning-network",
@@ -28,7 +29,7 @@
     "@types/chai-as-promised": "^7.1.4",
     "@types/mocha": "^5.2.7",
     "@types/node": "^18.11.9",
-    "@types/sinon": "^9.0.4",
+    "@types/sinon": "^10.0.13",
     "@typescript-eslint/eslint-plugin": "^5.43.0",
     "@typescript-eslint/parser": "^5.43.0",
     "chai": "^4.2.0",
@@ -46,9 +47,9 @@
     "nodemon": "^2.0.4",
     "nyc": "^15.1.0",
     "prettier": "^1.19.1",
-    "sinon": "^7.5.0",
+    "sinon": "^15.0.1",
     "source-map-support": "^0.5.19",
     "ts-node": "^8.10.2",
-    "typescript": "^3.9.5"
+    "typescript": "^4.9.5"
   }
 }

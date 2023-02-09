@@ -103,7 +103,7 @@ describe(AwaitingFundingDepthState.name, () => {
 
             // assert
             expect(channel.fundingConfirmedHeight).to.equal(500_000);
-            expect(channel.readyHeight).to.equal(500_006);
+            expect(channel.readyHeight).to.equal(500_005);
             expect(result).to.equal(AwaitingFundingDepthState.name);
         });
 
@@ -117,14 +117,14 @@ describe(AwaitingFundingDepthState.name, () => {
 
             // assert
             expect(channel.fundingConfirmedHeight).to.equal(500_000);
-            expect(channel.readyHeight).to.equal(500_006);
+            expect(channel.readyHeight).to.equal(500_005);
             expect(result).to.equal(AwaitingFundingDepthState.name);
         });
 
         it("meets depth, no channel_ready => sends channel_ready + transitions to awaiting_channel_ready", async () => {
             // arrange
             channel.markConfirmed(500_000);
-            const block = createFakeBlock(500_006);
+            const block = createFakeBlock(500_005);
 
             // act
             const result = await sut.onBlockConnected(channel, block);

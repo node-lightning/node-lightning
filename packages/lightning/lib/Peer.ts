@@ -27,6 +27,7 @@ export type IMessageSenderReceiver = IMessageSender & IMessageReceiver;
 export interface IPeer extends IMessageSenderReceiver {
     id: string;
     state: PeerState;
+    localChains: Buffer[];
     send(buf: Buffer): void;
     sendMessage(msg: IWireMessage): void;
     disconnect(): void;
@@ -34,10 +35,12 @@ export interface IPeer extends IMessageSenderReceiver {
 
     read(): IWireMessage;
     on(event: "ready", listener: () => void): this;
+    on(event: "close", listener: () => void): this;
     on(event: "readable", listener: () => void): this;
     on(event: "error", listener: (err: Error) => void): this;
 
     off(event: "ready", listener: () => void): this;
+    off(event: "close", listener: () => void): this;
     off(event: "readable", listener: () => void): this;
     off(event: "error", listener: (err: Error) => void): this;
 }

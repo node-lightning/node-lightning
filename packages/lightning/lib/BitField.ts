@@ -9,7 +9,7 @@ import * as bigintutil from "./BigIntUtils";
  * can be used since there is a limit of 31 digits that can be manipulated
  * using bitwise operations in JavaScript.
  */
-export class BitField<T = number> {
+export class BitField<T extends number> {
     /**
      * Constructs a bitmask from a number
      */
@@ -62,6 +62,7 @@ export class BitField<T = number> {
         let bit = 0;
         let val = 1n;
         while (val < this.value) {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             if (this.value & val) bits.push(bit as any);
             bit += 1;
             val <<= 1n;
@@ -86,7 +87,7 @@ export class BitField<T = number> {
      * Returns a new BitField with the bitwise AND of the two BitFields
      * @param bitfield
      */
-    public and(bitfield: BitField): BitField {
+    public and(bitfield: BitField<T>): BitField<T> {
         return new BitField(this.value & bitfield.value);
     }
 
@@ -94,7 +95,7 @@ export class BitField<T = number> {
      * Returns a new BitField with the bitwise OR of the two BitFields
      * @param bitfield
      */
-    public or(bitfield: BitField): BitField {
+    public or(bitfield: BitField<T>): BitField<T> {
         return new BitField(this.value | bitfield.value);
     }
 
@@ -102,7 +103,7 @@ export class BitField<T = number> {
      * Returns a new BitField with the bitwise XOR of the two BitFields
      * @param bitfield
      */
-    public xor(bitfield: BitField): BitField {
+    public xor(bitfield: BitField<T>): BitField<T> {
         return new BitField(this.value ^ bitfield.value);
     }
 

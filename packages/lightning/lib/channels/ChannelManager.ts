@@ -21,14 +21,17 @@ import { ChannelReadyMessage } from "../messages/ChannelReadyMessage";
  */
 export class ChannelManager {
     public channels: Channel[] = [];
+    public logger: ILogger;
 
     constructor(
-        readonly logger: ILogger,
+        logger: ILogger,
         readonly network: Network,
         readonly logic: IChannelLogic,
         readonly channelStorage: IChannelStorage,
         public rootState: IStateMachine,
-    ) {}
+    ) {
+        this.logger = logger.sub(ChannelManager.name);
+    }
 
     public findChannelById(channelId: ChannelId): Channel | undefined {
         return this.channels.find(p => channelId.equals(p.channelId));
@@ -84,6 +87,12 @@ export class ChannelManager {
         while (newStateName && newStateName !== oldState.name) {
             const newState = this.findState(newStateName);
 
+            if (!newState) {
+                // TODO - this isn't being handled anywhere... channel manager needs to do some stuff
+                this.logger.error("Failed to find state, state=" + newStateName);
+                throw new Error("Failed to find state, state=" + newStateName);
+            }
+
             // exit for old state
             await oldState.onExit(channel, newState);
 
@@ -130,10 +139,13 @@ export class ChannelManager {
         const message = await this.logic.createOpenChannelMessage(channel);
 
         // Send open_channel to the peer
-        peer.sendMessage(message);
+        this.logic.sendMessage(peer.id, message);
 
         // Save the initial state
         await this.transitionState(channel, AwaitingAcceptChannelState.name);
+
+        // Add to channels
+        this.channels.push(channel);
 
         // Return true result with the channel
         return Result.ok(channel);
@@ -146,10 +158,13 @@ export class ChannelManager {
      * @returns
      */
     public async onAcceptChannelMessage(peer: IPeer, msg: AcceptChannelMessage): Promise<void> {
+        this.logger.debug("handling", msg);
         const channel = this.findChannelByTempId(peer.id, msg.temporaryChannelId);
         if (!channel) {
+            this.logger.debug("failed to find channel");
             return;
         }
+
         const newState = await channel.state.onAcceptChannelMessage(channel, msg);
         await this.transitionState(channel, newState);
     }
@@ -160,8 +175,10 @@ export class ChannelManager {
      * @param msg
      */
     public async onFundingSignedMessage(peer: IPeer, msg: FundingSignedMessage): Promise<void> {
+        this.logger.debug("handling", msg);
         const channel = this.findChannelById(msg.channelId);
         if (!channel) {
+            this.logger.debug("failed to find channel");
             return;
         }
         const newState = await channel.state.onFundingSignedMessage(channel, msg);
@@ -173,6 +190,7 @@ export class ChannelManager {
      * @param block
      */
     public async onBlockConnected(block: Block): Promise<void> {
+        this.logger.debug("connecting block", block.bip34Height);
         for (const channel of this.channels) {
             const newState = await channel.state.onBlockConnected(channel, block);
             await this.transitionState(channel, newState);
@@ -185,6 +203,7 @@ export class ChannelManager {
      * @param msg
      */
     public async onChannelReadyMessage(peer: IPeer, msg: ChannelReadyMessage) {
+        this.logger.debug("handling", msg);
         const channel = this.findChannelById(msg.channelId);
         if (!channel) {
             return;
