@@ -50,16 +50,8 @@ describe("HdPublicKey", () => {
 
         it("matches HdPrivateKey derive", () => {
             const account = HdPrivateKey.fromPath("m/84'/0'/0'", seed, Network.mainnet);
-            const expected = account
-                .derive(0)
-                .derive(0)
-                .toPubKey()
-                .toSecHex();
-            const actual = account
-                .toPubKey()
-                .derive(0)
-                .derive(0)
-                .toSecHex();
+            const expected = account.derive(0).derive(0).toPubKey().toSecHex();
+            const actual = account.toPubKey().derive(0).derive(0).toSecHex();
             expect(actual).to.equal(expected);
         });
 

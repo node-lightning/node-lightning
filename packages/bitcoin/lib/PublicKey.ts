@@ -5,7 +5,6 @@ import { Address } from "./Address";
 import { BitcoinError } from "./BitcoinError";
 import { BitcoinErrorCode } from "./BitcoinErrorCode";
 import { Network } from "./Network";
-import { EcdsaSig } from "./EcdsaSig";
 
 /**
  * This class represents a point on an secp256k1 elliptic curve and acts

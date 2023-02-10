@@ -110,8 +110,7 @@ describe(".readTlvs()", () => {
             failure: "less than encoding length for n1s tlv3",
         },
         {
-            input:
-                "0330023da092f6980e58d2c037173180e9a465476026ee50f96695963e8efe436f54eb000000000000000100000000000001",
+            input: "0330023da092f6980e58d2c037173180e9a465476026ee50f96695963e8efe436f54eb000000000000000100000000000001",
             failure: "less than encoding length for n1s tlv3",
         },
         // {

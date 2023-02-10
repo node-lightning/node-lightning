@@ -67,12 +67,7 @@ describe("PublicKey", () => {
         });
 
         it("uncompressed", () => {
-            expect(
-                sut
-                    .toPubKey(false)
-                    .toBuffer()
-                    .toString("hex"),
-            ).to.equal(
+            expect(sut.toPubKey(false).toBuffer().toString("hex")).to.equal(
                 "041b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f70beaf8f588b541507fed6a642c5ab42dfdf8120a7f639de5122d47a69a8e8d1",
             );
         });
@@ -100,12 +95,9 @@ describe("PublicKey", () => {
         });
 
         it("uncompressed", () => {
-            expect(
-                sut
-                    .toPubKey(false)
-                    .hash160()
-                    .toString("hex"),
-            ).to.equal("6ff3443c994fb2c821969dae53bd5b5052d8394f");
+            expect(sut.toPubKey(false).hash160().toString("hex")).to.equal(
+                "6ff3443c994fb2c821969dae53bd5b5052d8394f",
+            );
         });
     });
 

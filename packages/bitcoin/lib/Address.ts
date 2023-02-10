@@ -61,9 +61,12 @@ export class Address {
      * @param encoded base58check encoded string
      * @returns
      */
-    public static decodeBase58(
-        encoded: string,
-    ): { type: AddressType; network: Network; prefix: number; hash: Buffer } {
+    public static decodeBase58(encoded: string): {
+        type: AddressType;
+        network: Network;
+        prefix: number;
+        hash: Buffer;
+    } {
         const data = Base58Check.decode(encoded);
         const prefix = data[0];
         const hash = data.slice(1);
@@ -98,9 +101,12 @@ export class Address {
      * @param encoded
      * @returns
      */
-    public static decodeBech32(
-        encoded: string,
-    ): { type: AddressType; network: Network; version: number; program: Buffer } {
+    public static decodeBech32(encoded: string): {
+        type: AddressType;
+        network: Network;
+        version: number;
+        program: Buffer;
+    } {
         const { hrp, words, version: checksum } = Bech32.decode(encoded);
         const version = words[0];
         if (version < 0 || version > 16) {

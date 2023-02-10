@@ -20,9 +20,10 @@ describe(Bits.name, () => {
 
     describe(Bits.fromTarget.name, () => {
         it("genesis block", () => {
-            const result = Bits.fromTarget(
-                26959535291011309493156476344723991336010898738574164086137773096960n,
-            );
+            const result =
+                Bits.fromTarget(
+                    26959535291011309493156476344723991336010898738574164086137773096960n,
+                );
             expect(result.coefficient).to.equal(65535);
             expect(result.exponent).to.equal(29);
         });

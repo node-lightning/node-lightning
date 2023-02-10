@@ -51,9 +51,11 @@ export class Bech32 {
      * @param encoded
      * @returns
      */
-    public static decode(
-        encoded: string,
-    ): { hrp: string; words: number[]; version: Bech32Version } {
+    public static decode(encoded: string): {
+        hrp: string;
+        words: number[];
+        version: Bech32Version;
+    } {
         // validate either uppercase or lowercase
         let hasUpper = false;
         let hasLower = false;
@@ -267,9 +269,7 @@ function calculateChecksum(hrp: string, data: number[]): number {
 }
 
 function createChecksum(hrp: string, data: number[], constant: Bech32Version): number[] {
-    const values = hrpExpand(hrp)
-        .concat(data)
-        .concat([0, 0, 0, 0, 0, 0]);
+    const values = hrpExpand(hrp).concat(data).concat([0, 0, 0, 0, 0, 0]);
     const mod = polymod(values) ^ constant;
     const results: number[] = [];
     for (let i = 0; i < 6; i++) {
