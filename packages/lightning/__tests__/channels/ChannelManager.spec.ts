@@ -51,9 +51,7 @@ describe(ChannelManager.name, () => {
 
         it("returns channel when matching the tempChannelId and peerId", () => {
             // arrange
-            const channelPeerId = createFakeKey(1n)
-                .toPubKey(true)
-                .toHex();
+            const channelPeerId = createFakeKey(1n).toPubKey(true).toHex();
             const channelTempId = Buffer.alloc(32);
             const channel = createFakeChannel({
                 temporaryId: channelTempId,
@@ -62,9 +60,7 @@ describe(ChannelManager.name, () => {
             sut.channels.push(channel);
 
             // act
-            const inputPeerId = createFakeKey(1n)
-                .toPubKey(true)
-                .toHex();
+            const inputPeerId = createFakeKey(1n).toPubKey(true).toHex();
             const inputTempId = Buffer.alloc(32);
             const result = sut.findChannelByTempId(inputPeerId, inputTempId);
 
@@ -74,9 +70,7 @@ describe(ChannelManager.name, () => {
 
         it("returns undefined when peerId doesn't match", () => {
             // arrange
-            const channelPeerId = createFakeKey(1n)
-                .toPubKey(true)
-                .toHex();
+            const channelPeerId = createFakeKey(1n).toPubKey(true).toHex();
             const channelTempId = Buffer.alloc(32);
             const channel = createFakeChannel({
                 temporaryId: channelTempId,
@@ -85,9 +79,7 @@ describe(ChannelManager.name, () => {
             sut.channels.push(channel);
 
             // act
-            const inputPeerId = createFakeKey(2n)
-                .toPubKey(true)
-                .toHex();
+            const inputPeerId = createFakeKey(2n).toPubKey(true).toHex();
             const inputTempId = Buffer.alloc(32);
             const result = sut.findChannelByTempId(inputPeerId, inputTempId);
 
@@ -97,9 +89,7 @@ describe(ChannelManager.name, () => {
 
         it("returns undefined when tempChannelId doesn't match", () => {
             // arrange
-            const channelPeerId = createFakeKey(1n)
-                .toPubKey(true)
-                .toHex();
+            const channelPeerId = createFakeKey(1n).toPubKey(true).toHex();
             const channelTempId = Buffer.alloc(32);
             const channel = createFakeChannel({
                 temporaryId: channelTempId,
@@ -108,9 +98,7 @@ describe(ChannelManager.name, () => {
             sut.channels.push(channel);
 
             // act
-            const inputPeerId = createFakeKey(1n)
-                .toPubKey(true)
-                .toHex();
+            const inputPeerId = createFakeKey(1n).toPubKey(true).toHex();
             const inputTempId = Buffer.alloc(32, 0x255);
             const result = sut.findChannelByTempId(inputPeerId, inputTempId);
 
@@ -294,10 +282,7 @@ describe(ChannelManager.name, () => {
             c.onEnter = Sinon.stub();
             c.onExit = Sinon.stub();
 
-            sut.rootState
-                .addSubState(a)
-                .addSubState(b)
-                .addSubState(c);
+            sut.rootState.addSubState(a).addSubState(b).addSubState(c);
         });
 
         describe("initial state", () => {

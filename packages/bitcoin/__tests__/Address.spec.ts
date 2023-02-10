@@ -197,11 +197,9 @@ describe("Address", () => {
             expect(decoded.program.toString("hex")).to.equal(
                 "751e76e8199196d454941c45d1b3a323f1433bd6",
             );
-            expect(
-                Script.p2wpkhLock(decoded.program)
-                    .serializeCmds()
-                    .toString("hex"),
-            ).to.equal("0014751e76e8199196d454941c45d1b3a323f1433bd6");
+            expect(Script.p2wpkhLock(decoded.program).serializeCmds().toString("hex")).to.equal(
+                "0014751e76e8199196d454941c45d1b3a323f1433bd6",
+            );
         });
 
         it("decode P2WSH", () => {

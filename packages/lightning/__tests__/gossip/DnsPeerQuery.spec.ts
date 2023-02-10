@@ -51,8 +51,7 @@ describe("DnsPeerQuery", () => {
             const resolveSrvStub = Sinon.stub(resolver, "resolveSrv").returns(
                 Promise.resolve([
                     {
-                        name:
-                            "ln1qwktpe6jxltmpphyl578eax6fcjc2m807qalr76a5gfmx7k9qqfjwy4mctz.lseed.bitcoinstats.com.",
+                        name: "ln1qwktpe6jxltmpphyl578eax6fcjc2m807qalr76a5gfmx7k9qqfjwy4mctz.lseed.bitcoinstats.com.",
                         port: 6331,
                         priority: 0,
                         weight: 0,
@@ -92,15 +91,13 @@ describe("DnsPeerQuery", () => {
             const resolveSrvStub = Sinon.stub(resolver, "resolveSrv").returns(
                 Promise.resolve([
                     {
-                        name:
-                            "ln1qwktpe6jxltmpphyl578eax6fcjc2m807qalr76a5gfmx7k9qqfjwy4mctz.lseed.bitcoinstats.com.",
+                        name: "ln1qwktpe6jxltmpphyl578eax6fcjc2m807qalr76a5gfmx7k9qqfjwy4mctz.lseed.bitcoinstats.com.",
                         port: 6331,
                         weight: 0,
                         priority: 0,
                     },
                     {
-                        name:
-                            "ln1qv2w3tledmzczw227nnkqrrltvmydl8gu4w4d70g9td7avke6nmz2tdefqp.lseed.bitcoinstats.com.",
+                        name: "ln1qv2w3tledmzczw227nnkqrrltvmydl8gu4w4d70g9td7avke6nmz2tdefqp.lseed.bitcoinstats.com.",
                         port: 9735,
                         weight: 0,
                         priority: 0,

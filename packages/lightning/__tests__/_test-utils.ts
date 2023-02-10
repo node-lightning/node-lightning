@@ -209,9 +209,9 @@ export function createFakeChannel(
 }
 
 export function createFakeChannelLogicFacade(): Sinon.SinonStubbedInstance<IChannelLogic> {
-    return (Sinon.createStubInstance(Helpers) as unknown) as Sinon.SinonStubbedInstance<
-        IChannelLogic
-    >;
+    return Sinon.createStubInstance(
+        Helpers,
+    ) as unknown as Sinon.SinonStubbedInstance<IChannelLogic>;
 }
 
 export function createFakeChannelStorage(): Sinon.SinonStubbedInstance<IChannelStorage> {
@@ -232,31 +232,13 @@ export function createFakeAcceptChannel(
     msg.htlcMinimumValue = opts.htlcMinimumValue ?? Value.fromSats(200);
     msg.maxHtlcValueInFlightValue = opts.maxHtlcValueInFlightValue ?? Value.fromSats(20_000);
     msg.maxAcceptedHtlcs = opts.maxAcceptedHtlcs ?? 30;
-    msg.fundingPubKey =
-        opts.fundingPubKey ??
-        createFakeKey(11n)
-            .toPubKey(true)
-            .toBuffer();
-    msg.paymentBasePoint =
-        opts.paymentBasePoint ??
-        createFakeKey(12n)
-            .toPubKey(true)
-            .toBuffer();
+    msg.fundingPubKey = opts.fundingPubKey ?? createFakeKey(11n).toPubKey(true).toBuffer();
+    msg.paymentBasePoint = opts.paymentBasePoint ?? createFakeKey(12n).toPubKey(true).toBuffer();
     msg.delayedPaymentBasePoint =
-        opts.delayedPaymentBasePoint ??
-        createFakeKey(13n)
-            .toPubKey(true)
-            .toBuffer();
-    msg.htlcBasePoint =
-        opts.htlcBasePoint ??
-        createFakeKey(14n)
-            .toPubKey(true)
-            .toBuffer();
+        opts.delayedPaymentBasePoint ?? createFakeKey(13n).toPubKey(true).toBuffer();
+    msg.htlcBasePoint = opts.htlcBasePoint ?? createFakeKey(14n).toPubKey(true).toBuffer();
     msg.revocationBasePoint =
-        opts.revocationBasePoint ??
-        createFakeKey(15n)
-            .toPubKey(true)
-            .toBuffer();
+        opts.revocationBasePoint ?? createFakeKey(15n).toPubKey(true).toBuffer();
     msg.firstPerCommitmentPoint =
         opts.firstPerCommitmentPoint ??
         CommitmentSecret.privateKey(
@@ -281,11 +263,7 @@ export function createFakeTxIn(opts: Partial<TxIn> = {}) {
 export function createFakeTxOut(opts: Partial<TxOut> = {}) {
     return new TxOut(
         opts.value ?? Value.fromSats(800_000),
-        Script.p2wpkhLock(
-            createFakeKey(1001n)
-                .toPubKey(true)
-                .hash160(),
-        ),
+        Script.p2wpkhLock(createFakeKey(1001n).toPubKey(true).hash160()),
     );
 }
 
@@ -298,12 +276,8 @@ export function createFakeFundingTx() {
                 Value.fromSats(200_000),
                 Script.p2msLock(
                     2,
-                    createFakeKey(1n)
-                        .toPubKey(true)
-                        .toBuffer(),
-                    createFakeKey(11n)
-                        .toPubKey(true)
-                        .toBuffer(),
+                    createFakeKey(1n).toPubKey(true).toBuffer(),
+                    createFakeKey(11n).toPubKey(true).toBuffer(),
                 ),
             ),
             createFakeTxOut(),

@@ -87,8 +87,7 @@ describe("LndSerializer", () => {
                             },
                             {
                                 network: "tcp",
-                                addr:
-                                    "iq7zhmhck54vcax2vlrdcavq2m32wao7ekh6jyeglmnuuvv3js57r4id.onion:9735",
+                                addr: "iq7zhmhck54vcax2vlrdcavq2m32wao7ekh6jyeglmnuuvv3js57r4id.onion:9735",
                             },
                         ],
                         color: "#ffff00",

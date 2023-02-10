@@ -212,9 +212,7 @@ describe("Value", () => {
             expect(a.bitcoin).to.equal(1.00000001);
         });
         it("is fluent", () => {
-            const sut = Value.zero()
-                .add(Value.fromSats(1000))
-                .add(Value.fromSats(400));
+            const sut = Value.zero().add(Value.fromSats(1000)).add(Value.fromSats(400));
             expect(sut.sats).to.equal(1400n);
         });
     });
@@ -248,9 +246,7 @@ describe("Value", () => {
             expect(c).to.not.equal(a);
         });
         it("is fluent", () => {
-            const sut = Value.zero()
-                .addn(Value.fromSats(1000))
-                .addn(Value.fromSats(400));
+            const sut = Value.zero().addn(Value.fromSats(1000)).addn(Value.fromSats(400));
             expect(sut.sats).to.equal(1400n);
         });
     });

@@ -110,12 +110,7 @@ export class BufferReader {
      * Read a UInt64 number as little-endian
      */
     public readUInt64LE(): bigint {
-        return BigInt(
-            "0x" +
-                this.readBytes(8)
-                    .reverse()
-                    .toString("hex"),
-        );
+        return BigInt("0x" + this.readBytes(8).reverse().toString("hex"));
     }
 
     /**
