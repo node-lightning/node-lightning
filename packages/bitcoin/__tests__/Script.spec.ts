@@ -1,6 +1,6 @@
 import * as crypto from "@node-lightning/crypto";
 import { expect } from "chai";
-import { PrivateKey, PublicKey } from "../lib";
+import { PrivateKey } from "../lib";
 import { Network } from "../lib/Network";
 import { OpCode } from "../lib/OpCodes";
 import { Script } from "../lib/Script";
