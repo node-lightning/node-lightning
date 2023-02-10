@@ -7,17 +7,16 @@
         "mocha": true
     },
     "extends": [
-        "eslint:recommended",
-        "plugin:@typescript-eslint/recommended",
-        "plugin:@typescript-eslint/recommended-requiring-type-checking",
+        "eslint:recommended", // recommendation for eslint
+        "plugin:@typescript-eslint/recommended", // recommended for typescript
+        "plugin:@typescript-eslint/recommended-requiring-type-checking", // additional rules https://github.com/typescript-eslint/typescript-eslint/blob/main/packages/eslint-plugin/src/configs/recommended-requiring-type-checking.ts
         "prettier",
-        "prettier/@typescript-eslint",
         "plugin:mocha/recommended"
     ],
     "parser": "@typescript-eslint/parser",
     "plugins": [
-        "@typescript-eslint",
-        "mocha"
+        "@typescript-eslint", // Eslint Parser
+        "mocha" // Linting of mocha
     ],
     "rules": {
         "no-console": "warn",
