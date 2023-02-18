@@ -1,48 +1,47 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { expect } from "chai";
 import crypto from "crypto";
-import bs58check from "bs58check";
-import bech32 from "bech32";
+import { Bech32, Base58Check } from "@node-lightning/bitcoin";
 import * as sut from "../lib/decoder";
 
 describe("decoder", () => {
     it("must fail if checksum incorrect", () => {
         const input = "lnbc1pvjluezca784w";
-        expect(() => sut.decode(input)).to.throw(/Invalid checksum/);
+        expect(() => sut.decode(input)).to.throw(/Invalid bech32 checksum/);
     });
 
     it("must fail if prefix does not start with ln", () => {
-        const input = bech32.encode("bad", bech32.toWords("test" as any));
+        const input = Bech32.encode("bad", Bech32.bufferToWords(Buffer.from("test", "utf8"), false));
         expect(() => sut.decode(input)).to.throw(/Invalid prefix/);
     });
 
     it("must fail if unknown network", () => {
-        const input = bech32.encode("lnbad1", bech32.toWords("test" as any));
+        const input = Bech32.encode("lnbad1", Bech32.bufferToWords(Buffer.from("test"), false));
         expect(() => sut.decode(input)).to.throw(/Invalid network/);
     });
 
     it("must fail if amount contains non-digit", () => {
-        const input = bech32.encode("lnbc1&m", bech32.toWords("test" as any));
+        const input = Bech32.encode("lnbc1&m", Bech32.bufferToWords(Buffer.from("test"), false));
         expect(() => sut.decode(input)).to.throw(/Invalid character/);
     });
 
     it("must fail if multiplier contains non-digit", () => {
-        const input = bech32.encode("lnbc1m&", bech32.toWords("test" as any));
+        const input = Bech32.encode("lnbc1m&", Bech32.bufferToWords(Buffer.from("test"), false));
         expect(() => sut.decode(input)).to.throw(/Invalid character/);
     });
 
     it("must fail if amount contains invalid amount", () => {
-        const input = bech32.encode("lnbc0m", bech32.toWords("test" as any));
+        const input = Bech32.encode("lnbc0m", Bech32.bufferToWords(Buffer.from("test"), false));
         expect(() => sut.decode(input)).to.throw(/Invalid amount/);
     });
 
     it("must fail when multiplier without amount", () => {
-        const input = bech32.encode("lnbcm", bech32.toWords("test" as any));
+        const input = Bech32.encode("lnbcm", Bech32.bufferToWords(Buffer.from("test"), false));
         expect(() => sut.decode(input)).to.throw(/Invalid network/);
     });
 
     it("must fail if amount contains invalid multiplier", () => {
-        const input = bech32.encode("lnbc1a", bech32.toWords("test" as any));
+        const input = Bech32.encode("lnbc1a", Bech32.bufferToWords(Buffer.from("test"), false));
         expect(() => sut.decode(input)).to.throw(/Invalid multiplier/);
     });
 
@@ -300,7 +299,7 @@ describe("decoder", () => {
             );
             expect(result.fallbackAddresses[0].version).to.equal(17);
             expect(result.fallbackAddresses[0].address).to.deep.equal(
-                bs58check.decode("mk2QpYatsKicvFVuTAQLBryyccRXMUaGHP").slice(1), // get rid of p2pkh prefix
+              Base58Check.decode("mk2QpYatsKicvFVuTAQLBryyccRXMUaGHP").slice(1), // get rid of p2pkh prefix
             );
             expect(result.signature.r).to.deep.equal(
                 Buffer.from(
@@ -335,7 +334,7 @@ describe("decoder", () => {
             expect(result.hashDesc).to.deep.equal(hashDescription);
             expect(result.fallbackAddresses[0].version).to.equal(17);
             expect(result.fallbackAddresses[0].address).to.deep.equal(
-                bs58check.decode("1RustyRX2oai4EYYDpQGWvEL62BBGqN9T").slice(1), // get rid of pubkey hash prefix 00
+              Base58Check.decode("1RustyRX2oai4EYYDpQGWvEL62BBGqN9T").slice(1), // get rid of pubkey hash prefix 00
             );
             expect(result.routes[0][0].pubkey).to.deep.equal(
                 Buffer.from(
@@ -394,7 +393,7 @@ describe("decoder", () => {
             );
             expect(result.fallbackAddresses[0].version).to.equal(18);
             expect(result.fallbackAddresses[0].address).to.deep.equal(
-                bs58check.decode("3EktnHQD7RiAE6uzMj2ZifT9YgRrkSgzQX").slice(1), // get rid of p2sh prefix 5
+              Base58Check.decode("3EktnHQD7RiAE6uzMj2ZifT9YgRrkSgzQX").slice(1), // get rid of p2sh prefix 5
             );
             expect(result.signature.r).to.deep.equal(
                 Buffer.from(
@@ -416,8 +415,8 @@ describe("decoder", () => {
             const input =
                 "lnbc20m1pvjluezhp58yjmdan79s6qqdhdzgynm4zwqd5d7xmw5fk98klysy043l2ahrqspp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqfppqw508d6qejxtdg4y5r3zarvary0c5xw7kepvrhrm9s57hejg0p662ur5j5cr03890fa7k2pypgttmh4897d3raaq85a293e9jpuqwl0rnfuwzam7yr8e690nd2ypcq9hlkdwdvycqa0qza8";
             const result = sut.decode(input);
-            const { words } = bech32.decode("bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4");
-            const p2wpkh = Buffer.from(bech32.fromWords(words.slice(1)));
+            const { words } = Bech32.decode("bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4");
+            const p2wpkh = Bech32.wordsToBuffer(words.slice(1), true);
             expect(result.network).to.equal("bc");
             expect(result.valueSat).to.equal("2000000");
             expect(result.timestamp).to.equal(1496314658);
@@ -451,10 +450,10 @@ describe("decoder", () => {
             const input =
                 "lnbc20m1pvjluezhp58yjmdan79s6qqdhdzgynm4zwqd5d7xmw5fk98klysy043l2ahrqspp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqfp4qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3q28j0v3rwgy9pvjnd48ee2pl8xrpxysd5g44td63g6xcjcu003j3qe8878hluqlvl3km8rm92f5stamd3jw763n3hck0ct7p8wwj463cql26ava";
             const result = sut.decode(input);
-            const { words } = bech32.decode(
+            const { words } = Bech32.decode(
                 "bc1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3qccfmv3",
             );
-            const address = Buffer.from(bech32.fromWords(words.slice(1)));
+            const address = Bech32.wordsToBuffer(words.slice(1), false);
             expect(result.network).to.equal("bc");
             expect(result.valueSat).to.equal("2000000");
             expect(result.timestamp).to.equal(1496314658);

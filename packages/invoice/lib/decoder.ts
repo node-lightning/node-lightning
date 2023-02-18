@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
 import { BufferReader } from "@node-lightning/bufio";
-import bech32 from "bech32";
+import { Bech32 } from "@node-lightning/bitcoin";
 import { ADDRESS_VERSION } from "./address-version";
 import * as crypto from "./crypto";
 import { FIELD_TYPE } from "./field-type";
@@ -19,10 +19,10 @@ import { WordCursor } from "./word-cursor";
 export function decode(invoice: string): Invoice {
     // Decode the invoice into prefix and words.
     // The words will be interated over to decode the rest of thee invoice
-    const { prefix, words } = bech32.decode(invoice, Number.MAX_SAFE_INTEGER);
+    const { hrp, words } = Bech32.decode(invoice);
 
     // Parse the prefix into the network and the value in pico bitcoin.
-    const { network, picoBtc } = parsePrefix(prefix);
+    const { network, picoBtc } = parsePrefix(hrp);
 
     // Construct a word cursor to read from the remaining data
     const wordcursor = new WordCursor(words);
@@ -123,7 +123,7 @@ export function decode(invoice: string): Invoice {
 
     wordcursor.position = 0;
     let preHashData = wordcursor.readBytes(words.length - 104, true);
-    preHashData = Buffer.concat([Buffer.from(prefix), preHashData]);
+    preHashData = Buffer.concat([Buffer.from(hrp), preHashData]);
     const hashData = crypto.sha256(preHashData);
 
     // extract the pubkey for verifying the signature by either:
