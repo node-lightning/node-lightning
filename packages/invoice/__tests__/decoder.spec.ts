@@ -11,7 +11,10 @@ describe("decoder", () => {
     });
 
     it("must fail if prefix does not start with ln", () => {
-        const input = Bech32.encode("bad", Bech32.bufferToWords(Buffer.from("test", "utf8"), false));
+        const input = Bech32.encode(
+            "bad",
+            Bech32.bufferToWords(Buffer.from("test", "utf8"), false),
+        );
         expect(() => sut.decode(input)).to.throw(/Invalid prefix/);
     });
 
@@ -299,7 +302,7 @@ describe("decoder", () => {
             );
             expect(result.fallbackAddresses[0].version).to.equal(17);
             expect(result.fallbackAddresses[0].address).to.deep.equal(
-              Base58Check.decode("mk2QpYatsKicvFVuTAQLBryyccRXMUaGHP").slice(1), // get rid of p2pkh prefix
+                Base58Check.decode("mk2QpYatsKicvFVuTAQLBryyccRXMUaGHP").slice(1), // get rid of p2pkh prefix
             );
             expect(result.signature.r).to.deep.equal(
                 Buffer.from(
@@ -334,7 +337,7 @@ describe("decoder", () => {
             expect(result.hashDesc).to.deep.equal(hashDescription);
             expect(result.fallbackAddresses[0].version).to.equal(17);
             expect(result.fallbackAddresses[0].address).to.deep.equal(
-              Base58Check.decode("1RustyRX2oai4EYYDpQGWvEL62BBGqN9T").slice(1), // get rid of pubkey hash prefix 00
+                Base58Check.decode("1RustyRX2oai4EYYDpQGWvEL62BBGqN9T").slice(1), // get rid of pubkey hash prefix 00
             );
             expect(result.routes[0][0].pubkey).to.deep.equal(
                 Buffer.from(
@@ -393,7 +396,7 @@ describe("decoder", () => {
             );
             expect(result.fallbackAddresses[0].version).to.equal(18);
             expect(result.fallbackAddresses[0].address).to.deep.equal(
-              Base58Check.decode("3EktnHQD7RiAE6uzMj2ZifT9YgRrkSgzQX").slice(1), // get rid of p2sh prefix 5
+                Base58Check.decode("3EktnHQD7RiAE6uzMj2ZifT9YgRrkSgzQX").slice(1), // get rid of p2sh prefix 5
             );
             expect(result.signature.r).to.deep.equal(
                 Buffer.from(
