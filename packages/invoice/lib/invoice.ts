@@ -3,8 +3,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 
-import bech32 from "bech32";
-import bs58check from "bs58check";
+import { Bech32, Base58Check } from "@node-lightning/bitcoin";
 import { ADDRESS_VERSION } from "./address-version";
 import { EXPIRY_DEFAULT, MIN_FINAL_CLTV_EXPIRY_DEFAULT } from "./constants";
 import * as crypto from "./crypto";
@@ -280,14 +279,14 @@ export class Invoice {
         // TODO - externalize magic strings!!!
         if (addrStr.startsWith("1") || addrStr.startsWith("m") || addrStr.startsWith("n")) {
             version = ADDRESS_VERSION.P2PKH;
-            address = bs58check.decode(addrStr).slice(1); // remove prefix
+            address = Base58Check.decode(addrStr).slice(1); // remove prefix
         } else if (addrStr.startsWith("3") || addrStr.startsWith("2")) {
             version = ADDRESS_VERSION.P2SH;
-            address = bs58check.decode(addrStr).slice(1); // remove prefix
+            address = Base58Check.decode(addrStr).slice(1); // remove prefix
         } else if (addrStr.startsWith("bc1") || addrStr.startsWith("tb1")) {
-            const words = bech32.decode(addrStr).words;
+            const words = Bech32.decode(addrStr).words;
             version = words[0];
-            address = bech32.fromWords(words.slice(1));
+            address = Bech32.wordsToBuffer(words.slice(1), false);
         }
         if (Array.isArray(address)) address = Buffer.from(address);
         this.fields.push({ type: FIELD_TYPE.FALLBACK_ADDRESS, value: { version, address } });

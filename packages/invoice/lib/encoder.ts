@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
-import bech32 from "bech32";
+import { Bech32 } from "@node-lightning/bitcoin";
 import * as bech32Util from "./bech32-util";
 import * as crypto from "./crypto";
 import { encodePico } from "./encode-pico";
@@ -42,7 +42,7 @@ export function encode(invoice: Invoice, privKey: Buffer) {
 
     // finally encode the invoice in bech32 and allow
     // an invoice to be any length
-    return bech32.encode(prefix, writer.words, Number.MAX_SAFE_INTEGER);
+    return Bech32.encode(prefix, writer.words);
 }
 
 function _encodeData(invoice: Invoice, writer: WordCursor) {
