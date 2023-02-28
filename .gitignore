@@ -77,3 +77,5 @@ prebuilds
 
 package-lock.json
 
+# Draw.io backups
+*.bkp

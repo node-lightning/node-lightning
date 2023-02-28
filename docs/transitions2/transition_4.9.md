@@ -15,3 +15,12 @@ The `channel_reestablish` is pretty boring at this point in the game. So we shou
 ### 4.9.b. `channel_reestablish` [Invalid]
 
 If `channel_reestablish` fails validation or contains unexpected values at this point we will need to fail the channel.
+
+### 4.9.c. `channel_reestablish` [Valid]
+
+After we have reached the funding depth, upon successful channel_reestablishment we should send our `channel_ready` message.
+
+#### Actions
+
+1. Construct `channel_ready` message - [`createChannelReadyMessage` subroutine](../routines/createChannelReadyMessage.md)
+1. Send `channel_ready` to peer - [`sendMessage` subroutine](../routines/sendMessage.md)
