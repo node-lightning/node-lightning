@@ -5,7 +5,10 @@ const expected_revocation_secret = get_revocation_secret(next_revocation_number 
 const expected_commitment_number = my_last_commitment_number + 1;
 const expected_revocation_number = my_last_revocation_number + 1 || 0;
 
-// TODO: conditions on rebroadcast channel_ready
+// Initial condition, resend channel_ready
+if (sent_next_commitment_number == 1 && recv_next_commitment_number == 1) {
+    // resend channel_ready
+}
 
 // This section has to take precedence, otherwise the spec will cause
 // you to broadcast with the "!= expected" clauses below
