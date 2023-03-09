@@ -1,3 +1,7 @@
+## Options
+
+-   `option_static_remotekey`: fixes the the remote key to be the payment public key from open/accept message. In the event of dataloss, this allows you to recover the funds from the remote output of the commitment transaction without relying on the counterparty to send the `per_commitment_point`. As a result, the `per_commitment_point` can be sent to any valid point in the `channel_reestablish` message.
+
 ## Pseudocode for Channel Reestablish
 
 ```typescript
