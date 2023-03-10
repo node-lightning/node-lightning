@@ -1,5 +1,6 @@
 ## Options
 
+-   `option_dataloss_protect`: adds two new values to the `channel_reestablish`. The goal of this change is to allow you to detect that you are out of date if a peer sends you values above where you think you are. `your_last_per_commitment_secret` is the per-commitment secret sent in the last `revoke_and_ack` message that you sent to the peer. By sending this value, your peer can prove that you have previously revoked `next_revocation_number` - 1. In the event that you have data loss, you can also recover the `to_remote` funds of your peer's commitment transaction by using the `my_per_commitment_point` value that is sent as part of the `channel_reestablishment` message. This value combined with your `payment_public` key allow you to derive the `to_remote` key and extract the value of that output.
 -   `option_static_remotekey`: fixes the the remote key to be the payment public key from open/accept message. In the event of dataloss, this allows you to recover the funds from the remote output of the commitment transaction without relying on the counterparty to send the `per_commitment_point`. As a result, the `per_commitment_point` can be sent to any valid point in the `channel_reestablish` message.
 
 ## Pseudocode for Channel Reestablish
