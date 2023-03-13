@@ -2,7 +2,7 @@
 
 1.  Prior to Use: This stage occurs before we've sent `commitment_signed` and before we've received `commitment_signed`. This stage exists during channel opening prior to `channel_ready` messages being exchanged or after we have already exchanged `channel_ready` but have not started using the channel. Using the channel will be indicated by one side pushing a new commitment to the other side via a `commitment_signed` message. Once either side has done this we will progress to the next stage. During this stage however, IF we have reached a point in channel creation where it is acceptable to send `channel_ready` (funder: anytime after broadcasting the funding transaction; fundee: after funding depth has been reached on confirmation of the funding transaction) the nodes should rebroadcast the `channel_ready` message to each other. Upon receipt of duplicate `channel_ready` we can just ignore it.
 
-2.
+2.  Normal Operation: When not in the other two stages we need to properly account for the loss of `commitment_signed` or `revoke_and_ack` messages.
 
 3.  Pending Close: This stage means that we have progressed past the close out HTLC phase of channel closure and we are not expecting to get any further updates to the channel. At this point, we expect that there will be no further commitment numbers or revocation numbers.
 
