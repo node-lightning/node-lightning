@@ -18,7 +18,7 @@ If `channel_reestablish` fails validation or contains unexpected values at this 
 
 ### 4.9.c. `channel_reestablish` [Valid]
 
-After we have reached the funding depth, upon successful channel_reestablishment we should send our `channel_ready` message.
+After we have reached the funding depth, upon successfully validating `channel_reestablishment` we should send our `channel_ready` message.
 
 #### Actions
 
