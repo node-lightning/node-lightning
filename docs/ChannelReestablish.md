@@ -2,6 +2,9 @@
 
 1.  Prior to Use: This stage occurs before we've sent `commitment_signed` and before we've received `commitment_signed`. This stage exists during channel opening prior to `channel_ready` messages being exchanged or after we have already exchanged `channel_ready` but have not started using the channel. Using the channel will be indicated by one side pushing a new commitment to the other side via a `commitment_signed` message. Once either side has done this we will progress to the next stage. During this stage however, IF we have reached a point in channel creation where it is acceptable to send `channel_ready` (funder: anytime after broadcasting the funding transaction; fundee: after funding depth has been reached on confirmation of the funding transaction) the nodes should rebroadcast the `channel_ready` message to each other. Upon receipt of duplicate `channel_ready` we can just ignore it.
 
+1a. Prior to sending `commitment_signed`, we should expect to receive `next_commitment_number` of 1.
+1b. Prior to sending `revoke_and_ack`, we should expect to receive `next_revocation_number` of 0.
+
 2.  Normal Operation: When not in the other two stages we need to properly account for the loss of `commitment_signed` or `revoke_and_ack` messages.
 
 3.  Pending Close: This stage means that we have progressed past the close out HTLC phase of channel closure and we are not expecting to get any further updates to the channel. At this point, we expect that there will be no further commitment numbers or revocation numbers.
@@ -78,6 +81,67 @@ if (recv_next_revocation_number == my_last_revocation_number && !has_recv_closin
     if (!has_sent_revoke_and_ack && recv_next_revocation_number != 0) {
         // send error
         // fail the channel
+    }
+}
+
+// if flagged for send, these need to be in the right order
+// send commitment_signed
+// send revoke_and_ack
+```
+
+## Refactored
+
+```typescript
+const expected_revocation_secret = get_revocation_secret(recv_next_revocation_number - 1);
+const expected_commitment_number = has_sent_commitment_signed ? 1 : my_last_commitment_number + 1;
+const expected_revocation_number = has_sent_revoke_and_ack ? 0 : my_last_revocation_number + 1;
+
+// Resend channel_ready if ok to do so
+if (is_channel_ready && sent_next_commitment_number == 1 && recv_next_commitment_number == 1) {
+    // resend channel_ready
+}
+
+if (option_static_remotekey || option_dataloss_protected) {
+    if (recv_your_last_per_commitment_secret != expected_revocation_secret) {
+        // send error
+        // fail channel
+    }
+
+    if (!isValidPoint(recv_my_current_per_commitment_point)) {
+        // send error
+        // fail channel
+    }
+}
+
+// This section has to take precedence, otherwise the spec will cause
+// you to broadcast with the "!= expected" clauses below
+if (recv_next_revocation_number > expected_revocation_number) {
+    if (option_static_remotekey) {
+        // must not broadcast commitment
+        // send error
+    } else if (option_dataloss_protect) {
+        // must not broadcast commitment
+        // capture point
+        // send error
+    }
+}
+
+if ((recv_next_commitment_number = my_last_commitment_number)) {
+    // flag resend commitment_signed
+} else {
+    // peer has data loss
+    if (recv_next_commitment_number !== expected_commitment_number) {
+        // send error message
+        // wait for error from peer before failing
+    }
+}
+
+if (recv_next_revocation_number == my_last_revocation_number && !has_recv_closing_signed) {
+    // flag resend revoke_and_ack
+} else {
+    if (recv_next_Revocation_number != expected_revocation_number) {
+        // send error
+        // wait for error from peer before failing
     }
 }
 
