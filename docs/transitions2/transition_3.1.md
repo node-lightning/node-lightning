@@ -18,7 +18,3 @@ If the message is valid, the accepting node sends a `funding_signed` message to 
 ### 3.1.b. Receive `funding_created` [invalid]
 
 If the received message fails validation we fail the channel by sending an `error` message and forgetting the channel.
-
-#### Actions
-
-1. Transition to `Failing` channel state

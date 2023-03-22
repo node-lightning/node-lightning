@@ -16,7 +16,3 @@ A node may receive an `open_channel` message from a peer indicating the peer wis
 ### 0.2.b. Receive `open_channel` [invalid]
 
 In the event that we receive a `open_channel` message that is either invalid or is not acceptable we will need to fail the channel.
-
-#### Actions
-
-1. Transition to `Failing` channel state
