@@ -12,6 +12,7 @@ If the message is valid, the accepting node sends a `funding_signed` message to 
 
 #### Actions
 
+1. Attach funding outpoint using - [`attachFundingCreated` subroutine](../routines/attachFundingCreated.md)
 1. Construct `funding_signed` message - [`createFundingSignedMessage` subroutine](../routines/createFundingSignedMessage.md)
 1. Send `funding_signed` message - [`sendMessage` subroutine](../routines/sendMessage.md)
 
