@@ -1,10 +1,9 @@
-import { Block } from "@node-lightning/bitcoin";
-import { AcceptChannelMessage } from "../messages/AcceptChannelMessage";
-import { ChannelReadyMessage } from "../messages/ChannelReadyMessage";
-import { FundingSignedMessage } from "../messages/FundingSignedMessage";
 import { Channel } from "./Channel";
+import { ChannelEvent } from "./ChannelEvent";
+import { ChannelStateId } from "./StateMachineFactory";
 
 export interface IStateMachine {
+    id: string;
     name: string;
     subStates: Map<string, IStateMachine>;
     parent: IStateMachine | undefined;
@@ -12,10 +11,5 @@ export interface IStateMachine {
     addSubState(state: IStateMachine): IStateMachine;
     onEnter(channel: Channel, oldState: IStateMachine): Promise<string>;
     onExit(channel: Channel, newState: IStateMachine): Promise<string>;
-    onPeerConnected(channel: Channel): Promise<string>;
-    onPeerDisconnected(channel: Channel): Promise<string>;
-    onAcceptChannelMessage(channel: Channel, msg: AcceptChannelMessage): Promise<string>;
-    onFundingSignedMessage(channel: Channel, msg: FundingSignedMessage): Promise<string>;
-    onChannelReadyMessage(channel: Channel, msg: ChannelReadyMessage): Promise<string>;
-    onBlockConnected(channel: Channel, block: Block): Promise<string>;
+    onEvent(channel: Channel, event: ChannelEvent): Promise<ChannelStateId | undefined>;
 }

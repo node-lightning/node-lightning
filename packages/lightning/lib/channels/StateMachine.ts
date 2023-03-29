@@ -1,27 +1,27 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/require-await */
-import { Block } from "@node-lightning/bitcoin";
 import { ILogger } from "@node-lightning/logger";
-import { AcceptChannelMessage } from "../messages/AcceptChannelMessage";
-import { ChannelReadyMessage } from "../messages/ChannelReadyMessage";
-import { FundingSignedMessage } from "../messages/FundingSignedMessage";
-import { ShutdownMessage } from "../messages/ShutdownMessage";
-import { IPeer } from "../Peer";
 
 import { Channel } from "./Channel";
-import { IChannelLogic } from "./IChannelLogic";
+import { ChannelEvent } from "./ChannelEvent";
+import { ChannelEventType } from "./ChannelEventType";
 import { IStateMachine } from "./IStateMachine";
+import { ChannelStateId } from "./StateMachineFactory";
 
-export abstract class StateMachine {
+export class StateMachine implements IStateMachine {
     public logger: ILogger;
 
-    public parent: StateMachine | undefined;
+    public parent: IStateMachine | undefined;
     public subStates: Map<string, IStateMachine> = new Map();
+    public transitions: Map<
+        ChannelEventType,
+        (channel: Channel, event: ChannelEvent) => Promise<ChannelStateId | undefined>
+    > = new Map();
 
     public get stack(): IStateMachine[] {
-        const result: StateMachine[] = [];
+        const result: IStateMachine[] = [];
         // eslint-disable-next-line @typescript-eslint/no-this-alias
-        let current: StateMachine = this;
+        let current: IStateMachine = this;
         while (current !== undefined) {
             result.push(current);
             current = current.parent;
@@ -29,17 +29,20 @@ export abstract class StateMachine {
         return result.reverse();
     }
 
-    public get name(): string {
-        return this.constructor.name;
+    public get id(): string {
+        if (this.parent) {
+            return this.parent.id + "." + this.name;
+        }
+        return this.name;
     }
 
-    public constructor(logger: ILogger, readonly logic: IChannelLogic) {
+    public constructor(logger: ILogger, readonly name: string) {
         this.logger = logger.sub(StateMachine.name);
     }
 
     public addSubState(state: IStateMachine): this {
         state.parent = this;
-        this.subStates.set(state.constructor.name, state);
+        this.subStates.set(state.id, state);
         return this;
     }
 
@@ -53,44 +56,60 @@ export abstract class StateMachine {
         return undefined;
     }
 
-    public async onPeerConnected(channel: Channel): Promise<string> {
-        return undefined;
+    public addTransition(
+        type: ChannelEventType,
+        handler: (channel: Channel, event: ChannelEvent) => Promise<ChannelStateId | undefined>,
+    ) {
+        this.transitions.set(type, handler);
+        return this;
     }
 
-    public async onPeerDisconnected(channel: Channel): Promise<string> {
-        return undefined;
-    }
-
-    public async openChannel(channel: Channel): Promise<string> {
-        return undefined;
-    }
-
-    public async onAcceptChannelMessage(
+    public async onEvent(
         channel: Channel,
-        msg: AcceptChannelMessage,
-    ): Promise<string> {
-        return undefined;
+        event: ChannelEvent,
+    ): Promise<ChannelStateId | undefined> {
+        if (!this.transitions.has(event.type)) return;
+        return this.transitions.get(event.type)(channel, event);
     }
 
-    public async onShutdownMessage(channel: Channel, msg: ShutdownMessage): Promise<string> {
-        return undefined;
-    }
+    // public async onPeerConnected(channel: Channel): Promise<string> {
+    //     return undefined;
+    // }
 
-    public async onFundingSignedMessage(
-        channel: Channel,
-        msg: FundingSignedMessage,
-    ): Promise<string> {
-        return undefined;
-    }
+    // public async onPeerDisconnected(channel: Channel): Promise<string> {
+    //     return undefined;
+    // }
 
-    public async onBlockConnected(channel: Channel, block: Block): Promise<string> {
-        return undefined;
-    }
+    // public async openChannel(channel: Channel): Promise<string> {
+    //     return undefined;
+    // }
 
-    public async onChannelReadyMessage(
-        channel: Channel,
-        msg: ChannelReadyMessage,
-    ): Promise<string> {
-        return undefined;
-    }
+    // public async onAcceptChannelMessage(
+    //     channel: Channel,
+    //     msg: AcceptChannelMessage,
+    // ): Promise<string> {
+    //     return undefined;
+    // }
+
+    // public async onShutdownMessage(channel: Channel, msg: ShutdownMessage): Promise<string> {
+    //     return undefined;
+    // }
+
+    // public async onFundingSignedMessage(
+    //     channel: Channel,
+    //     msg: FundingSignedMessage,
+    // ): Promise<string> {
+    //     return undefined;
+    // }
+
+    // public async onBlockConnected(channel: Channel, block: Block): Promise<string> {
+    //     return undefined;
+    // }
+
+    // public async onChannelReadyMessage(
+    //     channel: Channel,
+    //     msg: ChannelReadyMessage,
+    // ): Promise<string> {
+    //     return undefined;
+    // }
 }

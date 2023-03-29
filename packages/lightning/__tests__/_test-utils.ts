@@ -11,6 +11,7 @@ import {
     IWireMessage,
     LightningEventMuxer,
     PeerState,
+    TransitionFactory,
 } from "../lib";
 import { InitFeatureFlags } from "../lib/flags/InitFeatureFlags";
 import bech32 from "bech32";
@@ -208,6 +209,10 @@ export function createFakeChannel(
     return channel;
 }
 
+export function createFakeTransitionFactory(): Sinon.SinonStubbedInstance<TransitionFactory> {
+    return Sinon.createStubInstance(TransitionFactory);
+}
+
 export function createFakeChannelLogicFacade(): Sinon.SinonStubbedInstance<IChannelLogic> {
     return Sinon.createStubInstance(
         Helpers,
@@ -300,20 +305,19 @@ export function createFakeFundingCreatedMessage(
     return result;
 }
 
-export function createFakeState(name: string): Sinon.SinonStubbedInstance<IStateMachine> {
+export function createFakeState(
+    name: string,
+    id: string,
+): Sinon.SinonStubbedInstance<IStateMachine> {
     const result: Sinon.SinonStubbedInstance<IStateMachine> = {
+        id,
         name,
         subStates: new Map(),
         parent: undefined,
         addSubState: Sinon.stub(),
         onEnter: Sinon.stub(),
         onExit: Sinon.stub(),
-        onAcceptChannelMessage: Sinon.stub(),
-        onFundingSignedMessage: Sinon.stub(),
-        onPeerConnected: Sinon.stub(),
-        onPeerDisconnected: Sinon.stub(),
-        onBlockConnected: Sinon.stub(),
-        onChannelReadyMessage: Sinon.stub(),
+        onEvent: Sinon.stub(),
     };
 
     result.addSubState.callsFake((state: IStateMachine) => {
