@@ -310,7 +310,7 @@ describe(TransitionFactory.name, () => {
                 .attachFundingSigned(createFakeFundingSignedMessage());
         });
 
-        describe("in awaiting_funding_dpeth", () => {
+        describe("in awaiting_funding_depth", () => {
             it("transitions Failed when invalid", async () => {
                 // arrange
                 const msg = createFakeChannelReady();
@@ -339,6 +339,46 @@ describe(TransitionFactory.name, () => {
                     ChannelStateId.Channel_Opening_AwaitingFundingDepth,
                 )(channel, event);
                 expect(result).to.equal(ChannelStateId.Channel_Opening_AwaitingFundingDepth);
+                expect(channel.theirSide.commitmentNumber.value).to.equal(0n);
+                expect(channel.theirSide.commitmentPoint.toHex()).to.equal(
+                    "0288a618cb6027c3218a37cbe9e882379f17d87d03f6e99d0b60292478d2aded06",
+                );
+                expect(channel.theirSide.nextCommitmentNumber.value).to.equal(1n);
+                expect(channel.theirSide.nextCommitmentPoint.toHex()).to.equal(
+                    "032405cbd0f41225d5f203fe4adac8401321a9e05767c5f8af97d51d2e81fbb206",
+                );
+            });
+        });
+
+        describe("in awaiting_channel_ready", () => {
+            it("transitions Failed when invalid", async () => {
+                // arrange
+                const msg = createFakeChannelReady();
+                logic.validateChannelReadyMessage.returns(false);
+                const event = new ChannelEvent(ChannelEventType.ChannelReadyMessage);
+                event.message = msg;
+
+                // act
+                const result = await sut.createOnChannelReadyTransition(
+                    ChannelStateId.Channel_Normal,
+                )(channel, event);
+
+                // assert
+                expect(result).to.equal(ChannelStateId.Channel_Failing);
+            });
+
+            it("attaches next_per_commitment_point + normal", async () => {
+                // arrange
+                const msg = createFakeChannelReady();
+                logic.validateChannelReadyMessage.returns(true);
+                const event = new ChannelEvent(ChannelEventType.ChannelReadyMessage);
+                event.message = msg;
+
+                // act
+                const result = await sut.createOnChannelReadyTransition(
+                    ChannelStateId.Channel_Normal,
+                )(channel, event);
+                expect(result).to.equal(ChannelStateId.Channel_Normal);
                 expect(channel.theirSide.commitmentNumber.value).to.equal(0n);
                 expect(channel.theirSide.commitmentPoint.toHex()).to.equal(
                     "0288a618cb6027c3218a37cbe9e882379f17d87d03f6e99d0b60292478d2aded06",
