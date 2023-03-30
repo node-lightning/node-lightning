@@ -9,9 +9,9 @@ import {
     ChannelManager,
     InitFeatureFlags,
     LightningEvent,
-    LightningEventType,
     OpenChannelRequest,
     Peer,
+    TransitionFactory,
 } from "@node-lightning/lightning";
 import { ChannelPreferences } from "@node-lightning/lightning";
 import { Helpers } from "@node-lightning/lightning";
@@ -61,7 +61,8 @@ async function run() {
 
     const channelStorage = new ChannelStorage("./");
     const channelLogic = new Helpers(wallet, preferences, peerRepo);
-    const channelStateMachineFactory = new StateMachineFactory(logger, channelLogic);
+    const transitionFactory = new TransitionFactory(logger, channelLogic);
+    const channelStateMachineFactory = new StateMachineFactory(logger, transitionFactory);
 
     const channelManager = new ChannelManager(
         logger,

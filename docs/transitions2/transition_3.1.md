@@ -12,13 +12,10 @@ If the message is valid, the accepting node sends a `funding_signed` message to 
 
 #### Actions
 
+1. Attach funding outpoint using - [`attachFundingCreated` subroutine](../routines/attachFundingCreated.md)
 1. Construct `funding_signed` message - [`createFundingSignedMessage` subroutine](../routines/createFundingSignedMessage.md)
 1. Send `funding_signed` message - [`sendMessage` subroutine](../routines/sendMessage.md)
 
 ### 3.1.b. Receive `funding_created` [invalid]
 
 If the received message fails validation we fail the channel by sending an `error` message and forgetting the channel.
-
-#### Actions
-
-1. Transition to `Failing` channel state

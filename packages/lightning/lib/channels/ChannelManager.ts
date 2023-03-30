@@ -9,12 +9,14 @@ import { Result } from "../Result";
 import { OpenChannelRequest } from "./OpenChannelRequest";
 import { OpeningError } from "./states/opening/OpeningError";
 import { OpeningErrorType } from "./states/opening/OpeningErrorType";
-import { AwaitingAcceptChannelState } from "./states/opening/AwaitingAcceptChannelState";
 import { PeerState } from "../PeerState";
 import { AcceptChannelMessage } from "../messages/AcceptChannelMessage";
 import { IStateMachine } from "./IStateMachine";
 import { FundingSignedMessage } from "../messages/FundingSignedMessage";
 import { ChannelReadyMessage } from "../messages/ChannelReadyMessage";
+import { ChannelStateId } from "./StateMachineFactory";
+import { ChannelEvent } from "./ChannelEvent";
+import { ChannelEventType } from "./ChannelEventType";
 
 /**
  *
@@ -54,12 +56,13 @@ export class ChannelManager {
      * @param name
      * @returns
      */
-    public findState(name: string): IStateMachine {
+    public findState(id: string): IStateMachine {
         const queue: IStateMachine[] = [];
         queue.push(this.rootState);
         while (queue.length) {
             const current = queue.shift();
-            if (current.name === name) {
+            this.logger.trace("target", id, "current", current.id);
+            if (current.id === id) {
                 return current;
             }
 
@@ -78,19 +81,19 @@ export class ChannelManager {
      *
      * We run this in a loop until there are no state transitions.
      * @param channel
-     * @param newStateName
+     * @param newId
      */
-    public async transitionState(channel: Channel, newStateName: string): Promise<void> {
+    public async transitionState(channel: Channel, newId: string): Promise<void> {
         let oldState = channel.state ?? this.rootState;
 
         // process until state stops changing
-        while (newStateName && newStateName !== oldState.name) {
-            const newState = this.findState(newStateName);
+        while (newId && newId !== oldState.id) {
+            const newState = this.findState(newId);
 
             if (!newState) {
                 // TODO - this isn't being handled anywhere... channel manager needs to do some stuff
-                this.logger.error("Failed to find state, state=" + newStateName);
-                throw new Error("Failed to find state, state=" + newStateName);
+                this.logger.error("Failed to find state, state=" + newId);
+                throw new Error("Failed to find state, state=" + newId);
             }
 
             // exit for old state
@@ -100,7 +103,7 @@ export class ChannelManager {
             channel.state = newState;
 
             // entry for new state
-            newStateName = await newState.onEnter(channel, oldState);
+            newId = await newState.onEnter(channel, oldState);
 
             // save the new state
             await this.channelStorage.save(channel);
@@ -142,7 +145,7 @@ export class ChannelManager {
         this.logic.sendMessage(peer.id, message);
 
         // Save the initial state
-        await this.transitionState(channel, AwaitingAcceptChannelState.name);
+        await this.transitionState(channel, ChannelStateId.Channel_Opening_AwaitingAcceptChannel);
 
         // Add to channels
         this.channels.push(channel);
@@ -165,7 +168,9 @@ export class ChannelManager {
             return;
         }
 
-        const newState = await channel.state.onAcceptChannelMessage(channel, msg);
+        const event = new ChannelEvent(ChannelEventType.AcceptChannelMessage);
+        event.message = msg;
+        const newState = await channel.state.onEvent(channel, event);
         await this.transitionState(channel, newState);
     }
 
@@ -181,7 +186,9 @@ export class ChannelManager {
             this.logger.debug("failed to find channel");
             return;
         }
-        const newState = await channel.state.onFundingSignedMessage(channel, msg);
+        const event = new ChannelEvent(ChannelEventType.FundingSignedMessage);
+        event.message = msg;
+        const newState = await channel.state.onEvent(channel, event);
         await this.transitionState(channel, newState);
     }
 
@@ -191,8 +198,10 @@ export class ChannelManager {
      */
     public async onBlockConnected(block: Block): Promise<void> {
         this.logger.debug("connecting block", block.bip34Height);
+        const event = new ChannelEvent(ChannelEventType.BlockConnected);
+        event.block = block;
         for (const channel of this.channels) {
-            const newState = await channel.state.onBlockConnected(channel, block);
+            const newState = await channel.state.onEvent(channel, event);
             await this.transitionState(channel, newState);
         }
     }
@@ -208,7 +217,9 @@ export class ChannelManager {
         if (!channel) {
             return;
         }
-        const newState = await channel.state.onChannelReadyMessage(channel, msg);
+        const event = new ChannelEvent(ChannelEventType.ChannelReadyMessage);
+        event.message = msg;
+        const newState = await channel.state.onEvent(channel, event);
         await this.transitionState(channel, newState);
     }
 }

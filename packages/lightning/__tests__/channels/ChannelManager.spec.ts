@@ -4,14 +4,13 @@ import { Block, Network } from "@node-lightning/bitcoin";
 import { ILogger } from "@node-lightning/logger";
 import { expect } from "chai";
 import Sinon from "sinon";
-import { IPeer, OpenChannelMessage, PeerState } from "../../lib";
+import { IPeer, OpenChannelMessage, PeerState, TransitionFactory } from "../../lib";
 import { ChannelManager } from "../../lib/channels/ChannelManager";
 import { IChannelLogic } from "../../lib/channels/IChannelLogic";
 import { IChannelStorage } from "../../lib/channels/IChannelStorage";
 import { OpenChannelRequest } from "../../lib/channels/OpenChannelRequest";
 import { StateMachine } from "../../lib/channels/StateMachine";
-import { StateMachineFactory } from "../../lib/channels/StateMachineFactory";
-import { AwaitingAcceptChannelState } from "../../lib/channels/states/opening/AwaitingAcceptChannelState";
+import { ChannelStateId, StateMachineFactory } from "../../lib/channels/StateMachineFactory";
 import { OpeningError } from "../../lib/channels/states/opening/OpeningError";
 import { OpeningErrorType } from "../../lib/channels/states/opening/OpeningErrorType";
 import { Result } from "../../lib/Result";
@@ -27,6 +26,7 @@ import {
     createFakeLogger,
     createFakePeer,
     createFakeState,
+    createFakeTransitionFactory,
     FakePeer,
 } from "../_test-utils";
 
@@ -118,24 +118,22 @@ describe(ChannelManager.name, () => {
         let e: StateMachine;
         let f: StateMachine;
 
-        class Root extends StateMachine {}
-        class A extends StateMachine {}
-        class B extends StateMachine {}
-        class C extends StateMachine {}
-        class D extends StateMachine {}
-        class E extends StateMachine {}
-        class F extends StateMachine {}
-
         beforeEach(() => {
             logger = createFakeLogger();
             logic = createFakeChannelLogicFacade();
-            sut = new ChannelManager(logger, undefined, logic, undefined, new Root(logger, logic));
-            a = new A(logger, logic);
-            b = new B(logger, logic);
-            c = new C(logger, logic);
-            d = new D(logger, logic);
-            e = new E(logger, logic);
-            f = new F(logger, logic);
+            sut = new ChannelManager(
+                logger,
+                undefined,
+                logic,
+                undefined,
+                new StateMachine(logger, "Root"),
+            );
+            a = new StateMachine(logger, "A");
+            b = new StateMachine(logger, "B");
+            c = new StateMachine(logger, "C");
+            d = new StateMachine(logger, "D");
+            e = new StateMachine(logger, "E");
+            f = new StateMachine(logger, "F");
         });
 
         it("Root => Root", () => {
@@ -159,7 +157,7 @@ describe(ChannelManager.name, () => {
             sut.rootState.addSubState(a).addSubState(b);
 
             // act
-            const result = sut.findState("A");
+            const result = sut.findState("Root.A");
 
             // assert
             expect(result).to.equal(a);
@@ -170,7 +168,7 @@ describe(ChannelManager.name, () => {
             sut.rootState.addSubState(a).addSubState(b);
 
             // act
-            const result = sut.findState("B");
+            const result = sut.findState("Root.B");
 
             // assert
             expect(result).to.equal(b);
@@ -183,7 +181,7 @@ describe(ChannelManager.name, () => {
                 .addSubState(b.addSubState(d.addSubState(e).addSubState(f)));
 
             // act
-            const result = sut.findState("C");
+            const result = sut.findState("Root.A.C");
 
             // assert
             expect(result).to.equal(c);
@@ -196,7 +194,7 @@ describe(ChannelManager.name, () => {
                 .addSubState(b.addSubState(d.addSubState(e).addSubState(f)));
 
             // act
-            const result = sut.findState("D");
+            const result = sut.findState("Root.B.D");
 
             // assert
             expect(result).to.equal(d);
@@ -209,20 +207,20 @@ describe(ChannelManager.name, () => {
                 .addSubState(b.addSubState(d.addSubState(e).addSubState(f)));
 
             // act
-            const result = sut.findState("E");
+            const result = sut.findState("Root.B.D.E");
 
             // assert
             expect(result).to.equal(e);
         });
 
-        it("Root(A(C),B(D(E(F)))))) => F", () => {
+        it("Root(A(C),B(D(E,F))))) => F", () => {
             // arrange
             sut.rootState
                 .addSubState(a.addSubState(c))
                 .addSubState(b.addSubState(d.addSubState(e).addSubState(f)));
 
             // act
-            const result = sut.findState("F");
+            const result = sut.findState("Root.B.D.F");
 
             // assert
             expect(result).to.equal(f);
@@ -251,11 +249,6 @@ describe(ChannelManager.name, () => {
         let b: StateMachine;
         let c: StateMachine;
 
-        class Root extends StateMachine {}
-        class A extends StateMachine {}
-        class B extends StateMachine {}
-        class C extends StateMachine {}
-
         beforeEach(() => {
             logger = createFakeLogger();
             logic = createFakeChannelLogicFacade();
@@ -265,20 +258,20 @@ describe(ChannelManager.name, () => {
                 Network.testnet,
                 logic,
                 storage,
-                new Root(logger, logic),
+                new StateMachine(logger, "Root"),
             );
             sut.rootState.onEnter = Sinon.stub();
             sut.rootState.onExit = Sinon.stub();
 
-            a = new A(logger, logic);
+            a = new StateMachine(logger, "A");
             a.onEnter = Sinon.stub();
             a.onExit = Sinon.stub();
 
-            b = new B(logger, logic);
+            b = new StateMachine(logger, "B");
             b.onEnter = Sinon.stub();
             b.onExit = Sinon.stub();
 
-            c = new C(logger, logic);
+            c = new StateMachine(logger, "C");
             c.onEnter = Sinon.stub();
             c.onExit = Sinon.stub();
 
@@ -291,7 +284,7 @@ describe(ChannelManager.name, () => {
                 const channel = createFakeChannel({});
 
                 // act
-                await sut.transitionState(channel, "B");
+                await sut.transitionState(channel, "Root.B");
 
                 expect((a.onEnter as Sinon.SinonSpy).called).to.equal(
                     false,
@@ -300,7 +293,7 @@ describe(ChannelManager.name, () => {
                 expect((b.onEnter as Sinon.SinonSpy).called).to.equal(true, "call onEnter for B");
                 expect((b.onExit as Sinon.SinonSpy).called).to.equal(false, "no-call onExit for B");
                 expect(storage.save.called).to.equal(true, "call save");
-                expect(channel.state).to.equal(b, "state=B");
+                expect(channel.state).to.equal(b, "state=Root.B");
             });
         });
 
@@ -311,7 +304,7 @@ describe(ChannelManager.name, () => {
                 channel.state = a;
 
                 // act
-                await sut.transitionState(channel, "A");
+                await sut.transitionState(channel, "Root.A");
 
                 expect((a.onEnter as Sinon.SinonSpy).called).to.equal(
                     false,
@@ -322,7 +315,7 @@ describe(ChannelManager.name, () => {
                     "shouldn't call onExit",
                 );
                 expect(storage.save.called).to.equal(false, "should not call save");
-                expect(channel.state).to.equal(a, "state=A");
+                expect(channel.state).to.equal(a, "state=Root.A");
             });
 
             it("single change", async () => {
@@ -331,7 +324,7 @@ describe(ChannelManager.name, () => {
                 channel.state = a;
 
                 // act
-                await sut.transitionState(channel, "B");
+                await sut.transitionState(channel, "Root.B");
 
                 expect((a.onEnter as Sinon.SinonSpy).called).to.equal(
                     false,
@@ -348,10 +341,10 @@ describe(ChannelManager.name, () => {
                 // arrange
                 const channel = createFakeChannel({});
                 channel.state = a;
-                (b.onEnter as Sinon.SinonStub).resolves("C");
+                (b.onEnter as Sinon.SinonStub).resolves("Root.C");
 
                 // act
-                await sut.transitionState(channel, "B");
+                await sut.transitionState(channel, "Root.B");
 
                 expect((a.onEnter as Sinon.SinonSpy).called).to.equal(
                     false,
@@ -370,14 +363,14 @@ describe(ChannelManager.name, () => {
                 // arrange
                 const channel = createFakeChannel({});
                 channel.state = a;
-                (b.onEnter as Sinon.SinonStub).resolves("D");
+                (b.onEnter as Sinon.SinonStub).resolves("Root.D");
 
                 // act
                 try {
-                    await sut.transitionState(channel, "B");
+                    await sut.transitionState(channel, "Root.B");
                     throw new Error("Should have thrown");
                 } catch (ex) {
-                    expect(ex.message).to.equal("Failed to find state, state=D");
+                    expect(ex.message).to.equal("Failed to find state, state=Root.D");
                 }
             });
         });
@@ -385,6 +378,7 @@ describe(ChannelManager.name, () => {
 
     describe(ChannelManager.prototype.openChannel.name, () => {
         let logger: ILogger;
+        let transitionFactory: TransitionFactory;
         let logic: Sinon.SinonStubbedInstance<IChannelLogic>;
         let storage: Sinon.SinonStubbedInstance<IChannelStorage>;
         let sut: ChannelManager;
@@ -393,6 +387,7 @@ describe(ChannelManager.name, () => {
         beforeEach(() => {
             logger = createFakeLogger();
             logic = createFakeChannelLogicFacade();
+            transitionFactory = new TransitionFactory(logger, logic);
             storage = createFakeChannelStorage();
             peer = createFakePeer();
             sut = new ChannelManager(
@@ -400,7 +395,7 @@ describe(ChannelManager.name, () => {
                 Network.testnet,
                 logic,
                 storage,
-                new StateMachineFactory(logger, logic).construct(),
+                new StateMachineFactory(logger, transitionFactory).construct(),
             );
         });
 
@@ -461,7 +456,7 @@ describe(ChannelManager.name, () => {
 
             // assert
             expect(result.isOk).to.equal(true);
-            expect(result.value.state).is.instanceOf(AwaitingAcceptChannelState);
+            expect(result.value.state.name).equals("awaiting_accept_channel");
         });
 
         it("adds to list of channels", async () => {
@@ -486,9 +481,9 @@ describe(ChannelManager.name, () => {
             // arrange
             const logger = createFakeLogger();
             const logic = createFakeChannelLogicFacade();
-            const stateA = createFakeState("A");
-            const stateB = createFakeState("B");
-            const stateC = createFakeState("C");
+            const stateA = createFakeState("A", "A");
+            const stateB = createFakeState("B", "A.B");
+            const stateC = createFakeState("C", "A.C");
             stateA.addSubState(stateB).addSubState(stateC);
 
             const sut = new ChannelManager(
@@ -510,17 +505,17 @@ describe(ChannelManager.name, () => {
             await sut.onAcceptChannelMessage(peer, msg);
 
             // assert
-            expect(stateB.onAcceptChannelMessage.called).to.equal(true);
+            expect(stateB.onEvent.called).to.equal(true);
         });
 
         it("transitions to new state", async () => {
             // arrange
             const logger = createFakeLogger();
             const logic = createFakeChannelLogicFacade();
-            const stateA = createFakeState("A");
-            const stateB = createFakeState("B");
-            stateB.onAcceptChannelMessage.resolves("C");
-            const stateC = createFakeState("C");
+            const stateA = createFakeState("A", "A");
+            const stateB = createFakeState("B", "A.B");
+            stateB.onEvent.resolves("A.C" as ChannelStateId);
+            const stateC = createFakeState("C", "A.C");
             stateA.addSubState(stateB).addSubState(stateC);
 
             const sut = new ChannelManager(
@@ -553,9 +548,9 @@ describe(ChannelManager.name, () => {
             // arrange
             const logger = createFakeLogger();
             const logic = createFakeChannelLogicFacade();
-            const stateA = createFakeState("A");
-            const stateB = createFakeState("B");
-            const stateC = createFakeState("C");
+            const stateA = createFakeState("A", "A");
+            const stateB = createFakeState("B", "A.B");
+            const stateC = createFakeState("C", "A.C");
             stateA.addSubState(stateB).addSubState(stateC);
 
             const sut = new ChannelManager(
@@ -579,17 +574,17 @@ describe(ChannelManager.name, () => {
             await sut.onFundingSignedMessage(peer, msg);
 
             // assert
-            expect(stateB.onFundingSignedMessage.called).to.equal(true);
+            expect(stateB.onEvent.called).to.equal(true);
         });
 
         it("transitions to new state", async () => {
             // arrange
             const logger = createFakeLogger();
             const logic = createFakeChannelLogicFacade();
-            const stateA = createFakeState("A");
-            const stateB = createFakeState("B");
-            stateB.onFundingSignedMessage.resolves("C");
-            const stateC = createFakeState("C");
+            const stateA = createFakeState("A", "A");
+            const stateB = createFakeState("B", "A.B");
+            stateB.onEvent.resolves("A.C" as ChannelStateId);
+            const stateC = createFakeState("C", "A.C");
             stateA.addSubState(stateB).addSubState(stateC);
 
             const sut = new ChannelManager(
@@ -624,9 +619,9 @@ describe(ChannelManager.name, () => {
             // arrange
             const logger = createFakeLogger();
             const logic = createFakeChannelLogicFacade();
-            const stateA = createFakeState("A");
-            const stateB = createFakeState("B");
-            const stateC = createFakeState("C");
+            const stateA = createFakeState("A", "A");
+            const stateB = createFakeState("B", "A.B");
+            const stateC = createFakeState("C", "A.C");
             stateA.addSubState(stateB).addSubState(stateC);
 
             const sut = new ChannelManager(
@@ -643,25 +638,23 @@ describe(ChannelManager.name, () => {
             channel.state = stateB;
 
             sut.channels.push(channel);
-            const peer = createFakePeer();
-            const msg = createFakeFundingSignedMessage();
             const block: Block = Block.fromHex(REGTEST_BLOCK_100);
 
             // act
             await sut.onBlockConnected(block);
 
             // assert
-            expect(stateB.onBlockConnected.called).to.equal(true);
+            expect(stateB.onEvent.called).to.equal(true);
         });
 
         it("transitions to new state", async () => {
             // arrange
             const logger = createFakeLogger();
             const logic = createFakeChannelLogicFacade();
-            const stateA = createFakeState("A");
-            const stateB = createFakeState("B");
-            stateB.onBlockConnected.resolves("C");
-            const stateC = createFakeState("C");
+            const stateA = createFakeState("A", "A");
+            const stateB = createFakeState("B", "A.B");
+            stateB.onEvent.resolves("A.C" as ChannelStateId);
+            const stateC = createFakeState("C", "A.C");
             stateA.addSubState(stateB).addSubState(stateC);
 
             const sut = new ChannelManager(
@@ -678,8 +671,6 @@ describe(ChannelManager.name, () => {
             channel.state = stateB;
 
             sut.channels.push(channel);
-            const peer = createFakePeer();
-            const msg = createFakeFundingSignedMessage();
             const block: Block = Block.fromHex(REGTEST_BLOCK_100);
 
             // act
@@ -697,9 +688,9 @@ describe(ChannelManager.name, () => {
             // arrange
             const logger = createFakeLogger();
             const logic = createFakeChannelLogicFacade();
-            const stateA = createFakeState("A");
-            const stateB = createFakeState("B");
-            const stateC = createFakeState("C");
+            const stateA = createFakeState("A", "A");
+            const stateB = createFakeState("B", "A.B");
+            const stateC = createFakeState("C", "A.C");
             stateA.addSubState(stateB).addSubState(stateC);
 
             const sut = new ChannelManager(
@@ -723,17 +714,17 @@ describe(ChannelManager.name, () => {
             await sut.onChannelReadyMessage(peer, msg);
 
             // assert
-            expect(stateB.onChannelReadyMessage.called).to.equal(true);
+            expect(stateB.onEvent.called).to.equal(true);
         });
 
         it("transitions to new state", async () => {
             // arrange
             const logger = createFakeLogger();
             const logic = createFakeChannelLogicFacade();
-            const stateA = createFakeState("A");
-            const stateB = createFakeState("B");
-            stateB.onChannelReadyMessage.resolves("C");
-            const stateC = createFakeState("C");
+            const stateA = createFakeState("A", "A");
+            const stateB = createFakeState("B", "A.B");
+            stateB.onEvent.resolves("A.C" as ChannelStateId);
+            const stateC = createFakeState("C", "A.C");
             stateA.addSubState(stateB).addSubState(stateC);
 
             const sut = new ChannelManager(

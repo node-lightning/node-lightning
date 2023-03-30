@@ -37,7 +37,3 @@ With a valid `accept_channel` message the funding node can move forward on creat
 ### 1.1.b. Receive `accept_channel` [invalid]
 
 Upon receipt of an invalid `accept_channel` message or one that we do not agree with, we can fail the channel.
-
-#### Actions
-
-1. Transition to `Failing` channel state

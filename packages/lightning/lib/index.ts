@@ -43,9 +43,9 @@ export * from "./channels/ChannelPreferences";
 export * from "./channels/ChannelSide";
 export * from "./channels/Helpers";
 export * from "./channels/OpenChannelRequest";
-
 export * from "./channels/StateMachineFactory";
 export * from "./channels/StateMachine";
+export * from "./channels/TransitionFactory";
 
 export * from "./domain/Address";
 export * from "./domain/AddressIPv4";
