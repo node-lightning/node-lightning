@@ -15,11 +15,13 @@ import {
     createFakeChannel,
     createFakeChannelLogicFacade,
     createFakeFundingCreatedMessage,
+    createFakeFundingSignedMessage,
     createFakeFundingTx,
     createFakeLogger,
 } from "../_test-utils";
 import { ChannelEvent } from "../../lib/channels/ChannelEvent";
 import { ChannelEventType } from "../../lib/channels/ChannelEventType";
+import { FundingSignedMessage } from "../../lib/messages/FundingSignedMessage";
 
 describe(TransitionFactory.name, () => {
     describe(TransitionFactory.prototype.createOnAcceptChannelMessageTransition.name, () => {
@@ -116,6 +118,81 @@ describe(TransitionFactory.name, () => {
 
                 // assert
                 expect(result).to.equal(ChannelStateId.Channel_Opening_AwaitingFundingSigned);
+            });
+        });
+    });
+
+    describe(TransitionFactory.prototype.createOnFundingSignedMessageTransition.name, () => {
+        let logger: ILogger;
+        let logic: sinon.SinonStubbedInstance<IChannelLogic>;
+        let sut: TransitionFactory;
+        let channel: Channel;
+
+        beforeEach(() => {
+            logger = createFakeLogger();
+            logic = createFakeChannelLogicFacade();
+            sut = new TransitionFactory(logger, logic);
+            channel = createFakeChannel().attachAcceptChannel(createFakeAcceptChannel());
+        });
+
+        describe("invalid message", () => {
+            beforeEach(() => {
+                logic.validateFundingSignedMessage.resolves(
+                    OpeningError.toResult(OpeningErrorType.InvalidCommitmentSig),
+                );
+            });
+
+            it("returns failed state on validation error", async () => {
+                // arrange
+                const msg = createFakeFundingSignedMessage();
+                const event = new ChannelEvent(ChannelEventType.FundingSignedMessage);
+                event.message = msg;
+
+                // act
+                const result = await sut.createOnFundingSignedMessageTransition()(channel, event);
+
+                // assert
+                expect(result).to.equal(ChannelStateId.Channel_Failing);
+            });
+        });
+        describe("valid message", () => {
+            let msg: FundingSignedMessage;
+            let event: ChannelEvent;
+
+            beforeEach(() => {
+                msg = createFakeFundingSignedMessage();
+                event = new ChannelEvent(ChannelEventType.FundingSignedMessage);
+                event.message = msg;
+
+                channel.attachFundingTx(createFakeFundingTx());
+                logic.validateFundingSignedMessage.resolves(Result.ok(true));
+            });
+
+            it("attaches signature to channel", async () => {
+                // arrange
+                expect(channel.ourSide.nextCommitmentSig).to.equal(undefined);
+
+                // act
+                await sut.createOnFundingSignedMessageTransition()(channel, event);
+
+                // assert
+                expect(channel.ourSide.nextCommitmentSig).to.not.equal(undefined);
+            });
+
+            it("broadcasts the funding transaction", async () => {
+                // act
+                await sut.createOnFundingSignedMessageTransition()(channel, event);
+
+                // assert
+                expect(logic.broadcastTx.called).to.equal(true, "broadcasts funding tx");
+            });
+
+            it("transitions to awaiting_funding_depth state", async () => {
+                // act
+                const result = await sut.createOnFundingSignedMessageTransition()(channel, event);
+
+                // assert
+                expect(result).to.equal(ChannelStateId.Channel_Opening_AwaitingFundingDepth);
             });
         });
     });
