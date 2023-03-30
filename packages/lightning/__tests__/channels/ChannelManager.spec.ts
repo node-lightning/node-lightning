@@ -638,8 +638,6 @@ describe(ChannelManager.name, () => {
             channel.state = stateB;
 
             sut.channels.push(channel);
-            const peer = createFakePeer();
-            const msg = createFakeFundingSignedMessage();
             const block: Block = Block.fromHex(REGTEST_BLOCK_100);
 
             // act
@@ -673,8 +671,6 @@ describe(ChannelManager.name, () => {
             channel.state = stateB;
 
             sut.channels.push(channel);
-            const peer = createFakePeer();
-            const msg = createFakeFundingSignedMessage();
             const block: Block = Block.fromHex(REGTEST_BLOCK_100);
 
             // act
