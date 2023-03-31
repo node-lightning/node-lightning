@@ -11,8 +11,8 @@ import { IChannelStorage } from "../../lib/channels/IChannelStorage";
 import { OpenChannelRequest } from "../../lib/channels/OpenChannelRequest";
 import { StateMachine } from "../../lib/channels/StateMachine";
 import { ChannelStateId, StateMachineFactory } from "../../lib/channels/StateMachineFactory";
-import { OpeningError } from "../../lib/channels/states/opening/OpeningError";
-import { OpeningErrorType } from "../../lib/channels/states/opening/OpeningErrorType";
+import { OpeningError } from "../../lib/channels/OpeningError";
+import { OpeningErrorType } from "../../lib/channels/OpeningErrorType";
 import { Result } from "../../lib/Result";
 import {
     createFakeAcceptChannel,
@@ -26,7 +26,6 @@ import {
     createFakeLogger,
     createFakePeer,
     createFakeState,
-    createFakeTransitionFactory,
     FakePeer,
 } from "../_test-utils";
 

@@ -1,11 +1,11 @@
 import { TxBuilder, Value } from "@node-lightning/bitcoin";
 import { ILogger } from "@node-lightning/logger";
 import { expect } from "chai";
-import { ChannelAnnouncementMessage, ChannelStateId, IWireMessage } from "../../lib";
+import { ChannelStateId, IWireMessage } from "../../lib";
 import { Channel } from "../../lib/channels/Channel";
 import { IChannelLogic } from "../../lib/channels/IChannelLogic";
-import { OpeningError } from "../../lib/channels/states/opening/OpeningError";
-import { OpeningErrorType } from "../../lib/channels/states/opening/OpeningErrorType";
+import { OpeningError } from "../../lib/channels/OpeningError";
+import { OpeningErrorType } from "../../lib/channels/OpeningErrorType";
 import { AcceptChannelMessage } from "../../lib/messages/AcceptChannelMessage";
 import { FundingCreatedMessage } from "../../lib/messages/FundingCreatedMessage";
 import { Result } from "../../lib/Result";

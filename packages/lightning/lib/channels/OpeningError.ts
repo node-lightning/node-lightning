@@ -1,4 +1,4 @@
-import { Result } from "../../../Result";
+import { Result } from "../Result";
 import { OpeningErrorType } from "./OpeningErrorType";
 
 export class OpeningError extends Error {

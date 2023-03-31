@@ -71,45 +71,4 @@ export class StateMachine implements IStateMachine {
         if (!this.transitions.has(event.type)) return;
         return this.transitions.get(event.type)(channel, event);
     }
-
-    // public async onPeerConnected(channel: Channel): Promise<string> {
-    //     return undefined;
-    // }
-
-    // public async onPeerDisconnected(channel: Channel): Promise<string> {
-    //     return undefined;
-    // }
-
-    // public async openChannel(channel: Channel): Promise<string> {
-    //     return undefined;
-    // }
-
-    // public async onAcceptChannelMessage(
-    //     channel: Channel,
-    //     msg: AcceptChannelMessage,
-    // ): Promise<string> {
-    //     return undefined;
-    // }
-
-    // public async onShutdownMessage(channel: Channel, msg: ShutdownMessage): Promise<string> {
-    //     return undefined;
-    // }
-
-    // public async onFundingSignedMessage(
-    //     channel: Channel,
-    //     msg: FundingSignedMessage,
-    // ): Promise<string> {
-    //     return undefined;
-    // }
-
-    // public async onBlockConnected(channel: Channel, block: Block): Promise<string> {
-    //     return undefined;
-    // }
-
-    // public async onChannelReadyMessage(
-    //     channel: Channel,
-    //     msg: ChannelReadyMessage,
-    // ): Promise<string> {
-    //     return undefined;
-    // }
 }

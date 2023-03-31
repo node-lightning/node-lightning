@@ -18,7 +18,7 @@ import { Helpers } from "../../lib/channels/Helpers";
 import { IChannelWallet } from "../../lib/channels/IChannelWallet";
 import { OpenChannelRequest } from "../../lib/channels/OpenChannelRequest";
 import { ScriptFactory } from "../../lib/channels/ScriptFactory";
-import { OpeningErrorType } from "../../lib/channels/states/opening/OpeningErrorType";
+import { OpeningErrorType } from "../../lib/channels/OpeningErrorType";
 import {
     createFakeAcceptChannel,
     createFakeChannel,

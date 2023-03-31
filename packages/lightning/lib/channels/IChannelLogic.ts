@@ -11,7 +11,7 @@ import { OpenChannelMessage } from "../messages/OpenChannelMessage";
 import { Result } from "../Result";
 import { Channel } from "./Channel";
 import { OpenChannelRequest } from "./OpenChannelRequest";
-import { OpeningError } from "./states/opening/OpeningError";
+import { OpeningError } from "./OpeningError";
 
 /**
  * Provides a facade for channel related logic. This is largely where
