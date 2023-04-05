@@ -34,6 +34,7 @@ import { sigFromDER, verifySig } from "@node-lightning/crypto";
 import { ChannelReadyMessage } from "../messages/ChannelReadyMessage";
 import { PeerRepository } from "../PeerRepository";
 import { IWireMessage } from "../messages/IWireMessage";
+import { ErrorMessage } from "../messages/ErrorMessage";
 
 export class Helpers implements IChannelLogic {
     constructor(
@@ -908,5 +909,32 @@ export class Helpers implements IChannelLogic {
         if (!PublicKey.isValid(msg.nextPerCommitmentPoint)) return false;
 
         return true;
+    }
+
+    /**
+     * Construct an `error` message according to BOLT 1. Error messages
+     * are sent for protocol violations or there is an internal error
+     * that makes the channel unusable or that make further
+     * communication unusable.
+     *
+     * 1. If channel is not supplied, the `channel_id` value must be set
+     * to all zeroes. This indicates that the error applies to all
+     * channels
+     * 2. Must use the `temporary_channel_id` when the `funder` and
+     * before sending `channel_created` or if the `fundee` and before
+     * sending `channel_signed`
+     * 3. May send an empty `data` field
+     * 4. If error is generated due to a failed signature check, should
+     * include the raw, hex-encoded transaction in reply to a
+     * `funding_created`, `funding_signed`, `closing_signed`, or
+     * `commitment_signed` message.
+     * @param channel
+     * @param data
+     */
+    public createErrorMessage(data: Buffer, channel: Channel, useTempId: boolean): ErrorMessage {
+        const msg = new ErrorMessage();
+        msg.channelId = useTempId ? channel.temporaryId : channel.channelId.toBuffer();
+        msg.data = data;
+        return msg;
     }
 }

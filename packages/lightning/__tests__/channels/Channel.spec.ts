@@ -376,7 +376,7 @@ describe(Channel.name, () => {
                 revocationBasePointSecret:
                     "0000000000000000000000000000000000000000000000000000000000000005",
                 state: undefined,
-                temporaryId: "0000000000000000000000000000000000000000000000000000000000000000",
+                temporaryId: "1111111111111111111111111111111111111111111111111111111111111111",
                 theirSide: {
                     balance: "0.00002",
                     channelReserve: "0.0002",

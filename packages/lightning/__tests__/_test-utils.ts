@@ -175,7 +175,7 @@ export function createFakeChannel(
     const network = options.network ?? Network.testnet;
     const channel = new Channel(peerId, network, true);
 
-    channel.temporaryId = options.temporaryId ?? Buffer.alloc(32);
+    channel.temporaryId = options.temporaryId ?? Buffer.alloc(32, 0x11);
     channel.fundingAmount = options.fundingAmount ?? Value.fromSats(200_000);
     channel.pushAmount = options.pushAmount ?? Value.fromSats(2_000);
     channel.feeRatePerKw = options.feeRatePerKw ?? Value.fromSats(1000);
@@ -229,7 +229,7 @@ export function createFakeAcceptChannel(
     opts: Partial<AcceptChannelMessage> = {},
 ): AcceptChannelMessage {
     const msg = new AcceptChannelMessage();
-    msg.temporaryChannelId = opts.temporaryChannelId ?? Buffer.alloc(32);
+    msg.temporaryChannelId = opts.temporaryChannelId ?? Buffer.alloc(32, 0x11);
     msg.dustLimitValue = opts.dustLimitValue ?? Value.fromSats(354);
     msg.channelReserveValue = opts.channelReserveValue ?? Value.fromSats(20_000);
     msg.minimumDepth = opts.minimumDepth ?? 6;
@@ -295,7 +295,7 @@ export function createFakeFundingCreatedMessage(
 ) {
     if (!opts.tx) opts.tx = createFakeFundingTx();
     if (!opts.sig) opts.sig = Buffer.alloc(64, 0xff);
-    if (!opts.temporaryChannelId) opts.temporaryChannelId = Buffer.alloc(32, 0x00);
+    if (!opts.temporaryChannelId) opts.temporaryChannelId = Buffer.alloc(32, 0x11);
 
     const result = new FundingCreatedMessage();
     result.temporaryChannelId = opts.temporaryChannelId;
