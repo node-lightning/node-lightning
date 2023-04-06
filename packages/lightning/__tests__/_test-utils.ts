@@ -222,6 +222,7 @@ export function createFakeChannelLogicFacade(): Sinon.SinonStubbedInstance<IChan
 export function createFakeChannelStorage(): Sinon.SinonStubbedInstance<IChannelStorage> {
     return {
         save: Sinon.stub(),
+        remove: Sinon.stub(),
     };
 }
 
