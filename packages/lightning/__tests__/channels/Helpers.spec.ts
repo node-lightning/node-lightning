@@ -897,7 +897,7 @@ describe(Helpers.name, () => {
                 "43497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea330900000000",
             );
             expect(result.temporaryChannelId.toString("hex")).to.equal(
-                "0000000000000000000000000000000000000000000000000000000000000000",
+                "1111111111111111111111111111111111111111111111111111111111111111",
             );
             expect(result.fundingAmount.sats).to.equal(200000n);
             expect(result.pushAmount.sats).to.equal(2000n);
@@ -1590,7 +1590,7 @@ describe(Helpers.name, () => {
 
             // assert
             expect(result.temporaryChannelId.toString("hex")).to.deep.equal(
-                "0000000000000000000000000000000000000000000000000000000000000000",
+                "1111111111111111111111111111111111111111111111111111111111111111",
             );
             expect(result.fundingTxId.toString("hex")).to.equal(
                 "6e7848c0fb7e9c4d336149a7fbc60d097f269cb0047917747156749b1bd5d5a0",
@@ -1831,6 +1831,43 @@ describe(Helpers.name, () => {
 
             // assert
             expect(result.isOk).to.equal(false);
+        });
+    });
+
+    describe(Helpers.prototype.createErrorMessage.name, () => {
+        it("creates a message with channelId", () => {
+            // arrange
+            const channel = createFakeChannel()
+                .attachAcceptChannel(createFakeAcceptChannel())
+                .attachFundingTx(createFakeFundingTx())
+                .attachFundingSigned(createFakeFundingSignedMessage());
+            const data = Buffer.from("aborting");
+            const helpers = new Helpers(undefined, undefined, undefined);
+
+            // act
+            const result = helpers.createErrorMessage(data, channel, false);
+
+            // assert
+            expect(result.channelId.toString("hex")).to.equal(
+                "6e7848c0fb7e9c4d336149a7fbc60d097f269cb0047917747156749b1bd5d5a0",
+            );
+            expect(result.data.toString()).to.equal("aborting");
+        });
+
+        it("creates a message with tempId", () => {
+            // arrange
+            const channel = createFakeChannel();
+            const data = Buffer.from("aborting");
+            const helpers = new Helpers(undefined, undefined, undefined);
+
+            // act
+            const result = helpers.createErrorMessage(data, channel, true);
+
+            // assert
+            expect(result.channelId.toString("hex")).to.equal(
+                "1111111111111111111111111111111111111111111111111111111111111111",
+            );
+            expect(result.data.toString()).to.equal("aborting");
         });
     });
 });
