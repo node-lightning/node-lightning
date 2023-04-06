@@ -23,4 +23,16 @@ export class ChannelStorage implements IChannelStorage {
             JSON.stringify(JSON.stringify(channel)),
         );
     }
+
+    /**
+     * Removes the channel from the storage mechanism.
+     * @param channel
+     */
+    public async remove(channel: Channel): Promise<void> {
+        // only save once we have the channel_id
+        if (!channel.channelId) return;
+
+        const filename = `channel_${channel.channelId.toString()}.json`;
+        await fs.unlink(path.join(this.folder, filename));
+    }
 }
