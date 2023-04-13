@@ -3,7 +3,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
 import { Bech32 } from "@node-lightning/bitcoin";
-import * as bech32Util from "./bech32-util";
 import * as crypto from "./crypto";
 import { encodePico } from "./encode-pico";
 import { FIELD_TYPE } from "./field-type";
@@ -28,7 +27,7 @@ export function encode(invoice: Invoice, privKey: Buffer) {
     _encodeData(invoice, writer);
 
     // generate sig data
-    const bytes = bech32Util.convertWords(writer.words, 5, 8, true);
+    const bytes = Bech32.wordsToBuffer(writer.words, true);
     const sigData = Buffer.concat([Buffer.from(prefix, "utf8"), Buffer.from(bytes)]);
 
     // generate sig hash
@@ -52,7 +51,7 @@ function _encodeData(invoice: Invoice, writer: WordCursor) {
                 {
                     // should be 52, but allow for creation of variable length
                     // values so we can construct non-valid invoices for testing
-                    const dataLen = bech32Util.sizeofBytes(datum.value.byteLength);
+                    const dataLen = Bech32.sizeofBytes(datum.value.byteLength);
                     writer.writeUIntBE(datum.type, 1);
                     writer.writeUIntBE(dataLen, 2);
                     writer.writeBytes(datum.value);
@@ -62,7 +61,7 @@ function _encodeData(invoice: Invoice, writer: WordCursor) {
                 {
                     const bits = datum.value.length * (264 + 64 + 32 + 32 + 16);
                     writer.writeUIntBE(datum.type, 1);
-                    const dataLen = bech32Util.sizeofBits(bits);
+                    const dataLen = Bech32.sizeofBits(bits);
                     writer.writeUIntBE(dataLen, 2);
                     const buffer = Buffer.alloc(bits / 8);
                     let position = 0;
@@ -83,7 +82,7 @@ function _encodeData(invoice: Invoice, writer: WordCursor) {
                 break;
             case FIELD_TYPE.EXPIRY:
                 {
-                    const dataLen = bech32Util.sizeofNum(datum.value);
+                    const dataLen = Bech32.sizeofNum(datum.value);
                     writer.writeUIntBE(datum.type, 1);
                     writer.writeUIntBE(dataLen, 2);
                     writer.writeUIntBE(datum.value, dataLen);
@@ -91,7 +90,7 @@ function _encodeData(invoice: Invoice, writer: WordCursor) {
                 break;
             case FIELD_TYPE.FALLBACK_ADDRESS:
                 {
-                    const dataLen = bech32Util.sizeofBytes(datum.value.address.byteLength) + 1;
+                    const dataLen = Bech32.sizeofBytes(datum.value.address.byteLength) + 1;
                     writer.writeUIntBE(datum.type, 1);
                     writer.writeUIntBE(dataLen, 2);
                     writer.writeUIntBE(datum.value.version, 1);
@@ -101,7 +100,7 @@ function _encodeData(invoice: Invoice, writer: WordCursor) {
             case FIELD_TYPE.SHORT_DESC:
                 {
                     const buf = Buffer.from(datum.value, "utf8");
-                    const dataLen = bech32Util.sizeofBytes(buf.byteLength);
+                    const dataLen = Bech32.sizeofBytes(buf.byteLength);
                     writer.writeUIntBE(datum.type, 1);
                     writer.writeUIntBE(dataLen, 2);
                     writer.writeBytes(buf);
@@ -111,7 +110,7 @@ function _encodeData(invoice: Invoice, writer: WordCursor) {
                 {
                     // should be 53, but allow for creation of variable length
                     // values so we can construct non-valid invoices for testing
-                    const dataLen = bech32Util.sizeofBytes(datum.value.byteLength);
+                    const dataLen = Bech32.sizeofBytes(datum.value.byteLength);
                     writer.writeUIntBE(datum.type, 1);
                     writer.writeUIntBE(dataLen, 2);
                     writer.writeBytes(datum.value);
@@ -119,7 +118,7 @@ function _encodeData(invoice: Invoice, writer: WordCursor) {
                 break;
             case FIELD_TYPE.HASH_DESC:
                 {
-                    const dataLen = bech32Util.sizeofBytes(datum.value.byteLength);
+                    const dataLen = Bech32.sizeofBytes(datum.value.byteLength);
                     writer.writeUIntBE(datum.type, 1);
                     writer.writeUIntBE(dataLen, 2);
                     writer.writeBytes(datum.value);
@@ -127,7 +126,7 @@ function _encodeData(invoice: Invoice, writer: WordCursor) {
                 break;
             case FIELD_TYPE.MIN_FINAL_CLTV_EXPIRY:
                 {
-                    const dataLen = bech32Util.sizeofNum(datum.value);
+                    const dataLen = Bech32.sizeofNum(datum.value);
                     writer.writeUIntBE(datum.type, 1);
                     writer.writeUIntBE(dataLen, 2);
                     writer.writeUIntBE(datum.value, dataLen);
@@ -137,7 +136,7 @@ function _encodeData(invoice: Invoice, writer: WordCursor) {
                 if (!(datum.value instanceof Buffer)) {
                     throw new Error("Cannot process unknown field");
                 }
-                const dataLen = bech32Util.sizeofBytes(datum.value.byteLength);
+                const dataLen = Bech32.sizeofBytes(datum.value.byteLength);
                 writer.writeUIntBE(datum.type, 1);
                 writer.writeUIntBE(dataLen, 2);
                 writer.writeBytes(datum.value);
