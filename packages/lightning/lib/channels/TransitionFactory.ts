@@ -57,7 +57,7 @@ export class TransitionFactory {
             await this.logic.sendMessage(channel.peerId, fundingCreatedMessage);
 
             // return new state
-            return ChannelStateId.Channel_Opening_AwaitingFundingSigned;
+            return ChannelStateId.Channel_Initializing_AwaitingFundingSigned;
         };
     }
 
@@ -80,7 +80,7 @@ export class TransitionFactory {
             await this.logic.broadcastTx(channel.fundingTx);
 
             // Transition to AwaitingFundingDepth state
-            return ChannelStateId.Channel_Opening_AwaitingFundingDepth;
+            return ChannelStateId.Channel_Funding_AwaitingFundingDepth;
         };
     }
 
@@ -116,11 +116,11 @@ export class TransitionFactory {
                 if (containsOutPoint(block, channel.fundingOutPoint)) {
                     const confirmedHeight = Number(block.bip34Height);
                     channel.markConfirmed(confirmedHeight);
-                    return ChannelStateId.Channel_Opening_AwaitingFundingDepth;
+                    return ChannelStateId.Channel_Funding_AwaitingFundingDepth;
                 }
 
                 // Otherwise we keep waiting
-                return ChannelStateId.Channel_Opening_AwaitingFundingDepth;
+                return ChannelStateId.Channel_Funding_AwaitingFundingDepth;
             }
 
             // When block height reaches ready height...
@@ -143,13 +143,13 @@ export class TransitionFactory {
                 // Otherwise we transition to waiting for the `channel_ready`
                 // message
                 else {
-                    return ChannelStateId.Channel_Opening_AwaitingChannelReady;
+                    return ChannelStateId.Channel_Funding_AwaitingChannelReady;
                 }
             }
 
             // Otherwise we're between the confirmed height and the ready height
             // so we stay here and wait for blocks to be solved.
-            return ChannelStateId.Channel_Opening_AwaitingFundingDepth;
+            return ChannelStateId.Channel_Funding_AwaitingFundingDepth;
         };
     }
 

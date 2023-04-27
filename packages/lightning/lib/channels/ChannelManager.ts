@@ -152,7 +152,7 @@ export class ChannelManager {
         await this.transitionState(
             channel,
             undefined,
-            ChannelStateId.Channel_Opening_AwaitingAcceptChannel,
+            ChannelStateId.Channel_Initializing_AwaitingAcceptChannel,
         );
 
         // Add to channels
