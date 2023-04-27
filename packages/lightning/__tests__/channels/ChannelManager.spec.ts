@@ -375,8 +375,8 @@ describe(ChannelManager.name, () => {
         beforeEach(() => {
             logger = createFakeLogger();
             logic = createFakeChannelLogicFacade();
-            transitionFactory = new TransitionFactory(logger, logic);
             storage = createFakeChannelStorage();
+            transitionFactory = new TransitionFactory(logger, logic, storage);
             peer = createFakePeer();
             sut = new ChannelManager(
                 logger,
