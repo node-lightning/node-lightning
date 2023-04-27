@@ -6,10 +6,16 @@ import { FundingSignedMessage } from "../messages/FundingSignedMessage";
 import { Channel } from "./Channel";
 import { ChannelEvent } from "./ChannelEvent";
 import { IChannelLogic } from "./IChannelLogic";
+import { IChannelStorage } from "./IChannelStorage";
 import { ChannelStateId } from "./StateMachineFactory";
+import { TransitionFn } from "./TransitionFn";
 
 export class TransitionFactory {
-    constructor(readonly logger: ILogger, readonly logic: IChannelLogic) {}
+    constructor(
+        readonly logger: ILogger,
+        readonly logic: IChannelLogic,
+        readonly storage: IChannelStorage,
+    ) {}
 
     public createOnAcceptChannelMessageTransition() {
         return async (channel: Channel, event: ChannelEvent): Promise<ChannelStateId> => {
@@ -144,6 +150,32 @@ export class TransitionFactory {
             // Otherwise we're between the confirmed height and the ready height
             // so we stay here and wait for blocks to be solved.
             return ChannelStateId.Channel_Opening_AwaitingFundingDepth;
+        };
+    }
+
+    /**
+     * Abandoned state will be used in the early stages of a channel to
+     * indicate that a channel creation attempt has failed. This should
+     * always perform the following actions onEntry:
+     *
+     * 1. Remove the channel from disk if it exists
+     * 2. Send an error message to the peer for the channel
+     * @returns
+     */
+    public createConnectedAbandon(): TransitionFn {
+        return async (channel: Channel) => {
+            // remove from disk
+            await this.storage.remove(channel);
+
+            // create error message
+            const data = Buffer.from("abandoning");
+            const msg = this.logic.createErrorMessage(data, channel, true);
+
+            // send the error message
+            await this.logic.sendMessage(channel.peerId, msg);
+
+            // transition to abandoned
+            return ChannelStateId.Channel_Abandoned;
         };
     }
 }

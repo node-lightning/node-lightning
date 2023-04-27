@@ -10,6 +10,7 @@ export enum ChannelStateId {
     Channel_Opening_AwaitingChannelReady = "channel.opening.awaiting_channel_ready",
     Channel_Failing = "channel.failing",
     Channel_Normal = "channel.normal",
+    Channel_Abandoned = "channel.abandoned",
 }
 
 export class StateMachineFactory {
@@ -53,6 +54,7 @@ export class StateMachineFactory {
                         ),
                     ),
             )
+            .addSubState(new StateMachine(this.logger, "abandoned"))
             .addSubState(new StateMachine(this.logger, "failing"))
             .addSubState(new StateMachine(this.logger, "normal"));
     }

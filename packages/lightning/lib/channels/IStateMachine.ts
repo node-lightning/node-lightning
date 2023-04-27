@@ -9,7 +9,7 @@ export interface IStateMachine {
     parent: IStateMachine | undefined;
 
     addSubState(state: IStateMachine): IStateMachine;
-    onEnter(channel: Channel, oldState: IStateMachine): Promise<string>;
-    onExit(channel: Channel, newState: IStateMachine): Promise<string>;
+    onEnter(channel: Channel, event: ChannelEvent): Promise<ChannelStateId | undefined>;
+    onExit(channel: Channel, event: ChannelEvent): Promise<ChannelStateId | undefined>;
     onEvent(channel: Channel, event: ChannelEvent): Promise<ChannelStateId | undefined>;
 }

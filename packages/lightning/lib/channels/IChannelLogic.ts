@@ -12,6 +12,7 @@ import { Result } from "../Result";
 import { Channel } from "./Channel";
 import { OpenChannelRequest } from "./OpenChannelRequest";
 import { OpeningError } from "./OpeningError";
+import { ErrorMessage } from "../messages/ErrorMessage";
 
 /**
  * Provides a facade for channel related logic. This is largely where
@@ -27,6 +28,7 @@ export interface IChannelLogic {
         options: OpenChannelRequest,
     ): Promise<Result<Channel, OpeningError>>;
     createChannelReadyMessage(channel: Channel): Promise<ChannelReadyMessage>;
+    createErrorMessage(data: Buffer, channel: Channel, useTempId: boolean): ErrorMessage;
     createFundingCreatedMessage(
         channel: Channel,
         signature: Buffer,

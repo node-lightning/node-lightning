@@ -252,27 +252,16 @@ describe(ChannelManager.name, () => {
             logger = createFakeLogger();
             logic = createFakeChannelLogicFacade();
             storage = createFakeChannelStorage();
-            sut = new ChannelManager(
-                logger,
-                Network.testnet,
-                logic,
-                storage,
-                new StateMachine(logger, "Root"),
-            );
-            sut.rootState.onEnter = Sinon.stub();
-            sut.rootState.onExit = Sinon.stub();
+            const root = new StateMachine(logger, "Root")
+                .setEnterFn(Sinon.stub())
+                .setExitFn(Sinon.stub());
+            sut = new ChannelManager(logger, Network.testnet, logic, storage, root);
 
-            a = new StateMachine(logger, "A");
-            a.onEnter = Sinon.stub();
-            a.onExit = Sinon.stub();
+            a = new StateMachine(logger, "A").setEnterFn(Sinon.stub()).setExitFn(Sinon.stub());
 
-            b = new StateMachine(logger, "B");
-            b.onEnter = Sinon.stub();
-            b.onExit = Sinon.stub();
+            b = new StateMachine(logger, "B").setEnterFn(Sinon.stub()).setExitFn(Sinon.stub());
 
-            c = new StateMachine(logger, "C");
-            c.onEnter = Sinon.stub();
-            c.onExit = Sinon.stub();
+            c = new StateMachine(logger, "C").setEnterFn(Sinon.stub()).setExitFn(Sinon.stub());
 
             sut.rootState.addSubState(a).addSubState(b).addSubState(c);
         });
@@ -283,14 +272,14 @@ describe(ChannelManager.name, () => {
                 const channel = createFakeChannel({});
 
                 // act
-                await sut.transitionState(channel, "Root.B");
+                await sut.transitionState(channel, undefined, "Root.B");
 
-                expect((a.onEnter as Sinon.SinonSpy).called).to.equal(
+                expect((a.enterFn as Sinon.SinonSpy).called).to.equal(
                     false,
                     "should not call onEnter for A",
                 );
-                expect((b.onEnter as Sinon.SinonSpy).called).to.equal(true, "call onEnter for B");
-                expect((b.onExit as Sinon.SinonSpy).called).to.equal(false, "no-call onExit for B");
+                expect((b.enterFn as Sinon.SinonSpy).called).to.equal(true, "call onEnter for B");
+                expect((b.exitFn as Sinon.SinonSpy).called).to.equal(false, "no-call onExit for B");
                 expect(storage.save.called).to.equal(true, "call save");
                 expect(channel.state).to.equal(b, "state=Root.B");
             });
@@ -303,13 +292,13 @@ describe(ChannelManager.name, () => {
                 channel.state = a;
 
                 // act
-                await sut.transitionState(channel, "Root.A");
+                await sut.transitionState(channel, undefined, "Root.A");
 
-                expect((a.onEnter as Sinon.SinonSpy).called).to.equal(
+                expect((a.enterFn as Sinon.SinonSpy).called).to.equal(
                     false,
                     "shouldn't call onEnter",
                 );
-                expect((a.onExit as Sinon.SinonSpy).called).to.equal(
+                expect((a.exitFn as Sinon.SinonSpy).called).to.equal(
                     false,
                     "shouldn't call onExit",
                 );
@@ -323,15 +312,15 @@ describe(ChannelManager.name, () => {
                 channel.state = a;
 
                 // act
-                await sut.transitionState(channel, "Root.B");
+                await sut.transitionState(channel, undefined, "Root.B");
 
-                expect((a.onEnter as Sinon.SinonSpy).called).to.equal(
+                expect((a.enterFn as Sinon.SinonSpy).called).to.equal(
                     false,
                     "should not call onEnter for A",
                 );
-                expect((a.onExit as Sinon.SinonSpy).called).to.equal(true, "call onExit for A");
-                expect((b.onEnter as Sinon.SinonSpy).called).to.equal(true, "call onEnter for B");
-                expect((b.onExit as Sinon.SinonSpy).called).to.equal(false, "no-call onExit for B");
+                expect((a.exitFn as Sinon.SinonSpy).called).to.equal(true, "call onExit for A");
+                expect((b.enterFn as Sinon.SinonSpy).called).to.equal(true, "call onEnter for B");
+                expect((b.exitFn as Sinon.SinonSpy).called).to.equal(false, "no-call onExit for B");
                 expect(storage.save.called).to.equal(true, "call save");
                 expect(channel.state).to.equal(b, "state=B");
             });
@@ -340,20 +329,20 @@ describe(ChannelManager.name, () => {
                 // arrange
                 const channel = createFakeChannel({});
                 channel.state = a;
-                (b.onEnter as Sinon.SinonStub).resolves("Root.C");
+                (b.enterFn as Sinon.SinonStub).resolves("Root.C");
 
                 // act
-                await sut.transitionState(channel, "Root.B");
+                await sut.transitionState(channel, undefined, "Root.B");
 
-                expect((a.onEnter as Sinon.SinonSpy).called).to.equal(
+                expect((a.enterFn as Sinon.SinonSpy).called).to.equal(
                     false,
                     "no-call onEnter for A",
                 );
-                expect((a.onExit as Sinon.SinonSpy).called).to.equal(true, "call onExit for A");
-                expect((b.onEnter as Sinon.SinonSpy).called).to.equal(true, "call onEnter for B");
-                expect((b.onExit as Sinon.SinonSpy).called).to.equal(true, "call onExit for B");
-                expect((c.onEnter as Sinon.SinonSpy).called).to.equal(true, "call onEnter for C");
-                expect((c.onExit as Sinon.SinonSpy).called).to.equal(false, "no-call onExit for C");
+                expect((a.exitFn as Sinon.SinonSpy).called).to.equal(true, "call onExit for A");
+                expect((b.enterFn as Sinon.SinonSpy).called).to.equal(true, "call onEnter for B");
+                expect((b.exitFn as Sinon.SinonSpy).called).to.equal(true, "call onExit for B");
+                expect((c.enterFn as Sinon.SinonSpy).called).to.equal(true, "call onEnter for C");
+                expect((c.exitFn as Sinon.SinonSpy).called).to.equal(false, "no-call onExit for C");
                 expect(storage.save.called).to.equal(true, "call save");
                 expect(channel.state).to.equal(c, "state=C");
             });
@@ -362,11 +351,11 @@ describe(ChannelManager.name, () => {
                 // arrange
                 const channel = createFakeChannel({});
                 channel.state = a;
-                (b.onEnter as Sinon.SinonStub).resolves("Root.D");
+                (b.enterFn as Sinon.SinonStub).resolves("Root.D");
 
                 // act
                 try {
-                    await sut.transitionState(channel, "Root.B");
+                    await sut.transitionState(channel, undefined, "Root.B");
                     throw new Error("Should have thrown");
                 } catch (ex) {
                     expect(ex.message).to.equal("Failed to find state, state=Root.D");
@@ -386,8 +375,8 @@ describe(ChannelManager.name, () => {
         beforeEach(() => {
             logger = createFakeLogger();
             logic = createFakeChannelLogicFacade();
-            transitionFactory = new TransitionFactory(logger, logic);
             storage = createFakeChannelStorage();
+            transitionFactory = new TransitionFactory(logger, logic, storage);
             peer = createFakePeer();
             sut = new ChannelManager(
                 logger,

@@ -7,4 +7,5 @@ export enum ChannelEventType {
     FundingCreatedMessage = "funding_created_message",
     FundingSignedMessage = "funding_signed_message",
     ChannelReadyMessage = "channel_ready_message",
+    ShutdownMessage = "shutdown_message",
 }

@@ -83,7 +83,11 @@ export class ChannelManager {
      * @param channel
      * @param newId
      */
-    public async transitionState(channel: Channel, newId: string): Promise<void> {
+    public async transitionState(
+        channel: Channel,
+        event: ChannelEvent,
+        newId: string,
+    ): Promise<void> {
         let oldState = channel.state ?? this.rootState;
 
         // process until state stops changing
@@ -97,13 +101,13 @@ export class ChannelManager {
             }
 
             // exit for old state
-            await oldState.onExit(channel, newState);
+            await oldState.onExit(channel, event);
 
             // set the new state
             channel.state = newState;
 
             // entry for new state
-            newId = await newState.onEnter(channel, oldState);
+            newId = await newState.onEnter(channel, event);
 
             // save the new state
             await this.channelStorage.save(channel);
@@ -145,7 +149,11 @@ export class ChannelManager {
         this.logic.sendMessage(peer.id, message);
 
         // Save the initial state
-        await this.transitionState(channel, ChannelStateId.Channel_Opening_AwaitingAcceptChannel);
+        await this.transitionState(
+            channel,
+            undefined,
+            ChannelStateId.Channel_Opening_AwaitingAcceptChannel,
+        );
 
         // Add to channels
         this.channels.push(channel);
@@ -171,7 +179,7 @@ export class ChannelManager {
         const event = new ChannelEvent(ChannelEventType.AcceptChannelMessage);
         event.message = msg;
         const newState = await channel.state.onEvent(channel, event);
-        await this.transitionState(channel, newState);
+        await this.transitionState(channel, event, newState);
     }
 
     /**
@@ -189,7 +197,7 @@ export class ChannelManager {
         const event = new ChannelEvent(ChannelEventType.FundingSignedMessage);
         event.message = msg;
         const newState = await channel.state.onEvent(channel, event);
-        await this.transitionState(channel, newState);
+        await this.transitionState(channel, event, newState);
     }
 
     /**
@@ -202,7 +210,7 @@ export class ChannelManager {
         event.block = block;
         for (const channel of this.channels) {
             const newState = await channel.state.onEvent(channel, event);
-            await this.transitionState(channel, newState);
+            await this.transitionState(channel, event, newState);
         }
     }
 
@@ -220,6 +228,6 @@ export class ChannelManager {
         const event = new ChannelEvent(ChannelEventType.ChannelReadyMessage);
         event.message = msg;
         const newState = await channel.state.onEvent(channel, event);
-        await this.transitionState(channel, newState);
+        await this.transitionState(channel, event, newState);
     }
 }

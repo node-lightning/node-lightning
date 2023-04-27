@@ -1,7 +1,7 @@
 import { TxBuilder, Value } from "@node-lightning/bitcoin";
 import { ILogger } from "@node-lightning/logger";
 import { expect } from "chai";
-import { ChannelStateId, IWireMessage } from "../../lib";
+import { ChannelStateId, IChannelStorage, IWireMessage, MessageType } from "../../lib";
 import { Channel } from "../../lib/channels/Channel";
 import { IChannelLogic } from "../../lib/channels/IChannelLogic";
 import { OpeningError } from "../../lib/channels/OpeningError";
@@ -16,10 +16,13 @@ import {
     createFakeChannel,
     createFakeChannelLogicFacade,
     createFakeChannelReady,
+    createFakeChannelStorage,
+    createFakeErrorMessage,
     createFakeFundingCreatedMessage,
     createFakeFundingSignedMessage,
     createFakeFundingTx,
     createFakeLogger,
+    createFakePeer,
 } from "../_test-utils";
 import { ChannelEvent } from "../../lib/channels/ChannelEvent";
 import { ChannelEventType } from "../../lib/channels/ChannelEventType";
@@ -35,7 +38,7 @@ describe(TransitionFactory.name, () => {
         beforeEach(() => {
             logger = createFakeLogger();
             logic = createFakeChannelLogicFacade();
-            sut = new TransitionFactory(logger, logic);
+            sut = new TransitionFactory(logger, logic, createFakeChannelStorage());
             channel = createFakeChannel();
         });
 
@@ -133,7 +136,7 @@ describe(TransitionFactory.name, () => {
         beforeEach(() => {
             logger = createFakeLogger();
             logic = createFakeChannelLogicFacade();
-            sut = new TransitionFactory(logger, logic);
+            sut = new TransitionFactory(logger, logic, createFakeChannelStorage());
             channel = createFakeChannel().attachAcceptChannel(createFakeAcceptChannel());
         });
 
@@ -208,7 +211,7 @@ describe(TransitionFactory.name, () => {
         beforeEach(() => {
             logger = createFakeLogger();
             logic = createFakeChannelLogicFacade();
-            sut = new TransitionFactory(logger, logic);
+            sut = new TransitionFactory(logger, logic, createFakeChannelStorage());
             channel = createFakeChannel()
                 .attachAcceptChannel(createFakeAcceptChannel())
                 .attachFundingTx(createFakeFundingTx())
@@ -303,7 +306,7 @@ describe(TransitionFactory.name, () => {
         beforeEach(() => {
             logger = createFakeLogger();
             logic = createFakeChannelLogicFacade();
-            sut = new TransitionFactory(logger, logic);
+            sut = new TransitionFactory(logger, logic, createFakeChannelStorage());
             channel = createFakeChannel()
                 .attachAcceptChannel(createFakeAcceptChannel())
                 .attachFundingTx(createFakeFundingTx())
@@ -388,6 +391,52 @@ describe(TransitionFactory.name, () => {
                     "032405cbd0f41225d5f203fe4adac8401321a9e05767c5f8af97d51d2e81fbb206",
                 );
             });
+        });
+    });
+
+    describe(TransitionFactory.prototype.createConnectedAbandon.name, () => {
+        let logger: ILogger;
+        let logic: sinon.SinonStubbedInstance<IChannelLogic>;
+        let storage: sinon.SinonStubbedInstance<IChannelStorage>;
+        let sut: TransitionFactory;
+        let channel: Channel;
+
+        beforeEach(() => {
+            logger = createFakeLogger();
+            logic = createFakeChannelLogicFacade();
+            storage = createFakeChannelStorage();
+            sut = new TransitionFactory(logger, logic, storage);
+            channel = createFakeChannel().attachAcceptChannel(createFakeAcceptChannel());
+        });
+
+        it("removes the channel", async () => {
+            // arrange
+            const event = new ChannelEvent(ChannelEventType.ShutdownMessage);
+            const transition = sut.createConnectedAbandon();
+
+            // act
+            const result = await transition(channel, event);
+
+            // assert
+            expect(result).to.equal(ChannelStateId.Channel_Abandoned);
+            expect(storage.remove.called).to.equal(true);
+            expect(storage.remove.args[0][0]).to.deep.equal(channel);
+        });
+
+        it("sends the error message", async () => {
+            // arrange
+            logic.createErrorMessage.returns(createFakeErrorMessage());
+            const event = new ChannelEvent(ChannelEventType.ShutdownMessage);
+            const transition = sut.createConnectedAbandon();
+
+            // act
+            const result = await transition(channel, event);
+
+            // assert
+            expect(result).to.equal(ChannelStateId.Channel_Abandoned);
+            expect(logic.sendMessage.called).to.equal(true);
+            expect(logic.sendMessage.args[0][0]).to.equal(createFakePeer().id);
+            expect(logic.sendMessage.args[0][1].type).to.equal(MessageType.Error);
         });
     });
 });

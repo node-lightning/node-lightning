@@ -6,6 +6,7 @@ import {
     ChannelManager,
     CommitmentNumber,
     CommitmentSecret,
+    ErrorMessage,
     GossipManager,
     IPeer,
     IWireMessage,
@@ -394,4 +395,14 @@ export function createFakeChannelManager(): Sinon.SinonStubbedInstance<ChannelMa
 
 export function createFakeGossipManager(): Sinon.SinonStubbedInstance<GossipManager> {
     return Sinon.createStubInstance(GossipManager);
+}
+
+export function createFakeErrorMessage(
+    data: Buffer = Buffer.from("test"),
+    chanId: Buffer = Buffer.alloc(32, 0x11),
+) {
+    const msg = new ErrorMessage();
+    msg.channelId = chanId;
+    msg.data = data;
+    return msg;
 }
