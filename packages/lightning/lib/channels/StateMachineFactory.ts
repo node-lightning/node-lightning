@@ -4,10 +4,10 @@ import { StateMachine } from "./StateMachine";
 import { TransitionFactory } from "./TransitionFactory";
 
 export enum ChannelStateId {
-    Channel_Opening_AwaitingAcceptChannel = "channel.opening.awaiting_accept_channel",
-    Channel_Opening_AwaitingFundingSigned = "channel.opening.awaiting_funding_signed",
-    Channel_Opening_AwaitingFundingDepth = "channel.opening.awaiting_funding_depth",
-    Channel_Opening_AwaitingChannelReady = "channel.opening.awaiting_channel_ready",
+    Channel_Initializing_AwaitingAcceptChannel = "channel.initializing.awaiting_accept_channel",
+    Channel_Initializing_AwaitingFundingSigned = "channel.initializing.awaiting_funding_signed",
+    Channel_Funding_AwaitingFundingDepth = "channel.funding.awaiting_funding_depth",
+    Channel_Funding_AwaitingChannelReady = "channel.funding.awaiting_channel_ready",
     Channel_Failing = "channel.failing",
     Channel_Normal = "channel.normal",
     Channel_Abandoned = "channel.abandoned",
@@ -19,7 +19,7 @@ export class StateMachineFactory {
     public construct(): StateMachine {
         return new StateMachine(this.logger, "channel")
             .addSubState(
-                new StateMachine(this.logger, "opening")
+                new StateMachine(this.logger, "initializing")
                     .addSubState(
                         new StateMachine(this.logger, "awaiting_accept_channel").addTransition(
                             ChannelEventType.AcceptChannelMessage,
@@ -31,7 +31,10 @@ export class StateMachineFactory {
                             ChannelEventType.FundingSignedMessage,
                             this.transitions.createOnFundingSignedMessageTransition(),
                         ),
-                    )
+                    ),
+            )
+            .addSubState(
+                new StateMachine(this.logger, "funding")
                     .addSubState(
                         new StateMachine(this.logger, "awaiting_funding_depth")
                             .addTransition(
@@ -41,7 +44,7 @@ export class StateMachineFactory {
                             .addTransition(
                                 ChannelEventType.ChannelReadyMessage,
                                 this.transitions.createOnChannelReadyTransition(
-                                    ChannelStateId.Channel_Opening_AwaitingFundingDepth,
+                                    ChannelStateId.Channel_Funding_AwaitingFundingDepth,
                                 ),
                             ),
                     )

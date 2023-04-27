@@ -122,7 +122,7 @@ describe(TransitionFactory.name, () => {
                 const result = await sut.createOnAcceptChannelMessageTransition()(channel, event);
 
                 // assert
-                expect(result).to.equal(ChannelStateId.Channel_Opening_AwaitingFundingSigned);
+                expect(result).to.equal(ChannelStateId.Channel_Initializing_AwaitingFundingSigned);
             });
         });
     });
@@ -197,7 +197,7 @@ describe(TransitionFactory.name, () => {
                 const result = await sut.createOnFundingSignedMessageTransition()(channel, event);
 
                 // assert
-                expect(result).to.equal(ChannelStateId.Channel_Opening_AwaitingFundingDepth);
+                expect(result).to.equal(ChannelStateId.Channel_Funding_AwaitingFundingDepth);
             });
         });
     });
@@ -229,7 +229,7 @@ describe(TransitionFactory.name, () => {
 
             // assert
             expect(channel.fundingConfirmedHeight).to.equal(undefined);
-            expect(result).to.equal(ChannelStateId.Channel_Opening_AwaitingFundingDepth);
+            expect(result).to.equal(ChannelStateId.Channel_Funding_AwaitingFundingDepth);
         });
 
         it("confirmed => attaches height, stays", async () => {
@@ -245,7 +245,7 @@ describe(TransitionFactory.name, () => {
             // assert
             expect(channel.fundingConfirmedHeight).to.equal(500_000);
             expect(channel.readyHeight).to.equal(500_005);
-            expect(result).to.equal(ChannelStateId.Channel_Opening_AwaitingFundingDepth);
+            expect(result).to.equal(ChannelStateId.Channel_Funding_AwaitingFundingDepth);
         });
 
         it("confirmed + height => stays", async () => {
@@ -261,7 +261,7 @@ describe(TransitionFactory.name, () => {
             // assert
             expect(channel.fundingConfirmedHeight).to.equal(500_000);
             expect(channel.readyHeight).to.equal(500_005);
-            expect(result).to.equal(ChannelStateId.Channel_Opening_AwaitingFundingDepth);
+            expect(result).to.equal(ChannelStateId.Channel_Funding_AwaitingFundingDepth);
         });
 
         it("meets depth, no channel_ready => sends channel_ready + transitions to awaiting_channel_ready", async () => {
@@ -275,7 +275,7 @@ describe(TransitionFactory.name, () => {
             const result = await sut.createOnBlockConnected()(channel, event);
 
             // assert
-            expect(result).to.equal(ChannelStateId.Channel_Opening_AwaitingChannelReady);
+            expect(result).to.equal(ChannelStateId.Channel_Funding_AwaitingChannelReady);
             expect(logic.sendMessage.called).to.equal(true);
         });
 
@@ -323,7 +323,7 @@ describe(TransitionFactory.name, () => {
 
                 // act
                 const result = await sut.createOnChannelReadyTransition(
-                    ChannelStateId.Channel_Opening_AwaitingFundingDepth,
+                    ChannelStateId.Channel_Funding_AwaitingFundingDepth,
                 )(channel, event);
 
                 // assert
@@ -339,9 +339,9 @@ describe(TransitionFactory.name, () => {
 
                 // act
                 const result = await sut.createOnChannelReadyTransition(
-                    ChannelStateId.Channel_Opening_AwaitingFundingDepth,
+                    ChannelStateId.Channel_Funding_AwaitingFundingDepth,
                 )(channel, event);
-                expect(result).to.equal(ChannelStateId.Channel_Opening_AwaitingFundingDepth);
+                expect(result).to.equal(ChannelStateId.Channel_Funding_AwaitingFundingDepth);
                 expect(channel.theirSide.commitmentNumber.value).to.equal(0n);
                 expect(channel.theirSide.commitmentPoint.toHex()).to.equal(
                     "0288a618cb6027c3218a37cbe9e882379f17d87d03f6e99d0b60292478d2aded06",
