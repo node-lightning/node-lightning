@@ -1,4 +1,4 @@
-import * as bech32Util from "./bech32-util";
+import { Bech32 } from "@node-lightning/bitcoin";
 
 export class WordCursor {
     public words: number[];
@@ -25,7 +25,7 @@ export class WordCursor {
     }
 
     public writeBytes(buf: Buffer, pad: boolean = true) {
-        const words = bech32Util.convertWords(buf, 8, 5, pad);
+        const words = Bech32.bufferToWords(buf, pad);
         this._merge(words);
     }
 
@@ -43,7 +43,7 @@ export class WordCursor {
     public readBytes(numWords: number, pad: boolean = false) {
         const words = this.words.slice(this.position, this.position + numWords);
         this.position += numWords;
-        return Buffer.from(bech32Util.convertWords(words, 5, 8, pad));
+        return Buffer.from(Bech32.wordsToBuffer(words, pad));
     }
 
     private _merge(words: number[]) {
