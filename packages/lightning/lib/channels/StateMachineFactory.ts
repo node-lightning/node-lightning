@@ -31,6 +31,10 @@ export class StateMachineFactory {
                             ChannelEventType.FundingSignedMessage,
                             this.transitions.createOnFundingSignedMessageTransition(),
                         ),
+                    )
+                    .addTransition(
+                        ChannelEventType.PeerDisconnected,
+                        this.transitions.createDisconnectedAbandon(),
                     ),
             )
             .addSubState(

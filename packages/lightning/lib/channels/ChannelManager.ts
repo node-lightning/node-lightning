@@ -230,4 +230,20 @@ export class ChannelManager {
         const newState = await channel.state.onEvent(channel, event);
         await this.transitionState(channel, event, newState);
     }
+
+    /**
+     * Processes when a peer has disconnected for each channel related
+     * to the peer.
+     * @param peer
+     */
+    public async onPeerDisconnected(peer: IPeer): Promise<void> {
+        this.logger.debug("peer disconnected");
+        for (const channel of this.channels) {
+            if (channel.peerId !== peer.id) continue;
+
+            const event = new ChannelEvent(ChannelEventType.PeerDisconnected);
+            const newState = await channel.state.onEvent(channel, event);
+            await this.transitionState(channel, event, newState);
+        }
+    }
 }

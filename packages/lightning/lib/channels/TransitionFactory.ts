@@ -178,6 +178,24 @@ export class TransitionFactory {
             return ChannelStateId.Channel_Abandoned;
         };
     }
+
+    /**
+     * Abandoned state will be used in the early stages of a channel to
+     * indicate that a channel creation attempt has failed. When a peer
+     * is disconnect we will perform the following:
+     *
+     * 1. Remove the channel from disk if it exists
+     * @returns
+     */
+    public createDisconnectedAbandon(): TransitionFn {
+        return async (channel: Channel) => {
+            // remove from disk
+            await this.storage.remove(channel);
+
+            // transition to abandoned
+            return ChannelStateId.Channel_Abandoned;
+        };
+    }
 }
 
 /**

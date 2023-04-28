@@ -465,37 +465,6 @@ describe(ChannelManager.name, () => {
     describe(ChannelManager.prototype.onAcceptChannelMessage.name, () => {
         it("fails if channel not found");
 
-        it("calls onAcceptChannelMessage", async () => {
-            // arrange
-            const logger = createFakeLogger();
-            const logic = createFakeChannelLogicFacade();
-            const stateA = createFakeState("A", "A");
-            const stateB = createFakeState("B", "A.B");
-            const stateC = createFakeState("C", "A.C");
-            stateA.addSubState(stateB).addSubState(stateC);
-
-            const sut = new ChannelManager(
-                logger,
-                Network.testnet,
-                logic,
-                createFakeChannelStorage(),
-                stateA,
-            );
-
-            const channel = createFakeChannel();
-            channel.state = stateB;
-
-            sut.channels.push(channel);
-            const peer = createFakePeer();
-            const msg = createFakeAcceptChannel();
-
-            // act
-            await sut.onAcceptChannelMessage(peer, msg);
-
-            // assert
-            expect(stateB.onEvent.called).to.equal(true);
-        });
-
         it("transitions to new state", async () => {
             // arrange
             const logger = createFakeLogger();
@@ -525,6 +494,7 @@ describe(ChannelManager.name, () => {
             await sut.onAcceptChannelMessage(peer, msg);
 
             // assert
+            expect(stateB.onEvent.called).to.equal(true);
             expect(channel.state).to.equal(stateC);
         });
     });
@@ -532,39 +502,6 @@ describe(ChannelManager.name, () => {
     describe(ChannelManager.prototype.onFundingSignedMessage.name, () => {
         it("fails if channel not found");
 
-        it("calls onFundingSignedMessage", async () => {
-            // arrange
-            const logger = createFakeLogger();
-            const logic = createFakeChannelLogicFacade();
-            const stateA = createFakeState("A", "A");
-            const stateB = createFakeState("B", "A.B");
-            const stateC = createFakeState("C", "A.C");
-            stateA.addSubState(stateB).addSubState(stateC);
-
-            const sut = new ChannelManager(
-                logger,
-                Network.testnet,
-                logic,
-                createFakeChannelStorage(),
-                stateA,
-            );
-
-            const channel = createFakeChannel()
-                .attachAcceptChannel(createFakeAcceptChannel())
-                .attachFundingTx(createFakeFundingTx());
-            channel.state = stateB;
-
-            sut.channels.push(channel);
-            const peer = createFakePeer();
-            const msg = createFakeFundingSignedMessage();
-
-            // act
-            await sut.onFundingSignedMessage(peer, msg);
-
-            // assert
-            expect(stateB.onEvent.called).to.equal(true);
-        });
-
         it("transitions to new state", async () => {
             // arrange
             const logger = createFakeLogger();
@@ -596,44 +533,13 @@ describe(ChannelManager.name, () => {
             await sut.onFundingSignedMessage(peer, msg);
 
             // assert
+            expect(stateB.onEvent.called).to.equal(true);
             expect(channel.state).to.equal(stateC);
         });
     });
 
     describe(ChannelManager.prototype.onBlockConnected.name, () => {
         it("continues if there is a failure");
-
-        it("calls onBlockConnected", async () => {
-            // arrange
-            const logger = createFakeLogger();
-            const logic = createFakeChannelLogicFacade();
-            const stateA = createFakeState("A", "A");
-            const stateB = createFakeState("B", "A.B");
-            const stateC = createFakeState("C", "A.C");
-            stateA.addSubState(stateB).addSubState(stateC);
-
-            const sut = new ChannelManager(
-                logger,
-                Network.testnet,
-                logic,
-                createFakeChannelStorage(),
-                stateA,
-            );
-
-            const channel = createFakeChannel()
-                .attachAcceptChannel(createFakeAcceptChannel())
-                .attachFundingTx(createFakeFundingTx());
-            channel.state = stateB;
-
-            sut.channels.push(channel);
-            const block: Block = Block.fromHex(REGTEST_BLOCK_100);
-
-            // act
-            await sut.onBlockConnected(block);
-
-            // assert
-            expect(stateB.onEvent.called).to.equal(true);
-        });
 
         it("transitions to new state", async () => {
             // arrange
@@ -672,39 +578,6 @@ describe(ChannelManager.name, () => {
     describe(ChannelManager.prototype.onChannelReadyMessage.name, () => {
         it("fails if channel not found");
 
-        it("calls onChannelReadyMessage", async () => {
-            // arrange
-            const logger = createFakeLogger();
-            const logic = createFakeChannelLogicFacade();
-            const stateA = createFakeState("A", "A");
-            const stateB = createFakeState("B", "A.B");
-            const stateC = createFakeState("C", "A.C");
-            stateA.addSubState(stateB).addSubState(stateC);
-
-            const sut = new ChannelManager(
-                logger,
-                Network.testnet,
-                logic,
-                createFakeChannelStorage(),
-                stateA,
-            );
-
-            const channel = createFakeChannel()
-                .attachAcceptChannel(createFakeAcceptChannel())
-                .attachFundingTx(createFakeFundingTx());
-            channel.state = stateB;
-
-            sut.channels.push(channel);
-            const peer = createFakePeer();
-            const msg = createFakeChannelReady();
-
-            // act
-            await sut.onChannelReadyMessage(peer, msg);
-
-            // assert
-            expect(stateB.onEvent.called).to.equal(true);
-        });
-
         it("transitions to new state", async () => {
             // arrange
             const logger = createFakeLogger();
@@ -734,6 +607,44 @@ describe(ChannelManager.name, () => {
 
             // act
             await sut.onChannelReadyMessage(peer, msg);
+
+            // assert
+            expect(stateB.onEvent.called).to.equal(true);
+            expect(channel.state).to.equal(stateC);
+        });
+    });
+
+    describe(ChannelManager.prototype.onPeerDisconnected.name, () => {
+        it("continues if there is a failure");
+
+        it("transitions to new state", async () => {
+            // arrange
+            const peer = createFakePeer();
+            const logger = createFakeLogger();
+            const logic = createFakeChannelLogicFacade();
+            const stateA = createFakeState("A", "A");
+            const stateB = createFakeState("B", "A.B");
+            stateB.onEvent.resolves("A.C" as ChannelStateId);
+            const stateC = createFakeState("C", "A.C");
+            stateA.addSubState(stateB).addSubState(stateC);
+
+            const sut = new ChannelManager(
+                logger,
+                Network.testnet,
+                logic,
+                createFakeChannelStorage(),
+                stateA,
+            );
+
+            const channel = createFakeChannel()
+                .attachAcceptChannel(createFakeAcceptChannel())
+                .attachFundingTx(createFakeFundingTx());
+            channel.state = stateB;
+
+            sut.channels.push(channel);
+
+            // act
+            await sut.onPeerDisconnected(peer);
 
             // assert
             expect(channel.state).to.equal(stateC);

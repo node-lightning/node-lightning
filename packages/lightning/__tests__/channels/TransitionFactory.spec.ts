@@ -439,4 +439,48 @@ describe(TransitionFactory.name, () => {
             expect(logic.sendMessage.args[0][1].type).to.equal(MessageType.Error);
         });
     });
+
+    describe(TransitionFactory.prototype.createDisconnectedAbandon.name, () => {
+        let logger: ILogger;
+        let logic: sinon.SinonStubbedInstance<IChannelLogic>;
+        let storage: sinon.SinonStubbedInstance<IChannelStorage>;
+        let sut: TransitionFactory;
+        let channel: Channel;
+
+        beforeEach(() => {
+            logger = createFakeLogger();
+            logic = createFakeChannelLogicFacade();
+            storage = createFakeChannelStorage();
+            sut = new TransitionFactory(logger, logic, storage);
+            channel = createFakeChannel().attachAcceptChannel(createFakeAcceptChannel());
+        });
+
+        it("removes the channel", async () => {
+            // arrange
+            const event = new ChannelEvent(ChannelEventType.ShutdownMessage);
+            const transition = sut.createConnectedAbandon();
+
+            // act
+            const result = await transition(channel, event);
+
+            // assert
+            expect(result).to.equal(ChannelStateId.Channel_Abandoned);
+            expect(storage.remove.called).to.equal(true);
+            expect(storage.remove.args[0][0]).to.deep.equal(channel);
+        });
+
+        it("does not send an error message", async () => {
+            // arrange
+            logic.createErrorMessage.returns(createFakeErrorMessage());
+            const event = new ChannelEvent(ChannelEventType.PeerDisconnected);
+            const transition = sut.createDisconnectedAbandon();
+
+            // act
+            const result = await transition(channel, event);
+
+            // assert
+            expect(result).to.equal(ChannelStateId.Channel_Abandoned);
+            expect(logic.sendMessage.called).to.equal(false);
+        });
+    });
 });
