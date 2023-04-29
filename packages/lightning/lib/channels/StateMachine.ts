@@ -6,8 +6,8 @@ import { Channel } from "./Channel";
 import { ChannelEvent } from "./ChannelEvent";
 import { ChannelEventType } from "./ChannelEventType";
 import { IStateMachine } from "./IStateMachine";
-import { ChannelStateId } from "./StateMachineFactory";
 import { TransitionFn } from "./TransitionFn";
+import { TransitionResult } from "./TransitionResult";
 
 export class StateMachine implements IStateMachine {
     public logger: ILogger;
@@ -61,26 +61,17 @@ export class StateMachine implements IStateMachine {
         return this;
     }
 
-    public async onEnter(
-        channel: Channel,
-        event: ChannelEvent,
-    ): Promise<ChannelStateId | undefined> {
+    public async onEnter(channel: Channel, event: ChannelEvent): Promise<TransitionResult> {
         this.logger.debug("Entering", this.name);
         return this.enterFn ? this.enterFn(channel, event) : undefined;
     }
 
-    public async onExit(
-        channel: Channel,
-        event: ChannelEvent,
-    ): Promise<ChannelStateId | undefined> {
+    public async onExit(channel: Channel, event: ChannelEvent): Promise<TransitionResult> {
         this.logger.debug("Exiting", this.name);
         return this.exitFn ? this.exitFn(channel, event) : undefined;
     }
 
-    public async onEvent(
-        channel: Channel,
-        event: ChannelEvent,
-    ): Promise<ChannelStateId | undefined> {
+    public async onEvent(channel: Channel, event: ChannelEvent): Promise<TransitionResult> {
         if (!this.transitions.has(event.type)) return;
         return this.transitions.get(event.type)(channel, event);
     }

@@ -1,6 +1,6 @@
 import { Channel } from "./Channel";
 import { ChannelEvent } from "./ChannelEvent";
-import { ChannelStateId } from "./StateMachineFactory";
+import { TransitionResult } from "./TransitionResult";
 
 export interface IStateMachine {
     id: string;
@@ -9,7 +9,7 @@ export interface IStateMachine {
     parent: IStateMachine | undefined;
 
     addSubState(state: IStateMachine): IStateMachine;
-    onEnter(channel: Channel, event: ChannelEvent): Promise<ChannelStateId | undefined>;
-    onExit(channel: Channel, event: ChannelEvent): Promise<ChannelStateId | undefined>;
-    onEvent(channel: Channel, event: ChannelEvent): Promise<ChannelStateId | undefined>;
+    onEnter(channel: Channel, event: ChannelEvent): Promise<TransitionResult>;
+    onExit(channel: Channel, event: ChannelEvent): Promise<TransitionResult>;
+    onEvent(channel: Channel, event: ChannelEvent): Promise<TransitionResult>;
 }
