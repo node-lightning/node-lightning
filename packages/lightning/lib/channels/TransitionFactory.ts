@@ -19,7 +19,8 @@ export class TransitionFactory {
     ) {}
 
     public createOnAcceptChannelMessageTransition(): TransitionFn {
-        return async (channel: Channel, event: ChannelEvent): Promise<TransitionResult> => {
+        return async (event: ChannelEvent): Promise<TransitionResult> => {
+            const channel = event.channel;
             const msg = event.message as AcceptChannelMessage;
 
             // validate the message
@@ -63,8 +64,9 @@ export class TransitionFactory {
     }
 
     public createOnFundingSignedMessageTransition(): TransitionFn {
-        return async (channel: Channel, event: ChannelEvent): Promise<TransitionResult> => {
+        return async (event: ChannelEvent): Promise<TransitionResult> => {
             const msg = event.message as FundingSignedMessage;
+            const channel = event.channel;
 
             // Validate the funding_signed message
             const msgOk = await this.logic.validateFundingSignedMessage(channel, msg);
@@ -87,8 +89,9 @@ export class TransitionFactory {
 
     public createOnChannelReadyTransition(success: ChannelStateId): TransitionFn {
         // eslint-disable-next-line @typescript-eslint/require-await
-        return async (channel: Channel, event: ChannelEvent): Promise<TransitionResult> => {
+        return async (event: ChannelEvent): Promise<TransitionResult> => {
             const msg = event.message as ChannelReadyMessage;
+            const channel = event.channel;
             this.logger.debug("processing channel_ready message");
 
             // Validate received message
@@ -107,8 +110,9 @@ export class TransitionFactory {
     }
 
     public createOnBlockConnected(): TransitionFn {
-        return async (channel: Channel, event: ChannelEvent): Promise<TransitionResult> => {
+        return async (event: ChannelEvent): Promise<TransitionResult> => {
             const block = event.block;
+            const channel = event.channel;
 
             // If the funding transaction hasn't been confirmed yet we perform
             if (!channel.fundingConfirmedHeight) {
@@ -164,7 +168,9 @@ export class TransitionFactory {
      * @returns
      */
     public createConnectedAbandon(): TransitionFn {
-        return async (channel: Channel): Promise<TransitionResult> => {
+        return async (event: ChannelEvent): Promise<TransitionResult> => {
+            const channel = event.channel;
+
             // remove from disk
             await this.storage.remove(channel);
 
@@ -189,7 +195,9 @@ export class TransitionFactory {
      * @returns
      */
     public createDisconnectedAbandon(): TransitionFn {
-        return async (channel: Channel): Promise<TransitionResult> => {
+        return async (event: ChannelEvent): Promise<TransitionResult> => {
+            const channel = event.channel;
+
             // remove from disk
             await this.storage.remove(channel);
 

@@ -9,7 +9,7 @@ export interface IStateMachine {
     parent: IStateMachine | undefined;
 
     addSubState(state: IStateMachine): IStateMachine;
-    onEnter(channel: Channel, event: ChannelEvent): Promise<TransitionResult>;
-    onExit(channel: Channel, event: ChannelEvent): Promise<TransitionResult>;
-    onEvent(channel: Channel, event: ChannelEvent): Promise<TransitionResult>;
+    onEnter(event: ChannelEvent): Promise<TransitionResult>;
+    onExit(event: ChannelEvent): Promise<TransitionResult>;
+    onEvent(event: ChannelEvent): Promise<TransitionResult>;
 }
