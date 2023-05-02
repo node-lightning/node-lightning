@@ -316,6 +316,8 @@ export function createFakeState(
         name,
         subStates: new Map(),
         parent: undefined,
+        handlesEvent: Sinon.stub(),
+        getTransitions: Sinon.stub(),
         addSubState: Sinon.stub(),
         onEnter: Sinon.stub(),
         onExit: Sinon.stub(),
