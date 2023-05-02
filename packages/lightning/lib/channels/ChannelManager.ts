@@ -101,13 +101,13 @@ export class ChannelManager {
             }
 
             // exit for old state
-            await oldState.onExit(channel, event);
+            await oldState.onExit(event);
 
             // set the new state
             channel.state = newState;
 
             // entry for new state
-            newId = await newState.onEnter(channel, event);
+            newId = await newState.onEnter(event);
 
             // save the new state
             await this.channelStorage.save(channel);
@@ -176,9 +176,9 @@ export class ChannelManager {
             return;
         }
 
-        const event = new ChannelEvent(ChannelEventType.AcceptChannelMessage);
+        const event = new ChannelEvent(ChannelEventType.AcceptChannelMessage, channel);
         event.message = msg;
-        const newState = await channel.state.onEvent(channel, event);
+        const newState = await channel.state.onEvent(event);
         await this.transitionState(channel, event, newState);
     }
 
@@ -194,9 +194,9 @@ export class ChannelManager {
             this.logger.debug("failed to find channel");
             return;
         }
-        const event = new ChannelEvent(ChannelEventType.FundingSignedMessage);
+        const event = new ChannelEvent(ChannelEventType.FundingSignedMessage, channel);
         event.message = msg;
-        const newState = await channel.state.onEvent(channel, event);
+        const newState = await channel.state.onEvent(event);
         await this.transitionState(channel, event, newState);
     }
 
@@ -206,10 +206,10 @@ export class ChannelManager {
      */
     public async onBlockConnected(block: Block): Promise<void> {
         this.logger.debug("connecting block", block.bip34Height);
-        const event = new ChannelEvent(ChannelEventType.BlockConnected);
-        event.block = block;
         for (const channel of this.channels) {
-            const newState = await channel.state.onEvent(channel, event);
+            const event = new ChannelEvent(ChannelEventType.BlockConnected, channel);
+            event.block = block;
+            const newState = await channel.state.onEvent(event);
             await this.transitionState(channel, event, newState);
         }
     }
@@ -225,9 +225,9 @@ export class ChannelManager {
         if (!channel) {
             return;
         }
-        const event = new ChannelEvent(ChannelEventType.ChannelReadyMessage);
+        const event = new ChannelEvent(ChannelEventType.ChannelReadyMessage, channel);
         event.message = msg;
-        const newState = await channel.state.onEvent(channel, event);
+        const newState = await channel.state.onEvent(event);
         await this.transitionState(channel, event, newState);
     }
 
@@ -241,8 +241,8 @@ export class ChannelManager {
         for (const channel of this.channels) {
             if (channel.peerId !== peer.id) continue;
 
-            const event = new ChannelEvent(ChannelEventType.PeerDisconnected);
-            const newState = await channel.state.onEvent(channel, event);
+            const event = new ChannelEvent(ChannelEventType.PeerDisconnected, channel);
+            const newState = await channel.state.onEvent(event);
             await this.transitionState(channel, event, newState);
         }
     }

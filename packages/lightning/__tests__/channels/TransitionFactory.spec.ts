@@ -52,11 +52,11 @@ describe(TransitionFactory.name, () => {
             it("transitions to Failing", async () => {
                 // arrange
                 const msg = createFakeAcceptChannel({ dustLimitValue: Value.fromSats(200) });
-                const event = new ChannelEvent(ChannelEventType.AcceptChannelMessage);
+                const event = new ChannelEvent(ChannelEventType.AcceptChannelMessage, channel);
                 event.message = msg;
 
                 // act
-                const result = await sut.createOnAcceptChannelMessageTransition()(channel, event);
+                const result = await sut.createOnAcceptChannelMessageTransition()(event);
 
                 // assert
                 expect(result).to.equal(ChannelStateId.Channel_Failing);
@@ -70,7 +70,7 @@ describe(TransitionFactory.name, () => {
 
             beforeEach(() => {
                 msg = createFakeAcceptChannel();
-                event = new ChannelEvent(ChannelEventType.AcceptChannelMessage);
+                event = new ChannelEvent(ChannelEventType.AcceptChannelMessage, channel);
                 event.message = msg;
 
                 sig = Buffer.alloc(64, 0xff);
@@ -88,7 +88,7 @@ describe(TransitionFactory.name, () => {
                 expect(channel.theirSide.fundingPubKey).to.equal(undefined);
 
                 // act
-                await sut.createOnAcceptChannelMessageTransition()(channel, event);
+                await sut.createOnAcceptChannelMessageTransition()(event);
 
                 // assert
                 expect(channel.theirSide.fundingPubKey).to.not.equal(undefined);
@@ -99,7 +99,7 @@ describe(TransitionFactory.name, () => {
                 expect(channel.fundingTx).to.equal(undefined);
 
                 // act
-                await sut.createOnAcceptChannelMessageTransition()(channel, event);
+                await sut.createOnAcceptChannelMessageTransition()(event);
 
                 // assert
                 expect(channel.fundingTx).to.not.equal(undefined);
@@ -107,7 +107,7 @@ describe(TransitionFactory.name, () => {
 
             it("sends create_funding message to peer", async () => {
                 // act
-                await sut.createOnAcceptChannelMessageTransition()(channel, event);
+                await sut.createOnAcceptChannelMessageTransition()(event);
 
                 // assert
                 expect(logic.sendMessage.called).to.equal(true);
@@ -119,7 +119,7 @@ describe(TransitionFactory.name, () => {
 
             it("transitions to awaiting_funding_signed", async () => {
                 // act
-                const result = await sut.createOnAcceptChannelMessageTransition()(channel, event);
+                const result = await sut.createOnAcceptChannelMessageTransition()(event);
 
                 // assert
                 expect(result).to.equal(ChannelStateId.Channel_Initializing_AwaitingFundingSigned);
@@ -150,11 +150,11 @@ describe(TransitionFactory.name, () => {
             it("returns failed state on validation error", async () => {
                 // arrange
                 const msg = createFakeFundingSignedMessage();
-                const event = new ChannelEvent(ChannelEventType.FundingSignedMessage);
+                const event = new ChannelEvent(ChannelEventType.FundingSignedMessage, channel);
                 event.message = msg;
 
                 // act
-                const result = await sut.createOnFundingSignedMessageTransition()(channel, event);
+                const result = await sut.createOnFundingSignedMessageTransition()(event);
 
                 // assert
                 expect(result).to.equal(ChannelStateId.Channel_Failing);
@@ -166,7 +166,7 @@ describe(TransitionFactory.name, () => {
 
             beforeEach(() => {
                 msg = createFakeFundingSignedMessage();
-                event = new ChannelEvent(ChannelEventType.FundingSignedMessage);
+                event = new ChannelEvent(ChannelEventType.FundingSignedMessage, channel);
                 event.message = msg;
 
                 channel.attachFundingTx(createFakeFundingTx());
@@ -178,7 +178,7 @@ describe(TransitionFactory.name, () => {
                 expect(channel.ourSide.nextCommitmentSig).to.equal(undefined);
 
                 // act
-                await sut.createOnFundingSignedMessageTransition()(channel, event);
+                await sut.createOnFundingSignedMessageTransition()(event);
 
                 // assert
                 expect(channel.ourSide.nextCommitmentSig).to.not.equal(undefined);
@@ -186,7 +186,7 @@ describe(TransitionFactory.name, () => {
 
             it("broadcasts the funding transaction", async () => {
                 // act
-                await sut.createOnFundingSignedMessageTransition()(channel, event);
+                await sut.createOnFundingSignedMessageTransition()(event);
 
                 // assert
                 expect(logic.broadcastTx.called).to.equal(true, "broadcasts funding tx");
@@ -194,7 +194,7 @@ describe(TransitionFactory.name, () => {
 
             it("transitions to awaiting_funding_depth state", async () => {
                 // act
-                const result = await sut.createOnFundingSignedMessageTransition()(channel, event);
+                const result = await sut.createOnFundingSignedMessageTransition()(event);
 
                 // assert
                 expect(result).to.equal(ChannelStateId.Channel_Funding_AwaitingFundingDepth);
@@ -221,11 +221,11 @@ describe(TransitionFactory.name, () => {
         it("not confirmed => stays", async () => {
             // arrange
             const block = createFakeBlock();
-            const event = new ChannelEvent(ChannelEventType.BlockConnected);
+            const event = new ChannelEvent(ChannelEventType.BlockConnected, channel);
             event.block = block;
 
             // act
-            const result = await sut.createOnBlockConnected()(channel, event);
+            const result = await sut.createOnBlockConnected()(event);
 
             // assert
             expect(channel.fundingConfirmedHeight).to.equal(undefined);
@@ -236,11 +236,11 @@ describe(TransitionFactory.name, () => {
             // arrange
             const fundingTx = createFakeFundingTx();
             const block = createFakeBlock(500_000, fundingTx);
-            const event = new ChannelEvent(ChannelEventType.BlockConnected);
+            const event = new ChannelEvent(ChannelEventType.BlockConnected, channel);
             event.block = block;
 
             // act
-            const result = await sut.createOnBlockConnected()(channel, event);
+            const result = await sut.createOnBlockConnected()(event);
 
             // assert
             expect(channel.fundingConfirmedHeight).to.equal(500_000);
@@ -252,11 +252,11 @@ describe(TransitionFactory.name, () => {
             // arrange
             channel.markConfirmed(500_000);
             const block = createFakeBlock(500_001);
-            const event = new ChannelEvent(ChannelEventType.BlockConnected);
+            const event = new ChannelEvent(ChannelEventType.BlockConnected, channel);
             event.block = block;
 
             // act
-            const result = await sut.createOnBlockConnected()(channel, event);
+            const result = await sut.createOnBlockConnected()(event);
 
             // assert
             expect(channel.fundingConfirmedHeight).to.equal(500_000);
@@ -268,11 +268,11 @@ describe(TransitionFactory.name, () => {
             // arrange
             channel.markConfirmed(500_000);
             const block = createFakeBlock(500_005);
-            const event = new ChannelEvent(ChannelEventType.BlockConnected);
+            const event = new ChannelEvent(ChannelEventType.BlockConnected, channel);
             event.block = block;
 
             // act
-            const result = await sut.createOnBlockConnected()(channel, event);
+            const result = await sut.createOnBlockConnected()(event);
 
             // assert
             expect(result).to.equal(ChannelStateId.Channel_Funding_AwaitingChannelReady);
@@ -285,11 +285,11 @@ describe(TransitionFactory.name, () => {
             channel.attachChannelReady(createFakeChannelReady());
 
             const block = createFakeBlock(500_006);
-            const event = new ChannelEvent(ChannelEventType.BlockConnected);
+            const event = new ChannelEvent(ChannelEventType.BlockConnected, channel);
             event.block = block;
 
             // act
-            const result = await sut.createOnBlockConnected()(channel, event);
+            const result = await sut.createOnBlockConnected()(event);
 
             // assert
             expect(result).to.equal(ChannelStateId.Channel_Normal);
@@ -317,14 +317,14 @@ describe(TransitionFactory.name, () => {
             it("transitions Failed when invalid", async () => {
                 // arrange
                 const msg = createFakeChannelReady();
-                const event = new ChannelEvent(ChannelEventType.ChannelReadyMessage);
+                const event = new ChannelEvent(ChannelEventType.ChannelReadyMessage, channel);
                 event.message = msg;
                 logic.validateChannelReadyMessage.returns(false);
 
                 // act
                 const result = await sut.createOnChannelReadyTransition(
                     ChannelStateId.Channel_Funding_AwaitingFundingDepth,
-                )(channel, event);
+                )(event);
 
                 // assert
                 expect(result).to.equal(ChannelStateId.Channel_Failing);
@@ -333,14 +333,14 @@ describe(TransitionFactory.name, () => {
             it("attaches next_per_commitment_point + stays", async () => {
                 // arrange
                 const msg = createFakeChannelReady();
-                const event = new ChannelEvent(ChannelEventType.ChannelReadyMessage);
+                const event = new ChannelEvent(ChannelEventType.ChannelReadyMessage, channel);
                 event.message = msg;
                 logic.validateChannelReadyMessage.returns(true);
 
                 // act
                 const result = await sut.createOnChannelReadyTransition(
                     ChannelStateId.Channel_Funding_AwaitingFundingDepth,
-                )(channel, event);
+                )(event);
                 expect(result).to.equal(ChannelStateId.Channel_Funding_AwaitingFundingDepth);
                 expect(channel.theirSide.commitmentNumber.value).to.equal(0n);
                 expect(channel.theirSide.commitmentPoint.toHex()).to.equal(
@@ -358,13 +358,13 @@ describe(TransitionFactory.name, () => {
                 // arrange
                 const msg = createFakeChannelReady();
                 logic.validateChannelReadyMessage.returns(false);
-                const event = new ChannelEvent(ChannelEventType.ChannelReadyMessage);
+                const event = new ChannelEvent(ChannelEventType.ChannelReadyMessage, channel);
                 event.message = msg;
 
                 // act
                 const result = await sut.createOnChannelReadyTransition(
                     ChannelStateId.Channel_Normal,
-                )(channel, event);
+                )(event);
 
                 // assert
                 expect(result).to.equal(ChannelStateId.Channel_Failing);
@@ -374,13 +374,13 @@ describe(TransitionFactory.name, () => {
                 // arrange
                 const msg = createFakeChannelReady();
                 logic.validateChannelReadyMessage.returns(true);
-                const event = new ChannelEvent(ChannelEventType.ChannelReadyMessage);
+                const event = new ChannelEvent(ChannelEventType.ChannelReadyMessage, channel);
                 event.message = msg;
 
                 // act
                 const result = await sut.createOnChannelReadyTransition(
                     ChannelStateId.Channel_Normal,
-                )(channel, event);
+                )(event);
                 expect(result).to.equal(ChannelStateId.Channel_Normal);
                 expect(channel.theirSide.commitmentNumber.value).to.equal(0n);
                 expect(channel.theirSide.commitmentPoint.toHex()).to.equal(
@@ -411,11 +411,11 @@ describe(TransitionFactory.name, () => {
 
         it("removes the channel", async () => {
             // arrange
-            const event = new ChannelEvent(ChannelEventType.ShutdownMessage);
+            const event = new ChannelEvent(ChannelEventType.ShutdownMessage, channel);
             const transition = sut.createConnectedAbandon();
 
             // act
-            const result = await transition(channel, event);
+            const result = await transition(event);
 
             // assert
             expect(result).to.equal(ChannelStateId.Channel_Abandoned);
@@ -426,11 +426,11 @@ describe(TransitionFactory.name, () => {
         it("sends the error message", async () => {
             // arrange
             logic.createErrorMessage.returns(createFakeErrorMessage());
-            const event = new ChannelEvent(ChannelEventType.ShutdownMessage);
+            const event = new ChannelEvent(ChannelEventType.ShutdownMessage, channel);
             const transition = sut.createConnectedAbandon();
 
             // act
-            const result = await transition(channel, event);
+            const result = await transition(event);
 
             // assert
             expect(result).to.equal(ChannelStateId.Channel_Abandoned);
@@ -457,11 +457,11 @@ describe(TransitionFactory.name, () => {
 
         it("removes the channel", async () => {
             // arrange
-            const event = new ChannelEvent(ChannelEventType.ShutdownMessage);
+            const event = new ChannelEvent(ChannelEventType.ShutdownMessage, channel);
             const transition = sut.createConnectedAbandon();
 
             // act
-            const result = await transition(channel, event);
+            const result = await transition(event);
 
             // assert
             expect(result).to.equal(ChannelStateId.Channel_Abandoned);
@@ -472,11 +472,11 @@ describe(TransitionFactory.name, () => {
         it("does not send an error message", async () => {
             // arrange
             logic.createErrorMessage.returns(createFakeErrorMessage());
-            const event = new ChannelEvent(ChannelEventType.PeerDisconnected);
+            const event = new ChannelEvent(ChannelEventType.PeerDisconnected, channel);
             const transition = sut.createDisconnectedAbandon();
 
             // act
-            const result = await transition(channel, event);
+            const result = await transition(event);
 
             // assert
             expect(result).to.equal(ChannelStateId.Channel_Abandoned);

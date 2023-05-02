@@ -1,8 +1,4 @@
-import { Channel } from "./Channel";
 import { ChannelEvent } from "./ChannelEvent";
-import { ChannelStateId } from "./StateMachineFactory";
+import { TransitionResult } from "./TransitionResult";
 
-export type TransitionFn = (
-    channel: Channel,
-    event: ChannelEvent,
-) => Promise<ChannelStateId | undefined>;
+export type TransitionFn = (event: ChannelEvent) => Promise<TransitionResult>;

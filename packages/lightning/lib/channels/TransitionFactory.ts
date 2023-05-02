@@ -9,6 +9,7 @@ import { IChannelLogic } from "./IChannelLogic";
 import { IChannelStorage } from "./IChannelStorage";
 import { ChannelStateId } from "./StateMachineFactory";
 import { TransitionFn } from "./TransitionFn";
+import { TransitionResult } from "./TransitionResult";
 
 export class TransitionFactory {
     constructor(
@@ -17,8 +18,9 @@ export class TransitionFactory {
         readonly storage: IChannelStorage,
     ) {}
 
-    public createOnAcceptChannelMessageTransition() {
-        return async (channel: Channel, event: ChannelEvent): Promise<ChannelStateId> => {
+    public createOnAcceptChannelMessageTransition(): TransitionFn {
+        return async (event: ChannelEvent): Promise<TransitionResult> => {
+            const channel = event.channel;
             const msg = event.message as AcceptChannelMessage;
 
             // validate the message
@@ -61,9 +63,10 @@ export class TransitionFactory {
         };
     }
 
-    public createOnFundingSignedMessageTransition() {
-        return async (channel: Channel, event: ChannelEvent): Promise<ChannelStateId> => {
+    public createOnFundingSignedMessageTransition(): TransitionFn {
+        return async (event: ChannelEvent): Promise<TransitionResult> => {
             const msg = event.message as FundingSignedMessage;
+            const channel = event.channel;
 
             // Validate the funding_signed message
             const msgOk = await this.logic.validateFundingSignedMessage(channel, msg);
@@ -84,10 +87,11 @@ export class TransitionFactory {
         };
     }
 
-    public createOnChannelReadyTransition(success: ChannelStateId) {
+    public createOnChannelReadyTransition(success: ChannelStateId): TransitionFn {
         // eslint-disable-next-line @typescript-eslint/require-await
-        return async (channel: Channel, event: ChannelEvent): Promise<ChannelStateId> => {
+        return async (event: ChannelEvent): Promise<TransitionResult> => {
             const msg = event.message as ChannelReadyMessage;
+            const channel = event.channel;
             this.logger.debug("processing channel_ready message");
 
             // Validate received message
@@ -105,9 +109,10 @@ export class TransitionFactory {
         };
     }
 
-    public createOnBlockConnected() {
-        return async (channel: Channel, event: ChannelEvent): Promise<ChannelStateId> => {
+    public createOnBlockConnected(): TransitionFn {
+        return async (event: ChannelEvent): Promise<TransitionResult> => {
             const block = event.block;
+            const channel = event.channel;
 
             // If the funding transaction hasn't been confirmed yet we perform
             if (!channel.fundingConfirmedHeight) {
@@ -163,7 +168,9 @@ export class TransitionFactory {
      * @returns
      */
     public createConnectedAbandon(): TransitionFn {
-        return async (channel: Channel) => {
+        return async (event: ChannelEvent): Promise<TransitionResult> => {
+            const channel = event.channel;
+
             // remove from disk
             await this.storage.remove(channel);
 
@@ -188,7 +195,9 @@ export class TransitionFactory {
      * @returns
      */
     public createDisconnectedAbandon(): TransitionFn {
-        return async (channel: Channel) => {
+        return async (event: ChannelEvent): Promise<TransitionResult> => {
+            const channel = event.channel;
+
             // remove from disk
             await this.storage.remove(channel);
 
