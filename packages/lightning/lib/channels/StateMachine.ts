@@ -40,6 +40,14 @@ export class StateMachine implements IStateMachine {
         this.logger = logger.sub(StateMachine.name);
     }
 
+    public handlesEvent(type: ChannelEventType): boolean {
+        return this.transitions.has(type);
+    }
+
+    public getTransitions(type: ChannelEventType): TransitionFn {
+        return this.transitions.get(type);
+    }
+
     public addSubState(state: IStateMachine): this {
         state.parent = this;
         this.subStates.set(state.id, state);
@@ -72,7 +80,12 @@ export class StateMachine implements IStateMachine {
     }
 
     public async onEvent(event: ChannelEvent): Promise<TransitionResult> {
-        if (!this.transitions.has(event.type)) return;
-        return this.transitions.get(event.type)(event);
+        // cascade up the hierarchy looking for a handler
+        let current: IStateMachine = this as IStateMachine;
+        if (current && !current.handlesEvent(event.type)) {
+            current = this.parent;
+        }
+        if (!current) return;
+        return current.getTransitions(event.type)(event);
     }
 }
