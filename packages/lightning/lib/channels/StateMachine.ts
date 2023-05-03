@@ -14,7 +14,7 @@ export class StateMachine implements IStateMachine {
 
     public parent: IStateMachine | undefined;
     public subStates: Map<string, IStateMachine> = new Map();
-    public transitions: Map<ChannelEventType, TransitionFn> = new Map();
+    public transitions: Map<ChannelEventType, TransitionFn[]> = new Map();
     public enterFn: TransitionFn;
     public exitFn: TransitionFn;
 
@@ -44,7 +44,7 @@ export class StateMachine implements IStateMachine {
         return this.transitions.has(type);
     }
 
-    public getTransitions(type: ChannelEventType): TransitionFn {
+    public getTransitions(type: ChannelEventType): TransitionFn[] {
         return this.transitions.get(type);
     }
 
@@ -55,7 +55,10 @@ export class StateMachine implements IStateMachine {
     }
 
     public addTransition(type: ChannelEventType, fn: TransitionFn): this {
-        this.transitions.set(type, fn);
+        if (!this.transitions.has(type)) {
+            this.transitions.set(type, []);
+        }
+        this.transitions.get(type).push(fn);
         return this;
     }
 
@@ -86,6 +89,12 @@ export class StateMachine implements IStateMachine {
             current = this.parent;
         }
         if (!current) return;
-        return current.getTransitions(event.type)(event);
+
+        // execute transitions until one one handles the event
+        const transitionFns = current.getTransitions(event.type);
+        for (const transitionFn of transitionFns) {
+            const result = await transitionFn(event);
+            if (result) return result;
+        }
     }
 }

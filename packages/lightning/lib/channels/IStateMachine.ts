@@ -10,7 +10,7 @@ export interface IStateMachine {
     parent: IStateMachine | undefined;
 
     handlesEvent(type: ChannelEventType): boolean;
-    getTransitions(type: ChannelEventType): TransitionFn;
+    getTransitions(type: ChannelEventType): TransitionFn[];
 
     addSubState(state: IStateMachine): IStateMachine;
     onEnter(event: ChannelEvent): Promise<TransitionResult>;
