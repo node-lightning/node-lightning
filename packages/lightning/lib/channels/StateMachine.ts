@@ -73,12 +73,12 @@ export class StateMachine implements IStateMachine {
     }
 
     public async onEnter(event: ChannelEvent): Promise<TransitionResult> {
-        this.logger.debug("Entering", this.name);
+        this.logger.debug("Entering", this.id);
         return this.enterFn ? this.enterFn(event) : undefined;
     }
 
     public async onExit(event: ChannelEvent): Promise<TransitionResult> {
-        this.logger.debug("Exiting", this.name);
+        this.logger.debug("Exiting", this.id);
         return this.exitFn ? this.exitFn(event) : undefined;
     }
 
