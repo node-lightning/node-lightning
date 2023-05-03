@@ -61,7 +61,7 @@ async function run() {
 
     const channelStorage = new ChannelStorage("./");
     const channelLogic = new Helpers(wallet, preferences, peerRepo);
-    const transitionFactory = new TransitionFactory(logger, channelLogic);
+    const transitionFactory = new TransitionFactory(logger, channelLogic, channelStorage);
     const channelStateMachineFactory = new StateMachineFactory(logger, transitionFactory);
 
     const channelManager = new ChannelManager(

@@ -192,17 +192,19 @@ describe(TransitionFactory.name, () => {
                 expect(logic.broadcastTx.called).to.equal(true, "broadcasts funding tx");
             });
 
-            it("transitions to awaiting_funding_depth state", async () => {
+            it("transitions to Channel_Funding_AwaitingFundingConf_NoChannelReady state", async () => {
                 // act
                 const result = await sut.createOnFundingSignedMessageTransition()(event);
 
                 // assert
-                expect(result).to.equal(ChannelStateId.Channel_Funding_AwaitingFundingDepth);
+                expect(result).to.equal(
+                    ChannelStateId.Channel_Funding_AwaitingFundingConf_NoChannelReady,
+                );
             });
         });
     });
 
-    describe(TransitionFactory.prototype.createOnBlockConnected.name, () => {
+    describe(TransitionFactory.prototype.createBlockConnectedFundingConfirmed.name, () => {
         let logger: ILogger;
         let logic: sinon.SinonStubbedInstance<IChannelLogic>;
         let sut: TransitionFactory;
@@ -218,21 +220,21 @@ describe(TransitionFactory.name, () => {
                 .attachFundingSigned(createFakeFundingSignedMessage());
         });
 
-        it("not confirmed => stays", async () => {
+        it("not confirmed => ignores", async () => {
             // arrange
             const block = createFakeBlock();
             const event = new ChannelEvent(ChannelEventType.BlockConnected, channel);
             event.block = block;
 
             // act
-            const result = await sut.createOnBlockConnected()(event);
+            const result = await sut.createBlockConnectedFundingConfirmed()(event);
 
             // assert
             expect(channel.fundingConfirmedHeight).to.equal(undefined);
-            expect(result).to.equal(ChannelStateId.Channel_Funding_AwaitingFundingDepth);
+            expect(result).to.equal(undefined);
         });
 
-        it("confirmed => attaches height, stays", async () => {
+        it("confirmed => attaches height, Channel_Funding_AwaitingFundingDepth", async () => {
             // arrange
             const fundingTx = createFakeFundingTx();
             const block = createFakeBlock(500_000, fundingTx);
@@ -240,15 +242,32 @@ describe(TransitionFactory.name, () => {
             event.block = block;
 
             // act
-            const result = await sut.createOnBlockConnected()(event);
+            const result = await sut.createBlockConnectedFundingConfirmed()(event);
 
             // assert
             expect(channel.fundingConfirmedHeight).to.equal(500_000);
             expect(channel.readyHeight).to.equal(500_005);
             expect(result).to.equal(ChannelStateId.Channel_Funding_AwaitingFundingDepth);
         });
+    });
 
-        it("confirmed + height => stays", async () => {
+    describe(TransitionFactory.prototype.createBlockConnectedFundingDepthReached.name, () => {
+        let logger: ILogger;
+        let logic: sinon.SinonStubbedInstance<IChannelLogic>;
+        let sut: TransitionFactory;
+        let channel: Channel;
+
+        beforeEach(() => {
+            logger = createFakeLogger();
+            logic = createFakeChannelLogicFacade();
+            sut = new TransitionFactory(logger, logic, createFakeChannelStorage());
+            channel = createFakeChannel()
+                .attachAcceptChannel(createFakeAcceptChannel())
+                .attachFundingTx(createFakeFundingTx())
+                .attachFundingSigned(createFakeFundingSignedMessage());
+        });
+
+        it("confirmed + height => ignores", async () => {
             // arrange
             channel.markConfirmed(500_000);
             const block = createFakeBlock(500_001);
@@ -256,12 +275,12 @@ describe(TransitionFactory.name, () => {
             event.block = block;
 
             // act
-            const result = await sut.createOnBlockConnected()(event);
+            const result = await sut.createBlockConnectedFundingDepthReached()(event);
 
             // assert
             expect(channel.fundingConfirmedHeight).to.equal(500_000);
             expect(channel.readyHeight).to.equal(500_005);
-            expect(result).to.equal(ChannelStateId.Channel_Funding_AwaitingFundingDepth);
+            expect(result).to.equal(undefined);
         });
 
         it("meets depth, no channel_ready => sends channel_ready + transitions to awaiting_channel_ready", async () => {
@@ -272,7 +291,7 @@ describe(TransitionFactory.name, () => {
             event.block = block;
 
             // act
-            const result = await sut.createOnBlockConnected()(event);
+            const result = await sut.createBlockConnectedFundingDepthReached()(event);
 
             // assert
             expect(result).to.equal(ChannelStateId.Channel_Funding_AwaitingChannelReady);
@@ -289,7 +308,7 @@ describe(TransitionFactory.name, () => {
             event.block = block;
 
             // act
-            const result = await sut.createOnBlockConnected()(event);
+            const result = await sut.createBlockConnectedFundingDepthReached()(event);
 
             // assert
             expect(result).to.equal(ChannelStateId.Channel_Normal);

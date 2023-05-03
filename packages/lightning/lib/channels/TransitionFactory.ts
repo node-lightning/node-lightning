@@ -82,8 +82,8 @@ export class TransitionFactory {
             this.logger.debug("broadcasting funding tx");
             await this.logic.broadcastTx(channel.fundingTx);
 
-            // Transition to AwaitingFundingDepth state
-            return ChannelStateId.Channel_Funding_AwaitingFundingDepth;
+            // Transition
+            return ChannelStateId.Channel_Funding_AwaitingFundingConf_NoChannelReady;
         };
     }
 
@@ -109,24 +109,26 @@ export class TransitionFactory {
         };
     }
 
-    public createOnBlockConnected(): TransitionFn {
+    public createBlockConnectedFundingConfirmed(): TransitionFn {
+        // eslint-disable-next-line @typescript-eslint/require-await
         return async (event: ChannelEvent): Promise<TransitionResult> => {
             const block = event.block;
             const channel = event.channel;
 
-            // If the funding transaction hasn't been confirmed yet we perform
-            if (!channel.fundingConfirmedHeight) {
-                // If the block contains our funding transaction then we mark the
-                // depth and transition to the awaiting_funding_depth state
-                if (containsOutPoint(block, channel.fundingOutPoint)) {
-                    const confirmedHeight = Number(block.bip34Height);
-                    channel.markConfirmed(confirmedHeight);
-                    return ChannelStateId.Channel_Funding_AwaitingFundingDepth;
-                }
-
-                // Otherwise we keep waiting
+            // If the block contains our funding transaction then we mark the
+            // depth and transition to the awaiting_funding_depth state
+            if (containsOutPoint(block, channel.fundingOutPoint)) {
+                const confirmedHeight = Number(block.bip34Height);
+                channel.markConfirmed(confirmedHeight);
                 return ChannelStateId.Channel_Funding_AwaitingFundingDepth;
             }
+        };
+    }
+
+    public createBlockConnectedFundingDepthReached(): TransitionFn {
+        return async (event: ChannelEvent): Promise<TransitionResult> => {
+            const block = event.block;
+            const channel = event.channel;
 
             // When block height reaches ready height...
             if (block.bip34Height >= channel.readyHeight) {
@@ -151,10 +153,6 @@ export class TransitionFactory {
                     return ChannelStateId.Channel_Funding_AwaitingChannelReady;
                 }
             }
-
-            // Otherwise we're between the confirmed height and the ready height
-            // so we stay here and wait for blocks to be solved.
-            return ChannelStateId.Channel_Funding_AwaitingFundingDepth;
         };
     }
 

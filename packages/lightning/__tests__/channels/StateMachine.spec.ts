@@ -31,8 +31,9 @@ describe(StateMachine.name, () => {
             const event = new ChannelEvent(ChannelEventType.BlockConnected, channel);
             const logger = createFakeLogger();
             const fn = Sinon.stub();
-            const sut = new StateMachine(logger, "A")
-                .addSubState(new StateMachine(logger, "B"))
+            const sut = new StateMachine(logger, "B");
+            const root = new StateMachine(logger, "A")
+                .addSubState(sut)
                 .addTransition(ChannelEventType.BlockConnected, fn);
 
             // act
@@ -48,9 +49,9 @@ describe(StateMachine.name, () => {
             const event = new ChannelEvent(ChannelEventType.BlockConnected, channel);
             const logger = createFakeLogger();
             const fn = Sinon.stub();
-            const sut = new StateMachine(logger, "A")
-                .addSubState(new StateMachine(logger, "B"))
-                .addSubState(new StateMachine(logger, "C"))
+            const sut = new StateMachine(logger, "C");
+            const root = new StateMachine(logger, "A")
+                .addSubState(new StateMachine(logger, "B").addSubState(sut))
                 .addTransition(ChannelEventType.BlockConnected, fn);
 
             // act
@@ -86,6 +87,21 @@ describe(StateMachine.name, () => {
             const event = new ChannelEvent(ChannelEventType.BlockConnected, channel);
             const logger = createFakeLogger();
             const sut = new StateMachine(logger, "A");
+
+            // act
+            const result = await sut.onEvent(event);
+
+            // assert
+            expect(result).to.equal(undefined);
+        });
+
+        it("should return undefined when no matching transitions in hierarchy", async () => {
+            // arrange
+            const channel = createFakeChannel();
+            const event = new ChannelEvent(ChannelEventType.BlockConnected, channel);
+            const logger = createFakeLogger();
+            const sut = new StateMachine(logger, "B");
+            const root = new StateMachine(logger, "A").addSubState(sut);
 
             // act
             const result = await sut.onEvent(event);

@@ -6,6 +6,7 @@ import { TransitionFactory } from "./TransitionFactory";
 export enum ChannelStateId {
     Channel_Initializing_AwaitingAcceptChannel = "channel.initializing.awaiting_accept_channel",
     Channel_Initializing_AwaitingFundingSigned = "channel.initializing.awaiting_funding_signed",
+    Channel_Funding_AwaitingFundingConf_NoChannelReady = "channel.funding.awaiting_funding_conf.no_channel_ready",
     Channel_Funding_AwaitingFundingDepth = "channel.funding.awaiting_funding_depth",
     Channel_Funding_AwaitingChannelReady = "channel.funding.awaiting_channel_ready",
     Channel_Failing = "channel.failing",
@@ -40,10 +41,18 @@ export class StateMachineFactory {
             .addSubState(
                 new StateMachine(this.logger, "funding")
                     .addSubState(
+                        new StateMachine(this.logger, "awaiting_funding_conf").addSubState(
+                            new StateMachine(this.logger, "no_channel_ready").addTransition(
+                                ChannelEventType.BlockConnected,
+                                this.transitions.createBlockConnectedFundingConfirmed(),
+                            ),
+                        ),
+                    )
+                    .addSubState(
                         new StateMachine(this.logger, "awaiting_funding_depth")
                             .addTransition(
                                 ChannelEventType.BlockConnected,
-                                this.transitions.createOnBlockConnected(),
+                                this.transitions.createBlockConnectedFundingDepthReached(),
                             )
                             .addTransition(
                                 ChannelEventType.ChannelReadyMessage,

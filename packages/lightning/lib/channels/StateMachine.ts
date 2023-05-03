@@ -73,20 +73,21 @@ export class StateMachine implements IStateMachine {
     }
 
     public async onEnter(event: ChannelEvent): Promise<TransitionResult> {
-        this.logger.debug("Entering", this.name);
+        this.logger.debug("Entering", this.id);
         return this.enterFn ? this.enterFn(event) : undefined;
     }
 
     public async onExit(event: ChannelEvent): Promise<TransitionResult> {
-        this.logger.debug("Exiting", this.name);
+        this.logger.debug("Exiting", this.id);
         return this.exitFn ? this.exitFn(event) : undefined;
     }
 
     public async onEvent(event: ChannelEvent): Promise<TransitionResult> {
         // cascade up the hierarchy looking for a handler
         let current: IStateMachine = this as IStateMachine;
-        if (current && !current.handlesEvent(event.type)) {
-            current = this.parent;
+        while (current) {
+            if (current.handlesEvent(event.type)) break;
+            current = current.parent;
         }
         if (!current) return;
 
