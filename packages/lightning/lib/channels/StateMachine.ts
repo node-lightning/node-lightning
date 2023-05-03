@@ -85,8 +85,9 @@ export class StateMachine implements IStateMachine {
     public async onEvent(event: ChannelEvent): Promise<TransitionResult> {
         // cascade up the hierarchy looking for a handler
         let current: IStateMachine = this as IStateMachine;
-        if (current && !current.handlesEvent(event.type)) {
-            current = this.parent;
+        while (current) {
+            if (current.handlesEvent(event.type)) break;
+            current = current.parent;
         }
         if (!current) return;
 
