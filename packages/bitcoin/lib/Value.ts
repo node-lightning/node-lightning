@@ -11,7 +11,7 @@ export class Value implements ICloneable<Value> {
      * @param num
      */
     public static fromBitcoin(num: number): Value {
-        return Value.fromSats(Math.trunc(num * 1e8));
+        return Value.fromSats(Math.round(num * 1e8));
     }
 
     /**
