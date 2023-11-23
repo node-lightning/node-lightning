@@ -84,6 +84,13 @@ describe("decoder", () => {
         expect(result.valueMsat).to.equal("100000000000");
     });
 
+    it("should correctly decode a signet invoice", () => {
+        const input =
+            "lntbs2u1pj4ldacpp5dhmyntpu4ewq8n57uenm5l6ur4u3pm7wxa4vr0xjssfxgr7ttmcqdy2tddjyar90p6z7urvv95kug3vyfgxz7fqw3hjqmtpwf5jucmjxgerygja93djyar90p6z76tyv4h8g6txd9jhyg3vyfkkzunf9e3hyv3jxfq8gmtjwuhxy6tvw35x7m3wv3jhvgjat5cqzzsxqr23ssp5p65k37pvv3mlu5r6vgj48dv63p3l4ppwynpgjjc38v86w4x74kjq9qyyssqsylnp8z34zw8emch8q242ffxlnh5dn5ycjwmasu95mml8zakn48pmduv9dml2yzjf4hq6xrq6wpfl4wfmqqp5a3azekc0texy22qasqqae2ml0";
+        const result = sut.decode(input);
+        expect(result.network).to.equal("tbs");
+    });
+
     it("must skip f field with unknown version", () => {
         const input = "lnbc11pvjluezpp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqdq5xysxxatsyp3k7enxv4jsfqfndpjkcmr0vwkqhkwv54grmkq6r8w4tweqj3d44x66fx42uc6zufkw6ytdus4jxnyrwce5ryjv5hs23l4zcrl2u0vuzzs73eeyugr8gf85gcufgycpmplv60"; // prettier-ignore
         const result = sut.decode(input);
