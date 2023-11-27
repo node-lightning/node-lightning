@@ -210,7 +210,13 @@ function parsePrefix(prefix: string): { network: string; picoBtc: bigint } {
 }
 
 function isValidNetwork(network) {
-    return network === "bc" || network === "tb" || network === "bcrt" || network === "sb";
+    return (
+        network === "bc" ||
+        network === "tb" ||
+        network === "bcrt" ||
+        network === "sb" ||
+        network === "tbs"
+    );
 }
 
 function isValidValue(value) {
