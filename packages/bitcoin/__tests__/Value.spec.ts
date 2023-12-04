@@ -7,6 +7,7 @@ describe("Value", () => {
         expect(Value.fromBitcoin(0.12345678).bitcoin).to.equal(0.12345678);
         expect(Value.fromBitcoin(1).bitcoin).to.equal(1);
         expect(Value.fromBitcoin(1.23).bitcoin).to.equal(1.23);
+        expect(Value.fromBitcoin(20000000.00000008).bitcoin).to.equal(20000000.00000008);
     });
 
     it("#fromSats()", () => {
